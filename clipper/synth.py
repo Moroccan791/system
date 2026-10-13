@@ -10,6 +10,8 @@ Used by tests and by `python -m clipper samples`.
 from __future__ import annotations
 
 import subprocess
+import wave
+from pathlib import Path
 from typing import Sequence
 
 import cv2
@@ -64,8 +66,8 @@ def zoom_frame(base: np.ndarray, scale: float) -> np.ndarray:
 
 
 def write_video(path: str, frames, *, fps: int = 30,
-                audio_source: str | None = None, crf: int = 20,
-                preset: str = "veryfast") -> str:
+                audio_source: str | None = None, audio_path: str | None = None,
+                crf: int = 20, preset: str = "veryfast") -> str:
     """Encode BGR frames (list or generator, all the same size) into an mp4.
 
     Accepts a generator so long clips never have to be held in memory.
@@ -78,10 +80,12 @@ def write_video(path: str, frames, *, fps: int = 30,
     h, w = first.shape[:2]
     args = [ffmpeg_exe(), "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
             "-s", f"{w}x{h}", "-r", str(fps), "-i", "-"]
-    if audio_source:
+    if audio_path:
+        args += ["-i", audio_path, "-shortest"]
+    elif audio_source:
         args += ["-f", "lavfi", "-i", audio_source, "-shortest"]
     args += ["-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-pix_fmt", "yuv420p"]
-    args += ["-c:a", "aac", "-b:a", "128k"] if audio_source else ["-an"]
+    args += ["-c:a", "aac", "-b:a", "128k"] if (audio_source or audio_path) else ["-an"]
     args += ["-movflags", "+faststart", path]
     proc = subprocess.Popen(args, stdin=subprocess.PIPE)
     assert proc.stdin is not None
@@ -142,3 +146,97 @@ def render_cut_clip(path: str, *, shots: Sequence[float] = (2.0, 2.0, 2.0), fps:
     write_video(path, frames(), fps=fps, audio_source=audio_source)
     return {"path": path, "cuts": cut_times, "duration": t, "fps": fps,
             "shots": list(shots)}
+
+
+# ---------------------------------------------------------------------------
+# synthetic episode (for moment selection)
+# ---------------------------------------------------------------------------
+EPISODE_SEGMENTS: tuple[tuple[str, float], ...] = (
+    ("calm", 7.0),      # someone talking quietly through the setup
+    ("hot", 5.5),       # the bit worth clipping
+    ("calm", 8.0),
+    ("hot", 6.0),
+    ("calm", 6.5),
+    ("hot", 5.0),
+    ("calm", 6.0),
+)
+CALM_DBFS = -26.0
+HOT_DBFS = -11.0
+
+
+def episode_wav(path: str, segments=EPISODE_SEGMENTS, *, rate: int = 16000,
+                seed: int = 4, tone: float = 150.0) -> dict:
+    """Write the audio track of a synthetic episode.
+
+    "calm" stretches carry a quiet steady tone (people talking at a normal
+    level); "hot" stretches carry loud, modulated bursts separated by small
+    gaps - the shape a laugh, a shout or a round of applause makes on a
+    loudness curve. The bursts are the ground truth for moment selection.
+    """
+    rng = np.random.default_rng(seed)
+    chunks: list[np.ndarray] = []
+    hot_windows: list[tuple[float, float]] = []
+    t = 0.0
+    for kind, length in segments:
+        n = int(length * rate)
+        base = np.sin(2 * np.pi * tone * np.arange(n) / rate).astype(np.float32)
+        if kind == "calm":
+            # talking at a normal level: phrases with pauses between them, so the
+            # clip has real quiet moments (that is what a cut snaps to)
+            amp = 10 ** (CALM_DBFS / 20.0)
+            wobble = 1.0 + 0.25 * np.sin(2 * np.pi * 2.0 * np.arange(n) / rate)
+            piece = np.zeros(n, dtype=np.float32)
+            i = 0
+            while i < n:
+                phrase = min(n - i, int(rng.uniform(0.6, 1.6) * rate))
+                piece[i:i + phrase] = (base[i:i + phrase] * amp
+                                       * wobble[i:i + phrase])
+                i += phrase + int(rng.uniform(0.25, 0.6) * rate)
+            chunks.append(piece)
+        else:
+            amp = 10 ** (HOT_DBFS / 20.0)
+            # bursts of 0.5-1.1 s separated by 0.15-0.4 s of near silence
+            piece = np.zeros(n, dtype=np.float32)
+            i = 0
+            while i < n:
+                burst = min(n - i, int(rng.uniform(0.5, 1.1) * rate))
+                noise = rng.normal(0, 1, burst).astype(np.float32)
+                env = np.hanning(burst).astype(np.float32)
+                burst_audio = (0.7 * base[i:i + burst] + 0.5 * noise) * env
+                piece[i:i + burst] = burst_audio * amp
+                i += burst + int(rng.uniform(0.15, 0.4) * rate)
+            chunks.append(piece)
+            hot_windows.append((round(t, 3), round(t + length, 3)))
+        t += length
+    audio = np.concatenate(chunks)
+    pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2")
+    with wave.open(path, "wb") as fh:
+        fh.setnchannels(1)
+        fh.setsampwidth(2)
+        fh.setframerate(rate)
+        fh.writeframes(pcm.tobytes())
+    return {"path": path, "duration": round(t, 3), "hot_windows": hot_windows,
+            "segments": [(k, round(l, 3)) for k, l in segments]}
+
+
+def render_episode(path: str, *, segments=EPISODE_SEGMENTS, fps: int = 24,
+                   size: tuple[int, int] = (640, 360), seed: int = 21) -> dict:
+    """A long-ish clip with known loud stretches and known scene changes."""
+    w, h = size
+    wav = str(Path(path).with_suffix(".wav"))
+    info = episode_wav(wav, segments)
+    frames: list[np.ndarray] = []
+    for idx, (kind, length) in enumerate(segments):
+        base = textured_scene(w, h, seed=seed + idx)
+        n = int(round(length * fps))
+        for i in range(n):
+            # a little motion so the footage is not frozen, but no zoom: this
+            # clip tests *what to cut*, not how it is framed
+            shift = int(3 * np.sin(2 * np.pi * i / (fps * 3.0)))
+            frames.append(np.roll(base, shift, axis=1))
+    write_video(path, iter(frames), fps=fps, audio_path=wav, crf=24)
+    Path(wav).unlink(missing_ok=True)
+    info["path"] = path
+    info["fps"] = fps
+    info["size"] = list(size)
+    return info

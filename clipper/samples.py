@@ -23,7 +23,7 @@ from .captions.cues import group_words
 from .captions.render import subtitles_filter
 from .ffmpeg import ffmpeg_exe, probe
 from .synth import textured_scene, write_video, zoom_frame
-from .util import log
+from .util import jsonio, log
 
 # the style the demo reference is rendered with - what stage 1 should recover
 DEMO_STYLE = config.deep_merge(config.DEFAULT_STYLE, {
@@ -133,6 +133,58 @@ def _render_raw(path: Path, duration: float = 7.5) -> Path:
     return path
 
 
+# ---------------------------------------------------------------------------
+# a scripted "podcast" episode for stage 2
+# ---------------------------------------------------------------------------
+# Filler sits in the calm stretches; the hook sentences are placed inside the
+# loud stretches, which is how a real episode behaves: the bits people clip are
+# the bits where something happens *and* something is said.
+EPISODE_FILLER = (
+    "so anyway that is kind of how the week went",
+    "i was telling him about the usual stuff we do",
+    "and then we sort of moved on to the next thing",
+    "which is pretty much what i expected honestly",
+    "yeah so that was fine and we kept going",
+)
+EPISODE_HOOKS = (
+    "nobody tells you this but i lost ninety thousand dollars in three months",
+    "there are three reasons your ads fail and the first one is brutal",
+    "why do people ignore the best offer they will ever see ?",
+)
+EPISODE_SENTENCE_TARGET = 2.6      # seconds per scripted sentence
+
+
+def episode_transcript(info: dict) -> dict:
+    """Timed words for the synthetic episode, hot stretches included."""
+    words: list[dict] = []
+    filler_i = hook_i = 0
+    t = 0.0
+    for kind, length in info["segments"]:
+        text = (EPISODE_HOOKS[hook_i % len(EPISODE_HOOKS)] if kind == "hot"
+                else EPISODE_FILLER[filler_i % len(EPISODE_FILLER)])
+        if kind == "hot":
+            hook_i += 1
+        else:
+            filler_i += 1
+        tokens = text.split()
+        step = max(0.22, min(0.42, (length * 0.55) / max(1, len(tokens))))
+        clock = t + 0.35
+        for token in tokens:
+            words.append({"text": token, "start": round(clock, 3),
+                          "end": round(clock + step * 0.82, 3), "prob": 1.0,
+                          "kind": "word", "source": "fixture"})
+            clock += step
+        t += length
+    return {
+        "text": " ".join(w["text"] for w in words),
+        "language": "en",
+        "provider": "fixture",
+        "duration": round(info["duration"], 3),
+        "meta": {"note": "scripted transcript for the synthetic sample episode"},
+        "words": words,
+    }
+
+
 def make_demo_campaign(force: bool = False) -> Path:
     campaign = config.SAMPLES / "campaign_demo"
     refs = campaign / "references"
@@ -141,8 +193,10 @@ def make_demo_campaign(force: bool = False) -> Path:
     raw.mkdir(parents=True, exist_ok=True)
     ref_video = refs / "reference_01.mp4"
     raw_video = raw / "raw_01.mp4"
+    episode_video = raw / "episode_01.mp4"
+    episode_transcript_path = raw / "episode_01.transcript.json"
 
-    if not force and ref_video.exists() and raw_video.exists():
+    if not force and ref_video.exists() and raw_video.exists() and episode_video.exists():
         log.info("sample campaign already exists", path=str(campaign))
         return campaign
 
@@ -150,6 +204,12 @@ def make_demo_campaign(force: bool = False) -> Path:
     truth = build_demo_reference(ref_video)
     log.info("rendering sample raw stand-in", out=raw_video.name)
     _render_raw(raw_video)
+
+    log.info("rendering sample episode", out=episode_video.name)
+    from .synth import render_episode
+
+    episode = render_episode(str(episode_video))
+    jsonio.save(episode_transcript_path, episode_transcript(episode))
 
     (campaign / "README.md").write_text(
         "# campaign_demo (synthetic)\n\n"
@@ -162,12 +222,23 @@ def make_demo_campaign(force: bool = False) -> Path:
         f"  centred at cy={truth['cy']}, {truth['max_words_per_cue']} words per cue\n\n"
         "So `python -m clipper style campaign_demo` can be checked against the list above.\n\n"
         "`raw/raw_01.mp4` stands in for the creator's long-form upload (a tone: real\n"
-        "speech recognition needs real speech, so use a real file to test captions).\n",
+        "speech recognition needs real speech, so use a real file to test captions).\n\n"
+        "`raw/episode_01.mp4` is a longer stand-in with known hot spots, for stage 2:\n\n"
+        f"- {episode['duration']:.0f}s long, {len(episode['segments'])} segments\n"
+        f"- loud stretches (the moments worth clipping) at "
+        + ", ".join(f"{a:.1f}-{b:.1f}s" for a, b in episode["hot_windows"]) + "\n"
+        "- `raw/episode_01.transcript.json` is a scripted transcript with hook\n"
+        "  sentences placed inside those loud stretches, so `select` can be checked\n"
+        "  with and without a transcript (pass it with `--transcript`).\n\n"
+        "So `python -m clipper style campaign_demo` and `python -m clipper select\n"
+        "campaign_demo` can both be checked against the lists above.\n",
         encoding="utf-8")
 
-    for p in (ref_video, raw_video):
+    for p in (ref_video, raw_video, episode_video):
         info = probe(p)
         log.info("sample", file=p.name, size=f"{p.stat().st_size / 1024:.0f} KB",
                  res=f"{info.width}x{info.height}", dur=f"{info.duration:.1f}s")
     log.info("demo reference ground truth", **{k: v for k, v in truth.items() if k != "cuts"})
+    log.info("sample episode hot windows", windows=[
+        f"{a:.1f}-{b:.1f}s" for a, b in episode["hot_windows"]])
     return campaign

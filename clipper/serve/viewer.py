@@ -9,6 +9,7 @@ HTTP Range requests, which is what <video> seeking needs.
 from __future__ import annotations
 
 import html
+from urllib.parse import quote
 import mimetypes
 import os
 import re
@@ -17,9 +18,15 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 from .. import config
+from ..util import jsonio
 
 MEDIA = {".mp4", ".mov", ".mkv", ".webm", ".m4v"}
 AUDIO = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac", ".opus"}
+
+
+def fmt_time(seconds: float) -> str:
+    minutes = int(seconds // 60)
+    return f"{minutes}:{seconds - minutes * 60:04.1f}"
 
 
 def _human(n: float) -> str:
@@ -58,6 +65,48 @@ def _section(title: str, blurb: str, cards: list[str]) -> str:
             f'<div class="grid">{"".join(cards)}</div></section>')
 
 
+def _candidate_cards() -> tuple[list[str], str]:
+    """One seekable player per candidate moment, grouped by source file."""
+    rows: list[str] = []
+    count = 0
+    for payload_path in sorted(config.WORK.glob("*/candidates/*.json")):
+        try:
+            payload = jsonio.load(payload_path, {}) or {}
+        except Exception:
+            continue
+        source = Path(payload.get("source", {}).get("file", ""))
+        if not source.exists():
+            continue
+        try:
+            rel = quote(str(source.relative_to(config.ROOT)), safe="/")
+        except ValueError:
+            rel = None
+        if rel is None:
+            continue
+        group: list[str] = []
+        for c in payload.get("candidates", []):
+            count += 1
+            # a media fragment makes the browser play exactly the candidate
+            src = f"{rel}#t={c['start']:.2f},{c['end']:.2f}"
+            reasons = "".join(f"<li>{html.escape(str(r))}</li>" for r in c.get("reasons", [])[:3])
+            snippet = html.escape((c.get("text") or "")[:150])
+            group.append(
+                f'<figure class="card">'
+                f'<video src="{src}" controls preload="metadata"></video>'
+                f'<figcaption><b>{html.escape(str(c.get("id", "")))} '
+                f'{fmt_time(c["start"])}–{fmt_time(c["end"])}</b>'
+                f'<span>score {c["score"]:.2f} · {c["duration"]:.1f}s</span></figcaption>'
+                + (f'<p class="quote">{snippet}</p>' if snippet else "")
+                + (f'<ul class="why">{reasons}</ul>' if reasons else "")
+                + "</figure>")
+        if group:
+            head = (f'<h3 class="camp">{html.escape(source.name)}'
+                    f'<span>{html.escape(payload.get("mode", ""))} · '
+                    f'{html.escape(str(payload.get("target", {}).get("platform", "")))}</span></h3>')
+            rows.append(head + f'<div class="grid">{"".join(group)}</div>')
+    return rows, f"{count} candidate moment(s) chosen from your raw footage"
+
+
 def build_index(root: Path) -> str:
     campaigns_html: list[str] = []
     for campaign_dir in sorted([*_subdirs(config.CAMPAIGNS), *_subdirs(config.SAMPLES)]):
@@ -79,6 +128,7 @@ def build_index(root: Path) -> str:
     work = [_card(p, root) for p in sorted(config.WORK.rglob("*"))
             if p.is_file() and p.suffix.lower() in {".mp4", ".json", ".ass", ".png", ".wav"}] if config.WORK.exists() else []
 
+    candidates, candidates_blurb = _candidate_cards()
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <title>clipper · workspace</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -103,11 +153,14 @@ def build_index(root: Path) -> str:
  audio {{ width:100%; }}
  a.link {{ color:#7cc4ff; font-size:13px; }}
  .empty {{ color:#6f7484; font-size:14px; }}
+ .quote {{ color:#c9cdd8; font-size:12.5px; margin:8px 0 0; font-style:italic; }}
+ ul.why {{ margin:6px 0 0; padding-left:16px; color:#8b90a0; font-size:12px; }}
 </style></head><body>
 <header><h1>clipper · workspace</h1>
 <span>{html.escape(str(root))}</span></header>
 <main>
 {''.join(campaigns_html) or '<p class="empty">No campaigns found. Put a folder in campaigns/&lt;name&gt;/references and /raw, or run <code>python -m clipper samples</code>.</p>'}
+{_section("Candidate moments", candidates_blurb, candidates)}
 {_section("Style profiles", "extracted from your references (stage 1 output)", styles)}
 {_section("Finished clips", "ready to upload to TikTok / Reels / Shorts", outputs)}
 {_section("Work files", "intermediates: transcripts, cues, .ass subtitles", work)}

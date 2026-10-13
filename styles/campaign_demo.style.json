@@ -6,7 +6,7 @@
       "reference_01.mp4"
     ],
     "notes": "font family cannot be identified from pixels - keeping the default; set captions.font_family by hand if the campaign uses a specific font; font size carries about +/-32% uncertainty: the font face cannot be identified from pixels, so the size is right for the rendering default (Montserrat) and off if the campaign uses a much wider/taller face",
-    "extracted_at": "2026-10-13T17:09:46",
+    "extracted_at": "2026-10-13T17:48:37",
     "sample": {
       "fps": 6.0,
       "width": 480

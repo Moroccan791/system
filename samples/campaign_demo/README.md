@@ -13,3 +13,14 @@ So `python -m clipper style campaign_demo` can be checked against the list above
 
 `raw/raw_01.mp4` stands in for the creator's long-form upload (a tone: real
 speech recognition needs real speech, so use a real file to test captions).
+
+`raw/episode_01.mp4` is a longer stand-in with known hot spots, for stage 2:
+
+- 44s long, 7 segments
+- loud stretches (the moments worth clipping) at 7.0-12.5s, 20.5-26.5s, 33.0-38.0s
+- `raw/episode_01.transcript.json` is a scripted transcript with hook
+  sentences placed inside those loud stretches, so `select` can be checked
+  with and without a transcript (pass it with `--transcript`).
+
+So `python -m clipper style campaign_demo` and `python -m clipper select
+campaign_demo` can both be checked against the lists above.

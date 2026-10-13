@@ -23,7 +23,7 @@ Everything runs locally, offline, with free/open-source tools (Python + FFmpeg).
 |---|-------|-------|
 | 0 | `scan` — probe a campaign into `work/<name>/manifest.json` | done |
 | 1 | `style` — learn the style from `/references` → `styles/<name>.style.json` | **done** |
-| 2 | moment selection from raw (speech energy, hooks, laughs, topic turns) | planned |
+| 2 | `select` — find the moments worth clipping in raw → `work/<name>/candidates/` | **done** |
 | 3 | `captions` — word-level ASR, styled captions, 9:16 burn-in | **done** |
 | 4 | edit assembly (cuts, zooms, transitions to profile) | planned |
 | 5 | `export` — platform presets | planned (presets exist, used by stage 3 already) |
@@ -57,6 +57,7 @@ python -m clipper doctor
 python -m clipper samples
 python -m clipper scan
 python -m clipper style campaign_demo      # learn the campaign style
+python -m clipper select campaign_demo     # find the moments worth clipping
 
 # 2. open the workspace viewer (watch footage, styles and results)
 python -m clipper serve            # http://localhost:8000
@@ -120,6 +121,67 @@ face. Everything else is measured.
   produce low `confidence` rather than a confident wrong answer — check
   `work/<campaign>/style/evidence/*.png`, which are annotated frames of what the
   extractor actually saw.
+
+---
+
+## Stage 2 — moment selection (ready)
+
+Finds the parts of a long recording that are worth cutting out, and says why.
+
+```bash
+python -m clipper select campaign_demo                 # every raw file in the campaign
+python -m clipper select campaign_demo --top 8          # more candidates
+python -m clipper select campaign_demo --min 20 --max 60
+python -m clipper select raw/episode.mp4 --transcript work/episode/transcript.json
+```
+
+Options: `--platform` (sets the target clip length: tiktok 15-45 s, reels/shorts
+15-60 s), `--min` / `--max` to override it, `--top` per file, `--transcript` to
+point at a `transcript.json` (stage 3 writes them; the campaign folder, a
+sidecar `<file>.transcript.json`, and `work/<file>/transcript.json` are found
+automatically).
+
+Output: `work/<campaign>/candidates/<file>.json` plus a readable
+`<file>.report.md`, and the same moments appear as **seekable players** in the
+workspace viewer (`python -m clipper serve`), so you can skim what it picked
+before committing to an edit.
+
+### How it decides
+
+```
+audio ──▶ RMS envelope ──▶ loud stretches            ┐
+transcript ──▶ sentences ──▶ hook score              ├──▶ grow into clip-sized
+                              (questions, numbers,   │    windows, one moment
+                               stakes, contradiction)│    each, snapped to pauses
+```
+
+* **Loud stretches** are relative to the clip's own baseline, not a fixed
+  threshold, so this works on both quiet and loud recordings. Bursts separated
+  by short gaps (a laugh, applause) are merged into one moment.
+* **Hook scoring** is a small, readable rule set: questions, statistics, money,
+  list promises ("three reasons…"), contrarian claims ("nobody tells you"),
+  stakes ("I lost…"), emotion words, second-person address. Filler ("you know",
+  "kind of", "I mean") is penalised. Every rule that fires is reported as a
+  reason, so the output can be checked line by line.
+* **Growing a window** starts from the best sentence (or the loudest stretch
+  when there is no transcript) and walks outwards until the clip is long enough.
+  Two rules keep it honest: a window never swallows a *different* moment, and two
+  moments a few seconds apart produce two clips - the weaker one is trimmed
+  towards its own moment rather than thrown away.
+* **Edges snap to pauses** so a clip does not start or end mid-word.
+
+### Honest limits
+
+* With no transcript this is audio-only: it finds reactions and loud moments,
+  but it cannot tell a punchline from a cough. Run stage 3 first
+  (`python -m clipper transcribe FILE`) and pass the transcript for the text
+  path.
+* Hook detection reads *wording*, not meaning: a sentence that is interesting but
+  plainly worded scores low. It is a ranking aid, not an editor.
+* The demo episode in `samples/campaign_demo/raw/` exists so you can check it
+  without real footage: loud stretches at 7.0-12.5 s, 20.5-26.5 s and 33.0-38.0 s,
+  with a scripted transcript that puts a hook inside each one. The extractor
+  finds all three, with and without the transcript.
 
 ---
 
@@ -217,8 +279,11 @@ clipper/
 ├── ffmpeg.py         process/probe/decode/encode wrapper (Windows-safe)
 ├── asr/              swappable speech-to-text: moonshine, faster_whisper, fixture
 ├── align/            silero VAD + energy alignment (word timings from plain text)
-├── captions/         cues → .ass → burned-in video (stages 3)
+├── captions/         cues → .ass → burned-in video (stage 3)
 ├── ingest/           campaign scanning (stage 0)
+├── select/           moment selection: energy, hooks, window growth (stage 2)
+├── style/            style extraction from references (stage 1)
+├── synth.py          synthetic footage with known ground truth (tests, samples)
 ├── serve/            local viewer for footage, styles and exports
 └── util/             json, logging, timecode helpers
 assets/fonts/         Montserrat (OFL) so rendering is identical everywhere
@@ -230,12 +295,15 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 45 tests, ~50 s
+python -m pytest              # 104 tests, ~85 s
 python -m pytest -m integration
 ```
 
-The caption tests do not trust the code: they render a clip and inspect the
-**pixels** for white glyphs, black outline and karaoke highlight colour.
+The tests do not trust the code. Caption tests render a clip and inspect the
+**pixels** for white glyphs, black outline and karaoke highlight colour. Style
+tests recover values that were chosen before rendering: cuts at 2.0 s and 4.0 s,
+a 1.13x punch-in, a 104 px font. Selection tests use an episode whose loud
+stretches and hook sentences sit at known times.
 
 ## Configuration
 

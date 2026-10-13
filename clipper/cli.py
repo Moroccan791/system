@@ -270,6 +270,16 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
     s.set_defaults(func=cmd_captions)
 
+    s = sub.add_parser("select", help="stage 2: find the moments worth clipping")
+    s.add_argument("target", help="campaign name (or path to a campaign folder / a video file)")
+    s.add_argument("--file", default=None, help="only this file inside the campaign")
+    s.add_argument("--transcript", default=None, help="transcript json (default: auto-discover)")
+    s.add_argument("--platform", default=config.DEFAULT_PLATFORM, choices=sorted(config.PLATFORMS))
+    s.add_argument("--min", dest="min_seconds", type=float, default=None, help="shortest clip")
+    s.add_argument("--max", dest="max_seconds", type=float, default=None, help="longest clip")
+    s.add_argument("--top", type=int, default=5, help="candidates per file")
+    s.set_defaults(func=cmd_select)
+
     s = sub.add_parser("style", help="stage 1: learn a campaign style from /references")
     s.add_argument("campaign", nargs="?", help="campaign folder (omit to do all)")
     s.add_argument("--fps", type=float, default=None, help="analysis sampling rate (default 6)")
@@ -287,6 +297,43 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--force", action="store_true")
     s.set_defaults(func=cmd_samples)
     return p
+
+
+def cmd_select(args: argparse.Namespace) -> int:
+    from .select import pipeline
+
+    target = Path(args.target)
+    results: list[dict] = []
+    if target.is_file():
+        log.step("select", file=target.name)
+        results = [pipeline.select_candidates(
+            target, transcript=args.transcript, platform=args.platform,
+            min_seconds=args.min_seconds, max_seconds=args.max_seconds, top=args.top,
+            campaign=args.campaign_name)]
+    else:
+        results = pipeline.select_campaign(
+            args.target, transcript=args.transcript, platform=args.platform,
+            min_seconds=args.min_seconds, max_seconds=args.max_seconds, top=args.top)
+
+    print()
+    for payload in results:
+        src = payload["source"]
+        print(f"{src['name']}  ({src['duration']:.1f}s, mode {payload['mode']}, "
+              f"{len(payload['analysis']['hot_spots'])} loud stretch(es))")
+        if not payload["candidates"]:
+            print("  no candidates - try --min/--max or a transcript")
+            continue
+        for c in payload["candidates"]:
+            stamp = f"{pipeline.fmt_time(c['start'])}-{pipeline.fmt_time(c['end'])}"
+            print(f"  {c['id']}  {stamp:>13}  {c['duration']:5.1f}s  score {c['score']:.2f}")
+            if c.get("text"):
+                text = c["text"]
+                print(f"        \"{text[:88]}{'...' if len(text) > 88 else ''}\"")
+            for reason in c.get("reasons", [])[:3]:
+                print(f"        · {reason}")
+        if payload.get("written"):
+            print(f"        written: {payload['written']}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
