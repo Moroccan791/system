@@ -28,6 +28,7 @@ Everything runs locally, offline, with free/open-source tools (Python + FFmpeg).
 | 4 | `edit` — cut the chosen moments to the profile's rhythm and camera | **done** |
 | 5 | `export` — platform presets | planned (presets exist, used by stage 3 already) |
 | — | `rules` — the campaign brief as data (length, banned topics, hook window) | **done** |
+| — | `drop` — collect footage pushed to a git branch when an upload does not land | **done** |
 
 `FEATURES.md` is the menu: everything that exists, and everything that could be
 added next, numbered so you can just ask for *"C2 and V4"*.
@@ -50,6 +51,40 @@ Check everything:
 ```bash
 python -m clipper doctor
 ```
+
+---
+
+## Getting footage in
+
+Normally you show me the files and they land in `campaigns/<campaign>/`. When that
+channel does not work, GitHub does — push the files to a branch of this repo and
+pull them down:
+
+```bash
+python -m clipper drop michael_sartain --how                    # what to do, printed
+python -m clipper drop michael_sartain --branch footage         # after the push
+python -m clipper drop michael_sartain --branch footage --dry-run   # just look
+```
+
+`drop` fetches that one branch, pulls the media out of it, sorts each file by
+what its name says (`Shorts` download → `references/`, plain `YouTube` download →
+`raw/`) and by length when the name is no help, then files it under the campaign
+with its original name. Nothing is merged and the branch you work on is not
+touched. Re-running it is safe: a file that is already there with the same size is
+left alone, a same-named file with a different size is skipped and reported rather
+than clobbered (`--overwrite` if you meant it), and `--into references|raw` forces
+the folder when the guess is wrong.
+
+```text
+fetching origin/footage ...
+
+  YTDown.com_YouTube_Media_XrdXKjTOQBg_Women-Are-Shock    3.6 MB   8:41  -> raw/  [copied] the name says 'youtube'
+  4 file(s) copied into /home/user/system/campaigns/michael_sartain
+
+next:  python -m clipper scan michael_sartain
+```
+
+Then it is the normal flow: `scan` → `style` → `select` → `edit` → `captions`.
 
 ---
 
@@ -468,7 +503,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 197 tests, ~100 s
+python -m pytest              # 211 tests, ~100 s
 python -m pytest -m integration
 ```
 
@@ -482,7 +517,9 @@ and check a dissolve really dissolves (no single frame carries the change, and a
 dip to black really reaches black), plus plans that must stay contiguous,
 deterministic and inside the footage. The viewer tests run the real HTTP handler on
 a real socket, because a `HEAD` that 501s or a `Range` that restarts from zero is
-what makes a video preview look broken.
+what makes a video preview look broken. The `drop` tests build a real git repo,
+commit files on a branch and fetch them through the same code path the command
+uses, so the fallback cannot rot.
 
 ## Configuration
 

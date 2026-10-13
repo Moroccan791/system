@@ -16,7 +16,7 @@ here has followed so far.
 ## 1. What you have right now
 
 Everything below runs in this sandbox: CPU only, no accounts, no paid tools,
-FFmpeg 7.0.2 with libass. 197 tests cover it (`python -m pytest`).
+FFmpeg 7.0.2 with libass. 211 tests cover it (`python -m pytest`).
 
 ### Stage 0 — look at a campaign
 ```bash
@@ -24,6 +24,19 @@ python -m clipper scan <campaign>          # probe every file into work/<name>/m
 python -m clipper doctor                   # check ffmpeg, fonts, models, folders
 python -m clipper samples                  # build the synthetic demo campaign
 ```
+
+### Getting the footage in when the chat upload does not land
+```bash
+python -m clipper drop <campaign> --how                      # print instructions
+python -m clipper drop <campaign> --branch footage           # pull them down
+python -m clipper drop <campaign> --branch footage --dry-run # just look
+python -m clipper drop <campaign> --branch footage --into raw --overwrite
+```
+Fetches one branch of this repo, pulls the media out of it, sorts it into
+`references/` and `raw/` (by filename hint, then by length) and copies it into the
+campaign. Idempotent, never clobbers a differently-sized file, never merges.
+It exists because GitHub is reachable from both sides of the sandbox and a chat
+upload is not always.
 
 ### Stage 1 — learn the style from your reference clips
 ```bash

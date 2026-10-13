@@ -332,6 +332,17 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--no-evidence", action="store_true", help="skip annotated evidence frames")
     s.set_defaults(func=cmd_style)
 
+    s = sub.add_parser("drop", help="stage 0: collect footage pushed to a git branch")
+    s.add_argument("campaign", nargs="?", help="campaign folder (campaigns/<name>)")
+    s.add_argument("--branch", default="footage", help="branch the files were pushed to")
+    s.add_argument("--remote", default="origin", help="git remote to fetch from")
+    s.add_argument("--into", choices=("references", "raw"),
+                   help="force every file into one folder instead of guessing")
+    s.add_argument("--overwrite", action="store_true", help="replace same-named files")
+    s.add_argument("--dry-run", action="store_true", help="say what would happen")
+    s.add_argument("--how", action="store_true", help="just print how to send files")
+    s.set_defaults(func=cmd_drop)
+
     s = sub.add_parser("serve", help="browse footage, styles and finished clips")
     s.add_argument("--port", type=int, default=8000)
     s.add_argument("--host", default="0.0.0.0")
@@ -489,6 +500,60 @@ def cmd_blends(args: argparse.Namespace) -> int:
     render_sampler(out, blends=blends, seconds=args.seconds, size=size,
                    source=args.source, pair=pair, label=not args.no_label)
     print(f"\nopen {out} in the viewer (python -m clipper serve), or play it directly")
+    return 0
+
+
+def cmd_drop(args: argparse.Namespace) -> int:
+    """Collect footage pushed to a git branch (when an upload never lands)."""
+    from .ingest import drop as dropper
+
+    campaign_dir = None
+    if args.campaign:
+        campaign_dir = Path(args.campaign)
+        if not campaign_dir.is_absolute() and not campaign_dir.exists():
+            campaign_dir = config.CAMPAIGNS / args.campaign
+    slug = dropper.remote_slug(config.ROOT, args.remote) or "your repository"
+    how = dropper.HOW_TO_SEND.format(slug=slug, branch=args.branch,
+                                     campaign=args.campaign or "<campaign>")
+    if args.how:
+        print(how)
+        return 0
+
+    if not dropper.branch_exists(config.ROOT, args.branch, args.remote):
+        print(how)
+        log.error(f"no branch {args.remote}/{args.branch} yet",
+                  hint="push the files, then run this again")
+        return 2
+
+    print(f"fetching {args.remote}/{args.branch} ...")
+    with dropper.fetched_files(config.ROOT, args.branch, args.remote) as files:
+        if not files:
+            log.warn(f"{args.remote}/{args.branch} has no media files in it",
+                     looked_for=", ".join(sorted(config.MEDIA_EXT)))
+            return 1
+        planned = dropper.plan_moves(files, campaign_dir, into=args.into,
+                                     overwrite=args.overwrite)
+        done = dropper.copy_planned(planned, dry_run=args.dry_run)
+    print()
+    for item in done:
+        stamp = f"{int(item['duration'] // 60)}:{int(item['duration'] % 60):02d}" if item["duration"] else "?"
+        size = item["bytes"] / 1048576
+        moved = {"copy": "would copy" if args.dry_run else "copied",
+                 "already there": "kept", "name taken": "SKIPPED"}[item["action"]]
+        print(f"  {item['source'].name[:52]:<52} {size:6.1f} MB  {stamp:>5}  "
+              f"-> {item['folder']}/  [{moved}] {item['why']}")
+    copied = sum(1 for i in done if i["action"] == "copy")
+    print()
+    if args.dry_run:
+        print(f"dry run: {copied} file(s) would be copied into {campaign_dir}")
+    else:
+        print(f"{copied} file(s) copied into {campaign_dir}")
+    for item in done:
+        if item["action"] == "name taken":
+            log.warn("same name, different size - kept the one already there",
+                     file=item["dest"].name, hint="delete it or pass --overwrite")
+    print(f"\nnext:  python -m clipper scan {args.campaign}\n"
+          f"       python -m clipper style {args.campaign}")
     return 0
 
 
