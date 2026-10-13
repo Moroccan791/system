@@ -215,6 +215,10 @@ def _subdirs(base: Path) -> list[Path]:
 class ViewerHandler(BaseHTTPRequestHandler):
     root: Path = config.ROOT
     server_version = "clipper-viewer/0.1"
+    # 1.1 so browsers and preview proxies can reuse one connection across the
+    # dozens of players on the page; every route sets Content-Length, which is
+    # what keep-alive needs to be safe
+    protocol_version = "HTTP/1.1"
 
     def log_message(self, fmt: str, *args) -> None:  # quieter console
         if os.environ.get("CLIPPER_VIEWER_VERBOSE"):
@@ -231,35 +235,68 @@ class ViewerHandler(BaseHTTPRequestHandler):
         return target if target.exists() and target.is_file() else None
 
     def _send_file(self, path: Path) -> None:
-        data = path.read_bytes()
+        """Serve a file, honouring Range, and never hold it in memory.
+
+        Raw footage is gigabytes and this box has 3 GB of RAM, so a whole-file
+        read is a hanging preview waiting to happen: it streams in chunks.
+        HTTP Range is what <video> seeking needs; suffix ranges (`bytes=-500`)
+        are used by some players to grab the tail for metadata.
+        """
+        size = path.stat().st_size
         ctype = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-        rng = self.headers.get("Range")
-        if rng:
-            m = re.match(r"bytes=(\d*)-(\d*)", rng.strip())
-            if m:
-                start = int(m.group(1)) if m.group(1) else 0
-                end = int(m.group(2)) if m.group(2) else len(data) - 1
-                start = max(0, min(start, len(data) - 1))
-                end = max(start, min(end, len(data) - 1))
-                chunk = data[start:end + 1]
-                self.send_response(206)
-                self.send_header("Content-Type", ctype)
-                self.send_header("Accept-Ranges", "bytes")
-                self.send_header("Content-Range", f"bytes {start}-{end}/{len(data)}")
-                self.send_header("Content-Length", str(len(chunk)))
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
-                self.wfile.write(chunk)
-                return
-        self.send_response(200)
+        start, end, partial = 0, max(0, size - 1), False
+        match = re.match(r"bytes=(\d*)-(\d*)", (self.headers.get("Range") or "").strip())
+        if size and match and (match.group(1) or match.group(2)):
+            if match.group(1):
+                start = int(match.group(1))
+                end = int(match.group(2)) if match.group(2) else size - 1
+            else:                                   # "last N bytes"
+                start = max(0, size - int(match.group(2)))
+            start = max(0, min(start, size - 1))
+            end = max(start, min(end, size - 1))
+            partial = True
+        length = (end - start + 1) if size else 0
+        self.send_response(206 if partial else 200)
         self.send_header("Content-Type", ctype)
-        self.send_header("Content-Length", str(len(data)))
         self.send_header("Accept-Ranges", "bytes")
+        if partial:
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Content-Length", str(length))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(data)
+        if getattr(self, "_headers_only", False) or not length:
+            return
+        with path.open("rb") as handle:
+            handle.seek(start)
+            remaining = length
+            try:
+                while remaining > 0:
+                    chunk = handle.read(min(256 * 1024, remaining))
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+                    remaining -= len(chunk)
+            except (BrokenPipeError, ConnectionResetError):
+                # a player that seeks or closes mid-stream is normal, not an error
+                self.close_connection = True
 
     # -- routes ----------------------------------------------------------
+    def do_HEAD(self) -> None:  # noqa: N802 - http.server's naming
+        """Same routes, headers only.
+
+        Preview proxies and video players ask HEAD before GET; without it every
+        probe gets a 501 and the preview looks broken even though GET is fine.
+        """
+        self._headers_only = True
+        try:
+            self.do_GET()
+        finally:
+            self._headers_only = False
+
+    def _write(self, payload: bytes) -> None:
+        if not getattr(self, "_headers_only", False):
+            self.wfile.write(payload)
+
     def do_GET(self) -> None:  # noqa: N802
         route = urlparse(self.path)
         if route.path in ("/", "/index.html"):
@@ -268,7 +305,7 @@ class ViewerHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
-            self.wfile.write(body)
+            self._write(body)
             return
         if route.path.startswith("/media/"):
             target = self._resolve(route.path[len("/media/"):])
@@ -281,7 +318,7 @@ class ViewerHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/plain")
             self.end_headers()
-            self.wfile.write(b"ok")
+            self._write(b"ok")
             return
         self.send_error(404, "not found")
 

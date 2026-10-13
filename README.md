@@ -397,7 +397,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 161 tests, ~95 s
+python -m pytest              # 167 tests, ~95 s
 python -m pytest -m integration
 ```
 
@@ -409,7 +409,9 @@ stretches and hook sentences sit at known times. Edit tests render a clip and
 **measure the camera in the output pixels** (`estimate_scale` over decoded frames)
 and check a dissolve really dissolves (no single frame carries the change, and a
 dip to black really reaches black), plus plans that must stay contiguous,
-deterministic and inside the footage.
+deterministic and inside the footage. The viewer tests run the real HTTP handler on
+a real socket, because a `HEAD` that 501s or a `Range` that restarts from zero is
+what makes a video preview look broken.
 
 ## Configuration
 

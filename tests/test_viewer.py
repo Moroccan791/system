@@ -70,3 +70,88 @@ def test_viewer_handles_an_empty_workspace(tmp_path, monkeypatch):
         monkeypatch.setattr(viewer.config, attr, root / attr.lower())
     page = viewer.build_index(root)
     assert "No campaigns found" in page
+
+
+# ---------------------------------------------------------------------------
+# the HTTP side: preview proxies and <video> probe with HEAD and Range
+# ---------------------------------------------------------------------------
+@pytest.fixture
+def live(workspace):
+    """The real handler on a real socket - the only way to test the wire."""
+    from http.server import ThreadingHTTPServer
+    import threading
+
+    handler = type("BoundViewer", (viewer.ViewerHandler,), {"root": workspace})
+    httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{httpd.server_address[1]}"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+
+
+def _request(url, method="GET", headers=None):
+    import urllib.request
+
+    req = urllib.request.Request(url, method=method, headers=headers or {})
+    with urllib.request.urlopen(req, timeout=10) as response:
+        return response.status, dict(response.headers), response.read()
+
+
+def test_responses_are_http_1_1_so_players_can_reuse_the_connection(live):
+    status, headers, _ = _request(f"{live}/health")
+    assert status == 200
+    assert headers["Server"].startswith("clipper-viewer")
+
+
+def test_head_requests_are_answered(live):
+    """A 501 here is what makes a preview look dead: HEAD is how it is probed."""
+    status, headers, body = _request(f"{live}/", method="HEAD")
+    assert status == 200
+    assert int(headers["Content-Length"]) > 0
+    assert body == b""
+    status, _, body = _request(f"{live}/health", method="HEAD")
+    assert status == 200 and body == b""
+
+
+def test_head_on_a_video_reports_its_size_without_sending_it(live, workspace):
+    clip = workspace / "work" / "demo" / "edits" / "talk_01.mp4"
+    status, headers, body = _request(f"{live}/media/work/demo/edits/talk_01.mp4", method="HEAD")
+    assert status == 200
+    assert body == b""
+    assert int(headers["Content-Length"]) == clip.stat().st_size
+    assert headers["Accept-Ranges"] == "bytes"
+    assert headers["Content-Type"] == "video/mp4"
+
+
+def test_range_requests_serve_exactly_the_bytes_asked_for(live, workspace):
+    """Seeking in <video> is Range requests; without 206 it restarts from zero."""
+    clip = workspace / "work" / "demo" / "edits" / "talk_01.mp4"
+    raw = clip.read_bytes()
+    status, headers, body = _request(
+        f"{live}/media/work/demo/edits/talk_01.mp4", headers={"Range": "bytes=100-199"})
+    assert status == 206
+    assert headers["Content-Range"] == f"bytes 100-199/{len(raw)}"
+    assert body == raw[100:200]
+    # players also ask for the tail ("bytes=-N") to read metadata
+    status, headers, body = _request(
+        f"{live}/media/work/demo/edits/talk_01.mp4", headers={"Range": "bytes=-50"})
+    assert status == 206 and len(body) == 50 and body == raw[-50:]
+
+
+def test_whole_file_downloads_match_the_file_on_disk(live, workspace):
+    clip = workspace / "work" / "demo" / "edits" / "talk_01.mp4"
+    status, _, body = _request(f"{live}/media/work/demo/edits/talk_01.mp4")
+    assert status == 200
+    assert body == clip.read_bytes()
+
+
+def test_missing_files_are_404_for_both_methods(live):
+    import urllib.error
+
+    for method in ("GET", "HEAD"):
+        with pytest.raises(urllib.error.HTTPError) as excinfo:
+            _request(f"{live}/media/nope.mp4", method=method)
+        assert excinfo.value.code == 404
