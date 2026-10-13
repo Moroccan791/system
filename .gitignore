@@ -1,0 +1,12 @@
+﻿# Video & Media assets (local only - never committed to GitHub)
+campaigns/**/references/*
+!campaigns/**/references/.gitkeep
+campaigns/**/raw/*
+!campaigns/**/raw/.gitkeep
+
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+*.zip
