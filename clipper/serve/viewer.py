@@ -107,6 +107,39 @@ def _candidate_cards() -> tuple[list[str], str]:
     return rows, f"{count} candidate moment(s) chosen from your raw footage"
 
 
+def _edit_cards() -> tuple[list[str], str]:
+    """Stage 4 output: assembled clips, with the plan's shape on the card."""
+    cards: list[str] = []
+    for clip in sorted(config.WORK.glob("*/edits/*.mp4")):
+        plan_path = clip.with_name(clip.stem + ".plan.json")
+        plan = jsonio.load(plan_path, {}) or {} if plan_path.exists() else {}
+        try:
+            rel = clip.relative_to(config.ROOT).as_posix()
+        except ValueError:
+            continue
+        info = plan.get("clip", {})
+        style = plan.get("style", {})
+        target = plan.get("target", {})
+        shots = plan.get("shots", [])
+        lengths = " ".join(f"{s['duration']:.2f}s" for s in shots)
+        detail = " · ".join(str(x) for x in (
+            style.get("zoom"), style.get("transition"),
+            f"{target.get('width')}x{target.get('height')}" if target.get("width") else None,
+            target.get("platform")) if x)
+        card = (f'<figure class="card">'
+                f'<video controls preload="metadata" src="/media/{html.escape(rel)}"></video>'
+                f'<figcaption><b>{html.escape(str(info.get("id", clip.stem)))} · '
+                f'{float(info.get("duration") or 0):.1f}s · {len(shots)} shots</b>'
+                f'<span>{html.escape(detail)}</span></figcaption>'
+                + (f'<p class="quote">shots {html.escape(lengths)}</p>' if lengths else "")
+                + (f'<a class="link" href="/media/{html.escape(rel.rsplit(".", 1)[0])}.plan.json" '
+                   f'target="_blank">open plan json</a>' if plan else "")
+                + "</figure>")
+        cards.append(card)
+    return cards, (f"{len(cards)} clip(s) assembled from the chosen moments - "
+                   f"cut and zoomed, captions go on in stage 5")
+
+
 def build_index(root: Path) -> str:
     campaigns_html: list[str] = []
     for campaign_dir in sorted([*_subdirs(config.CAMPAIGNS), *_subdirs(config.SAMPLES)]):
@@ -126,9 +159,11 @@ def build_index(root: Path) -> str:
     styles = [_card(p, root) for p in sorted(config.STYLES.glob("*.json"))] if config.STYLES.exists() else []
     outputs = [_card(p, root) for p in sorted(config.OUTPUT.rglob("*")) if p.is_file()] if config.OUTPUT.exists() else []
     work = [_card(p, root) for p in sorted(config.WORK.rglob("*"))
-            if p.is_file() and p.suffix.lower() in {".mp4", ".json", ".ass", ".png", ".wav"}] if config.WORK.exists() else []
+            if p.is_file() and "edits" not in p.parts
+            and p.suffix.lower() in {".mp4", ".json", ".ass", ".png", ".wav"}] if config.WORK.exists() else []
 
     candidates, candidates_blurb = _candidate_cards()
+    edits, edits_blurb = _edit_cards()
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <title>clipper · workspace</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -160,6 +195,7 @@ def build_index(root: Path) -> str:
 <span>{html.escape(str(root))}</span></header>
 <main>
 {''.join(campaigns_html) or '<p class="empty">No campaigns found. Put a folder in campaigns/&lt;name&gt;/references and /raw, or run <code>python -m clipper samples</code>.</p>'}
+{_section("Assembled clips", edits_blurb, edits)}
 {_section("Candidate moments", candidates_blurb, candidates)}
 {_section("Style profiles", "extracted from your references (stage 1 output)", styles)}
 {_section("Finished clips", "ready to upload to TikTok / Reels / Shorts", outputs)}

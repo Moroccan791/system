@@ -25,7 +25,7 @@ Everything runs locally, offline, with free/open-source tools (Python + FFmpeg).
 | 1 | `style` — learn the style from `/references` → `styles/<name>.style.json` | **done** |
 | 2 | `select` — find the moments worth clipping in raw → `work/<name>/candidates/` | **done** |
 | 3 | `captions` — word-level ASR, styled captions, 9:16 burn-in | **done** |
-| 4 | edit assembly (cuts, zooms, transitions to profile) | planned |
+| 4 | `edit` — cut the chosen moments to the profile's rhythm and camera | **done** |
 | 5 | `export` — platform presets | planned (presets exist, used by stage 3 already) |
 
 ---
@@ -58,6 +58,7 @@ python -m clipper samples
 python -m clipper scan
 python -m clipper style campaign_demo      # learn the campaign style
 python -m clipper select campaign_demo     # find the moments worth clipping
+python -m clipper edit campaign_demo       # cut and zoom them into 9:16 clips
 
 # 2. open the workspace viewer (watch footage, styles and results)
 python -m clipper serve            # http://localhost:8000
@@ -239,6 +240,83 @@ real file in `campaigns/<name>/raw/`)
 
 ---
 
+## Stage 4 — edit assembly (ready)
+
+Turns the moments stage 2 picked into finished 9:16 cuts whose rhythm and camera
+work come from the style profile.
+
+```bash
+python -m clipper edit campaign_demo                    # every raw file, top candidate
+python -m clipper edit campaign_demo --top 3 --platform reels
+python -m clipper edit campaign_demo --ids "#01,#03"     # only these candidates
+python -m clipper edit campaign_demo --shot-len 1.4      # override the profile's pacing
+python -m clipper edit campaign_demo --focus top         # bias the 9:16 crop upwards
+python -m clipper edit campaign_demo --plan-only         # write plans, encode nothing
+```
+
+| Option | Default | What it does |
+|--------|---------|--------------|
+| `--top N` | `1` | how many candidates per raw file to assemble |
+| `--ids "#01,#02"` | all of `--top` | assemble exactly these candidate ids |
+| `--shot-len SECONDS` | from style (`pacing.avg_shot_len`) | average length of a shot |
+| `--platform` | `tiktok` | `tiktok` \| `reels` \| `shorts` (1080x1920, crf, bitrate) |
+| `--focus` | `centre` | `centre` \| `top` \| `bottom` — which part of the frame the 9:16 crop keeps |
+| `--style PATH` | campaign profile or defaults | style profile JSON |
+| `--transcript PATH` | found automatically | transcript used for pause snapping |
+| `--plan-only` | off | write the plan JSON and stop |
+
+Output: `work/<campaign>/edits/<raw>_<id>.mp4` and `<raw>_<id>.plan.json`, both
+listed in the workspace viewer (`python -m clipper serve`).
+
+```
+style profile ──▶ shot length, camera move, transition   ┐
+transcript    ──▶ word gaps  (where cuts sound cleanest) ├──▶ plan.json ──▶ one
+energy curve  ──▶ silences the words missed              ┘               ffmpeg run
+```
+
+### How it cuts
+
+* **Plan first, render second.** `clipper/edit/plan.py` writes every cut as data
+  - boundaries, per-shot camera move, transition, caption window - to
+  `<clip>.plan.json`. `clipper/edit/render.py` then turns that plan into a single
+  ffmpeg filtergraph. The plan is hand-editable: change a `start`/`end`, re-render
+  with `--plan-only` off, and nothing else moves.
+* **Shot lengths** come from `pacing.avg_shot_len`, jittered ±15% with a **seeded**
+  random walk, so a given candidate always produces the same edit. Every shot is
+  at least 0.7 s so nothing flickers.
+* **Cut points snap to pauses.** Boundaries are built first, then each internal cut
+  moves up to ±0.5 s to the nearest word gap and/or audio dip - clamped so shots
+  can neither overlap nor drop below the minimum. The result is contiguous and
+  covers the candidate window exactly, which is asserted in the tests.
+* **Camera moves** come from the profile: one move per shot (punch-in ramps
+  1.0 → `zoom.punch_in_scale` over `zoom.punch_in_duration`, measured on the
+  reference videos), applied with `zoompan`, so it is a real ramp inside the shot
+  and resets at every cut. `static` profiles hold still.
+* **Transitions** are hard cuts today (`cut`); a `fade` profile is accepted and
+  recorded in the plan but still renders as a cut, and any other value is
+  reported in the plan's `notes` instead of silently doing nothing.
+* **Audio** is cut alongside the picture, so a laugh or a beat is not clipped
+  mid-word; silent footage still renders, just without an audio track.
+
+### Honest limits
+
+* Shot boundaries are *cut*, not blended: no dissolves, wipes or beat-synced
+  transitions yet (the profile's transition is recorded for stage 5).
+* `zoompan` costs about one frame per shot, so a 16.35 s plan renders as 16.4 s.
+  The renderer warns when the difference passes 0.35 s.
+* If a plan asks for footage past the end of the file, the tail is trimmed to what
+  exists and the plan's `clip.trimmed_to_source` flag records it - it never pads
+  with a frozen frame.
+* Captions are **not** burned in here: captions belong to stage 3 (`captions`) and
+  the platform exports to stage 5. `python -m clipper captions <edit>.mp4` works on
+  an assembled clip today.
+
+Demo output (`python -m clipper edit campaign_demo --top 2`): two clips, 16.4 s /
+8 shots and 13.7 s / 7 shots, each camera move ramping 1.00 → 1.12 inside every
+shot and resetting at the cut.
+
+---
+
 ## The style profile
 
 One JSON per campaign, `styles/<name>.style.json`, produced by stage 1 and
@@ -280,6 +358,7 @@ clipper/
 ├── asr/              swappable speech-to-text: moonshine, faster_whisper, fixture
 ├── align/            silero VAD + energy alignment (word timings from plain text)
 ├── captions/         cues → .ass → burned-in video (stage 3)
+├── edit/             plan + ffmpeg render of the cuts (stage 4)
 ├── ingest/           campaign scanning (stage 0)
 ├── select/           moment selection: energy, hooks, window growth (stage 2)
 ├── style/            style extraction from references (stage 1)
@@ -295,7 +374,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 104 tests, ~85 s
+python -m pytest              # 139 tests, ~95 s
 python -m pytest -m integration
 ```
 
@@ -303,7 +382,9 @@ The tests do not trust the code. Caption tests render a clip and inspect the
 **pixels** for white glyphs, black outline and karaoke highlight colour. Style
 tests recover values that were chosen before rendering: cuts at 2.0 s and 4.0 s,
 a 1.13x punch-in, a 104 px font. Selection tests use an episode whose loud
-stretches and hook sentences sit at known times.
+stretches and hook sentences sit at known times. Edit tests render a clip and
+**measure the camera in the output pixels** (`estimate_scale` over decoded frames),
+plus plans that must stay contiguous, deterministic and inside the footage.
 
 ## Configuration
 

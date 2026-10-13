@@ -15,6 +15,8 @@ import platform
 import sys
 from pathlib import Path
 
+FOCUS_CHOICES = ("centre", "top", "bottom")
+
 from . import __version__, config
 from .util import log
 
@@ -270,6 +272,18 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
     s.set_defaults(func=cmd_captions)
 
+    s = sub.add_parser("edit", help="stage 4: assemble candidates into vertical clips")
+    s.add_argument("campaign")
+    s.add_argument("--top", type=int, default=None, help="only the best N candidates per file")
+    s.add_argument("--ids", default=None, help="comma-separated candidate ids, e.g. #01,#03")
+    s.add_argument("--shot-len", type=float, default=None, help="override the profile's shot length")
+    s.add_argument("--platform", default=config.DEFAULT_PLATFORM, choices=sorted(config.PLATFORMS))
+    s.add_argument("--focus", default="centre", choices=sorted(FOCUS_CHOICES), help="crop bias")
+    s.add_argument("--style", default=None, help="style profile json (default: the campaign's)")
+    s.add_argument("--transcript", default=None, help="transcript json for cut snapping")
+    s.add_argument("--plan-only", action="store_true", help="write the plans, render nothing")
+    s.set_defaults(func=cmd_edit)
+
     s = sub.add_parser("select", help="stage 2: find the moments worth clipping")
     s.add_argument("target", help="campaign name (or path to a campaign folder / a video file)")
     s.add_argument("--file", default=None, help="only this file inside the campaign")
@@ -333,6 +347,34 @@ def cmd_select(args: argparse.Namespace) -> int:
                 print(f"        · {reason}")
         if payload.get("written"):
             print(f"        written: {payload['written']}")
+    return 0
+
+
+def cmd_edit(args: argparse.Namespace) -> int:
+    from .edit.pipeline import edit_campaign
+    from .edit.plan import summarise
+
+    ids = [i if i.startswith("#") else f"#{i}" for i in args.ids.split(",")] if args.ids else None
+    results = edit_campaign(
+        args.campaign, top=args.top, shot_len=args.shot_len, platform=args.platform,
+        focus=args.focus, style_path=args.style, ids=ids, transcript=args.transcript,
+        render=not args.plan_only)
+
+    print()
+    for record in results:
+        plan = record["plan"]
+        print(f"{summarise(plan)}")
+        print(f"    source  {plan['clip']['source']}  [{plan['clip']['start']:.2f}-{plan['clip']['end']:.2f}s]")
+        print(f"    shots   " + " ".join(f"{s['duration']:.2f}s" for s in plan["shots"]))
+        if plan["notes"]:
+            for note in plan["notes"]:
+                print(f"    note    {note}")
+        if record.get("clip"):
+            out = Path(record["clip"])
+            print(f"    clip    {out}  ({out.stat().st_size / 1024:.0f} KB)")
+        print(f"    plan    {record['plan_path']}")
+    print()
+    print("next: python -m clipper captions <clip> --campaign <campaign>   (stage 3 + 5)")
     return 0
 
 
