@@ -22,7 +22,7 @@ Everything runs locally, offline, with free/open-source tools (Python + FFmpeg).
 | # | Stage | State |
 |---|-------|-------|
 | 0 | `scan` — probe a campaign into `work/<name>/manifest.json` | done |
-| 1 | `style` — learn the style from `/references` → `styles/<name>.style.json` | **in progress** |
+| 1 | `style` — learn the style from `/references` → `styles/<name>.style.json` | **done** |
 | 2 | moment selection from raw (speech energy, hooks, laughs, topic turns) | planned |
 | 3 | `captions` — word-level ASR, styled captions, 9:16 burn-in | **done** |
 | 4 | edit assembly (cuts, zooms, transitions to profile) | planned |
@@ -56,6 +56,7 @@ python -m clipper doctor
 python -m clipper doctor
 python -m clipper samples
 python -m clipper scan
+python -m clipper style campaign_demo      # learn the campaign style
 
 # 2. open the workspace viewer (watch footage, styles and results)
 python -m clipper serve            # http://localhost:8000
@@ -66,6 +67,59 @@ python -m clipper captions campaigns/mycampaign/raw/episode.mp4 \
 ```
 
 Output lands in `output/<name>.captioned.mp4`, intermediates in `work/<name>/`.
+
+---
+
+## Stage 1 — style extraction (ready)
+
+Point it at a campaign folder; it watches the approved reference clips and
+writes the profile that every later stage obeys.
+
+```bash
+python -m clipper samples              # if you have not generated the demo yet
+python -m clipper style campaign_demo  # → styles/campaign_demo.style.json
+python -m clipper style                # every campaign found
+python -m clipper style mycampaign --fps 8 --width 640 --max-seconds 30
+```
+
+It prints a summary and writes two things:
+
+| File | Purpose |
+|------|---------|
+| `styles/<campaign>.style.json` | the profile (hand-editable, see `## The style profile`) |
+| `work/<campaign>/style/report.json` | per-reference measurements + evidence frames |
+
+### What it measures, and how
+
+| Signal | Method | Typical accuracy |
+|--------|--------|------------------|
+| Cut points / shot length | frame-difference + content-aware shot boundary detection | exact on the test clips (2.0 s shots read 2.0 s) |
+| Zoom / punch-in | multi-scale normalised cross-correlation against the shot's first frame | ±0.02 on scale, ±0.05 s on duration |
+| Caption position | glyph band tracking over time, median centre | ±0.01 of frame width/height |
+| Caption size | glyph cap-height → ASS size, calibrated against this renderer at run time | ±5 % on normal footage |
+| Caption colours | 16-bin palette of the glyph pixels, base vs karaoke highlight split by semantics | exact within JPEG/H.264 noise |
+| Casing | row-ink profile (capitals are top-heavy, lowercase ink sits mid-glyph) | correct on all test clips |
+| Karaoke | does the accent colour appear mid-cue and spread as words are spoken | correct on all test clips |
+| Words per cue / max chars | word blobs and character widths per cue | ±1 word |
+| Loudness, music bed | EBU R128 via ffmpeg, tonal-energy-vs-speech-gap heuristic | loudness exact, music bed heuristic (reports confidence) |
+
+`font_family` is the one thing pixels cannot tell you, so it stays `null` and a
+note is added to the profile: set it by hand if the campaign uses a specific
+face. Everything else is measured.
+
+### Honest limits
+
+* Font size is derived from cap height, which depends on the face. The profile
+  carries `font_size_uncertainty` (about ±30 %) and a note explaining it: the
+  number is right for Montserrat (the renderer default) and off by that margin
+  if the campaign uses a much taller/wider face. Set it by hand if you know it.
+* Lowercase captions measure x-height, which reads about a fifth small: the
+  uncertainty is widened when `casing` is `null`.
+* Caption reading needs text that is visible to a human. Captions that only
+  appear for a frame or two, or that are half-hidden behind a busy texture,
+  produce low `confidence` rather than a confident wrong answer — check
+  `work/<campaign>/style/evidence/*.png`, which are annotated frames of what the
+  extractor actually saw.
 
 ---
 
@@ -149,6 +203,8 @@ hand-written partial profile is valid:
 ```
 
 Full contract with all fields and defaults: `clipper/config.py` (`DEFAULT_STYLE`).
+Field-by-field reference, including which values are measured vs inferred:
+`docs/style-profile.md`.
 
 ---
 

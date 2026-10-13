@@ -174,12 +174,46 @@ def cmd_captions(args: argparse.Namespace) -> int:
 
 
 def cmd_style(args: argparse.Namespace) -> int:
-    print("stage 1 (style extraction from /references) is the next commit on this branch.\n"
-          "For now you can point --style at a hand-written profile:\n"
-          f"  {config.STYLES / (args.campaign or '<campaign>')}.style.json\n"
-          "Start from the built-in default (see clipper/config.py DEFAULT_STYLE) or write:\n"
-          '  {"captions": {"font_family": "Montserrat", "font_size_ass": 104,'
-          ' "primary_color": "#FFFFFF", "karaoke": {"highlight_color": "#FFE14D"}}}')
+    from .ingest.scan import find_campaign_dirs
+    from .style.extract import DEFAULT_SAMPLE_FPS, DEFAULT_SAMPLE_WIDTH, extract_style
+
+    targets: list[Path] = []
+    if args.campaign:
+        targets = [Path(args.campaign)]
+    else:
+        targets = find_campaign_dirs()
+        if not targets:
+            print("no campaigns found. expected: campaigns/<name>/{references,raw}")
+            return 1
+    for target in targets:
+        profile = extract_style(target, fps=args.fps or DEFAULT_SAMPLE_FPS,
+                                width=args.width or DEFAULT_SAMPLE_WIDTH,
+                                max_seconds=args.max_seconds, save_evidence=not args.no_evidence)
+        caps = profile.get("captions", {})
+        print()
+        print(f"campaign : {profile['campaign']}")
+        print(f"style    : {config.STYLES / (profile['campaign'] + '.style.json')}")
+        print(f"pacing   : {profile['pacing'].get('avg_shot_len')}s avg shot, "
+              f"{profile['pacing'].get('cuts_per_minute')} cuts/min")
+        print(f"zoom     : {profile['zoom'].get('dominant')} "
+              f"{profile['zoom'].get('punch_in_scale') or ''} "
+              f"({profile['zoom'].get('punch_in_duration') or '-'}s)")
+        if caps.get("present"):
+            print(f"captions : font {caps.get('font_size_ass')}px, "
+                  f"{caps.get('primary_color')} on {caps.get('outline_color')} "
+                  f"(outline {caps.get('outline_width')}), casing {caps.get('casing') or 'as-is'}, "
+                  f"cy {caps.get('position', {}).get('cy')}")
+            karaoke = caps.get("karaoke", {})
+            print(f"           karaoke {karaoke.get('enabled')} "
+                  f"{karaoke.get('highlight_color') or ''}, "
+                  f"{caps.get('max_words_per_cue')} words/cue, {caps.get('max_lines')} line(s)")
+        else:
+            print("captions : none detected")
+        print(f"audio    : {profile['audio'].get('target_lufs')} LUFS, "
+              f"music bed {profile['audio'].get('music_bed')}")
+        print(f"confidence: {profile.get('confidence')}")
+        if profile.get("source", {}).get("notes"):
+            print(f"notes    : {profile['source']['notes']}")
     return 0
 
 
@@ -236,8 +270,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
     s.set_defaults(func=cmd_captions)
 
-    s = sub.add_parser("style", help="stage 1: learn a campaign style from /references (next commit)")
-    s.add_argument("campaign", nargs="?")
+    s = sub.add_parser("style", help="stage 1: learn a campaign style from /references")
+    s.add_argument("campaign", nargs="?", help="campaign folder (omit to do all)")
+    s.add_argument("--fps", type=float, default=None, help="analysis sampling rate (default 6)")
+    s.add_argument("--width", type=int, default=None, help="analysis frame width (default 320)")
+    s.add_argument("--max-seconds", type=float, default=None, help="only analyse the start of each reference")
+    s.add_argument("--no-evidence", action="store_true", help="skip annotated evidence frames")
     s.set_defaults(func=cmd_style)
 
     s = sub.add_parser("serve", help="browse footage, styles and finished clips")

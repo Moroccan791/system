@@ -327,10 +327,20 @@ def loudness(path: str | Path) -> dict:
                 "ebur128=peak=true", "-f", "null", "-"], check=False)
     text = proc.stderr or ""
     out: dict[str, float] = {}
-    m = re.search(r"I:\s*(-?\d+\.?\d*)\s*LUFS", text)
+    # the ebur128 filter prints a running `I: ... LUFS` on every progress line,
+    # starting at -70 before it has measured anything. Only the summary block
+    # holds the final value, so read that first and fall back to the *last*
+    # progress sample - never the first.
+    m = re.search(r"Integrated loudness:\s*\n\s*I:\s*(-?\d+\.?\d*)", text)
+    if not m:
+        matches = re.findall(r"I:\s*(-?\d+\.?\d*)\s*LUFS", text)
+        m = re.match(r"(-?\d+\.?\d*)", matches[-1]) if matches else None
     if m:
         out["integrated_lufs"] = float(m.group(1))
-    m = re.search(r"LRA:\s*(-?\d+\.?\d*)\s*LU", text)
+    m = re.search(r"Loudness range:\s*\n\s*LRA:\s*(-?\d+\.?\d*)", text)
+    if not m:
+        matches = re.findall(r"LRA:\s*(-?\d+\.?\d*)\s*LU", text)
+        m = re.match(r"(-?\d+\.?\d*)", matches[-1]) if matches else None
     if m:
         out["lra"] = float(m.group(1))
     peaks = re.findall(r"Peak:\s*(-?\d+\.?\d*)\s*dBFS", text)

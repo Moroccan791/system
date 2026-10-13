@@ -38,6 +38,21 @@ def fit_chain(width: int, height: int, fit: str = "cover", target: tuple[int, in
             f"crop={tw}:{th},setsar=1")
 
 
+def subtitles_filter(ass_path: str | Path, fonts_dir: str | Path | None = None) -> str:
+    """`subtitles=...` filter with the repo font directory attached.
+
+    Passing fontsdir matters more than it looks: without it libass resolves the
+    font through system fontconfig and silently falls back to whatever is
+    installed (DejaVu on a bare container), which changes glyph metrics and
+    therefore every size the style extractor measures.
+    """
+    filt = f"subtitles=filename='{escape_filter_path(ass_path)}'"
+    directory = Path(fonts_dir) if fonts_dir else config.FONTS
+    if directory.exists() and any(directory.glob("*.ttf")):
+        filt += f":fontsdir='{escape_filter_path(directory)}'"
+    return filt
+
+
 def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
          preset: dict | None = None, fit: str = "cover",
          fonts_dir: str | Path | None = None, start: float | None = None,
@@ -52,13 +67,7 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
     p = dict(preset or {})
     src_info = probe(src)
     chain = fit_chain(src_info.width, src_info.height, fit, target_size)
-    subs = f"subtitles=filename='{escape_filter_path(ass_path)}'"
-    if fonts_dir:
-        subs += f":fontsdir='{escape_filter_path(fonts_dir)}'"
-    else:
-        fonts_dir_default = config.FONTS
-        if fonts_dir_default.exists() and any(fonts_dir_default.iterdir()):
-            subs += f":fontsdir='{escape_filter_path(fonts_dir_default)}'"
+    subs = subtitles_filter(ass_path, fonts_dir)
     if chain:
         vf = f"{chain},{subs}"
     else:

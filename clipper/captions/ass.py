@@ -60,7 +60,7 @@ def _align_from_anchor(anchor: str) -> int:
 
 
 def build_ass(cues: list[Cue], style: dict, *, width: int = 1080, height: int = 1920,
-              mode: str | None = None) -> str:
+              mode: str | None = None, autofit: bool = True) -> str:
     cap = (style or {}).get("captions", {}) or {}
     karaoke = cap.get("karaoke", {}) or {}
     pos = cap.get("position", {}) or {}
@@ -69,7 +69,8 @@ def build_ass(cues: list[Cue], style: dict, *, width: int = 1080, height: int = 
     scale = height / 1920.0
     font_size = int(round(float(cap.get("font_size_ass") or 96) * scale))
     margin_lr_probe = int(round(width * 0.055))
-    font_size = _autofit(font_size, cues, width, margin_lr_probe)
+    if autofit:
+        font_size = _autofit(font_size, cues, width, margin_lr_probe)
     outline = max(0, int(round(float(cap.get("outline_width") or 5) * scale)))
     shadow = max(0, int(round(float(cap.get("shadow") or 0) * scale)))
     base_color = ass_color(cap.get("primary_color") or "#FFFFFF")
@@ -188,8 +189,8 @@ def _word_events(cue: Cue, cap: dict, base_color: str, highlight: str,
 
 
 def write_ass(path: str | Path, cues: list[Cue], style: dict, *, width: int = 1080,
-              height: int = 1920, mode: str | None = None) -> Path:
-    text = build_ass(cues, style, width=width, height=height, mode=mode)
+              height: int = 1920, mode: str | None = None, autofit: bool = True) -> Path:
+    text = build_ass(cues, style, width=width, height=height, mode=mode, autofit=autofit)
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(text, encoding="utf-8")
