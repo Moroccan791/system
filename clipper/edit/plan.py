@@ -44,6 +44,9 @@ TRANSITION_ALIASES = {
     "fade_black": "fade_black", "fadeblack": "fade_black", "fade_to_black": "fade_black",
     "dip": "fade_black", "dip_to_black": "fade_black", "black": "fade_black",
     "fade_white": "fade_white", "fadewhite": "fade_white", "flash": "fade_white",
+    # editors say "dissolve" for a crossfade, so ffmpeg's own noisy dissolve needs
+    # its own way in
+    "noisy_dissolve": "dissolve", "noise_dissolve": "dissolve",
     "fade_grays": "fadegrays", "fadegrays": "fadegrays",
 }
 SUPPORTED_TRANSITIONS = ("cut",) + FFMPEG_TRANSITIONS

@@ -422,6 +422,43 @@ def test_render_refuses_a_missing_source(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# blend sampler
+# ---------------------------------------------------------------------------
+def test_sampler_knows_every_blend_this_ffmpeg_has(tmp_path):
+    from clipper.edit.sampler import available_blends
+
+    names = available_blends()
+    assert len(names) >= 40, "ffmpeg's xfade catalogue should be there in full"
+    for expected in ("fade", "fadeblack", "wipeleft", "circleopen", "zoomin", "pixelize"):
+        assert expected in names
+    assert "custom" not in names, "custom is the 'bring your own' slot, not a blend"
+
+
+def test_sampler_refuses_names_ffmpeg_does_not_have(tmp_path):
+    from clipper.edit.sampler import render_sampler
+
+    with pytest.raises(ValueError, match="sparkle"):
+        render_sampler(tmp_path / "no.mp4", blends=["fade", "sparkle"], seconds=0.5,
+                       size=(160, 284), fps=12, work_dir=tmp_path / "scratch")
+
+
+def test_sampler_renders_a_labelled_reel(tmp_path):
+    """Each blend gets its own labelled segment, so the names are checkable."""
+    from clipper.edit.sampler import render_sampler
+
+    out = render_sampler(tmp_path / "sampler.mp4", blends=["fade", "wipeleft"],
+                         seconds=0.8, size=(240, 426), fps=12,
+                         work_dir=tmp_path / "scratch")
+    info = probe(out)
+    assert (info.width, info.height) == (240, 426)
+    assert info.has_audio
+    # two segments of two 0.8 s shots, each blend 0.32 s long
+    assert info.duration == pytest.approx(2 * (0.8 + 0.8 - 0.32), abs=0.4)
+    labels = (tmp_path / "scratch" / "labels.ass").read_text()
+    assert "FADE" in labels and "WIPELEFT" in labels
+
+
+# ---------------------------------------------------------------------------
 # pipeline
 # ---------------------------------------------------------------------------
 def write_candidates(work_dir, footage, count=2, **payload_extra):

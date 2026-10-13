@@ -258,7 +258,17 @@ python -m clipper edit campaign_demo --transition fade_black  # dip through blac
 python -m clipper edit campaign_demo --transition circleopen  # any of ffmpeg's 58 blends
 python -m clipper edit campaign_demo --focus top         # bias the 9:16 crop upwards
 python -m clipper edit campaign_demo --plan-only         # write plans, encode nothing
+
+python -m clipper blends                # watch what each blend looks like, labelled
+python -m clipper blends --all          # all 58 of them, not just the picks
+python -m clipper blends --list         # just the names
+python -m clipper blends --source raw/episode.mp4 --a 12.0,13.4 --b 40.0,41.4
 ```
+
+The blends are **ffmpeg's own**, read out of the installed binary at run time
+(`ffmpeg -h filter=xfade` lists 59, one of which is the `custom` slot, leaving
+58). `clipper blends` renders the same pair of shots once per blend, with the
+name burned in, so the choice is made by watching rather than by guessing.
 
 | Option | Default | What it does |
 |--------|---------|--------------|
@@ -307,7 +317,9 @@ energy curve  ──▶ silences the words missed              ┘              
   side of the cut and shows both at once, so it costs one blend's length of clip
   time - `clip.blend_shortening` says how much, and every shot carries
   `out_start`/`out_end` so downstream stages can map source time to clip time.
-  The renderer was verified against ffmpeg's actual `xfade` behaviour
+  ffmpeg's own noisy dissolve is reachable as `noisy_dissolve`, since "dissolve"
+  means crossfade to editors. The renderer was verified against ffmpeg's actual
+  `xfade` behaviour
   (`offset`, where the blend sits, when the output ends) rather than its docs:
   starting the blend *at* the cut instead of one blend-length before it mixes
   every frame with itself, which renders as a hard cut - which is exactly what
@@ -397,7 +409,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 167 tests, ~95 s
+python -m pytest              # 170 tests, ~100 s
 python -m pytest -m integration
 ```
 

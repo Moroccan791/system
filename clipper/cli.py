@@ -291,6 +291,18 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--plan-only", action="store_true", help="write the plans, render nothing")
     s.set_defaults(func=cmd_edit)
 
+    s = sub.add_parser("blends", help="render a sampler of every blend between shots")
+    s.add_argument("--out", default=None, help="where to write it (default: work/blends_sampler.mp4)")
+    s.add_argument("--all", action="store_true", help="every blend this ffmpeg has, not just the picks")
+    s.add_argument("--list", action="store_true", help="print the blend names and stop")
+    s.add_argument("--seconds", type=float, default=1.4, help="how long each shot is")
+    s.add_argument("--size", default="540x960", help="WxH of the sampler")
+    s.add_argument("--source", default=None, help="use your own footage for the two shots")
+    s.add_argument("--a", default=None, help="start,end of the first shot, e.g. 12.0,13.4")
+    s.add_argument("--b", default=None, help="start,end of the second shot")
+    s.add_argument("--no-label", action="store_true", help="skip the burned-in names")
+    s.set_defaults(func=cmd_blends)
+
     s = sub.add_parser("select", help="stage 2: find the moments worth clipping")
     s.add_argument("target", help="campaign name (or path to a campaign folder / a video file)")
     s.add_argument("--file", default=None, help="only this file inside the campaign")
@@ -389,6 +401,32 @@ def cmd_edit(args: argparse.Namespace) -> int:
         print(f"    plan    {record['plan_path']}")
     print()
     print("next: python -m clipper captions <clip> --campaign <campaign>   (stage 3 + 5)")
+    return 0
+
+
+def cmd_blends(args: argparse.Namespace) -> int:
+    from .edit.sampler import CURATED, available_blends, render_sampler
+
+    names = available_blends()
+    if args.list:
+        for name in names:
+            print(name)
+        print(f"\n{len(names)} blends in this ffmpeg build")
+        return 0
+
+    blends = names if args.all else list(CURATED)
+    size = tuple(int(v) for v in args.size.lower().split("x"))
+    pair = None
+    if args.source:
+        if not (args.a and args.b):
+            raise SystemExit("--source needs both --a and --b, e.g. --a 12.0,13.4 --b 40.0,41.4")
+        pair = (tuple(float(v) for v in args.a.split(",")),
+                tuple(float(v) for v in args.b.split(",")))
+    out = Path(args.out) if args.out else config.WORK / "blends_sampler.mp4"
+    print(f"rendering {len(blends)} blend(s) into {out} ...")
+    render_sampler(out, blends=blends, seconds=args.seconds, size=size,
+                   source=args.source, pair=pair, label=not args.no_label)
+    print(f"\nopen {out} in the viewer (python -m clipper serve), or play it directly")
     return 0
 
 

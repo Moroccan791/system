@@ -86,6 +86,14 @@ Writes `work/<name>/edits/<file>_<id>[_tag].mp4` and a readable `.plan.json`:
 * 1080×1920 per platform preset, audio cut with the picture, silent footage still
   edits, a plan that runs past the end of the file trims instead of padding
 
+### Blends — see the transitions instead of guessing
+```bash
+python -m clipper blends [--all] [--list] [--seconds 1.4] [--size WxH]
+python -m clipper blends --source raw/ep.mp4 --a 12.0,13.4 --b 40.0,41.4
+```
+Renders the same pair of shots once per blend with the name burned in, so you can
+scrub through and pick. The 58 names are ffmpeg's, read from the binary.
+
 ### Viewer — watch everything in the browser
 ```bash
 python -m clipper serve [--port 8000]
