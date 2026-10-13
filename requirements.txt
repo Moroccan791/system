@@ -1,0 +1,14 @@
+# ---- core (stage 3: captions) ----------------------------------------------
+numpy>=1.26
+imageio-ffmpeg>=0.5.1        # ships a static ffmpeg binary, used as fallback
+onnxruntime>=1.17            # silero VAD + optional ONNX ASR models
+silero-vad>=5.1              # ships VAD onnx model inside the wheel
+moonshine-cpp>=0.1.4         # ASR with real weights bundled in the wheel (offline)
+
+# ---- stage 1 (style extraction) --------------------------------------------
+opencv-python-headless>=4.9  # shot detection, zoom estimation, glyph masks
+
+# ---- optional, best quality on a local machine ------------------------------
+# faster-whisper>=1.0        # word_timestamps=True -> no aligner needed (recommended on Windows)
+# pywhispercpp>=1.3          # whisper.cpp bindings (needs a ggml model file you download yourself)
+# rapidocr-onnxruntime>=1.3  # OCR reference captions to read text/casing (stage 1, optional)
