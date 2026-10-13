@@ -16,7 +16,45 @@ from ..util import log
 DEFAULT_SHOT_LEN = 2.0          # when the style profile does not say
 MIN_SHOT_LEN = 0.7              # never create a shot shorter than this
 JITTER = 0.15                   # ± of the target shot length, for rhythm
-SUPPORTED_TRANSITIONS = ("cut", "fade")
+DEFAULT_TRANSITION_LEN = 0.25   # when the style profile does not say
+MAX_TRANSITION_LEN = 0.8        # longer than this stops reading as a transition
+
+# Every blend ffmpeg's xfade filter can do, so a profile can name one directly
+# (wipeleft, circleopen, zoomin, squeezeh, pixelize ...). "cut" is not a blend:
+# it is the plain concat path, and the default.
+FFMPEG_TRANSITIONS = (
+    "fade", "wipeleft", "wiperight", "wipeup", "wipedown", "slideleft", "slideright",
+    "slideup", "slidedown", "circlecrop", "rectcrop", "distance", "fadeblack",
+    "fadewhite", "radial", "smoothleft", "smoothright", "smoothup", "smoothdown",
+    "circleopen", "circleclose", "vertopen", "vertclose", "horzopen", "horzclose",
+    "dissolve", "pixelize", "diagtl", "diagtr", "diagbl", "diagbr", "hlslice",
+    "hrslice", "vuslice", "vdslice", "hblur", "fadegrays", "wipetl", "wipetr",
+    "wipebl", "wipebr", "squeezeh", "squeezev", "zoomin", "fadefast", "fadeslow",
+    "hlwind", "hrwind", "vuwind", "vdwind", "coverleft", "coverright", "coverup",
+    "coverdown", "revealleft", "revealright", "revealup", "revealdown",
+)
+
+# What people call these in an editor, mapped to what ffmpeg calls them. "fade"
+# is a crossfade (overlap dissolve); "fade_black" dips through black, "fade_white"
+# flashes through white.
+TRANSITION_ALIASES = {
+    "": "cut", "cut": "cut", "hard_cut": "cut", "hardcut": "cut", "none": "cut",
+    "fade": "fade", "crossfade": "fade", "cross_fade": "fade", "mix": "fade",
+    "dissolve": "fade",
+    "fade_black": "fade_black", "fadeblack": "fade_black", "fade_to_black": "fade_black",
+    "dip": "fade_black", "dip_to_black": "fade_black", "black": "fade_black",
+    "fade_white": "fade_white", "fadewhite": "fade_white", "flash": "fade_white",
+    "fade_grays": "fadegrays", "fadegrays": "fadegrays",
+}
+SUPPORTED_TRANSITIONS = ("cut",) + FFMPEG_TRANSITIONS
+
+
+def resolve_transition(value) -> str | None:
+    """A profile's transition word -> a canonical name, or None if we cannot do it."""
+    name = str(value or "").strip().lower().replace(" ", "_").replace("-", "_")
+    if name in TRANSITION_ALIASES:
+        return TRANSITION_ALIASES[name]
+    return name if name in FFMPEG_TRANSITIONS else None
 
 
 def _seeded_lengths(clip_key: str, total: float, target: float, *, jitter: bool = True) -> list[float]:
@@ -105,6 +143,35 @@ def camera_moves(style: dict, shot_durations: list[float]) -> list[dict]:
     return moves
 
 
+def _timeline(shots: list[dict]) -> float:
+    """Stamp each shot with where it lands in the rendered clip, and return its length.
+
+    A blend has to show two moments at once, so it costs one blend's worth of
+    time: with a 0.3 s dissolve every 2 s, a 16.35 s moment renders as 14.25 s.
+    Each shot keeps its own material; only the *output* timeline is shorter, and
+    `out_start`/`out_end` say exactly where every shot lands, so captions and
+    anything else downstream can map source time -> clip time without guessing.
+    """
+    cursor = 0.0
+    for i, shot in enumerate(shots):
+        if i:
+            blend = float(shot.get("transition_duration") or 0.0) \
+                if str(shot.get("transition") or "cut") != "cut" else 0.0
+            cursor = round(cursor - blend, 3)
+        shot["out_start"] = round(cursor, 3)
+        cursor = round(cursor + float(shot["duration"]), 3)
+        shot["out_end"] = cursor
+    return round(cursor, 3)
+
+
+def _transition_length(value) -> float:
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        seconds = DEFAULT_TRANSITION_LEN
+    return round(min(max(seconds, 0.08), MAX_TRANSITION_LEN), 3)
+
+
 def build_plan(candidate: dict, *, style: dict | None = None, words: list | None = None,
                curve: dict | None = None, platform: str = "tiktok",
                shot_len: float | None = None, fps: int = 30,
@@ -119,11 +186,13 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
     pacing = style.get("pacing") or {}
     target = float(shot_len or pacing.get("avg_shot_len") or DEFAULT_SHOT_LEN)
     transitions = style.get("transitions") or {}
-    transition = str(transitions.get("in") or "cut").lower()
+    requested = transitions.get("in") or "cut"
     notes: list[str] = []
-    if transition not in SUPPORTED_TRANSITIONS:
-        notes.append(f"transition '{transition}' is not implemented yet, using a hard cut")
-        transition = "cut"
+    resolved = resolve_transition(requested)
+    if resolved is None:
+        notes.append(f"transition '{requested}' is not one ffmpeg can blend, using a hard cut")
+    transition = resolved or "cut"
+    transition_len = _transition_length(transitions.get("duration")) if transition != "cut" else 0.0
     if not pacing.get("avg_shot_len"):
         notes.append(f"the style profile has no pacing, cutting every {target:.1f}s")
     if (style.get("zoom") or {}).get("dominant") in (None, "mixed"):
@@ -154,6 +223,13 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
         snapped = _snap(boundaries[i], gaps, curve)
         boundaries[i] = round(min(max(snapped, lower), upper), 3)
 
+    if transition != "cut":
+        # a blend eats into both sides of a cut, so it has to fit the shortest shot
+        shortest = min(round(b - a, 3) for a, b in zip(boundaries, boundaries[1:]))
+        if transition_len > shortest * 0.5:
+            transition_len = round(max(0.08, shortest * 0.5), 3)
+            notes.append(f"blend shortened to {transition_len:.2f}s to fit the shortest shot")
+
     shots: list[dict] = []
     for i, (shot_start, shot_end) in enumerate(zip(boundaries, boundaries[1:]), start=1):
         shots.append({
@@ -163,8 +239,15 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
             "duration": round(float(shot_end - shot_start), 3),
             "zoom": moves[i - 1] if i - 1 < len(moves) else {"type": "static"},
             "transition": transition if i > 1 else "cut",
-            "transition_duration": round(float(transitions.get("duration") or 0.25), 3),
+            "transition_duration": transition_len if i > 1 else 0.0,
+            "out_start": 0.0, "out_end": 0.0,       # filled in by _timeline below
         })
+    out_duration = _timeline(shots)
+
+    shortening = round(total - out_duration, 3)
+    if shortening > 0.05:
+        notes.append(f"{len(shots) - 1} blend(s) overlap the shots, so the clip comes out "
+                     f"{shortening:.2f}s shorter than the {total:.2f}s moment")
 
     caption_words = [w for w in (words or [])
                      if float(w.start) >= start - 0.01 and float(w.end) <= end + 0.01]
@@ -174,7 +257,11 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
         "clip": {
             "id": candidate.get("id"),
             "source": str(candidate.get("file") or candidate.get("source") or ""),
-            "start": round(start, 3), "end": round(end, 3), "duration": total,
+            "start": round(start, 3), "end": round(end, 3),
+            "window": [round(start, 3), round(end, 3)],
+            "duration": out_duration,               # what the rendered clip will measure
+            "source_duration": total,               # how much footage it draws on
+            "blend_shortening": shortening,
             "score": candidate.get("score"),
             "reasons": list(candidate.get("reasons") or []),
         },
@@ -184,6 +271,7 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
             "avg_shot_len": target,
             "zoom": (style.get("zoom") or {}).get("dominant"),
             "transition": transition,
+            "transition_duration": transition_len if transition != "cut" else 0.0,
         },
         "shots": shots,
         "captions": {
@@ -206,6 +294,9 @@ def load_words(path) -> list:
 
 def summarise(plan: dict) -> str:
     clip = plan["clip"]
+    blend = plan["style"]["transition"]
+    if blend != "cut" and plan["style"].get("transition_duration"):
+        blend = f"{blend} {plan['style']['transition_duration']:.2f}s"
     return (f"{clip['id']} · {len(plan['shots'])} shots · "
             f"{clip['start']:.2f}-{clip['end']:.2f}s ({clip['duration']:.1f}s) · "
-            f"{plan['style']['zoom'] or 'static'} · {plan['style']['transition']}")
+            f"{plan['style']['zoom'] or 'static'} · {blend}")

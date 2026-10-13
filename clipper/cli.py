@@ -281,6 +281,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--focus", default="centre", choices=sorted(FOCUS_CHOICES), help="crop bias")
     s.add_argument("--style", default=None, help="style profile json (default: the campaign's)")
     s.add_argument("--transcript", default=None, help="transcript json for cut snapping")
+    s.add_argument("--transition", default=None, metavar="NAME",
+                   help="blend between shots: cut | fade | fade_black | wipeleft | circleopen | "
+                        "... (any xfade transition; default: the profile's)")
+    s.add_argument("--transition-duration", type=float, default=None,
+                   help="seconds a blend lasts (default: the profile's)")
+    s.add_argument("--tag", default=None,
+                   help="suffix for the output name, so variants do not overwrite each other")
     s.add_argument("--plan-only", action="store_true", help="write the plans, render nothing")
     s.set_defaults(func=cmd_edit)
 
@@ -355,10 +362,17 @@ def cmd_edit(args: argparse.Namespace) -> int:
     from .edit.plan import summarise
 
     ids = [i if i.startswith("#") else f"#{i}" for i in args.ids.split(",")] if args.ids else None
+    from .edit.plan import resolve_transition
+
+    tag = args.tag
+    if args.transition and not tag:
+        # keep variants side by side instead of overwriting each other
+        tag = resolve_transition(args.transition) or "cut"
     results = edit_campaign(
         args.campaign, top=args.top, shot_len=args.shot_len, platform=args.platform,
         focus=args.focus, style_path=args.style, ids=ids, transcript=args.transcript,
-        render=not args.plan_only)
+        render=not args.plan_only, transition=args.transition,
+        transition_duration=args.transition_duration, tag=tag)
 
     print()
     for record in results:

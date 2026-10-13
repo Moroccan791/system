@@ -16,6 +16,9 @@ from ..util import log
 FOCUS_Y = {"centre": "0.5", "center": "0.5", "top": "0.18", "upper": "0.18",
            "bottom": "0.82", "lower": "0.82"}
 
+# what the plan calls a blend -> what ffmpeg's xfade calls it
+XFADE_NAMES = {"fade": "fade", "fade_black": "fadeblack", "fade_white": "fadewhite"}
+
 
 def _zoom_expression(move: dict, fps: int) -> str | None:
     """Per-frame zoom for `zoompan`, from the plan's camera move."""
@@ -32,9 +35,28 @@ def _zoom_expression(move: dict, fps: int) -> str | None:
     return f"{start:.4f}+({target:.4f}-{start:.4f})*{ramp}"
 
 
+def _blends(shots: list[dict], source_duration: float | None = None) -> list[tuple[int, str, float]]:
+    """The blends in a plan as (index of the outgoing shot, name, seconds)."""
+    found: list[tuple[int, str, float]] = []
+    for i, shot in enumerate(shots):
+        # the transition *into* a shot is stored on that shot
+        name = str(shot.get("transition") or "cut").strip().lower()
+        seconds = float(shot.get("transition_duration") or 0.0)
+        if name == "cut" or seconds <= 0:
+            continue
+        found.append((i - 1, name, seconds))
+    return found
+
+
 def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | None = None,
-                      with_audio: bool = True) -> str:
+                      with_audio: bool = True,
+                      source_duration: float | None = None) -> str:
     """The `-filter_complex` string for a plan (kept separate so it is testable).
+
+    Hard cuts are concatenated; blends are done with `xfade`, and the outgoing
+    shot's tail is extended by the blend's length so the clip still lasts exactly
+    as long as the plan says. (A crossfade overlaps two shots, so without the
+    extension every blend would shorten the clip.)
 
     `zoompan` is told to emit at the *source* frame rate: asked for the output
     rate instead, it hands each input frame on with a mismatched timestamp and
@@ -48,11 +70,13 @@ def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | 
     height = int(plan["target"]["height"])
     focus_y = FOCUS_Y.get(focus, "0.5")
     shots = plan["shots"]
+    blends = _blends(shots, source_duration)
     parts: list[str] = []
     for i, shot in enumerate(shots):
         start, end = shot["start"], shot["end"]
+        trim_end = round(min(end, source_duration) if source_duration else end, 3)
         chain = [
-            f"trim=start={start:.3f}:end={end:.3f}",
+            f"trim=start={start:.3f}:end={trim_end:.3f}",
             "setpts=PTS-STARTPTS",
             f"scale={width}:{height}:force_original_aspect_ratio=increase",
             f"crop={width}:{height}:(iw-{width})/2:(ih-{height})*{focus_y}",
@@ -68,8 +92,11 @@ def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | 
         chain.append("setsar=1")
         parts.append(f"[0:v]{','.join(chain)}[v{i}]")
         if with_audio:
-            parts.append(f"[0:a]atrim=start={start:.3f}:end={end:.3f},"
+            parts.append(f"[0:a]atrim=start={start:.3f}:end={trim_end:.3f},"
                          f"asetpts=PTS-STARTPTS[a{i}]")
+    if blends:
+        parts.append(_blend_chain(shots, blends))
+        return ";".join(parts)
     if not with_audio:
         # silent footage is still editable - the clip just has no audio track
         if len(shots) == 1:
@@ -105,9 +132,50 @@ def _clamp_to_source(plan: dict, limit: float) -> dict:
     log.warn("plan runs past the end of the source, trimmed to what exists",
              planned=f"{plan['clip']['duration']:.2f}s", source=f"{limit:.2f}s",
              shots=f"{len(kept)}/{len(plan['shots'])}")
+    from . import plan as plan_mod
+
+    shortening = round(sum(float(s.get("transition_duration") or 0.0) for s in kept[1:]
+                           if str(s.get("transition") or "cut") != "cut"), 3)
     clip = {**plan["clip"], "end": kept[-1]["end"],
-            "duration": round(sum(s["duration"] for s in kept), 4), "trimmed_to_source": True}
+            "duration": round(sum(s["duration"] for s in kept) - shortening, 4),
+            "blend_shortening": shortening, "trimmed_to_source": True}
+    kept = [{**s, "index": i + 1} for i, s in enumerate(kept)]
+    plan_mod._timeline(kept)
     return {**plan, "shots": kept, "clip": clip}
+
+
+def _blend_chain(shots: list[dict], blends: list[tuple[int, str, float]]) -> str:
+    """xfade/acrossfade the shots together.
+
+    A dissolve shows the last `d` of the outgoing shot on top of the first `d`
+    of the incoming shot, so both are still on screen at the same time: the clip
+    ends up `d` shorter, which is what a real dissolve does too (the plan says so
+    in `blend_shortening`, and every shot carries its `out_start`/`out_end`).
+
+    Verified against ffmpeg's actual behaviour rather than its docs: `xfade`
+    plays the main input up to `offset`, blends for `duration`, then continues
+    with the second input - and ends when the *second* input ends, so the
+    running length grows by (planned length - blend) per shot. `acrossfade`
+    shortens by the same amount, which is why the audio stays in step.
+    """
+    last = len(blends) - 1
+    video_label, audio_label = "v0", "a0"
+    parts: list[str] = []
+    cursor = float(shots[0]["duration"])
+    for k, (index, name, seconds) in enumerate(blends):
+        offset = round(cursor - seconds, 3)
+        v_out = "v" if k == last else f"vx{k}"
+        a_out = "a" if k == last else f"ax{k}"
+        parts.append(
+            f"[{video_label}][v{index + 1}]xfade=transition={XFADE_NAMES.get(name, name)}"
+            f":duration={seconds:.3f}:offset={offset:.3f}[{v_out}]")
+        parts.append(f"[{audio_label}][a{index + 1}]acrossfade=d={seconds:.3f}:"
+                     f"c1=tri:c2=tri[{a_out}]")
+        cursor = round(offset + float(shots[index + 1]["duration"]), 3)
+        video_label, audio_label = v_out, a_out
+    if video_label != "v":              # no blends after all: keep the labels honest
+        parts.append(f"[{video_label}]null[v];[{audio_label}]anull[a]")
+    return ";".join(parts)
 
 
 def render_plan(plan: dict, out_path: str | Path, *, focus: str = "centre",
@@ -128,11 +196,15 @@ def render_plan(plan: dict, out_path: str | Path, *, focus: str = "centre",
     args = [
         ffmpeg_exe(), "-y", "-v", "error", "-nostdin", "-i", str(source),
         "-filter_complex", build_filtergraph(plan, focus=focus, source_fps=info.fps,
-                                             with_audio=with_audio),
+                                             with_audio=with_audio,
+                                             source_duration=info.duration),
         "-map", "[v]", *(["-map", "[a]"] if with_audio else []),
         "-c:v", "libx264", "-preset", preset, "-crf", str(crf), "-pix_fmt", "yuv420p",
         "-r", str(fps),
         *(["-c:a", "aac", "-b:a", audio_bitrate] if with_audio else ["-an"]),
+        # the video and audio are the same length by construction; -shortest keeps
+        # the container honest if a future filter change ever breaks that
+        *(["-shortest"] if with_audio else []),
         "-movflags", "+faststart",
         str(out_path),
     ]
@@ -148,6 +220,7 @@ def render_plan(plan: dict, out_path: str | Path, *, focus: str = "centre",
                  rendered=f"{rendered.duration:.2f}s")
     log.info("edit rendered", out=out_path.name,
              shots=len(plan["shots"]),
+             blend=plan["style"].get("transition", "cut"),
              dur=f"{rendered.duration:.1f}s",
              size=f"{out_path.stat().st_size / 1024:.0f} KB",
              source_fps=info.fps)

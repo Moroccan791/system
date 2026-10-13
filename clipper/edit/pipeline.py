@@ -57,9 +57,22 @@ def candidates_for(campaign: str | None, work_dir: Path | None = None,
 def edit_campaign(campaign: str, *, top: int | None = None, shot_len: float | None = None,
                   platform: str = "tiktok", focus: str = "centre", style_path=None,
                   ids: list[str] | None = None, transcript=None, work_dir: Path | None = None,
-                  render: bool = True) -> list[dict]:
-    """Assemble the candidates of one campaign into clips."""
+                  render: bool = True, transition: str | None = None,
+                  transition_duration: float | None = None, tag: str | None = None) -> list[dict]:
+    """Assemble the candidates of one campaign into clips.
+
+    `transition` / `transition_duration` override the style profile for this run
+    (`--transition fade`), and `tag` renames the output so variants can sit next
+    to each other in `edits/` instead of overwriting each other.
+    """
     style = load_style(campaign, style_path)
+    if transition or transition_duration:
+        override: dict = {}
+        if transition:
+            override["in"] = transition
+        if transition_duration:
+            override["duration"] = transition_duration
+        style = config.deep_merge(style, {"transitions": override})
     payloads = candidates_for(campaign, work_dir)
     if not payloads:
         raise RuntimeError(f"no candidates for '{campaign}' - run `python -m clipper select "
@@ -100,6 +113,8 @@ def edit_campaign(campaign: str, *, top: int | None = None, shot_len: float | No
                                         platform=platform, shot_len=shot_len,
                                         campaign=payload.get("campaign") or campaign)
             stem = f"{source.stem}_{str(candidate.get('id', 'clip')).lstrip('#')}"
+            if tag:
+                stem = f"{stem}_{tag}"
             plan_path = out_dir / f"{stem}.plan.json"
             jsonio.save(plan_path, built)
             record = {"plan": built, "plan_path": str(plan_path), "clip": None}

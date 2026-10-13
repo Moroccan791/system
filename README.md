@@ -28,6 +28,9 @@ Everything runs locally, offline, with free/open-source tools (Python + FFmpeg).
 | 4 | `edit` — cut the chosen moments to the profile's rhythm and camera | **done** |
 | 5 | `export` — platform presets | planned (presets exist, used by stage 3 already) |
 
+`FEATURES.md` is the menu: everything that exists, and everything that could be
+added next, numbered so you can just ask for *"C2 and V4"*.
+
 ---
 
 ## Install
@@ -250,6 +253,9 @@ python -m clipper edit campaign_demo                    # every raw file, top ca
 python -m clipper edit campaign_demo --top 3 --platform reels
 python -m clipper edit campaign_demo --ids "#01,#03"     # only these candidates
 python -m clipper edit campaign_demo --shot-len 1.4      # override the profile's pacing
+python -m clipper edit campaign_demo --transition fade        # crossfade between shots
+python -m clipper edit campaign_demo --transition fade_black  # dip through black
+python -m clipper edit campaign_demo --transition circleopen  # any of ffmpeg's 58 blends
 python -m clipper edit campaign_demo --focus top         # bias the 9:16 crop upwards
 python -m clipper edit campaign_demo --plan-only         # write plans, encode nothing
 ```
@@ -261,6 +267,9 @@ python -m clipper edit campaign_demo --plan-only         # write plans, encode n
 | `--shot-len SECONDS` | from style (`pacing.avg_shot_len`) | average length of a shot |
 | `--platform` | `tiktok` | `tiktok` \| `reels` \| `shorts` (1080x1920, crf, bitrate) |
 | `--focus` | `centre` | `centre` \| `top` \| `bottom` — which part of the frame the 9:16 crop keeps |
+| `--transition NAME` | from style | `cut` \| `fade` \| `fade_black` \| `fade_white` \| any `xfade` blend (`wipeleft`, `circleopen`, `zoomin`, …) |
+| `--transition-duration SECONDS` | from style (0.25) | how long a blend lasts |
+| `--tag NAME` | auto | suffix for the output name, so a fade and a cut version can sit side by side |
 | `--style PATH` | campaign profile or defaults | style profile JSON |
 | `--transcript PATH` | found automatically | transcript used for pause snapping |
 | `--plan-only` | off | write the plan JSON and stop |
@@ -292,16 +301,27 @@ energy curve  ──▶ silences the words missed              ┘              
   1.0 → `zoom.punch_in_scale` over `zoom.punch_in_duration`, measured on the
   reference videos), applied with `zoompan`, so it is a real ramp inside the shot
   and resets at every cut. `static` profiles hold still.
-* **Transitions** are hard cuts today (`cut`); a `fade` profile is accepted and
-  recorded in the plan but still renders as a cut, and any other value is
-  reported in the plan's `notes` instead of silently doing nothing.
+* **Transitions** are real blends now, not metadata: `cut`, `fade` (crossfade),
+  `fade_black` (dip through black), `fade_white` (flash) or any of the 58 blends
+  ffmpeg's `xfade` filter offers, by name. A blend takes a little from either
+  side of the cut and shows both at once, so it costs one blend's length of clip
+  time - `clip.blend_shortening` says how much, and every shot carries
+  `out_start`/`out_end` so downstream stages can map source time to clip time.
+  The renderer was verified against ffmpeg's actual `xfade` behaviour
+  (`offset`, where the blend sits, when the output ends) rather than its docs:
+  starting the blend *at* the cut instead of one blend-length before it mixes
+  every frame with itself, which renders as a hard cut - which is exactly what
+  the first implementation did, and what measuring the output caught.
 * **Audio** is cut alongside the picture, so a laugh or a beat is not clipped
   mid-word; silent footage still renders, just without an audio track.
 
 ### Honest limits
 
-* Shot boundaries are *cut*, not blended: no dissolves, wipes or beat-synced
-  transitions yet (the profile's transition is recorded for stage 5).
+* Blend timing is honest but coarse: a blend eats one `duration` of clip length
+  (that is what a dissolve does), so a 16.35 s moment with seven 0.4 s dissolves
+  renders as 13.55 s. Stage 4 does not stretch the source window to compensate.
+* Blends are picture-and-sound dissolves; there is no beat-syncing, no sound
+  effects and no per-shot blend choice yet (all listed in `FEATURES.md`).
 * `zoompan` costs about one frame per shot, so a 16.35 s plan renders as 16.4 s.
   The renderer warns when the difference passes 0.35 s.
 * If a plan asks for footage past the end of the file, the tail is trimmed to what
@@ -313,7 +333,10 @@ energy curve  ──▶ silences the words missed              ┘              
 
 Demo output (`python -m clipper edit campaign_demo --top 2`): two clips, 16.4 s /
 8 shots and 13.7 s / 7 shots, each camera move ramping 1.00 → 1.12 inside every
-shot and resetting at the cut.
+shot and resetting at the cut. With `--transition fade` the same moment comes out
+as `episode_01_01_fade.mp4`: a dissolve between every pair of shots, 2.8 s
+shorter, and the cuts are gone from the pixels (the biggest frame-to-frame change
+drops from 29 to 5 when measured frame by frame).
 
 ---
 
@@ -374,7 +397,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 139 tests, ~95 s
+python -m pytest              # 161 tests, ~95 s
 python -m pytest -m integration
 ```
 
@@ -383,8 +406,10 @@ The tests do not trust the code. Caption tests render a clip and inspect the
 tests recover values that were chosen before rendering: cuts at 2.0 s and 4.0 s,
 a 1.13x punch-in, a 104 px font. Selection tests use an episode whose loud
 stretches and hook sentences sit at known times. Edit tests render a clip and
-**measure the camera in the output pixels** (`estimate_scale` over decoded frames),
-plus plans that must stay contiguous, deterministic and inside the footage.
+**measure the camera in the output pixels** (`estimate_scale` over decoded frames)
+and check a dissolve really dissolves (no single frame carries the change, and a
+dip to black really reaches black), plus plans that must stay contiguous,
+deterministic and inside the footage.
 
 ## Configuration
 

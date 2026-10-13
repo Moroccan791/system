@@ -24,6 +24,20 @@ PUNCH_STYLE = config.deep_merge(config.DEFAULT_STYLE, {
     "zoom": {"dominant": "punch_in", "punch_in_scale": 1.14, "punch_in_duration": 0.3},
 })
 
+# a blend needs two *different* pictures on screen at once, and it draws them
+# from the two shots it joins - so the test footage changes scene exactly where
+# the plan cuts, otherwise a dissolve would mix a frame with itself
+BRIGHT = ((180, 190, 210), (230, 240, 250), (255, 255, 255), (200, 220, 240))
+WARM = ((220, 170, 120), (255, 205, 150), (255, 240, 210), (230, 190, 140))
+
+
+def blend_style(kind: str, seconds: float = 0.5) -> dict:
+    return config.deep_merge(config.DEFAULT_STYLE, {
+        "pacing": {"avg_shot_len": 2.0},
+        "zoom": {"dominant": "static"},
+        "transitions": {"in": kind, "duration": seconds},
+    })
+
 
 @pytest.fixture(scope="module")
 def footage(tmp_path_factory):
@@ -32,6 +46,44 @@ def footage(tmp_path_factory):
     info = render_cut_clip(str(path), shots=[2, 2, 2, 2], size=(480, 270), fps=12)
     info["path"] = str(path)
     return info
+
+
+@pytest.fixture(scope="module")
+def bright_footage(tmp_path_factory):
+    """Bright scene A for 2 s, bright scene B after - a cut a dissolve can show."""
+    path = tmp_path_factory.mktemp("blend") / "scenes.mp4"
+    scene_a = textured_scene(480, 270, seed=5, palette=BRIGHT)
+    scene_b = textured_scene(480, 270, seed=31, palette=WARM)
+    write_video(str(path), [scene_a] * 24 + [scene_b] * 24, fps=12,
+                audio_source="sine=frequency=220:duration=4")
+    return str(path)
+
+
+@pytest.fixture(scope="module")
+def blend_renders(tmp_path_factory, bright_footage):
+    """Render the same moment cut, crossfaded and dipped: measure all three once."""
+    out: dict[str, dict] = {}
+    folder = tmp_path_factory.mktemp("blend_renders")
+    # cut exactly on the footage's scene change (no jitter, so 0.0 + 2.0 s) and
+    # the dissolve has scene A running out and scene B coming in, like footage cut
+    # in a real editor
+    candidate_at = {"id": "#01", "start": 0.0, "end": 3.9, "score": 1.0,
+                    "file": bright_footage, "source_name": "scenes"}
+    for name, style in (("cut", blend_style("cut", 0.0)),
+                        ("fade", blend_style("fade", 0.5)),
+                        ("fade_black", blend_style("fade_black", 0.4))):
+        built = plan_mod.build_plan(candidate_at, style=style, shot_len=2.0)
+        if name != "cut":
+            assert built["shots"][1]["out_start"] != built["shots"][1]["start"]
+        path = folder / f"{name}.mp4"
+        render_mod.render_plan(built, path)
+        frames = [np.asarray(f, dtype=np.float32) for f in iter_frames(str(path), fps=12)]
+        diffs = np.array([np.abs(b - a).mean() for a, b in zip(frames, frames[1:])])
+        lums = np.array([f.mean() for f in frames])
+        out[name] = {"plan": built, "path": path, "frames": len(frames),
+                     "max_diff": float(diffs.max()), "min_lum": float(lums.min()),
+                     "scene_lum": float(np.mean(lums[:10]))}
+    return out
 
 
 def candidate(start=0.5, end=8.5, **extra):
@@ -155,8 +207,58 @@ def test_plan_survives_json(tmp_path):
     assert jsonio.load(path) == built
 
 
+def test_blends_shorten_the_clip_and_record_the_new_timeline():
+    """A dissolve shows two moments at once, so it costs one blend of length."""
+    built = plan_mod.build_plan(candidate(0.1, 3.9), style=blend_style("fade", 0.5))
+    clip = built["clip"]
+    assert clip["source_duration"] == pytest.approx(3.8)
+    assert clip["blend_shortening"] == pytest.approx(0.5)
+    assert clip["duration"] == pytest.approx(3.3)
+    first, second = built["shots"]
+    assert second["transition"] == "fade"
+    assert second["transition_duration"] == pytest.approx(0.5)
+    assert first["out_end"] - second["out_start"] == pytest.approx(0.5)   # they overlap
+    assert second["out_end"] == pytest.approx(clip["duration"])
+    assert any("shorter" in note for note in built["notes"])
+
+
+def test_cut_plans_have_no_shortening_and_no_stray_blend_length():
+    built = plan_mod.build_plan(candidate(0.1, 3.9), style=PUNCH_STYLE)
+    assert built["clip"]["blend_shortening"] == 0
+    assert built["clip"]["duration"] == pytest.approx(built["clip"]["source_duration"])
+    assert all(shot["transition_duration"] == 0 for shot in built["shots"])
+    assert not any("blend" in note for note in built["notes"])
+
+
+@pytest.mark.parametrize("asked,expected", [
+    ("dissolve", "fade"), ("crossfade", "fade"), ("fade", "fade"),
+    ("dip to black", "fade_black"), ("fade_black", "fade_black"),
+    ("flash", "fade_white"), ("wipeleft", "wipeleft"), ("circleopen", "circleopen"),
+    ("zoomin", "zoomin"), ("squeezeh", "squeezeh"), ("cut", "cut"), ("none", "cut"),
+])
+def test_transition_names_people_use_map_to_ffmpeg_names(asked, expected):
+    assert plan_mod.resolve_transition(asked) == expected
+
+
+def test_an_impossible_transition_falls_back_to_a_cut_and_says_so():
+    assert plan_mod.resolve_transition("sparkle-explosion") is None
+    built = plan_mod.build_plan(candidate(0.1, 3.9), style=blend_style("sparkle", 0.5))
+    assert built["style"]["transition"] == "cut"
+    assert any("not one ffmpeg can blend" in note for note in built["notes"])
+
+
+def test_a_blend_too_long_for_its_shots_is_shortened():
+    style = blend_style("fade", 0.8)
+    style["pacing"]["avg_shot_len"] = 1.0            # 1 s shots, 0.8 s blend
+    built = plan_mod.build_plan(candidate(0.1, 2.1), style=style)
+    shortest = min(shot["duration"] for shot in built["shots"])
+    assert built["shots"][0]["transition_duration"] <= shortest * 0.5 + 0.001
+    assert any("blend shortened" in note for note in built["notes"])
+
+
 # ---------------------------------------------------------------------------
 # filtergraph
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 def test_filtergraph_trims_every_shot_at_the_plan_times():
     built = plan_mod.build_plan(candidate(1.0, 7.0), style=PUNCH_STYLE)
@@ -173,6 +275,38 @@ def test_filtergraph_only_zooms_when_the_profile_moves_the_camera():
     still = render_mod.build_filtergraph(
         plan_mod.build_plan(candidate(0.0, 4.0), style=still_style))
     assert "zoompan" in moving and "zoompan" not in still
+
+
+def test_filtergraph_blends_before_the_cut_using_both_shots():
+    """The blend has to start one blend-length *before* the cut, not at it.
+
+    Starting it at the cut mixes each frame with itself, which renders as a hard
+    cut no matter what the profile says - verified by measuring the output.
+    """
+    built = plan_mod.build_plan(candidate(0.1, 3.9), style=blend_style("fade", 0.5))
+    graph = render_mod.build_filtergraph(built, source_fps=12, source_duration=4.0)
+    incoming = built["shots"][1]
+    assert (f"xfade=transition=fade:duration=0.500:offset={incoming['out_start']:.3f}"
+            in graph)
+    assert "acrossfade=d=0.500" in graph
+    # both shots keep exactly their own material: no tail is invented
+    for shot in built["shots"]:
+        assert f"trim=start={shot['start']:.3f}:end={shot['end']:.3f}" in graph
+
+
+def test_filtergraph_maps_blend_names_to_ffmpeg_names():
+    black = plan_mod.build_plan(candidate(0.1, 3.9), style=blend_style("dip to black", 0.4))
+    white = plan_mod.build_plan(candidate(0.1, 3.9), style=blend_style("flash", 0.4))
+    wipes = plan_mod.build_plan(candidate(0.1, 3.9), style=blend_style("circleopen", 0.4))
+    assert "xfade=transition=fadeblack:duration=0.400" in render_mod.build_filtergraph(black)
+    assert "xfade=transition=fadewhite:duration=0.400" in render_mod.build_filtergraph(white)
+    assert "xfade=transition=circleopen:duration=0.400" in render_mod.build_filtergraph(wipes)
+
+
+def test_filtergraph_stays_on_the_concat_path_when_nothing_blends():
+    graph = render_mod.build_filtergraph(plan_mod.build_plan(candidate(0.1, 3.9), style=PUNCH_STYLE))
+    assert "xfade" not in graph and "acrossfade" not in graph
+    assert "concat=n=" in graph
 
 
 def test_filtergraph_zoom_expression_takes_the_profile_duration():
@@ -244,6 +378,31 @@ def test_render_handles_silent_footage(tmp_path, footage):
     info = probe(out)
     assert info.has_video and not info.has_audio
     assert info.duration == pytest.approx(built["clip"]["duration"], abs=0.35)
+
+
+def test_render_crossfade_spreads_the_change_over_the_blend(blend_renders):
+    """A dissolve must be visible in the pixels: no single frame jumps."""
+    cut, fade = blend_renders["cut"], blend_renders["fade"]
+    assert cut["max_diff"] > 20, "the cut version should show one hard jump"
+    assert fade["max_diff"] < cut["max_diff"] * 0.5, (
+        f"the dissolve should spread the change over its length, "
+        f"but the biggest step was {fade['max_diff']:.1f} vs {cut['max_diff']:.1f}")
+
+
+def test_render_dip_to_black_goes_through_black(blend_renders):
+    black = blend_renders["fade_black"]
+    assert black["scene_lum"] > 150, "the test footage is meant to be bright"
+    assert black["min_lum"] < black["scene_lum"] * 0.25, (
+        f"a dip to black should reach black, darkest frame was {black['min_lum']:.0f} "
+        f"against scenes at {black['scene_lum']:.0f}")
+
+
+def test_blended_renders_match_the_planned_length(blend_renders):
+    """Every variant has to land where its plan says, shortening and all."""
+    for name, record in blend_renders.items():
+        planned = record["plan"]["clip"]["duration"]
+        rendered = record["frames"] / 12
+        assert rendered == pytest.approx(planned, abs=0.35), f"{name}: {rendered} vs {planned}"
 
 
 def test_render_trims_a_plan_that_runs_past_the_footage(footage, tmp_path):

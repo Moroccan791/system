@@ -63,6 +63,11 @@ DEFAULT_STYLE: dict = {
     "pacing": {"avg_shot_len": None, "cuts_per_minute": None, "confidence": 0.0},
     "zoom": {"dominant": "punch_in", "punch_in_scale": 1.12, "punch_in_duration": 0.25,
              "confidence": 0.0},
+    "transitions": {
+        "in": "cut",            # cut | fade | fade_black | fade_white | any xfade blend
+        "duration": 0.25,       # seconds a blend lasts
+        "confidence": 0.0,
+    },
     "captions": {
         "present": True,
         # font: we cannot identify a font from pixels reliably; this is the

@@ -18,6 +18,7 @@ is valid and only changes that one thing.
   "source":   { "references": ["ref_01.mp4"], "notes": "...", "sample": {"fps": 6, "width": 480} },
   "pacing":   { "avg_shot_len": 2.0, "median_shot_len": 2.0, "cuts_per_minute": 20.0, "confidence": 0.5 },
   "zoom":     { "dominant": "punch_in", "punch_in_scale": 1.12, "punch_in_duration": 0.33, "confidence": 0.88 },
+  "transitions": { "in": "cut", "duration": 0.25, "confidence": 0.0 },
   "captions": {
     "present": true,
     "font_family": null,
@@ -52,6 +53,21 @@ is valid and only changes that one thing.
 * **`zoom`** — `dominant` is one of `punch_in`, `slow_push`, `pull_out`,
   `static`, `mixed`. `punch_in_scale` is the multiplier the reference reaches
   (1.12 = 12 % bigger) and `punch_in_duration` is how long it takes to get there.
+* **`transitions.in`** — how one shot arrives after another in stage 4:
+  `cut` (default), `fade` (a crossfade, also `dissolve`/`crossfade`), `fade_black`
+  (dip through black), `fade_white` (flash), or **any blend ffmpeg's `xfade` can
+  do by name** — `wipeleft`, `slideup`, `circleopen`, `zoomin`, `squeezeh`,
+  `pixelize`, `hblur`, `diagtr`, `coverleft`, `revealup` … 58 of them, listed in
+  `clipper/edit/plan.py` (`FFMPEG_TRANSITIONS`). An unknown word falls back to a
+  hard cut and is reported in the plan's `notes`, never silently ignored.
+* **`transitions.duration`** — how long a blend lasts, in seconds (default 0.25,
+  capped at 0.8 and never more than half the shortest shot). Extraction does not
+  measure this yet (see `FEATURES.md` → *D2*): references with hard cuts leave it
+  at `cut`, and you can hand-edit it.
+* A blend shows two moments at once, so it costs one `duration` of clip length:
+  a 16.35 s moment with seven 0.4 s dissolves renders as 13.55 s. The plan says
+  so in `clip.blend_shortening`, and every shot carries `out_start`/`out_end` so
+  captions can be mapped onto the rendered timeline.
 * **`captions.font_size_ass`** — in ASS pixels at 1080x1920. This is the value
   the caption renderer passes to libass, so it can be compared directly with
   `DEFAULT_STYLE`.

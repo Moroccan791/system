@@ -122,8 +122,11 @@ def _edit_cards() -> tuple[list[str], str]:
         target = plan.get("target", {})
         shots = plan.get("shots", [])
         lengths = " ".join(f"{s['duration']:.2f}s" for s in shots)
+        blend = str(style.get("transition") or "cut")
+        if blend != "cut" and style.get("transition_duration"):
+            blend = f"{blend} {float(style['transition_duration']):.2f}s"
         detail = " · ".join(str(x) for x in (
-            style.get("zoom"), style.get("transition"),
+            style.get("zoom"), blend,
             f"{target.get('width')}x{target.get('height')}" if target.get("width") else None,
             target.get("platform")) if x)
         card = (f'<figure class="card">'
