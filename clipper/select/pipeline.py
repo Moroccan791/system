@@ -55,12 +55,24 @@ def find_transcript(media: Path, campaign: str | None = None) -> Path | None:
 def select_candidates(media: str | Path, *, transcript=None, platform: str = "tiktok",
                       min_seconds: float | None = None, max_seconds: float | None = None,
                       top: int = 5, campaign: str | None = None,
-                      save: bool = True, work_dir: Path | None = None) -> dict:
-    """Score one recording and return its candidate clips."""
+                      save: bool = True, work_dir: Path | None = None,
+                      rules: dict | None = None, keep_rejected: bool = False) -> dict:
+    """Score one recording and return its candidate clips.
+
+    `rules` (see clipper/guideline.py) is the campaign brief: it sets the clip
+    length window, drops moments that break a campaign rule, lifts the ones that
+    fit, and records a compliance block on every candidate. Without a rule file
+    the platform's own window is used and only the generic hook rules apply.
+    """
+    from .. import guideline as guideline_mod
+
     media = Path(media)
     if not media.exists():
         raise FileNotFoundError(media)
+    rules = rules if rules is not None else {}
     lo, hi = score_mod.TARGET_LENGTHS.get(platform, score_mod.TARGET_LENGTHS["tiktok"])
+    if rules.get("path"):
+        lo, hi = guideline_mod.clip_length(rules)
     min_seconds = float(min_seconds if min_seconds is not None else lo)
     max_seconds = float(max_seconds if max_seconds is not None else hi)
     if max_seconds < min_seconds:
@@ -101,6 +113,28 @@ def select_candidates(media: str | Path, *, transcript=None, platform: str = "ti
                                                  max_seconds=max_seconds, top=top)
         mode = "audio-only"
 
+    # the campaign's rules decide what survives, and say so per candidate
+    effective = config.deep_merge(rules, {"clip": {"min_seconds": min_seconds,
+                                                   "max_seconds": max_seconds}})
+    kept: list[dict] = []
+    rejected: list[dict] = []
+    for window in candidates:
+        window, hook_at = _hook_anchor(window, words or [], effective, min_seconds)
+        verdict = guideline_mod.text_verdict(window.get("text"), effective)
+        if verdict["boost"]:
+            window["score"] = round(min(1.0, window["score"] + 0.04 * len(verdict["boost"])), 3)
+            window["reasons"] = window["reasons"] + verdict["reasons"][:len(verdict["boost"])]
+        window["compliance"] = guideline_mod.compliance(window, effective, hook_at=hook_at)
+        if verdict["reject"] and not keep_rejected:
+            window["rejected_for"] = verdict["banned"]
+            window["reasons"] = window["reasons"] + verdict["reasons"]
+            rejected.append(window)
+            log.debug("dropped a moment that breaks the campaign rules",
+                      at=f"{window['start']:.1f}s", why=verdict["banned"][0])
+            continue
+        kept.append(window)
+    candidates = kept
+
     payload = {
         "version": 1,
         "campaign": campaign,
@@ -115,11 +149,54 @@ def select_candidates(media: str | Path, *, transcript=None, platform: str = "ti
             "words": len(words) if words else 0,
         },
         "candidates": candidates,
+        "rejected": rejected,
+        "guideline": {"path": rules.get("path"), "campaign": rules.get("campaign"),
+                      "clip": {"min_seconds": min_seconds, "max_seconds": max_seconds}},
     }
     if save:
         out_dir = Path(work_dir) if work_dir else (config.WORK / (campaign or media.stem))
         payload["written"] = str(write_candidates(out_dir, media, payload))
     return payload
+
+
+def _hook_anchor(window: dict, words: list, rules: dict, min_seconds: float) -> tuple[dict, float | None]:
+    """Move the start so the campaign's hook window is respected.
+
+    A clip can grow a long lead-in while the window is being built, which pushes
+    the sentence that makes people stop scrolling past the campaign's "first few
+    seconds" rule. Trimming the lead-in (never below the length floor) fixes that
+    without touching the moment itself.
+    """
+    from .. import guideline as guideline_mod
+
+    if not words:
+        return window, None
+    inside = [w for w in words
+              if float(w.start) >= window["start"] - 0.01 and float(w.end) <= window["end"] + 0.01]
+    if not inside:
+        return window, None
+    units = hooks_mod.sentence_units(inside)
+    best = None
+    for unit in units:
+        score, _ = hooks_mod.score_text(unit["text"])
+        if score >= 0.35 and (best is None or unit["start"] < best["start"]):
+            best = unit
+    if best is None:
+        return window, None
+    within = float((rules.get("hook") or {}).get("within_seconds") or 5.0)
+    hook_at = round(float(best["start"]) - window["start"], 3)
+    if hook_at <= within:
+        return window, hook_at
+    new_start = max(window["start"], round(float(best["start"]) - 0.6, 3))
+    if window["end"] - new_start < score_mod.length_floor(min_seconds):
+        return window, hook_at                      # cannot trim, so report it honestly
+    trimmed = {**window, "start": round(new_start, 3),
+               "duration": round(window["end"] - new_start, 3),
+               "reasons": window["reasons"] + [
+                   f"lead-in trimmed so the hook lands {within:.0f}s in, not {hook_at:.1f}s"]}
+    log.debug("trimmed a lead-in to respect the campaign hook window",
+              was=f"{window['start']:.1f}s", now=f"{new_start:.1f}s")
+    return trimmed, round(float(best["start"]) - new_start, 3)
 
 
 def write_candidates(out_dir: Path, media: Path, payload: dict) -> Path:
@@ -157,7 +234,21 @@ def render_report(payload: dict) -> str:
             lines += [f"> {c['text']}", ""]
         for reason in c.get("reasons", []):
             lines.append(f"- {reason}")
+        compliance = c.get("compliance") or {}
+        for check in compliance.get("checks", []):
+            lines.append(f"- {'PASS' if check['pass'] else 'FAIL'} {check['check']}: {check['detail']}")
+        for note in compliance.get("notes", []):
+            lines.append(f"- note: {note}")
         lines.append("")
+    rejected = payload.get("rejected") or []
+    if rejected:
+        lines += ["## dropped by the campaign rules", ""]
+        for c in rejected:
+            lines += [f"- {fmt_time(c['start'])} - {fmt_time(c['end'])} "
+                      f"({c['duration']:.1f}s): " + "; ".join(c.get("rejected_for", [])), ""]
+    guidance = payload.get("guideline") or {}
+    if guidance.get("path"):
+        lines += ["", f"_rules from {guidance['path']}_"]
     return "\n".join(lines)
 
 
@@ -168,7 +259,10 @@ def fmt_time(seconds: float) -> str:
 
 
 def select_campaign(campaign: str, **kwargs) -> list[dict]:
-    """Run selection over every raw file of a campaign."""
+    """Run selection over every raw file of a campaign, with its rules if it has any."""
+    from .. import guideline as guideline_mod
+
+    kwargs.setdefault("rules", guideline_mod.load(campaign))
     from ..ingest.scan import scan_campaign
 
     manifest = scan_campaign(campaign)

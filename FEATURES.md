@@ -16,7 +16,7 @@ here has followed so far.
 ## 1. What you have right now
 
 Everything below runs in this sandbox: CPU only, no accounts, no paid tools,
-FFmpeg 7.0.2 with libass. 161 tests cover it (`python -m pytest`).
+FFmpeg 7.0.2 with libass. 197 tests cover it (`python -m pytest`).
 
 ### Stage 0 — look at a campaign
 ```bash
@@ -85,6 +85,18 @@ Writes `work/<name>/edits/<file>_<id>[_tag].mp4` and a readable `.plan.json`:
   `clip.blend_shortening`), so captions and exports know where everything lands
 * 1080×1920 per platform preset, audio cut with the picture, silent footage still
   edits, a plan that runs past the end of the file trims instead of padding
+
+### Campaign rules — the brief as data, checked per clip
+```bash
+python -m clipper rules <campaign>          # show the rules in force
+python -m clipper rules <campaign> --init   # write a template to fill in
+python -m clipper select <campaign> [--keep-banned]
+```
+`campaigns/<name>/campaign.json` holds clip length window, hook window, approved
+and banned topics, banned names, retired phrases, tone warnings and brand notes.
+Selection drops moments that break a rule (reporting why), lifts the ones that
+fit, trims long lead-ins so the hook lands in the first seconds, and stamps a
+`compliance` block on each candidate. Keyword lists are literal by design.
 
 ### Blends — see the transitions instead of guessing
 ```bash
@@ -178,6 +190,15 @@ style profiles, and work files. Range requests work, so seeking works.
 | E6 | Direct upload | post to TikTok/YouTube/Instagram — needs each platform's API and your credentials | L, not offline |
 | E7 | Branding overlay | logo/watermark and a handle line in a safe corner | S |
 | E8 | Progress & resume | ETA per clip, skip work that is already rendered | S |
+
+### G — campaign compliance (started, more to come)
+| Code | Feature | What it changes | Effort |
+|------|---------|-----------------|--------|
+| G1 | Face coverage check | measure "a face is on screen for X% of the clip" with an offline detector (~90 MB wheel) instead of reporting it as unmeasured | M |
+| G2 | Word-form expansion for rules | match "dollars"/"bucks"/"salary" automatically for the `money` rule, with the expansion visible | S |
+| G3 | Tone classifier | flag rage-bait / demeaning framings beyond an explicit word list | L — needs a model |
+| G4 | Compliance check before upload | re-check the finished 9:16, captioned file (length, aspect, caption presence) rather than the source window | S |
+| G5 | Multi-campaign rule sets | one workspace, several campaigns with different briefs, no cross-contamination | S |
 
 ### X — workflow and viewer
 | Code | Feature | What it changes | Effort |

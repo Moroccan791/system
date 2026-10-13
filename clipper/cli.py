@@ -291,6 +291,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--plan-only", action="store_true", help="write the plans, render nothing")
     s.set_defaults(func=cmd_edit)
 
+    s = sub.add_parser("rules", help="show or create a campaign's rule file (clip length, banned topics)")
+    s.add_argument("campaign", nargs="?", default=None)
+    s.add_argument("--path", default=None, help="a specific campaign.json")
+    s.add_argument("--init", action="store_true", help="write a template rule file to edit")
+    s.set_defaults(func=cmd_rules)
+
     s = sub.add_parser("blends", help="render a sampler of every blend between shots")
     s.add_argument("--out", default=None, help="where to write it (default: work/blends_sampler.mp4)")
     s.add_argument("--all", action="store_true", help="every blend this ffmpeg has, not just the picks")
@@ -311,6 +317,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--min", dest="min_seconds", type=float, default=None, help="shortest clip")
     s.add_argument("--max", dest="max_seconds", type=float, default=None, help="longest clip")
     s.add_argument("--top", type=int, default=5, help="candidates per file")
+    s.add_argument("--campaign", dest="campaign_name", default=None,
+                   help="apply this campaign's rules and style lookup to the file")
+    s.add_argument("--rules", default=None, help="campaign rule file (default: the campaign's own)")
+    s.add_argument("--keep-banned", action="store_true",
+                   help="keep moments the campaign rules reject, flagged instead of dropped")
     s.set_defaults(func=cmd_select)
 
     s = sub.add_parser("style", help="stage 1: learn a campaign style from /references")
@@ -335,38 +346,71 @@ def build_parser() -> argparse.ArgumentParser:
 def cmd_select(args: argparse.Namespace) -> int:
     from .select import pipeline
 
+    from . import guideline
+
     target = Path(args.target)
+    rules = None
+    if args.rules:
+        rules = guideline.load(None, args.rules)
+    elif getattr(args, "campaign_name", None):
+        rules = guideline.load(args.campaign_name)
+    extra = {"rules": rules} if rules else {}
     results: list[dict] = []
     if target.is_file():
         log.step("select", file=target.name)
         results = [pipeline.select_candidates(
             target, transcript=args.transcript, platform=args.platform,
             min_seconds=args.min_seconds, max_seconds=args.max_seconds, top=args.top,
-            campaign=args.campaign_name)]
+            campaign=args.campaign_name, keep_rejected=args.keep_banned, **extra)]
     else:
         results = pipeline.select_campaign(
             args.target, transcript=args.transcript, platform=args.platform,
-            min_seconds=args.min_seconds, max_seconds=args.max_seconds, top=args.top)
+            min_seconds=args.min_seconds, max_seconds=args.max_seconds, top=args.top,
+            keep_rejected=args.keep_banned, **extra)
 
     print()
     for payload in results:
-        src = payload["source"]
-        print(f"{src['name']}  ({src['duration']:.1f}s, mode {payload['mode']}, "
-              f"{len(payload['analysis']['hot_spots'])} loud stretch(es))")
-        if not payload["candidates"]:
-            print("  no candidates - try --min/--max or a transcript")
-            continue
-        for c in payload["candidates"]:
-            stamp = f"{pipeline.fmt_time(c['start'])}-{pipeline.fmt_time(c['end'])}"
-            print(f"  {c['id']}  {stamp:>13}  {c['duration']:5.1f}s  score {c['score']:.2f}")
-            if c.get("text"):
-                text = c["text"]
-                print(f"        \"{text[:88]}{'...' if len(text) > 88 else ''}\"")
-            for reason in c.get("reasons", [])[:3]:
-                print(f"        · {reason}")
-        if payload.get("written"):
-            print(f"        written: {payload['written']}")
+        _print_candidates(payload)
     return 0
+
+
+def _print_candidates(payload: dict) -> None:
+    """Candidates, and what the campaign rules made of each one."""
+    from .select import pipeline
+
+    src = payload["source"]
+    rules = payload.get("guideline") or {}
+    where = f", rules {Path(rules['path']).name}" if rules.get("path") else ""
+    print(f"{src['name']}  ({src['duration']:.1f}s, mode {payload['mode']}, "
+          f"{len(payload['analysis']['hot_spots'])} loud stretch(es){where})")
+    rejected = payload.get("rejected") or []
+    if not payload["candidates"]:
+        if rejected:
+            print(f"  nothing survived the campaign rules - {len(rejected)} moment(s) dropped")
+            print("  the report says why; --keep-banned keeps them for inspection instead")
+        else:
+            print("  no candidates - try --min/--max or a transcript")
+        return
+    for c in payload["candidates"]:
+        stamp = f"{pipeline.fmt_time(c['start'])}-{pipeline.fmt_time(c['end'])}"
+        print(f"  {c['id']}  {stamp:>13}  {c['duration']:5.1f}s  score {c['score']:.2f}")
+        if c.get("text"):
+            text = c["text"]
+            print(f"        \"{text[:88]}{'...' if len(text) > 88 else ''}\"")
+        for reason in c.get("reasons", [])[:3]:
+            print(f"        · {reason}")
+        compliance = c.get("compliance") or {}
+        failed = [check for check in compliance.get("checks", []) if not check["pass"]]
+        if failed:
+            print("        ! campaign: " + "; ".join(check["detail"] for check in failed))
+        elif compliance.get("checks"):
+            extra = f" · {len(compliance.get('boost') or [])} approved topic(s)" if compliance.get("boost") else ""
+            print(f"        ✓ campaign checks pass{extra}")
+    if rejected:
+        print(f"        dropped by the campaign rules: {len(rejected)} "
+              f"(the report lists them with reasons)")
+    if payload.get("written"):
+        print(f"        written: {payload['written']}")
 
 
 def cmd_edit(args: argparse.Namespace) -> int:
@@ -401,6 +445,24 @@ def cmd_edit(args: argparse.Namespace) -> int:
         print(f"    plan    {record['plan_path']}")
     print()
     print("next: python -m clipper captions <clip> --campaign <campaign>   (stage 3 + 5)")
+    return 0
+
+
+def cmd_rules(args: argparse.Namespace) -> int:
+    from . import guideline
+
+    path = Path(args.path) if args.path else None
+    if path is None and args.campaign:
+        path = config.CAMPAIGNS / args.campaign / "campaign.json"
+    if args.init:
+        if not args.campaign:
+            raise SystemExit("--init needs a campaign name: clipper rules <campaign> --init")
+        target = guideline.scaffold(args.campaign, path)
+        print(f"wrote {target}\n\nedit it, then `python -m clipper select {args.campaign}` obeys it")
+        return 0
+    rules = guideline.load(args.campaign, path)
+    print(json.dumps(rules, indent=2))
+    print(f"\n# from {rules.get('path') or 'built-in defaults'}", file=sys.stderr)
     return 0
 
 

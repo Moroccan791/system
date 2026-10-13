@@ -27,6 +27,7 @@ Everything runs locally, offline, with free/open-source tools (Python + FFmpeg).
 | 3 | `captions` — word-level ASR, styled captions, 9:16 burn-in | **done** |
 | 4 | `edit` — cut the chosen moments to the profile's rhythm and camera | **done** |
 | 5 | `export` — platform presets | planned (presets exist, used by stage 3 already) |
+| — | `rules` — the campaign brief as data (length, banned topics, hook window) | **done** |
 
 `FEATURES.md` is the menu: everything that exists, and everything that could be
 added next, numbered so you can just ask for *"C2 and V4"*.
@@ -61,6 +62,7 @@ python -m clipper samples
 python -m clipper scan
 python -m clipper style campaign_demo      # learn the campaign style
 python -m clipper select campaign_demo     # find the moments worth clipping
+python -m clipper rules campaign_demo      # what rules are in force (optional)
 python -m clipper edit campaign_demo       # cut and zoom them into 9:16 clips
 
 # 2. open the workspace viewer (watch footage, styles and results)
@@ -352,6 +354,63 @@ drops from 29 to 5 when measured frame by frame).
 
 ---
 
+## Campaign rules — what this campaign will and will not accept
+
+Style is learned from the references; **rules are not learnable**, so they live in
+a file:
+
+```bash
+python -m clipper rules michael_sartain          # show the rules in force
+python -m clipper rules mycampaign --init        # write a template to fill in
+```
+
+`campaigns/<name>/campaign.json` (yours, gitignored) says things the references
+cannot: the clip length window, how early the hook has to land, topics that are
+approved or banned, names and retired phrases that disqualify a moment, brand
+notes, and the platform handles.
+
+```json
+{
+  "clip":    { "min_seconds": 20, "max_seconds": 180 },
+  "hook":    { "within_seconds": 5 },
+  "format":  { "aspect": "9:16", "captions_required": true },
+  "topics":  { "approved": ["dating", "confidence"],
+               "banned": ["politic", "money", "dollar", "wealth", "millionaire"] },
+  "entities":{ "banned": ["dan bilzerian", "kylee"] },
+  "phrases": { "banned": ["you live in a country*", "average guy in the us makes"] },
+  "tone":    { "warn": ["all women are"] },
+  "brand":   { "face_min_coverage": 0.5, "notes": ["Michael in >=50% of the clip"] }
+}
+```
+
+`select` then:
+
+* uses the campaign's length window instead of the platform default,
+* **drops** moments that break a rule, and lists them in the report as
+  *dropped by the campaign rules* with the reason (`--keep-banned` keeps them
+  flagged instead of dropped),
+* **lifts** moments that fit an approved topic, and says so in the reasons,
+* **trims a long lead-in** so the hook lands inside the campaign's window,
+* writes a `compliance` block on every candidate: length, topics, hook, format -
+  each check with the number behind it, e.g.
+
+```
+! campaign: 14.2s is under the campaign minimum of 20s; the hook only lands 6.5s in
+```
+
+Honest limits of this layer:
+
+* keyword lists are literal: `money` does **not** match "dollars" unless `dollar`
+  is listed too. That is deliberate - a matcher that guesses will drop clips you
+  wanted - but it means the lists need the word forms you actually care about.
+* `tone` entries are *warnings* for a human, never automatic rejections.
+* the `face_min_coverage` brand rule is **not measured**: there is no offline face
+  detector installed, so it is carried along as a note instead of a fake number.
+* rules cannot judge meaning. "Off-campaign" here means "matched a listed word",
+  which is shown next to every verdict so you can overrule it.
+
+---
+
 ## The style profile
 
 One JSON per campaign, `styles/<name>.style.json`, produced by stage 1 and
@@ -409,7 +468,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 170 tests, ~100 s
+python -m pytest              # 197 tests, ~100 s
 python -m pytest -m integration
 ```
 

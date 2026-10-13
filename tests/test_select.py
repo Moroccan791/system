@@ -16,8 +16,9 @@ from clipper.asr.base import Word
 from clipper.select import energy as energy_mod
 from clipper.select import hooks as hooks_mod
 from clipper.select import score as score_mod
+from clipper.select import pipeline
 from clipper.select.pipeline import select_candidates
-from clipper.synth import render_episode
+from clipper.synth import render_episode, textured_scene, write_video
 
 
 @pytest.fixture(scope="module")
@@ -261,3 +262,150 @@ def test_report_is_readable(episode, scripted):
     report = render_report(payload)
     assert report.startswith("# candidates")
     assert "loud stretches" in report
+
+
+# ---------------------------------------------------------------------------
+# campaign rules (clipper/guideline.py) inside selection
+# ---------------------------------------------------------------------------
+RULES = {
+    "campaign": "demo",
+    "clip": {"min_seconds": 10, "max_seconds": 25},
+    "hook": {"within_seconds": 5},
+    # word forms matter: a transcript says "dollars", not "money"
+    "topics": {"approved": ["dating", "confidence"],
+               "banned": ["money", "dollar", "wealth", "politic"]},
+    "entities": {"banned": ["bilzerian"]},
+    "phrases": {"banned": ["you live in a country*"]},
+    "brand": {"notes": ["a face must be on screen for most of the clip"]},
+}
+
+
+def burst_wav(path, *, seconds=40.0, rate=16000, bursts=((10.0, 16.0), (24.0, 30.0))):
+    """Quiet room tone with two loud stretches - the moments worth clipping."""
+    import wave
+
+    import numpy as np
+
+    t = np.arange(int(seconds * rate)) / rate
+    signal = 0.02 * np.sin(2 * np.pi * 180 * t)
+    for start, end in bursts:
+        mask = (t >= start) & (t < end)
+        signal[mask] += 0.30 * np.sin(2 * np.pi * 320 * t[mask])
+    pcm = np.clip(signal, -1, 1)
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(rate)
+        handle.writeframes((pcm * 32767).astype("<i2").tobytes())
+    return path
+
+
+def scripted_transcript(path, spans):
+    """spans: (start, end, opening words) - speech that runs the whole span.
+
+    Real podcast speech does not stop for ten seconds in the middle of a story,
+    so the filler keeps running until the span ends; otherwise a window cannot
+    reach the campaign's minimum length without swallowing the other moment.
+    """
+    filler = ("and", "then", "we", "kept", "talking", "about", "it", "for", "a", "while")
+    words, step = [], 0.34
+    for start, end, opening in spans:
+        t = start
+        for text in (*opening, None):
+            if text is None:                      # switch to filler
+                i = 0
+                while t < end - step:
+                    words.append({"text": filler[i % len(filler)], "start": round(t, 3),
+                                  "end": round(t + step * 0.8, 3)})
+                    t += step
+                    i += 1
+            else:
+                words.append({"text": text, "start": round(t, 3),
+                              "end": round(t + step * 0.9, 3)})
+                t += step
+    path.write_text(json.dumps({"text": " ".join(w["text"] for w in words),
+                                "language": "en", "provider": "fixture",
+                                "duration": words[-1]["end"] if words else 0,
+                                "words": words}), encoding="utf-8")
+    return path
+
+
+@pytest.fixture(scope="module")
+def ruled_media(tmp_path_factory):
+    """One file, two loud moments: one off-campaign (money), one on-campaign (dating)."""
+    folder = tmp_path_factory.mktemp("ruled")
+    media = folder / "talk.mp4"
+    wav = burst_wav(folder / "talk.wav")
+    frames = (textured_scene(320, 180, seed=9) for _ in range(40 * 12))
+    write_video(str(media), frames, fps=12, audio_path=str(wav))
+    # speech runs wider than the loud stretches, the way a podcast does: the
+    # moment is where the energy and the hook are, not where the talking stops
+    transcript = scripted_transcript(folder / "talk.transcript.json", [
+        (8.5, 20.0, ("so", "nobody", "tells", "you", "this", "but", "i", "made",
+                     "ninety", "thousand", "dollars", "in", "one", "month")),
+        (22.5, 34.0, ("why", "do", "people", "ignore", "the", "dating", "advice",
+                      "that", "builds", "confidence", "?")),
+    ])
+    return {"media": str(media), "transcript": str(transcript)}
+
+
+def test_rules_drop_the_off_campaign_moment_and_keep_the_other(ruled_media):
+    payload = pipeline.select_candidates(
+        ruled_media["media"], transcript=ruled_media["transcript"], rules=RULES,
+        min_seconds=10, max_seconds=25, top=3, save=False)
+    kept_text = " ".join(c.get("text", "") for c in payload["candidates"])
+    assert payload["candidates"], "the on-campaign moment should survive"
+    assert "dating" in kept_text and "dollars" not in kept_text
+    assert payload["rejected"], "the money moment should be reported, not silently lost"
+    # the reason names the form that actually matched
+    assert any("dollar" in " ".join(c["rejected_for"]) for c in payload["rejected"])
+    assert payload["guideline"]["clip"] == {"min_seconds": 10.0, "max_seconds": 25.0}
+
+
+def test_kept_candidates_carry_their_compliance_verdict(ruled_media):
+    payload = pipeline.select_candidates(
+        ruled_media["media"], transcript=ruled_media["transcript"], rules=RULES,
+        min_seconds=10, max_seconds=25, top=3, save=False)
+    candidate = payload["candidates"][0]
+    compliance = candidate["compliance"]
+    checks = {c["check"]: c for c in compliance["checks"]}
+    assert compliance["pass"] is True
+    assert checks["length"]["pass"] and checks["topics"]["pass"]
+    assert compliance["notes"], "unmeasured brand rules are carried along with the clip"
+    assert any("on-campaign" in reason for reason in candidate["reasons"])
+
+
+def test_keep_banned_shows_them_flagged_instead_of_dropping_them(ruled_media):
+    payload = pipeline.select_candidates(
+        ruled_media["media"], transcript=ruled_media["transcript"], rules=RULES,
+        min_seconds=10, max_seconds=25, top=3, save=False, keep_rejected=True)
+    assert payload["rejected"] == []
+    flagged = [c for c in payload["candidates"] if not c["compliance"]["pass"]]
+    assert flagged, "with --keep-banned the moment stays, marked as failing"
+
+
+def test_hook_anchor_trims_a_long_lead_in():
+    """A clip that meanders for 10 s before its hook breaks the campaign's rule."""
+    from clipper.select.pipeline import _hook_anchor
+
+    words = [Word("and", 0.0, 2.0), Word("then", 2.0, 4.0), Word("so", 4.0, 6.0),
+             Word("anyway", 6.0, 8.5),
+             Word("nobody", 10.0, 10.4), Word("tells", 10.4, 10.8), Word("you", 10.8, 11.0),
+             Word("this", 11.0, 11.4), Word("the", 11.4, 11.6), Word("truth", 11.6, 12.0),
+             Word("about", 12.0, 12.4), Word("dates", 12.4, 12.9)]
+    window = {"start": 0.0, "end": 30.0, "duration": 30.0, "reasons": [], "text": ""}
+    trimmed, hook_at = _hook_anchor(window, words, RULES, 10.0)
+    assert trimmed["start"] > 8.0, "the lead-in should be trimmed"
+    assert trimmed["duration"] < 30.0
+    assert hook_at is not None and hook_at <= 5.0, "the hook now lands inside the window"
+    assert any("lead-in trimmed" in reason for reason in trimmed["reasons"])
+
+
+def test_reports_explain_rejections_and_compliance(ruled_media):
+    payload = pipeline.select_candidates(
+        ruled_media["media"], transcript=ruled_media["transcript"], rules=RULES,
+        min_seconds=10, max_seconds=25, top=3, save=False)
+    report = pipeline.render_report(payload)
+    assert "dropped by the campaign rules" in report
+    assert "PASS length" in report or "FAIL length" in report
+    assert "note:" in report, "brand rules that cannot be checked automatically are printed"
