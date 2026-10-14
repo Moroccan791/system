@@ -87,6 +87,7 @@ def run_captions(
     duration: float | None = None,
     asr_kwargs: dict | None = None,
     words: list | None = None,
+    inserts: list[dict] | None = None,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -146,27 +147,45 @@ def run_captions(
         warnings.append("word timings are estimated by the energy aligner (+/- ~100 ms); "
                         "use --asr faster_whisper for exact timings")
 
-    cues = group_words(
-        transcript.words,
-        max_words=int(cap_style.get("max_words_per_cue") or 4),
-        max_chars=int(cap_style.get("max_chars_per_line") or 22),
-        max_lines=int(cap_style.get("max_lines") or 1),
-    )
-    log.info("cues", n=len(cues))
-    if not cues:
-        warnings.append("no cues produced")
-
+    mode = mode or cap_style.get("mode") or "karaoke"
     twidth, theight = int(preset["width"]), int(preset["height"])
-    ass_path = write_ass(work / "captions.ass", cues, style, width=twidth, height=theight, mode=mode)
+    if mode == "block":
+        from . import block as block_mod
+
+        blocks = getattr(block_mod, "segment_sentences")(transcript.words)
+        ass_path, block_info = block_mod.write_block_ass(
+            work / "captions.ass", transcript.words, style,
+            width=twidth, height=theight,
+            end=min(float(info.duration or 1e9), float(transcript.duration or 1e9)))
+        cues = blocks  # the report reads block structure instead of word cues
+        log.info("blocks", n=len(block_info))
+        if not block_info:
+            warnings.append("no caption blocks produced")
+        jsonio.save(work / "cues.json", {"mode": "block", "count": len(block_info),
+                                         "blocks": block_info})
+    else:
+        cues = group_words(
+            transcript.words,
+            max_words=int(cap_style.get("max_words_per_cue") or 4),
+            max_chars=int(cap_style.get("max_chars_per_line") or 22),
+            max_lines=int(cap_style.get("max_lines") or 1),
+        )
+        log.info("cues", n=len(cues))
+        if not cues:
+            warnings.append("no cues produced")
+        ass_path = write_ass(work / "captions.ass", cues, style,
+                             width=twidth, height=theight, mode=mode)
+        jsonio.save(work / "cues.json", {"count": len(cues),
+                                         "cues": [c.to_dict() for c in cues]})
     jsonio.save(work / "transcript.json", transcript.to_dict())
-    jsonio.save(work / "cues.json", {"count": len(cues), "cues": [c.to_dict() for c in cues]})
     jsonio.save(work / "style.used.json", style)
 
     output_path = None
     if burn_in and not ass_only:
         out = Path(out) if out else config.OUTPUT / f"{name}.captioned.mp4"
         burn(src, out, ass_path, preset=preset, fit=fit, start=start, duration=duration,
-             target_size=(twidth, theight))
+             target_size=(twidth, theight),
+             grade=style.get("grade") or None, inserts=inserts)
         output_path = str(out)
         log.info("wrote", output=output_path)
 

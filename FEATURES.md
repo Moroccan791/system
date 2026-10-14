@@ -16,7 +16,7 @@ here has followed so far.
 ## 1. What you have right now
 
 Everything below runs in this sandbox: CPU only, no accounts, no paid tools,
-FFmpeg 7.0.2 with libass. 237 tests cover it (`python -m pytest`).
+FFmpeg 7.0.2 with libass. 242 tests cover it (`python -m pytest`).
 
 ### Stage 0 — look at a campaign
 ```bash
@@ -173,6 +173,11 @@ style profiles, and work files. Range requests work, so seeking works.
 | V10 | Silence tightening | jump-cut the dead air out, with a small zoom to hide the cut — the single biggest win on podcasts | S |
 | V11 | Shot entrance motion | a scale-pop on every cut instead of a static frame | S |
 | V12 | Hook-first opening | start on the strongest sentence, then rewind into the clip | M |
+| C0 | **Shipped**: `--mode block` - the tutorial caption grammar as code. Words reveal exactly when spoken and stay until the sentence clears; the operative word sits bigger (auto-picked: numbers and content words beat "getting"); every word fades in with the same small rise; blocks clear the instant the next one starts. Never overedits by construction | done |
+| C0b | **Shipped**: the bottom fade bar - a black gradient drawn as ASS vector strips behind the caption zone, sized from the profile's margin, so white text sits down on any footage | done |
+| C0c | **Shipped**: `grade` section in the style profile: `{"vignette": 0.26, "contrast": 1.05, "saturation": 1.06}` burned in *before* the subtitles - the "cinematic look" from the tutorials, kept subtle on purpose | done |
+| C0d | **Shipped**: `--insert T,DUR,FILE[,middle|top_safe]` (repeatable) - overlays a still on the clip, alpha-faded, exactly when the word lands. Assets live in `campaigns/<c>/broll/`; the user supplies them (Freepik/Pinterest, per the tutorials). Keyword auto-matching filenames->words is the remaining piece of V5 | done |
+
 | V0c | **Shipped**: `--zoom punch|push|pull|mixed|static` picks the per-shot camera move at render time. `punch` = a punch-in that settles on every cut, `mixed` = punch in on a share of them (`punch_in_ratio` in the style profile, default 0.5, the opening shot always moves). The extractor's honest "the references are mostly static" no longer forces a static clip: the profile records both the measurement and the chosen move. A pull is rendered as starting zoomed and settling, never below 1.0 (zoompan pads below that) | done |
 | V0 | **Shipped**: `--focus-x 0.0-1.0` moves the 9:16 window sideways across the slack, for the many studio shots where the person who matters is off centre (`--focus` still picks the vertical band). On a real podcast this was the difference between a clip of Michael and a clip of his chair | done |
 | V0b | **Shipped**: hand-picked moments. `select` writes candidates, but stage 4 reads whatever is in `work/<campaign>/candidates/` — drop a JSON with one window in it (id, start, end, duration, text) and `edit --ids "#68"` assembles it. The machine proposes; you can overrule | done |

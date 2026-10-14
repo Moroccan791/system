@@ -184,10 +184,24 @@ def cmd_captions(args: argparse.Namespace) -> int:
                      words=report["words_out"], shots=report["shots"],
                      clip=f"{report['clip_duration']:.1f}s")
             kwargs["words"] = words
+    inserts = []
+    for spec in args.insert:
+        parts = [x.strip() for x in spec.split(",")]
+        if len(parts) < 3:
+            raise SystemExit("--insert " + spec + " should be T,DUR,FILE[,AT]")
+        from pathlib import Path as _P
+        if not _P(parts[2]).exists():
+            raise SystemExit("--insert file is gone: " + parts[2])
+        inserts.append({"start": float(parts[0]), "duration": float(parts[1]),
+                        "file": parts[2],
+                        "at": parts[3] if len(parts) > 3 else "middle"})
+    if inserts:
+        log.info("image inserts", n=len(inserts),
+                 where=[f"{i['start']}s+{i['duration']}s" for i in inserts])
     result = run_captions(
         args.file, args.out, style_path=args.style, campaign=args.campaign,
         platform=args.platform, fit=args.fit, ass_only=args.ass_only,
-        max_words=args.max_words, mode=args.mode, **kwargs,
+        max_words=args.max_words, mode=args.mode, inserts=inserts or None, **kwargs,
     )
     print(json.dumps(result.to_dict(), indent=2))
     for w in result.warnings:
@@ -288,7 +302,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--device", default=None, help="cpu | cuda (faster_whisper)")
     s.add_argument("--compute-type", default=None, help="int8 | float16 | float32")
     s.add_argument("--max-words", type=int, default=None, help="words per cue")
-    s.add_argument("--mode", default=None, choices=["line", "word"], help="caption look")
+    s.add_argument("--mode", default=None, choices=["line", "word", "block"],
+                   help="caption look: 'block' = the sentence-block grammar (words reveal when "
+                        "spoken and stay, the operative word bigger, bottom fade bar)")
+    s.add_argument("--insert", action="append", default=[], metavar="T,DUR,FILE[,AT]",
+                   help="overlay an image on the clip: T = when it appears (s), DUR = how long "
+                        "it stays, FILE = image path, AT = middle|top_safe (repeatable)")
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
     s.add_argument("--plan", default=None,
                    help="edit plan of an assembled clip: reuse the source transcript's timings "

@@ -1,0 +1,78 @@
+"""Block captions: the tutorial recipe as tests."""
+
+import re
+
+from clipper.asr.base import Word
+from clipper.captions.block import (build_fade_bar, pick_emphasis,
+                                    segment_sentences, write_block_ass)
+from clipper.captions.render import _insert_chains, grade_chain
+
+STYLE = {"captions": {"font_name": "Montserrat", "primary_text_color": "#FDFCFD",
+                      "outline_color": "#275B77", "position": {"margin_v": 420},
+                      "block": {"base_size_ass": 84, "emphasis_scale": 1.6}}}
+
+
+def W(start, dur, text):
+    return Word(text=text, start=start, end=start + dur)
+
+
+def test_segmenting_respects_punctuation_pauses_and_size():
+    words = [W(0.0, 0.3, "Ever"), W(0.3, 0.4, "friendzoned?"),
+             W(1.0, 0.3, "Always"), W(1.3, 0.3, "have.")]
+    sents = segment_sentences(words)
+    assert len(sents) == 2 and sents[0][-1].text == "friendzoned?"
+
+    paused = [W(0.0, 0.3, "ready."), W(9.0, 0.3, "now")]
+    assert len(segment_sentences(paused)) == 2
+
+    many = [W(i * 0.3, 0.2, f"w{i}") for i in range(30)]
+    assert all(len(s) <= 10 for s in segment_sentences(many, max_words=10))
+
+
+def test_emphasis_picks_content_and_numbers_never_filler():
+    sent = [W(0, 0.3, t) for t in "Sixty eight percent of men report getting friend zoned.".split()]
+    assert pick_emphasis(sent) == 2                      # "percent" beats "getting"
+
+    sent2 = [W(0, 0.3, t) for t in "Love is understanding and giving space".split()]
+    big = sent2[pick_emphasis(sent2)].text.lower()
+    assert big in ("understanding", "space")
+    assert big not in ("is", "and")
+
+
+def test_block_events_never_overlap_the_next_block_and_x_advances(tmp_path):
+    words = [W(0.0, 0.3, "Worst"), W(0.3, 0.5, "statistic"), W(0.8, 0.3, "ever?"),
+             W(1.2, 0.3, "Ready"), W(1.5, 0.3, "now.")]
+    path, blocks = write_block_ass(tmp_path / "b.ass", words, STYLE, end=2.2)
+    events = [l for l in path.read_text().splitlines()
+              if l.startswith("Dialogue") and ",Block," in l]
+    assert events, "no word events written"
+    xs = [float(re.search(r"\\pos\(([-\d.]+),", ev).group(1)) for ev in events]
+    assert all(x >= 0 for x in xs), "a word landed off the left edge"
+
+    # every word of block 1 must clear before "Ready" paints at 1.2s
+    for ev in events:
+        if "}Worst" in ev or "}statistic" in ev or "}ever?" in ev:
+            end_t = re.search(r"Dialogue: 1,[\d:.]+,([\d:.]+)", ev).group(1)
+            h, m, s = end_t.split(":")
+            assert float(h) * 3600 + float(m) * 60 + float(s) <= 1.2 + 0.001
+
+
+def test_fade_bar_is_a_gradient_of_strips():
+    bars = build_fade_bar(1080, 1920, alpha=0.5, zone=600, strips=18)
+    assert len(bars) == 18
+    alphas = [int(re.search(r"\\1a&H([0-9A-F]{2})&", b).group(1), 16) for b in bars]
+    assert alphas[0] > alphas[-1]                 # top of the zone is nearest transparent
+    assert alphas[-1] <= 130                      # bottom reaches roughly 0.5 opacity
+
+
+def test_grade_and_insert_chains():
+    assert grade_chain(None) == "" and grade_chain({}) == ""
+    chain = grade_chain({"vignette": 0.26, "contrast": 1.05, "saturation": 1.06})
+    assert "vignette=angle=" in chain and "contrast=1.050" in chain
+
+    joiner, pre = _insert_chains(
+        [{"start": 5.0, "duration": 2.0, "file": "a.png"},
+         {"start": 9.0, "duration": 1.5, "file": "b.png", "at": "top_safe"}],
+        1080, 1920, "vsub")
+    assert "[vsub][ov0]overlay" in joiner and "[vins0][ov1]overlay" in joiner
+    assert len(pre) == 2 and "setpts=PTS-STARTPTS+5.000/TB" in pre[0]

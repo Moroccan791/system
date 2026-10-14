@@ -494,6 +494,27 @@ it is cheap, closes on a sentence end.
 
 ---
 
+## The professional look, learned from the tutorials
+
+Two Premiere tutorials the user sent (transcribed and studied frame by frame;
+distilled in `recipes/professional_podcast_reel.md`) taught one grammar, and
+it is now the campaign default:
+
+```bash
+python -m clipper captions <clip> --campaign michael_sartain --plan <plan>
+# -> block captions: words appear when spoken and stay until the sentence
+#    clears, the operative word bigger, same small rise on every word
+# the clip's grade (vignette + mild contrast) comes from the profile automatically
+python -m clipper captions <clip> --plan <plan>     --insert 5.6,2.5,campaigns/<c>/broll/stat_68_percent.png,middle
+# -> a stat card on top of the payoff moment, gone when the beat ends
+```
+
+The rules that made it: sentence blocks instead of single-word flashes; the
+big word is a number or a content word, never "getting"; blocks hand the
+screen to each other the frame they clear; a black gradient sits under the
+caption zone; camera moves stay quiet; one image insert per beat, never
+decoration. Minimal is the style, not a fallback.
+
 ## Captions on an assembled clip
 
 `captions` normally transcribes the file it is given. On a clip stage 4 just
@@ -572,7 +593,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 237 tests, ~75 s
+python -m pytest              # 242 tests, ~75 s
 python -m pytest -m integration
 ```
 

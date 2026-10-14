@@ -83,7 +83,25 @@
         "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_2.png"
       ]
     },
-    "font_size_uncertainty": 0.52
+    "font_size_uncertainty": 0.52,
+    "block": {
+      "base_size_ass": 84,
+      "emphasis_scale": 1.6,
+      "emphasis_case": "title",
+      "max_words": 10,
+      "max_chars": 52,
+      "rise_px": 16,
+      "rise_ms": 250,
+      "fade_in_ms": 120,
+      "word_wipe_ms": 90,
+      "clear_after": 0.35,
+      "fade_bar": true,
+      "fade_bar_alpha": 0.5,
+      "fade_bar_height": 0.3,
+      "outline_width": 4,
+      "_source": "distilled from the two Premiere tutorials the user provided - recipes/professional_podcast_reel.md"
+    },
+    "mode": "block"
   },
   "audio": {
     "music_bed": false,
@@ -92,5 +110,11 @@
     "confidence": 0.52,
     "ducking": false
   },
-  "confidence": 0.689
+  "confidence": 0.689,
+  "grade": {
+    "vignette": 0.26,
+    "contrast": 1.05,
+    "saturation": 1.06,
+    "_source": "tutorial recipe: feathered edge-darkening + mild lift, 'the cinematic look'"
+  }
 }
