@@ -21,10 +21,17 @@
     "median_shot_len": 1.167
   },
   "zoom": {
-    "dominant": "static",
+    "dominant": "punch",
     "punch_in_scale": 1.12,
     "punch_in_duration": 0.5,
-    "confidence": 0.586
+    "punch_in_ratio": 0.6,
+    "_chosen": true,
+    "_measured": {
+      "dominant": "static",
+      "punch_in_scale": 1.14,
+      "punch_in_duration": 0.583,
+      "note": "the three reference Shorts are mostly static per shot (6 static, 1 punch-in, 2 pull-out of 12 measured) - their polish is captions, graphics and b-roll, not camera moves. 'punch' is a deliberate choice for the TikTok podcast look, not a measurement."
+    }
   },
   "transitions": {
     "in": "cut",

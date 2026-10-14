@@ -21,12 +21,20 @@ XFADE_NAMES = {"fade": "fade", "fade_black": "fadeblack", "fade_white": "fadewhi
 
 
 def _zoom_expression(move: dict, fps: int) -> str | None:
-    """Per-frame zoom for `zoompan`, from the plan's camera move."""
+    """Per-frame zoom for `zoompan`, from the plan's camera move.
+
+    Both ends are clamped at 1.0: `zoompan` crops `iw/zoom`, so a value under
+    1.0 asks for more picture than the frame holds and ffmpeg fills the
+    difference with padding. A pull-back is therefore expressed as starting
+    above 1.0 and settling at it, not as ending below it.
+    """
     kind = move.get("type", "static")
     if kind == "static":
         return None
-    target = float(move.get("to") or 1.0)
-    start = float(move.get("from") or 1.0)
+    target = max(1.0, float(move.get("to") or 1.0))
+    start = max(1.0, float(move.get("from") or 1.0))
+    if abs(target - start) < 1e-4:
+        return None
     over = max(0.05, float(move.get("over") or 0.25))
     frames = max(1.0, over * fps)
     ramp = f"min(on/{frames:.3f},1)"

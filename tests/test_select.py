@@ -469,3 +469,35 @@ def test_growth_leaves_a_compliant_moment_alone():
     window = {"start": 0.0, "end": 25.0, "duration": 25.0, "reasons": [], "score": 0.5}
     grown = pipeline._grow_to_floor(window, _word_list([("a", 1.0, 1.2)]), _rule_rules(), 20.0, 100.0)
     assert grown == window
+
+
+def test_snap_skips_filler_to_open_on_a_hook_sentence():
+    from clipper.select import pipeline
+    from clipper.asr.base import Word
+
+    words = [Word(start=0.0, end=0.3, text="Yeah,", prob=0.9),
+             Word(start=0.3, end=0.7, text="absolutely.", prob=0.9),
+             Word(start=0.73, end=1.26, text="Worst", prob=0.9),
+             Word(start=1.26, end=1.54, text="statistic", prob=0.9),
+             Word(start=1.54, end=2.1, text="what", prob=0.9),
+             Word(start=2.1, end=2.5, text="is", prob=0.9),
+             Word(start=2.5, end=3.0, text="it?", prob=0.9)] + [
+                Word(start=3.0 + i, end=3.0 + i + 0.3, text=f"w{i}", prob=0.9)
+                for i in range(60)]
+    window = {"start": 0.0, "end": 21.0, "duration": 21.0, "reasons": []}
+    out = pipeline._snap_to_sentences(window, words, 20.0)
+    assert out["start"] != 0.0
+    assert out["text"].startswith("Worst")          # not "Yeah, absolutely."
+
+
+def test_snap_leaves_a_clean_opening_alone():
+    from clipper.select import pipeline
+    from clipper.asr.base import Word
+
+    words = [Word(start=0.0, end=0.5, text="Ever", prob=0.9),
+             Word(start=0.5, end=1.1, text="friendzoned?", prob=0.9)] + [
+                Word(start=1.1 + i, end=1.1 + i + 0.3, text=f"w{i}", prob=0.9)
+                for i in range(60)]
+    window = {"start": 0.0, "end": 21.0, "duration": 21.0, "reasons": []}
+    out = pipeline._snap_to_sentences(window, words, 20.0)
+    assert out["start"] == 0.0

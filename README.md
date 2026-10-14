@@ -470,8 +470,27 @@ want, write a candidate file by hand - one window with an `id`, `start`, `end`,
 python -m clipper edit <campaign> --ids "#68" --focus-x 0.62 --tag pick68
 ```
 
-The selection stage proposes; it does not get the last word. (The 22s clip in
+The selection stage proposes; it does not get the last word. (The clip in
 `output/` was picked this way, out of a moment `select` had only scored 0.43.)
+
+Two more rendering dials, both found by watching a real output:
+
+```bash
+python -m clipper edit <campaign> --ids "#68" --zoom punch   # a punch-in on every cut
+python -m clipper edit <campaign> --ids "#68" --zoom mixed   # punch in on ~60% of shots
+```
+
+`--zoom` defaults to the style profile's camera move - which now records two
+separate things: what was measured in the references (often "static": the
+polish of those Shorts is in the captions and graphics, not the camera) and
+what was chosen for renders. A pull-back is expressed as starting zoomed and
+settling, never below 1.0, because `zoompan` renders padding under 1.0 instead
+of a pull.
+
+And each window is straightened at the edges: `select` moves its boundaries
+(≤2.5s) so the clip opens on a sentence that reads like a hook - opening on
+"Yeah, absolutely" instead of the sentence after it was a real bug - and, when
+it is cheap, closes on a sentence end.
 
 ---
 
@@ -553,7 +572,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 233 tests, ~75 s
+python -m pytest              # 237 tests, ~75 s
 python -m pytest -m integration
 ```
 

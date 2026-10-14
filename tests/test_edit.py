@@ -541,3 +541,34 @@ def test_focus_x_moves_the_vertical_window_sideways():
             "shots": [{"start": 0, "end": 2, "zoom": {"type": "static"}}]}
     graph = build_filtergraph(plan, focus="top", focus_x=0.25)
     assert "crop=1080:1920:(iw-ow)*0.2500:(ih-1920)*0.18" in graph
+
+
+def test_zoom_punches_when_the_profile_measured_static():
+    from clipper.edit.plan import camera_moves
+
+    style = {"zoom": {"dominant": "static", "punch_in_scale": 1.14,
+                      "punch_in_duration": 0.58}}
+    assert {m["type"] for m in camera_moves(style, [1.4] * 5)} == {"static"}
+
+    punches = camera_moves(style, [1.4] * 5, override="punch")
+    assert all(m["type"] == "punch_in" and abs(m["to"] - 1.14) < 1e-6 for m in punches)
+
+    mixed = camera_moves({**style, "zoom": {**style["zoom"], "punch_in_ratio": 0.5}},
+                         [1.4] * 8, override="mixed")
+    kinds = [m["type"] for m in mixed]
+    assert kinds[0] == "punch_in"                    # the opening shot always moves
+    assert 0 < kinds.count("punch_in") < len(kinds)  # and the rest breathe
+
+    pull = camera_moves(style, [2.0], override="pull")[0]
+    assert pull["from"] == 1.14 and pull["to"] == 1.0  # zoompan never drops below 1.0
+
+
+def test_zoompan_expression_never_goes_below_one():
+    from clipper.edit.render import _zoom_expression
+
+    z = _zoom_expression({"type": "pull_out", "from": 1.14, "to": 1.0, "over": 2.0}, 30)
+    assert z is not None
+    z = _zoom_expression({"type": "pull_out", "from": 0.85, "to": 1.0, "over": 2.0}, 30)
+    assert z is None                                  # sub-1.0 is clamped, so it collapses
+    z2 = _zoom_expression({"type": "punch_in", "from": 1.0, "to": 1.0, "over": 0.5}, 30)
+    assert z2 is None                               # a zero move renders as static

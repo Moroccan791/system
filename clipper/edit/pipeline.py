@@ -56,6 +56,7 @@ def candidates_for(campaign: str | None, work_dir: Path | None = None,
 
 def edit_campaign(campaign: str, *, top: int | None = None, shot_len: float | None = None,
                   platform: str = "tiktok", focus: str = "centre", focus_x: float | None = None,
+                  zoom: str | None = None,
                   style_path=None,
                   ids: list[str] | None = None, transcript=None, work_dir: Path | None = None,
                   render: bool = True, transition: str | None = None,
@@ -112,7 +113,8 @@ def edit_campaign(campaign: str, *, top: int | None = None, shot_len: float | No
                          "source_name": source.stem}
             built = plan_mod.build_plan(candidate, style=style, words=words, curve=curve,
                                         platform=platform, shot_len=shot_len,
-                                        campaign=payload.get("campaign") or campaign)
+                                        campaign=payload.get("campaign") or campaign,
+                                        zoom=zoom)
             stem = f"{source.stem}_{str(candidate.get('id', 'clip')).lstrip('#')}"
             if tag:
                 stem = f"{stem}_{tag}"

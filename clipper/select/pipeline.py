@@ -127,6 +127,7 @@ def select_candidates(media: str | Path, *, transcript=None, platform: str = "ti
         window, hook_at = _hook_anchor(window, words or [], effective, min_seconds)
         window = _grow_to_floor(window, words or [], effective, min_seconds,
                                 curve["duration"])
+        window = _snap_to_sentences(window, words or [], min_seconds)
         verdict = guideline_mod.text_verdict(window.get("text"), effective)
         if verdict["boost"]:
             window["score"] = round(min(1.0, window["score"] + 0.04 * len(verdict["boost"])), 3)
@@ -209,6 +210,77 @@ def _best_hook(words: list, start: float, end: float) -> dict | None:
         if score >= HOOK_TEXT_SCORE and (best is None or unit["start"] < best["start"]):
             best = unit
     return best
+
+
+SENTENCE_END = (".", "?", "!", "\u2026")
+MAX_SNAP_SECONDS = 2.5          # how far a clip may be nudged to start on a clean sentence
+
+
+def _snap_to_sentences(window: dict, words: list, min_seconds: float) -> dict:
+    """Make the clip start on a sentence and, if it is cheap, end on one.
+
+    A window cut in the middle of a sentence opens on a fragment - "absolute
+    end. Yeah, absolutely." was the first second of a real clip, and it reads
+    as a mistake rather than a hook. Starting at the first sentence boundary
+    inside the window costs at most a couple of seconds and makes the opening
+    land; closing on a boundary stops the clip from stopping mid-word.
+    """
+    if not words:
+        return window
+    start, end = float(window["start"]), float(window["end"])
+    floor = float(min_seconds)
+
+    inside = [w for w in words if float(w.end) > start + 0.01 and float(w.start) < end - 0.01]
+    if not inside:
+        return window
+    reasons = list(window["reasons"])
+    moved = False
+
+    # start: the first sentence nearby that reads like an opening. "Yeah,
+    # absolutely." is a sentence too, and a terrible first second, so among the
+    # sentence starts within reach prefer one that scores as a hook and settle
+    # for the earliest when none does.
+    reach = [w for w in words if float(w.end) > start and float(w.start) < start + MAX_SNAP_SECONDS]
+    head = None
+    earliest = None
+    for unit in hooks_mod.sentence_units(reach):
+        at = float(unit["start"])
+        if at < start + 0.05 or at - start > MAX_SNAP_SECONDS:
+            continue
+        if earliest is None:
+            earliest = unit
+        score, _ = hooks_mod.score_text(unit["text"])
+        if score >= HOOK_TEXT_SCORE:
+            head = unit
+            break
+    chosen = head or earliest
+    if chosen is not None and float(chosen["start"]) > start + 0.05:
+        if end - float(chosen["start"]) >= floor - 0.05:
+            kind = "a hook sentence" if head is not None else "a sentence start"
+            reasons.append(f"opened at {kind} ({float(chosen['start']) - start:.1f}s "
+                           f"of lead-in dropped)")
+            start, moved = round(float(chosen["start"]), 3), True
+
+    # end: the first sentence end at or after where the window closes
+    tail = None
+    for word in words:
+        if float(word.end) < end - 0.01:
+            continue
+        if float(word.end) - end > MAX_SNAP_SECONDS:
+            break
+        tail = word
+        if str(word.text).rstrip().endswith(SENTENCE_END):
+            break
+    if tail is not None and str(tail.text).rstrip().endswith(SENTENCE_END):
+        if float(tail.end) - end > 0.15 and float(tail.end) - end <= MAX_SNAP_SECONDS:
+            reasons.append(f"closed the sentence (+{float(tail.end) - end:.1f}s)")
+            end, moved = round(float(tail.end), 3), True
+
+    if not moved:
+        return window
+    return {**window, "start": start, "end": end, "duration": round(end - start, 3),
+            "text": _text_between(words, start, end) or window.get("text"),
+            "reasons": reasons}
 
 
 def _text_between(words: list, start: float, end: float) -> str:

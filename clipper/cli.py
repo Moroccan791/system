@@ -304,6 +304,10 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--shot-len", type=float, default=None, help="override the profile's shot length")
     s.add_argument("--platform", default=config.DEFAULT_PLATFORM, choices=sorted(config.PLATFORMS))
     s.add_argument("--focus", default="centre", choices=sorted(FOCUS_CHOICES), help="vertical crop bias")
+    s.add_argument("--zoom", default=None, choices=("static", "punch", "push", "pull", "mixed"),
+                   help="camera move per shot: punch = a punch-in that settles on every cut, "
+                        "mixed = punch in on a share of them (profile's punch_in_ratio), "
+                        "push/pull = a slow move across the shot (default: the profile's)")
     s.add_argument("--focus-x", type=float, default=None, metavar="0.0-1.0",
                    help="horizontal crop position across the slack: 0 left, 0.5 middle, 1 right "
                         "(for side-on shots where the speaker is off centre)")
@@ -465,8 +469,8 @@ def cmd_edit(args: argparse.Namespace) -> int:
         tag = resolve_transition(args.transition) or "cut"
     results = edit_campaign(
         args.campaign, top=args.top, shot_len=args.shot_len, platform=args.platform,
-        focus=args.focus, focus_x=args.focus_x, style_path=args.style, ids=ids,
-        transcript=args.transcript,
+        focus=args.focus, focus_x=args.focus_x, zoom=args.zoom, style_path=args.style,
+        ids=ids, transcript=args.transcript,
         render=not args.plan_only, transition=args.transition,
         transition_duration=args.transition_duration, tag=tag)
 

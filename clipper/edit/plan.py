@@ -122,26 +122,68 @@ def _snap(t: float, gaps: list[float], curve: dict | None, *, window: float = 0.
     return round(t, 3)
 
 
-def camera_moves(style: dict, shot_durations: list[float]) -> list[dict]:
-    """One camera move per shot, following the profile's zoom section."""
+ZOOM_MODES = ("static", "punch", "push", "pull", "mixed", "none")
+MAX_PUSH_SCALE = 1.35           # a 35% push across one shot; beyond that it reads as a zoom
+
+
+def camera_moves(style: dict, shot_durations: list[float], *,
+                 override: str | None = None) -> list[dict]:
+    """One camera move per shot: the profile's zoom section, or an explicit choice.
+
+    Modes (`override`, and what `--zoom` passes):
+
+      static  every shot holds still
+      punch   every shot opens with a punch-in that settles (`punch_in_scale`,
+              finished in `punch_in_duration`) - the podcast/TikTok look
+      push    a slow push across each whole shot
+      pull    a slow pull back across each whole shot
+      mixed   punch in on a share of the shots (`punch_in_ratio`, default 0.5)
+              and hold still on the rest, which keeps the movement from
+              becoming its own rhythm; the first shot always moves, because
+              that is the one that has to stop the scroll
+
+    A pull-out starts above 1.0 and comes back to it, never below: ffmpeg's
+    `zoompan` crops `iw/zoom`, so a zoom under 1.0 asks for more image than
+    exists and renders padding instead of a pull-back.
+    """
     zoom = (style or {}).get("zoom") or {}
-    dominant = (zoom.get("dominant") or "static").lower()
-    scale = float(zoom.get("punch_in_scale") or 1.0)
-    over = float(zoom.get("punch_in_duration") or 0.25)
+    mode = (override or zoom.get("dominant") or "static").lower()
+    # the style extractor names them punch_in / slow_push / pull_out; the CLI
+    # passes punch / push / pull - both vocabularies mean the same moves
+    mode = {"punch_in": "punch", "slow_push": "push", "pull_out": "pull"}.get(mode, mode)
+    if mode in ("none", "cut"):
+        mode = "static"
+    scale = max(1.0, float(zoom.get("punch_in_scale") or 1.12))
+    over = max(0.05, float(zoom.get("punch_in_duration") or 0.4))
+    ratio = min(max(float(zoom.get("punch_in_ratio") or 0.5), 0.0), 1.0)
+
+    if mode not in ZOOM_MODES:
+        log.warn(f"unknown zoom mode '{mode}', holding still", known=", ".join(ZOOM_MODES))
+        mode = "static"
+
     moves: list[dict] = []
-    for duration in shot_durations:
-        if dominant in ("static", "none") or scale <= 1.001:
-            moves.append({"type": "static"})
-        elif dominant == "punch_in":
-            moves.append({"type": "punch_in", "from": 1.0, "to": round(scale, 4),
-                          "over": round(min(over, duration), 3)})
-        elif dominant == "pull_out":
-            moves.append({"type": "pull_out", "from": round(scale, 4), "to": 1.0,
-                          "over": round(min(max(over, duration), duration), 3)})
-        elif dominant == "slow_push":
-            moves.append({"type": "slow_push", "from": 1.0, "to": round(scale, 4),
-                          "over": round(duration, 3)})
-        else:                       # "mixed" and anything unknown: play it safe
+    budget = 1.0                        # forces the first shot to move in `mixed`
+    for i, duration in enumerate(shot_durations):
+        punch = {"type": "punch_in", "from": 1.0, "to": round(scale, 4),
+                 "over": round(min(over, duration), 3)}
+        push = {"type": "slow_push", "from": 1.0, "to": round(min(scale, MAX_PUSH_SCALE), 4),
+                "over": round(duration, 3)}
+        pull = {"type": "pull_out", "from": round(min(scale, MAX_PUSH_SCALE), 4), "to": 1.0,
+                "over": round(duration, 3)}
+        if mode == "punch":
+            moves.append(punch)
+        elif mode == "push":
+            moves.append(push)
+        elif mode == "pull":
+            moves.append(pull)
+        elif mode == "mixed":
+            budget += ratio
+            if i == 0 or budget >= 1.0:
+                budget -= 1.0
+                moves.append(punch)
+            else:
+                moves.append({"type": "static"})
+        else:
             moves.append({"type": "static"})
     return moves
 
@@ -178,7 +220,7 @@ def _transition_length(value) -> float:
 def build_plan(candidate: dict, *, style: dict | None = None, words: list | None = None,
                curve: dict | None = None, platform: str = "tiktok",
                shot_len: float | None = None, fps: int = 30,
-               campaign: str | None = None) -> dict:
+               campaign: str | None = None, zoom: str | None = None) -> dict:
     """A complete, renderable plan for one candidate moment."""
     style = style or {}
     preset = config.PLATFORMS.get(platform, config.PLATFORMS[config.DEFAULT_PLATFORM])
@@ -198,7 +240,9 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
     transition_len = _transition_length(transitions.get("duration")) if transition != "cut" else 0.0
     if not pacing.get("avg_shot_len"):
         notes.append(f"the style profile has no pacing, cutting every {target:.1f}s")
-    if (style.get("zoom") or {}).get("dominant") in (None, "mixed"):
+    if zoom:
+        notes.append(f"camera move overridden to '{zoom}' for this render")
+    elif (style.get("zoom") or {}).get("dominant") in (None, "mixed"):
         notes.append("the style profile does not have a clear camera move, holding still")
 
     clip_key = f"{candidate.get('source_name') or candidate.get('file', 'clip')}:{start:.2f}"
@@ -217,7 +261,7 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
     for length in lengths:
         boundaries.append(min(end, round(boundaries[-1] + length, 3)))
     boundaries[-1] = end
-    moves = camera_moves(style, lengths)
+    moves = camera_moves(style, lengths, override=zoom)
     for i in range(1, len(boundaries) - 1):
         lower = boundaries[i - 1] + MIN_SHOT_LEN
         upper = boundaries[i + 1] - MIN_SHOT_LEN
