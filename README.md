@@ -433,6 +433,14 @@ notes, and the platform handles.
 ! campaign: 14.2s is under the campaign minimum of 20s; the hook only lands 6.5s in
 ```
 
+A moment that is a breath short of the floor is **grown**, not dropped: the next
+sentence is borrowed, then the one before it, then at most 2.5s of the room tone
+that was there anyway - never to buy length with an off-campaign topic, never
+across more than 1.2s of silence, and never past the end of the file. A 16.5s
+moment in a 20s-minimum campaign becomes a 20.0s clip with the reason recorded
+("grown from 16.5s to 20.0s to meet the campaign's 20s minimum"). A window that is
+genuinely too short is still reported as too short.
+
 Honest limits of this layer:
 
 * keyword lists are literal: `money` does **not** match "dollars" unless `dollar`
@@ -443,6 +451,27 @@ Honest limits of this layer:
   detector installed, so it is carried along as a note instead of a fake number.
 * rules cannot judge meaning. "Off-campaign" here means "matched a listed word",
   which is shown next to every verdict so you can overrule it.
+
+---
+
+## Captions on an assembled clip
+
+`captions` normally transcribes the file it is given. On a clip stage 4 just
+assembled, that is the wrong tool twice over: an energy aligner re-run on cut-up
+speech drifts (measured on a real 20.5s clip: up to +0.9s by the end), and it
+spends a speech-recognition pass to get there. The plan already knows which
+source seconds went where, so:
+
+```bash
+python -m clipper captions work/<campaign>/edits/<clip>.mp4 \
+    --campaign <campaign> --plan work/<campaign>/edits/<clip>.plan.json
+```
+
+carries the source transcript's own timings through the cuts. A word keeps the
+moment it was really spoken, a word sitting on a join is clamped into the shot,
+and words whose middle fell in source the edit dropped are simply not in the
+clip. Measured on the real clip: mean error 0.012s, worst 0.23s (against
+0.37s / 0.97s the other way), in 18s instead of 33s.
 
 ---
 
@@ -503,7 +532,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 211 tests, ~100 s
+python -m pytest              # 229 tests, ~4 min
 python -m pytest -m integration
 ```
 

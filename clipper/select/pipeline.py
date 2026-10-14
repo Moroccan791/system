@@ -17,6 +17,11 @@ from . import hooks as hooks_mod
 from . import score as score_mod
 
 
+HOOK_TEXT_SCORE = 0.35        # a sentence scoring this reads like a hook
+MAX_BREATH_SECONDS = 1.2      # a longer silence means "different moment", do not bridge it
+MAX_PAD_SECONDS = 2.5         # most room tone we will add to reach the floor
+
+
 def load_transcript(source) -> list | None:
     """A transcript can be a path, a parsed dict, or already `Word` objects."""
     if source is None:
@@ -120,6 +125,8 @@ def select_candidates(media: str | Path, *, transcript=None, platform: str = "ti
     rejected: list[dict] = []
     for window in candidates:
         window, hook_at = _hook_anchor(window, words or [], effective, min_seconds)
+        window = _grow_to_floor(window, words or [], effective, min_seconds,
+                                curve["duration"])
         verdict = guideline_mod.text_verdict(window.get("text"), effective)
         if verdict["boost"]:
             window["score"] = round(min(1.0, window["score"] + 0.04 * len(verdict["boost"])), 3)
@@ -171,16 +178,7 @@ def _hook_anchor(window: dict, words: list, rules: dict, min_seconds: float) -> 
 
     if not words:
         return window, None
-    inside = [w for w in words
-              if float(w.start) >= window["start"] - 0.01 and float(w.end) <= window["end"] + 0.01]
-    if not inside:
-        return window, None
-    units = hooks_mod.sentence_units(inside)
-    best = None
-    for unit in units:
-        score, _ = hooks_mod.score_text(unit["text"])
-        if score >= 0.35 and (best is None or unit["start"] < best["start"]):
-            best = unit
+    best = _best_hook(words, window["start"], window["end"])
     if best is None:
         return window, None
     within = float((rules.get("hook") or {}).get("within_seconds") or 5.0)
@@ -197,6 +195,95 @@ def _hook_anchor(window: dict, words: list, rules: dict, min_seconds: float) -> 
     log.debug("trimmed a lead-in to respect the campaign hook window",
               was=f"{window['start']:.1f}s", now=f"{new_start:.1f}s")
     return trimmed, round(float(best["start"]) - new_start, 3)
+
+
+def _best_hook(words: list, start: float, end: float) -> dict | None:
+    """The earliest sentence inside the window that reads like a scroll-stopper."""
+    inside = [w for w in words
+              if float(w.start) >= start - 0.01 and float(w.end) <= end + 0.01]
+    if not inside:
+        return None
+    best = None
+    for unit in hooks_mod.sentence_units(inside):
+        score, _ = hooks_mod.score_text(unit["text"])
+        if score >= HOOK_TEXT_SCORE and (best is None or unit["start"] < best["start"]):
+            best = unit
+    return best
+
+
+def _text_between(words: list, start: float, end: float) -> str:
+    return " ".join(str(w.text) for w in words
+                    if float(w.end) > start + 0.01 and float(w.start) < end - 0.01)
+
+
+def _grow_to_floor(window: dict, words: list, rules: dict, min_seconds: float,
+                   source_duration: float | None) -> dict:
+    """Grow a moment that is a breath short of the campaign's minimum.
+
+    A window can land just under the floor - 18.5s against a 20s minimum, say -
+    because the moment ends there, not because it is bad. Dropping it throws
+    away the best material in the file, so instead: borrow the following
+    sentence, then the preceding one, and only when speech cannot close the gap
+    pad with the room tone that was there anyway. The pad is capped
+    (`MAX_PAD_SECONDS`) so a 9s window is still reported as too short rather
+    than faked into a long one, and every step refuses to buy length with an
+    off-campaign topic.
+    """
+    from .. import guideline as guideline_mod
+
+    floor = float(min_seconds)          # the campaign's own minimum, not the builder's soft floor
+    start, end = float(window["start"]), float(window["end"])
+    if end - start >= floor - 0.05 or not words:
+        return window
+    source_end = float(source_duration or end)
+    within = float((rules.get("hook") or {}).get("within_seconds") or 5.0)
+
+    # 1. the following sentence, if it stays on campaign
+    for word in words:
+        if float(word.start) >= min(start + floor, source_end):
+            break
+        if float(word.end) <= end + 0.01:
+            continue
+        if guideline_mod.text_verdict(_text_between(words, start, float(word.end)), rules)["reject"]:
+            break
+        end = round(float(word.end), 3)
+
+    # 2. the sentence before it, as long as the hook keeps landing in time
+    while end - start < floor - 0.05:
+        earlier = [w for w in words if float(w.end) <= start + 0.01]
+        if not earlier:
+            break
+        word = earlier[-1]
+        if start - float(word.end) > MAX_BREATH_SECONDS:      # a gap that means "new moment"
+            break
+        new_start = round(float(word.start) - 0.25, 3)
+        if new_start >= start - 0.01:
+            break
+        if guideline_mod.text_verdict(_text_between(words, new_start, end), rules)["reject"]:
+            break
+        hook = _best_hook(words, new_start, end)
+        if hook is not None and float(hook["start"]) - new_start > within:
+            break
+        start = new_start
+
+    # 3. room tone, capped - never fake a short moment into a long one
+    short_by = floor - (end - start)
+    if 0 < short_by <= MAX_PAD_SECONDS:
+        end = round(min(start + floor, source_end), 3)
+
+    if end - start < floor - 0.05:
+        return window                                        # still short: say so, do not hide it
+
+    grown = {**window, "start": start, "end": end,
+             "duration": round(end - start, 3),
+             "text": _text_between(words, start, end) or window.get("text"),
+             "reasons": window["reasons"] + [
+                 f"grown from {float(window['duration']):.1f}s to {end - start:.1f}s "
+                 f"to meet the campaign's {min_seconds:.0f}s minimum"]}
+    log.debug("grew a moment up to the campaign floor",
+              was=f"{window['start']:.1f}-{window['end']:.1f}s",
+              now=f"{start:.1f}-{end:.1f}s")
+    return grown
 
 
 def write_candidates(out_dir: Path, media: Path, payload: dict) -> Path:

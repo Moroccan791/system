@@ -4,14 +4,31 @@
 onnxruntime inside the wheel, so this is the default engine in environments
 where you cannot download models (containers, sandboxes, offline machines).
 
-Trade-off vs whisper: text quality is close on clean speech, it is fast on CPU
-(~5x realtime on 2 cores), but it returns no per-word timestamps - the caption
-stage runs the energy aligner to get them.
+Trade-off vs whisper: text quality is close on clean speech, it is fast on CPU,
+but it returns no per-word timestamps - the caption stage runs the energy
+aligner to get them.
+
+Two things about this model are measured, not assumed:
+
+* **Memory grows with the chunk.** Peak RSS for one call: 3.3 GB at 22 s,
+  1.5 GB at 12 s, 976 MB at 8 s, 698 MB at 5 s. The default chunk is therefore
+  8 s, not 22 s.
+* **Memory leaks across calls.** Twelve five-second chunks took RSS from 184 MB
+  to 2705 MB; had they been longer the process would have been killed (which is
+  exactly what happened here on a 4 GB box). So each chunk is transcribed in a
+  subprocess that outlives nothing: the provider writes the chunk to a wav, runs
+  `python -m clipper.asr.moonshine_worker` on it and lets the process exit.
+  Small chunks are also *faster* per second of audio (2.3x realtime at 5 s vs
+  1.9x at 22 s), so this costs nothing but ~0.7 s of startup per chunk.
+
+Set `isolate_chunks=False` to call the model in-process (fine for a short clip
+on a roomy machine, fatal for a long file on a small one).
 
     python -m clipper transcribe clip.mp4 --asr moonshine
 """
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -24,16 +41,44 @@ from ..util import log
 from .base import Transcript
 
 
+def split_interval_chunks(chunks: list[tuple[float, float]],
+                          max_len: float) -> list[tuple[float, float]]:
+    """No chunk longer than `max_len`, not even one long unbroken stretch of speech.
+
+    `merge_to_chunks` only caps chunks it builds by merging; an interval that is
+    already longer than the cap (a speaking voice with no pause to cut on) came
+    through untouched, which is how a 22s+ piece of audio reached the model and
+    pushed a 4 GB machine into an OOM kill. Splitting here keeps every call at
+    the size whose memory cost was measured.
+    """
+    if max_len <= 0:
+        return list(chunks)
+    out: list[tuple[float, float]] = []
+    for start, end in chunks:
+        span = end - start
+        if span <= max_len * 1.05:
+            out.append((start, end))
+            continue
+        pieces = int(span // max_len) + (1 if span % max_len else 0)
+        step = span / pieces
+        for i in range(pieces):
+            out.append((round(start + i * step, 3), round(start + (i + 1) * step, 3)))
+    return out
+
+
 class MoonshineProvider:
     name = "moonshine"
 
     def __init__(self, model_dir: str | Path | None = None, model_type: str = "base",
-                 language: str = "en", chunk_seconds: float = 22.0,
-                 force_align: bool = True, **_: object) -> None:
+                 language: str = "en", chunk_seconds: float = 8.0,
+                 force_align: bool = True, isolate_chunks: bool = True,
+                 worker_timeout: float = 600.0, **_: object) -> None:
         self.model_type = model_type
         self.language = language
         self.chunk_seconds = chunk_seconds
         self.force_align = force_align
+        self.isolate_chunks = isolate_chunks
+        self.worker_timeout = worker_timeout
         self._explicit_dir = Path(model_dir) if model_dir else None
         self._model = None
 
@@ -79,6 +124,39 @@ class MoonshineProvider:
             self._model = moonshine_cpp.MoonshineModel(model_dir_path=str(model_dir))
         return self._model
 
+    def _chunk_text(self, wav: Path, model) -> str:
+        """Transcribe one chunk - in a throwaway process when asked.
+
+        A worker that dies (the model is a native library; it can take the whole
+        process with it) is retried here, where the chunk still fits in memory.
+        Speech is never dropped just because the isolated route failed.
+        """
+        if self.isolate_chunks:
+            try:
+                return self._worker_text(wav)
+            except Exception as exc:
+                log.warn("isolated chunk failed, retrying in this process",
+                         err=f"{type(exc).__name__}: {exc}"[:120])
+        return (model.transcribe_wav(str(wav)) or "").strip()
+
+    def _worker_text(self, wav: Path) -> str:
+        import subprocess
+        import sys
+
+        model_dir = self._resolve_model_dir()
+        proc = subprocess.run(
+            [sys.executable, "-m", "clipper.asr.moonshine_worker", str(wav),
+             str(model_dir) if model_dir else ""],
+            capture_output=True, text=True, timeout=self.worker_timeout,
+        )
+        line = (proc.stdout or "").strip().splitlines()
+        if not line:
+            raise RuntimeError(f"worker produced no output (rc={proc.returncode})")
+        payload = json.loads(line[-1])
+        if payload.get("error"):
+            raise RuntimeError(payload["error"])
+        return (payload.get("text") or "").strip()
+
     # -- transcription ----------------------------------------------------
     def transcribe(self, audio: np.ndarray, rate: int) -> Transcript:
         if not self.available():
@@ -98,7 +176,8 @@ class MoonshineProvider:
             return Transcript(words=[], text="", language=self.language,
                               provider=self.name, duration=duration,
                               meta={"reason": "no speech detected"})
-        chunks = merge_to_chunks(intervals, max_len=self.chunk_seconds)
+        chunks = split_interval_chunks(merge_to_chunks(intervals, max_len=self.chunk_seconds),
+                                       self.chunk_seconds)
         log.info("transcribing", chunks=len(chunks), speech=f"{sum(e - s for s, e in intervals):.1f}s",
                  audio=f"{duration:.1f}s")
 
@@ -114,7 +193,7 @@ class MoonshineProvider:
 
             write_wav(wav, seg, rate)
             try:
-                text = model.transcribe_wav(str(wav)).strip()
+                text = self._chunk_text(wav, model)
             except Exception as exc:
                 log.warn("chunk failed", chunk=i, err=type(exc).__name__)
                 continue

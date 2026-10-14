@@ -86,6 +86,7 @@ def run_captions(
     start: float | None = None,
     duration: float | None = None,
     asr_kwargs: dict | None = None,
+    words: list | None = None,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -112,19 +113,35 @@ def run_captions(
              size=f"{info.width}x{info.height}", audio=info.has_audio)
     if not info.has_audio:
         raise RuntimeError(f"{src.name} has no audio track - captions need speech")
-    if info.height and info.width and info.height < info.width and fit == "cover":
+    if words:
+        pass
+    elif info.height and info.width and info.height < info.width and fit == "cover":
         warnings.append("source is landscape; the frame is centre-cropped to 9:16 (stage 4 "
                         "adds speaker tracking / split layouts)")
 
-    audio = decode_audio(src, rate=16000, start=start, duration=duration)
-    with log.step("asr", provider=provider):
-        prov = get_provider(provider, **(asr_kwargs or {})) if provider != "auto" else get_provider("auto")
-        transcript: Transcript = prov.transcribe(audio, 16000)
-    log.info("transcript", words=len(transcript.words), provider=transcript.provider,
-             chars=len(transcript.text))
+    if words:
+        # timings came from the source transcript through the edit plan (captions.remap),
+        # so there is nothing to recognise and, more to the point, nothing to re-guess
+        from ..asr.base import Word
+
+        given = [w if isinstance(w, Word) else Word.from_dict(w) for w in words]
+        transcript = Transcript(words=given, text=" ".join(w.text for w in given),
+                                language="en", provider="plan", duration=float(info.duration or 0.0),
+                                meta={"source": "remapped from the source transcript"})
+        log.info("transcript", words=len(transcript.words), provider="plan (remapped)")
+    else:
+        audio = decode_audio(src, rate=16000, start=start, duration=duration)
+        with log.step("asr", provider=provider):
+            prov = get_provider(provider, **(asr_kwargs or {})) if provider != "auto" else get_provider("auto")
+            transcript: Transcript = prov.transcribe(audio, 16000)
+        log.info("transcript", words=len(transcript.words), provider=transcript.provider,
+                 chars=len(transcript.text))
     if not transcript.words:
         warnings.append("no words recognised - is there speech in this file?")
-    if transcript.words and all(w.source != "native" for w in transcript.words) and \
+    if transcript.provider == "plan":
+        warnings.append("word timings carried over from the source transcript through the edit "
+                        "plan - no second speech recognition pass")
+    elif transcript.words and all(w.source != "native" for w in transcript.words) and \
             transcript.provider == "moonshine":
         warnings.append("word timings are estimated by the energy aligner (+/- ~100 ms); "
                         "use --asr faster_whisper for exact timings")

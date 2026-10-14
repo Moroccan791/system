@@ -63,3 +63,68 @@ def test_fixture_provider_deterministic():
     assert t1.to_dict() == t2.to_dict()
     assert [w.text for w in t1.words] == ["alpha", "beta", "gamma"]
     assert t1.words[1].start == pytest.approx(t1.words[0].end + 0.06, abs=1e-3)
+
+
+def test_a_dead_worker_falls_back_instead_of_losing_the_chunk(tmp_path, monkeypatch):
+    """The model is native code and can kill its process: the chunk must survive."""
+    import clipper.asr.moonshine as mod
+
+    prov = mod.MoonshineProvider()
+    calls = {"worker": 0}
+
+    def dead_worker(self, wav):
+        calls["worker"] += 1
+        raise RuntimeError("worker produced no output (rc=-11)")
+
+    class FakeModel:
+        def transcribe_wav(self, path):
+            return "  rescued  "
+
+    monkeypatch.setattr(mod.MoonshineProvider, "_worker_text", dead_worker)
+    monkeypatch.setattr(prov, "_resolve_model_dir", lambda: None)
+    text = prov._chunk_text(tmp_path / "chunk.wav", FakeModel())
+    assert text == "rescued" and calls["worker"] == 1
+
+
+def test_no_isolation_means_no_subprocess(tmp_path, monkeypatch):
+    import clipper.asr.moonshine as mod
+
+    prov = mod.MoonshineProvider(isolate_chunks=False)
+
+    def boom(self, wav):
+        raise AssertionError("must not start a worker")
+
+    class FakeModel:
+        def transcribe_wav(self, path):
+            return "direct"
+
+    monkeypatch.setattr(mod.MoonshineProvider, "_worker_text", boom)
+    assert prov._chunk_text(tmp_path / "chunk.wav", FakeModel()) == "direct"
+
+
+def test_an_unbroken_stretch_of_speech_is_split_too():
+    """A voice with no pause must not slip past the chunk cap and OOM the model."""
+    from clipper.asr.moonshine import split_interval_chunks
+
+    chunks = split_interval_chunks([(0.0, 40.0)], 8.0)
+    assert len(chunks) == 5
+    assert all(e - s <= 8.001 for s, e in chunks)
+    assert chunks[0][0] == 0.0 and chunks[-1][1] == 40.0
+
+
+def test_split_chunks_cover_everything_without_overlapping():
+    from clipper.asr.moonshine import split_interval_chunks
+
+    chunks = split_interval_chunks([(0.0, 3.0), (10.0, 31.0)], 8.0)
+    assert chunks[0] == (0.0, 3.0)                 # a short stretch is untouched
+    inside = [(s, e) for s, e in chunks if s >= 10.0]
+    # the pieces of one unbroken stretch tile it exactly: 10 -> 31 with no holes
+    assert inside[0][0] == 10.0 and inside[-1][1] == 31.0
+    assert all(inside[i][1] == inside[i + 1][0] for i in range(len(inside) - 1))
+    assert sum(e - s for s, e in chunks) == 24.0
+
+
+def test_short_chunks_are_left_alone():
+    from clipper.asr.moonshine import split_interval_chunks
+
+    assert split_interval_chunks([(1.0, 2.0), (5.0, 12.0)], 8.0) == [(1.0, 2.0), (5.0, 12.0)]

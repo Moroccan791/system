@@ -164,6 +164,26 @@ def cmd_captions(args: argparse.Namespace) -> int:
             asr_kwargs["compute_type"] = args.compute_type
         kwargs["provider"] = args.asr
         kwargs["asr_kwargs"] = asr_kwargs
+    if args.plan:
+        # captions for an edited clip: carry the source transcript through the plan
+        from .captions.remap import words_for_clip
+        from .select.pipeline import find_transcript
+
+        plan = json.loads(Path(args.plan).read_text())
+        source = Path(plan.get("clip", {}).get("source") or "")
+        if not source.exists():
+            log.error(f"the plan's source is gone: {source}")
+            return 1
+        transcript_path = Path(args.transcript) if args.transcript else find_transcript(source)
+        if not transcript_path or not Path(transcript_path).exists():
+            log.warn("no source transcript to carry over - transcribing the clip instead",
+                     looked_for=str(transcript_path or ""))
+        else:
+            words, report = words_for_clip(args.plan, transcript_path)
+            log.info("caption timings carried through the plan",
+                     words=report["words_out"], shots=report["shots"],
+                     clip=f"{report['clip_duration']:.1f}s")
+            kwargs["words"] = words
     result = run_captions(
         args.file, args.out, style_path=args.style, campaign=args.campaign,
         platform=args.platform, fit=args.fit, ass_only=args.ass_only,
@@ -270,6 +290,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--max-words", type=int, default=None, help="words per cue")
     s.add_argument("--mode", default=None, choices=["line", "word"], help="caption look")
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
+    s.add_argument("--plan", default=None,
+                   help="edit plan of an assembled clip: reuse the source transcript's timings "
+                        "through the cuts instead of recognising the clip again")
+    s.add_argument("--transcript", default=None,
+                   help="source transcript to use with --plan (default: the source's own)")
     s.set_defaults(func=cmd_captions)
 
     s = sub.add_parser("edit", help="stage 4: assemble candidates into vertical clips")

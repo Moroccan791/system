@@ -409,3 +409,63 @@ def test_reports_explain_rejections_and_compliance(ruled_media):
     assert "dropped by the campaign rules" in report
     assert "PASS length" in report or "FAIL length" in report
     assert "note:" in report, "brand rules that cannot be checked automatically are printed"
+
+
+# --------------------------------------------------------------------------- #
+# growing a moment up to the campaign floor
+# --------------------------------------------------------------------------- #
+def _rule_rules(**over):
+    rules = {
+        "clip": {"min_seconds": 20, "max_seconds": 180},
+        "hook": {"within_seconds": 5},
+        "topics": {"approved": ["men"], "banned": ["money"]},
+    }
+    rules.update(over)
+    return rules
+
+
+def _word_list(pairs):
+    from clipper.asr.base import Word
+
+    return [Word(text=t, start=s, end=e) for t, s, e in pairs]
+
+
+def test_a_moment_under_the_floor_grows_into_the_next_sentence():
+    window = {"start": 10.0, "end": 28.0, "duration": 18.0, "reasons": [], "score": 0.5}
+    words = _word_list([("more", 28.1, 28.6), ("and", 28.7, 29.0), ("more", 29.1, 29.9)])
+    grown = pipeline._grow_to_floor(window, words, _rule_rules(), 20.0, 400.0)
+    assert grown["duration"] >= 20.0
+    assert grown["reasons"][-1].startswith("grown from") or "grown from" in grown["reasons"][-1]
+
+
+def test_growth_stops_at_a_banned_topic():
+    window = {"start": 10.0, "end": 28.0, "duration": 18.0, "reasons": [], "score": 0.5}
+    words = _word_list([("money", 28.2, 28.7), ("money", 29.0, 30.0)])
+    grown = pipeline._grow_to_floor(window, words, _rule_rules(), 20.0, 400.0)
+    assert grown["end"] <= 28.0 + 2.6          # at most the capped pad, never the banned words
+
+
+def test_growth_does_not_bridge_a_long_silence():
+    window = {"start": 30.0, "end": 48.0, "duration": 18.0, "reasons": [], "score": 0.5}
+    words = _word_list([("before", 20.0, 20.4), ("after", 48.1, 48.3)])
+    grown = pipeline._grow_to_floor(window, words, _rule_rules(), 20.0, 400.0)
+    assert grown["start"] >= 29.0              # the 10s silence was not pulled in
+
+
+def test_growth_refuses_when_only_a_far_off_shortfall_remains():
+    window = {"start": 10.0, "end": 18.0, "duration": 8.0, "reasons": [], "score": 0.5}
+    grown = pipeline._grow_to_floor(window, _word_list([("a", 10.5, 10.9)]), _rule_rules(), 20.0, 400.0)
+    assert grown["duration"] == 8.0            # still short, and still says so
+
+
+def test_growth_never_runs_past_the_end_of_the_file():
+    window = {"start": 90.0, "end": 95.0, "duration": 5.0, "reasons": [], "score": 0.5}
+    grown = pipeline._grow_to_floor(window, _word_list([("end", 94.5, 95.0)]), _rule_rules(),
+                                    20.0, 95.2)
+    assert grown["end"] <= 95.2
+
+
+def test_growth_leaves_a_compliant_moment_alone():
+    window = {"start": 0.0, "end": 25.0, "duration": 25.0, "reasons": [], "score": 0.5}
+    grown = pipeline._grow_to_floor(window, _word_list([("a", 1.0, 1.2)]), _rule_rules(), 20.0, 100.0)
+    assert grown == window

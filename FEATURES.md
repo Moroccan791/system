@@ -16,7 +16,7 @@ here has followed so far.
 ## 1. What you have right now
 
 Everything below runs in this sandbox: CPU only, no accounts, no paid tools,
-FFmpeg 7.0.2 with libass. 211 tests cover it (`python -m pytest`).
+FFmpeg 7.0.2 with libass. 229 tests cover it (`python -m pytest`).
 
 ### Stage 0 — look at a campaign
 ```bash
@@ -99,6 +99,19 @@ Writes `work/<name>/edits/<file>_<id>[_tag].mp4` and a readable `.plan.json`:
 * 1080×1920 per platform preset, audio cut with the picture, silent footage still
   edits, a plan that runs past the end of the file trims instead of padding
 
+### Getting footage in when the chat upload does not land
+```bash
+python -m clipper drop <campaign> --how                        # instructions
+python -m clipper drop <campaign> --branch main                # pull them down
+python -m clipper drop <campaign> --branch main --dry-run      # just look
+python -m clipper drop <campaign> --branch main --into raw --overwrite
+```
+Fetches one branch of this repo, takes the media out of it, sorts it into
+`references/` and `raw/` (by filename hint, then by runtime) and copies it into
+the campaign with the original names. Idempotent, never clobbers a
+differently-sized file, never merges. It exists because a chat upload is not
+always the road that works and GitHub is reachable from both sides.
+
 ### Campaign rules — the brief as data, checked per clip
 ```bash
 python -m clipper rules <campaign>          # show the rules in force
@@ -110,6 +123,20 @@ and banned topics, banned names, retired phrases, tone warnings and brand notes.
 Selection drops moments that break a rule (reporting why), lifts the ones that
 fit, trims long lead-ins so the hook lands in the first seconds, and stamps a
 `compliance` block on each candidate. Keyword lists are literal by design.
+
+### Captions that inherit the source timings, not a re-guess
+```bash
+python -m clipper captions <clip>.mp4 --campaign <campaign> \
+    --plan work/<campaign>/edits/<clip>.plan.json
+```
+An assembled clip has already been cut, so recognising its audio again both
+wastes a pass and drifts (measured on a real 20.5s clip: up to +0.9s by the
+last word, because an energy aligner re-run on cut-up speech loses the thread).
+With `--plan`, the source transcript's own timings are carried through the cut
+- shot by shot, clamped at the joins, words in dropped source removed - so
+captions land where the words were actually said (mean error 0.012s, max 0.23s
+versus 0.37s / 0.97s the other way). It is also about twice as fast, because
+there is no speech recognition pass at all.
 
 ### Blends — see the transitions instead of guessing
 ```bash
@@ -207,6 +234,7 @@ style profiles, and work files. Range requests work, so seeking works.
 ### G — campaign compliance (started, more to come)
 | Code | Feature | What it changes | Effort |
 |------|---------|-----------------|--------|
+| G0 | **Shipped**: moments under the floor are now *grown* to the campaign minimum (borrow the next sentence, then the one before it, then at most 2.5s of room tone; never past a banned topic, never across more than 1.2s of silence) instead of failing the length check | done |
 | G1 | Face coverage check | measure "a face is on screen for X% of the clip" with an offline detector (~90 MB wheel) instead of reporting it as unmeasured | M |
 | G2 | Word-form expansion for rules | match "dollars"/"bucks"/"salary" automatically for the `money` rule, with the expansion visible | S |
 | G3 | Tone classifier | flag rage-bait / demeaning framings beyond an explicit word list | L — needs a model |

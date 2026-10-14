@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "campaign": "michael_sartain",
+  "source": {
+    "references": [
+      "YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p.mp4",
+      "YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p.mp4",
+      "YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p.mp4"
+    ],
+    "notes": "font family cannot be identified from pixels - keeping the default; set captions.font_family by hand if the campaign uses a specific font; font size carries about +/-52% uncertainty: the font face cannot be identified from pixels, so the size is right for the rendering default (Montserrat) and off if the campaign uses a much wider/taller face",
+    "extracted_at": "2026-10-14T03:36:09",
+    "sample": {
+      "fps": 6.0,
+      "width": 480
+    }
+  },
+  "pacing": {
+    "avg_shot_len": 1.403,
+    "cuts_per_minute": 40.99,
+    "confidence": 0.75,
+    "median_shot_len": 1.167
+  },
+  "zoom": {
+    "dominant": "static",
+    "punch_in_scale": 1.12,
+    "punch_in_duration": 0.5,
+    "confidence": 0.586
+  },
+  "transitions": {
+    "in": "cut",
+    "duration": 0.25,
+    "confidence": 0.0
+  },
+  "captions": {
+    "present": true,
+    "font_family": null,
+    "font_weight": "bold",
+    "italic": false,
+    "casing": "upper",
+    "font_size_ass": 152,
+    "cap_height_ratio": 0.0368,
+    "primary_color": "#FDFCFD",
+    "outline_color": "#275B77",
+    "outline_width": 7,
+    "shadow": 0,
+    "position": {
+      "anchor": "bottom_center",
+      "cx": 0.5062,
+      "cy": 0.6756,
+      "margin_v": 420
+    },
+    "karaoke": {
+      "enabled": false,
+      "highlight_color": null,
+      "scale_pop": 1.06
+    },
+    "animation": {
+      "in": "none",
+      "duration": 0.12
+    },
+    "max_lines": 1,
+    "max_words_per_cue": 1,
+    "max_chars_per_line": 8,
+    "confidence": 0.899,
+    "evidence": {
+      "cue_count": 152,
+      "frames": [
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p_caption_0.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p_caption_1.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p_caption_2.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p_caption_0.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p_caption_1.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p_caption_2.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_0.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_1.png",
+        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_2.png"
+      ]
+    },
+    "font_size_uncertainty": 0.52
+  },
+  "audio": {
+    "music_bed": false,
+    "target_lufs": -20.0,
+    "speech_ratio": 0.997,
+    "confidence": 0.52,
+    "ducking": false
+  },
+  "confidence": 0.689
+}
