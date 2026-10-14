@@ -81,6 +81,26 @@ def _text_width(word: str, size: float) -> float:
     return width * size * 1.10
 
 
+def declutter(words: list[Word]) -> list[Word]:
+    """One speaker at a time: drop words that talk over the previous word.
+
+    Moonshine-style ASR weaves simultaneous speakers into a single stream
+    ("No Don't I You Sometimes Apparently" - six words, one timestamp, two
+    people). Captioning both streams at once is how blocks turn to junk.
+    Greedy by start: a word that begins well inside the previous kept word
+    belongs to the other voice; the dominant speaker's words tile the time
+    and survive. Words landing in genuine pauses (reactions, "yeah") stay -
+    they are audible and honest.
+    """
+    kept: list[Word] = []
+    last_end = -1e9
+    for w in sorted(words, key=lambda w: float(w.start)):
+        if float(w.start) >= last_end - 0.08:
+            kept.append(w)
+            last_end = max(last_end, float(w.end))
+    return kept
+
+
 def segment_sentences(words: list[Word], *, max_words: int = 10, max_chars: int = 52,
                       break_gap: float = 1.0) -> list[list[Word]]:
     """Cut the transcript into caption blocks at sentence ends and real pauses.
@@ -302,7 +322,7 @@ def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
     shadow = max(outline + 1, int(round(float(block.get("shadow")
                                                      or max(2, float(cap.get("shadow") or 0))) * scale)))
 
-    sentences = segment_sentences(words,
+    sentences = segment_sentences(declutter(words),
                                   max_words=int(block.get("max_words") or 10),
                                   max_chars=int(block.get("max_chars") or 52))
     events: list[str] = []

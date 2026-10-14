@@ -3,7 +3,7 @@
 import re
 
 from clipper.asr.base import Word
-from clipper.captions.block import (build_fade_bar, pick_emphasis,
+from clipper.captions.block import (build_fade_bar, declutter, pick_emphasis,
                                     segment_sentences, write_block_ass)
 from clipper.captions.render import _insert_chains, grade_chain
 
@@ -91,3 +91,12 @@ def test_block_lines_never_run_off_the_frame(tmp_path):
         m = re.search(r"\\pos\(([-\d.]+),", line)
         if m:
             assert float(m.group(1)) >= 0, "a caption word starts off-frame"
+
+
+def test_declutter_keeps_one_voice_when_speakers_collide():
+    # two voices woven into one stream at the same timestamps (moonshine ASR
+    # under crosstalk): the tiling speaker survives, the talk-over drops
+    words = [W(0.0, 0.30, "No"), W(0.02, 0.28, "yeah"), W(0.32, 0.30, "offense"),
+             W(0.34, 0.25, "right"), W(0.64, 0.30, "waiting"), W(1.40, 0.25, "months.")]
+    kept = [w.text for w in declutter(words)]
+    assert kept == ["No", "offense", "waiting", "months."]
