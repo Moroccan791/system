@@ -166,7 +166,8 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
          inserts: list[dict] | None = None,
          outro: float = 0.0,
          sfx: list[dict] | None = None,
-         punches: list[dict] | None = None) -> Path:
+         punches: list[dict] | None = None,
+         watermark: dict | None = None) -> Path:
     """Encode `src` to `dst` with the subtitles burned in.
 
     Grade goes *before* subtitles so the text stays crisp white; timed image
@@ -201,7 +202,7 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         afade = f"afade=t=out:st={eff_dur - float(outro):.3f}:d={float(outro):.3f}"
     log.info("rendering", out=Path(dst).name, fit=fit, size=f"{src_info.width}x{src_info.height}")
 
-    if not inserts and not sfx:
+    if not inserts and not sfx and not watermark:
         vf = ",".join(x for x in (stages, subs, vfade) if x)
         afull = ",".join(x for x in (af, afade) if x) or None
         return ff_render(src, dst, vf=vf, af=afull, preset=p, start=start, duration=duration)
@@ -258,6 +259,22 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         audio_label = "aout"
         for s_ in sfx:
             args += ["-i", str(s_["file"])]
+    if watermark:
+        # brand mark last of all: above the captions and above the outro
+        # fade, pinned for the whole clip, full opacity - campaign briefs
+        # that mandate a watermark say keep it clear and never crop it off
+        wm_idx = 1 + len(inserts or []) + (len(sfx) if audio_label else 0)
+        pos = str(watermark.get("position") or "tr").lower()
+        mgn = int(watermark.get("margin") or 36)
+        xy = {"tr": (f"W-w-{mgn}", str(mgn)), "br": (f"W-w-{mgn}", f"H-h-{mgn}"),
+              "bc": ("(W-w)/2", f"H-h-{mgn}"), "tl": (str(mgn), str(mgn)),
+              "bl": (str(mgn), f"H-h-{mgn}")}.get(pos, (f"W-w-{mgn}", str(mgn)))
+        wm_w = max(40, int(tw * float(watermark.get("width_frac") or 0.24)))
+        fc += (f";[{wm_idx}:v]scale={wm_w}:-2,format=rgba[wm]"
+               f";[{last_v}][wm]overlay={xy[0]}:{xy[1]}[vwm]")
+        last_v = "vwm"
+        args += ["-loop", "1", "-t", f"{duration:.3f}", "-i",
+                 str(watermark["file"])]
     args += ["-filter_complex", fc, "-map", f"[{last_v}]"]
     if src_info.has_audio:
         args += ["-map", f"[{audio_label}]" if audio_label else "0:a?"]

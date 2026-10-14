@@ -248,7 +248,7 @@ style profiles, and work files. Range requests work, so seeking works.
 | E4 | Metadata sidecar | title, description, hashtags written next to each clip | S |
 | E5 | Thumbnail export | a cover frame per clip | S |
 | E6 | Direct upload | post to TikTok/YouTube/Instagram — needs each platform's API and your credentials | L, not offline |
-| E7 | Branding overlay | logo/watermark and a handle line in a safe corner | S |
+| E7 | Branding overlay | **Shipped**: `--watermark FILE[,POS[,FRAC]]` (or profile `captions.watermark`) pins a brand image over the whole clip as the topmost layer — above captions and the outro fade, clear and uncropped (CLIPFARM/MILK XP brief); pixel-proven by tests/test_watermark.py. Handle line = C0f | done |
 | E8 | Progress & resume | ETA per clip, skip work that is already rendered | S |
 
 ### G — campaign compliance (started, more to come)

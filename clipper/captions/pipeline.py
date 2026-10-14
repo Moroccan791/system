@@ -163,6 +163,7 @@ def run_captions(
     sound: bool = False,
     handle: str | None = None,
     word_fixes: dict | None = None,
+    watermark: str | None = None,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -279,6 +280,25 @@ def run_captions(
         or cap_style.get("handle"))
     fade_seconds = (float(fade_out) if fade_out is not None
                     else float(cap_style.get("fade_out_seconds") or 0.0))
+    # campaign brand watermark: CLI spec "FILE[,POS[,FRAC]]" or a profile
+    # captions.watermark (string same format, or dict). Full-duration,
+    # topmost layer - see captions.render.burn.
+    wm_spec = watermark if watermark is not None else cap_style.get("watermark")
+    wm = None
+    if wm_spec:
+        if isinstance(wm_spec, dict):
+            wm = {"file": str(wm_spec.get("file") or ""),
+                  "position": str(wm_spec.get("position") or "tr"),
+                  "width_frac": float(wm_spec.get("width_frac") or 0.24)}
+        else:
+            parts = [x.strip() for x in str(wm_spec).split(",")]
+            wm = {"file": parts[0],
+                  "position": parts[1] if len(parts) > 1 and parts[1] else "tr",
+                  "width_frac": float(parts[2]) if len(parts) > 2 and parts[2] else 0.24}
+        if not wm["file"] or not Path(wm["file"]).exists():
+            raise FileNotFoundError(f"watermark file not found: {wm['file']!r}")
+        log.info("watermark", file=Path(wm["file"]).name,
+                 position=wm["position"], width_frac=wm["width_frac"])
     sfx = None
     if whoosh:
         whoosh_wav = config.ROOT / "assets" / "sfx" / "whoosh.wav"
@@ -373,7 +393,8 @@ def run_captions(
         burn(src, out, ass_path, preset=preset, fit=fit, start=start, duration=duration,
              target_size=(twidth, theight),
              grade=style.get("grade") or None, inserts=inserts,
-             outro=fade_seconds, sfx=sfx, punches=punch_list if mode == "block" else None)
+             outro=fade_seconds, sfx=sfx, punches=punch_list if mode == "block" else None,
+             watermark=wm)
         output_path = str(out)
         log.info("wrote", output=output_path)
 

@@ -221,7 +221,7 @@ def cmd_captions(args: argparse.Namespace) -> int:
         outro_text=args.outro_text, fade_out=args.fade_out,
         whoosh=args.whoosh or None, punch=args.punch,
         tighten=args.tighten, tighten_gap=args.tighten_gap,
-        sound=args.sound, handle=args.handle,
+        sound=args.sound, handle=args.handle, watermark=args.watermark,
         word_fixes={k.strip(): v.strip() for k, _, v in
                     (spec.partition("=") for spec in args.fix) if k.strip()} or None,
         **kwargs,
@@ -348,6 +348,10 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--handle", default=None, metavar="@NAME",
                    help="creator handle pinned at the right edge for the whole "
                         "clip (default: the profile's, per platform)")
+    s.add_argument("--watermark", default=None, metavar="FILE[,POS[,FRAC]]",
+                   help="brand image pinned over the whole clip, topmost layer "
+                        "(POS: tr|br|bc|tl|bl, FRAC: width fraction, default "
+                        "0.24; a profile captions.watermark works too)")
     s.add_argument("--fix", action="append", default=[], metavar="WRONG=RIGHT",
                    help="correct a mis-transcribed word before captioning "
                         "(repeatable; the creator profile can carry standing "
