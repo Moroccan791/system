@@ -201,7 +201,8 @@ def cmd_captions(args: argparse.Namespace) -> int:
     result = run_captions(
         args.file, args.out, style_path=args.style, campaign=args.campaign,
         platform=args.platform, fit=args.fit, ass_only=args.ass_only,
-        max_words=args.max_words, mode=args.mode, inserts=inserts or None, **kwargs,
+        max_words=args.max_words, mode=args.mode, inserts=inserts or None,
+        accent=args.accent, **kwargs,
     )
     print(json.dumps(result.to_dict(), indent=2))
     for w in result.warnings:
@@ -305,6 +306,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--mode", default=None, choices=["line", "word", "block"],
                    help="caption look: 'block' = the sentence-block grammar (words reveal when "
                         "spoken and stay, the operative word bigger, bottom fade bar)")
+    s.add_argument("--accent", default=None, metavar="#RRGGBB",
+                   help="color for the big (emphasis) word of each caption block, "
+                        "e.g. --accent #FFC531; connectives stay white")
     s.add_argument("--insert", action="append", default=[], metavar="T,DUR,FILE[,AT]",
                    help="show an image on the clip: T = when it appears (s), DUR = how long "
                         "it stays, FILE = image path, AT = full (cutaway, the default - "

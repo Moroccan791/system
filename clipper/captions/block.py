@@ -271,6 +271,11 @@ def _sentence_events(sentence: list[Word], style: dict, *, width: int, height: i
                     rf"\fs{size:.0f}"
                     rf"\fad({fade_ms},0)"
                     rf"\move({x:.1f},{y + rise_px:.1f},{x:.1f},{y:.1f},0,{rise_ms})")
+            accent = block.get("emphasis_color")
+            if i == emphasis and accent:
+                # one colored word per block: the operative word carries the
+                # accent, connectives stay white - the tutorial hierarchy
+                tags += rf"\1c{ass_color(str(accent))}"
             events.append(f"Dialogue: 1,{fmt_ass(float(w.start))},{fmt_ass(end)},"
                           f"Block,,0,0,0,,{{{tags}}}{text}")
             x += _text_width(display, size) + space

@@ -100,3 +100,15 @@ def test_declutter_keeps_one_voice_when_speakers_collide():
              W(0.34, 0.25, "right"), W(0.64, 0.30, "waiting"), W(1.40, 0.25, "months.")]
     kept = [w.text for w in declutter(words)]
     assert kept == ["No", "offense", "waiting", "months."]
+
+
+def test_accent_colors_only_the_emphasis_word(tmp_path):
+    style = {"captions": {"font_name": "Montserrat", "primary_text_color": "#FDFCFD",
+                          "outline_color": "#275B77", "position": {"margin_v": 420},
+                          "block": {"base_size_ass": 84, "emphasis_scale": 1.6,
+                                    "emphasis_color": "#FFC531"}}}
+    words = [W(0.0, 0.3, "Men"), W(0.3, 0.3, "need"), W(0.6, 0.4, "validation.")]
+    path, blocks = write_block_ass(tmp_path / "a.ass", words, style, end=2.0)
+    colored = [l for l in path.read_text().splitlines() if "\\1c" in l]
+    assert len(colored) == 1 and "Validation." in colored[0]
+    assert "&H0031C5FF&" in colored[0]          # ASS colors are BBGGRR

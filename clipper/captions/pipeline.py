@@ -88,6 +88,7 @@ def run_captions(
     asr_kwargs: dict | None = None,
     words: list | None = None,
     inserts: list[dict] | None = None,
+    accent: str | None = None,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -107,6 +108,8 @@ def run_captions(
 
     if max_words:
         style = config.deep_merge(style, {"captions": {"max_words_per_cue": int(max_words)}})
+    if accent:
+        style = config.deep_merge(style, {"captions": {"block": {"emphasis_color": accent}}})
     cap_style = style["captions"]
 
     info = probe(src)
