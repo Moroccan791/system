@@ -105,7 +105,7 @@ def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | 
         chain = [
             f"trim=start={start:.3f}:end={trim_end:.3f}",
             "setpts=PTS-STARTPTS",
-            f"scale={width}:{height}:force_original_aspect_ratio=increase",
+            f"scale={width}:{height}:force_original_aspect_ratio=increase:flags=lanczos",
             f"crop={width}:{height}:{offset_x}:(ih-{height})*{focus_y}",
         ]
         expression = _zoom_expression(shot.get("zoom") or {}, zoom_fps)
@@ -207,8 +207,14 @@ def _blend_chain(shots: list[dict], blends: list[tuple[int, str, float]]) -> str
 
 def render_plan(plan: dict, out_path: str | Path, *, focus: str = "centre",
                 focus_x: float | None = None,
-                crf: int = 18, preset: str = "veryfast", audio_bitrate: str = "256k") -> Path:
-    """Cut, zoom and concatenate the moment into a mezzanine clip."""
+                crf: int = 16, preset: str = "medium", audio_bitrate: str = "256k") -> Path:
+    """Cut, zoom and concatenate the moment into a mezzanine clip.
+
+    Mezzanine is not a throwaway intermediate: the captions stage re-encodes
+    it once more, so this encode is where face detail is won or lost. It
+    used to run veryfast/18 - fast, and exactly the soft, blocky faces the
+    reviewer called out. medium/16 costs a minute and keeps the detail.
+    """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     source = Path(plan["clip"]["source"])

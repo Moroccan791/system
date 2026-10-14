@@ -33,8 +33,10 @@ def fit_chain(width: int, height: int, fit: str = "cover", target: tuple[int, in
                 f"boxblur=20:2[bgblur];"
                 f"[fg]scale={tw}:{th}:force_original_aspect_ratio=decrease[fgscaled];"
                 f"[bgblur][fgscaled]overlay=(W-w)/2:(H-h)/2")
-    # cover (default): fill the canvas, centre crop
-    return (f"scale={tw}:{th}:force_original_aspect_ratio=increase,"
+    # cover (default): fill the canvas, centre crop. lanczos, not the
+    # default bicubic: this scale is usually an upscale of a face-sized
+    # crop, and lanczos keeps the edges bicubic smears away
+    return (f"scale={tw}:{th}:force_original_aspect_ratio=increase:flags=lanczos,"
             f"crop={tw}:{th},setsar=1")
 
 
@@ -64,6 +66,15 @@ def grade_chain(grade: dict | None) -> str:
     if not grade:
         return ""
     parts = []
+    denoise = float(grade.get("denoise") or 0.0)
+    if denoise > 0.01:
+        # the sources are 720p/480p web downloads; their compression noise
+        # is what turns to mush on faces across two encodes. A light 3D
+        # denoise first gives the encoder (and the sharpener below) skin
+        # to work with instead of mosquito noise
+        d = min(max(denoise, 0.0), 1.0)
+        parts.append(f"hqdn3d={1.5 + 2.5 * d:.2f}:{1.0 + 1.8 * d:.2f}:"
+                     f"{3.0 + 3.0 * d:.2f}:{2.0 + 2.5 * d:.2f}")
     amount = float(grade.get("vignette") or 0.0)
     if amount > 0.01:
         # vignette angle: 0.28 -> ~PI/5.6; the filter's max is PI/2 (very dark)
@@ -73,6 +84,11 @@ def grade_chain(grade: dict | None) -> str:
     saturation = float(grade.get("saturation") or 1.0)
     if abs(contrast - 1.0) > 0.005 or abs(saturation - 1.0) > 0.005:
         parts.append(f"eq=contrast={contrast:.3f}:saturation={saturation:.3f}")
+    sharpen = float(grade.get("sharpen") or 0.0)
+    if sharpen > 0.01:
+        # contrast-adaptive sharpening: built for detail recovery on
+        # upscaled footage, without the halos plain unsharp leaves
+        parts.append(f"cas={min(max(sharpen, 0.0), 1.0):.2f}")
     return ",".join(parts)
 
 

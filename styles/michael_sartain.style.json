@@ -126,6 +126,8 @@
     "vignette": 0.26,
     "contrast": 1.05,
     "saturation": 1.06,
-    "_source": "tutorial recipe: feathered edge-darkening + mild lift, 'the cinematic look'"
+    "_source": "tutorial recipe: feathered edge-darkening + mild lift, 'the cinematic look'",
+    "denoise": 0.6,
+    "sharpen": 0.35
   }
 }
