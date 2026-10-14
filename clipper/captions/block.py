@@ -95,9 +95,12 @@ def declutter(words: list[Word]) -> list[Word]:
     kept: list[Word] = []
     last_end = -1e9
     for w in sorted(words, key=lambda w: float(w.start)):
+        # aligners stretch word ends to seconds; a spoken word is not 3s long.
+        # Judge collisions on a capped, honest duration or everything drops.
+        eff_end = min(float(w.end), float(w.start) + 0.45)
         if float(w.start) >= last_end - 0.08:
             kept.append(w)
-            last_end = max(last_end, float(w.end))
+            last_end = max(last_end, eff_end)
     return kept
 
 
