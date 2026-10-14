@@ -55,14 +55,15 @@ def nuclei_times(audio: np.ndarray, rate: int, *, min_dist: float = 0.09,
     thr = float(env.max()) * floor_ratio
     min_gap = max(1, int(min_dist * rate))
     peaks: list[int] = []
-    last = -min_gap
     order = np.argsort(env)[::-1]  # strongest first, then enforce spacing
     for i in order:
         if env[i] < thr:
             break
-        if i - last >= min_gap and (not peaks or all(abs(i - p) >= min_gap for p in peaks)):
+        # spacing is the all() check's job; an earlier "i - last >= gap" test
+        # here silently rejected every peak before the loudest one and left
+        # whole minutes with ~zero nuclei (measured: 2 in 40s of speech)
+        if all(abs(i - p) >= min_gap for p in peaks):
             peaks.append(int(i))
-            last = i
     peaks.sort()
     return (np.asarray(peaks, dtype=np.float32) / rate).astype(np.float32)
 
@@ -113,13 +114,24 @@ def _align_interval(tokens: list[str], start: float, end: float,
         return []
     weights = _weights(tokens)
     edges = start + np.concatenate([[0.0], np.cumsum(weights)]) * span
-    if len(nuclei) >= len(tokens):
-        local = np.sort(nuclei[(nuclei >= start - snap) & (nuclei <= end + snap)])
-        anchors = local[np.linspace(0, len(local) - 1, len(tokens)).round().astype(int)]
-        # blend proportional edges with nucleus anchors
-        mids = (edges[:-1] + edges[1:]) / 2.0
-        blended = 0.5 * mids + 0.5 * np.clip(anchors, start, end)
-        edges = np.concatenate([[start], (blended[:-1] + blended[1:]) / 2.0, [end]])
+    local = np.sort(nuclei[(nuclei >= start - snap) & (nuclei <= end + snap)])
+    if len(local) >= max(3, len(tokens) // 2):
+        # Syllable-anchored placement: a word occupies the beats it actually
+        # made. Map cumulative syllable mass onto the detected nuclei and let
+        # the beats lead (0.75) with proportion only steadying them (0.25) -
+        # the old 50/50 blend kept half the proportional drift, which on a
+        # fast list inside a 7s chunk meant seconds of caption lag.
+        syl = np.array([max(1.0, round(len("".join(c for c in t if c.isalnum())) / 3.0))
+                        for t in tokens], dtype=np.float64)
+        frac = np.cumsum(syl) / syl.sum()            # speech-mass at each word end
+        pos = frac[:-1] * (len(local) - 1)           # boundary positions in nuclei
+        anchors = local[np.clip(np.round(pos).astype(int), 0, len(local) - 1)]
+        inner = 0.75 * np.clip(anchors, start, end) + 0.25 * edges[1:-1]
+        # strictly increasing, at least min_word apart
+        for i in range(len(inner)):
+            lo = (edges[i] if i == 0 else inner[i - 1]) + min_word
+            inner[i] = max(float(inner[i]), lo)
+        edges = np.concatenate([[start], inner, [end]])
     else:
         for i in range(1, len(edges) - 1):
             if len(nuclei):
@@ -149,8 +161,15 @@ def align_words(text: str, audio: np.ndarray, rate: int, *, t0: float = 0.0,
         return []
     if intervals is None:
         intervals = speech_intervals(audio, rate, min_speech=min_speech, **vad_kwargs)
+    # Intervals are callers' claims about the FULL timeline; this audio may be
+    # one chunk of it. An unclamped (0, 40s) interval handed in for a 7s chunk
+    # smeared a whole sentence across 40 seconds - every word wrong, which is
+    # how captions ended up seconds away from the voice. Clamp, always.
+    duration = len(audio) / rate
+    intervals = [(max(0.0, float(a)), min(duration, float(b)))
+                 for a, b in (intervals or []) if float(b) > 0.0 and float(a) < duration]
+    intervals = [(a, b) for a, b in intervals if b - a > 0.02]
     if not intervals:
-        duration = len(audio) / rate
         intervals = [(0.0, duration)] if duration > 0 else []
     groups = assign_words_to_intervals(tokens, intervals)
     nuc = nuclei_times(audio, rate)

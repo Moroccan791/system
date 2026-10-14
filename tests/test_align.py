@@ -94,3 +94,39 @@ def test_energy_probs_shape():
     audio, _ = bursts(["a", "b"])
     probs, win = energy_probs(audio, RATE)
     assert probs.ndim == 1 and 0.0 <= float(probs.min()) and float(probs.max()) <= 1.0
+
+
+def _burst_audio(seconds=6.0, rate=16000, bursts=(0.5, 1.5, 2.5, 3.5, 4.5, 5.5)):
+    import numpy as np
+    x = np.zeros(int(seconds * rate), dtype=np.float32)
+    rng = np.random.default_rng(3)
+    for b in bursts:
+        i = int(b * rate)
+        seg = rng.standard_normal(int(0.18 * rate)).astype(np.float32) * 0.5
+        # speech-ish band energy: modulate a 300-3000Hz-ish burst via noise is fine
+        x[i:i + len(seg)] += seg
+    return x, rate
+
+
+def test_nuclei_times_finds_syllable_bursts():
+    """Regression: the peak picker used to reject every peak before the
+    loudest one and returned ~2 nuclei for 40s of speech."""
+    import numpy as np
+    from clipper.align.energy_align import nuclei_times
+    x, rate = _burst_audio()
+    nuc = nuclei_times(x, rate)
+    assert len(nuc) >= 5, f"expected a nucleus per burst, got {len(nuc)}"
+
+
+def test_align_words_clamps_intervals_to_the_audio():
+    """Regression: handing align_words a full-timeline interval for a short
+    chunk smeared one sentence across the whole file (captions seconds away
+    from the voice). Words must stay inside the audio they were given."""
+    import numpy as np
+    from clipper.align.energy_align import align_words
+    x, rate = _burst_audio(seconds=6.0)
+    words = align_words("one two three four five six", x, rate,
+                        intervals=[(0.0, 40.0)])   # the old provider bug, verbatim
+    assert words, "no words aligned"
+    assert max(w.end for w in words) <= 6.05, "a word escaped the chunk"
+    assert [w.text for w in words] == "one two three four five six".split()

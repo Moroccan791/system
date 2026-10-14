@@ -201,7 +201,8 @@ class MoonshineProvider:
                 continue
             texts.append(text)
             if self.force_align:
-                local = [(s - cs, e - cs) for s, e in intervals if e > cs and s < ce]
+                local = [(max(s, cs) - cs, min(e, ce) - cs)
+                         for s, e in intervals if e > cs and s < ce]
                 words.extend(align_words(text, seg, rate, t0=cs, intervals=local))
             if wav.exists():
                 wav.unlink()
