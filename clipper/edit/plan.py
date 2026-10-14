@@ -245,8 +245,35 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
     elif (style.get("zoom") or {}).get("dominant") in (None, "mixed"):
         notes.append("the style profile does not have a clear camera move, holding still")
 
+    # a candidate may pin its own reframing: `segments` tiles the window
+    # with one crop focus per span, for sources that cut between speakers
+    # sitting in different parts of the landscape frame. The boundaries are
+    # deliberate (they should sit on the source's own cuts), so unlike the
+    # automatic shot splits they are never snapped to word gaps.
+    segments = candidate.get("segments") or None
+    seg_focus: list[float | None] = []
+    if segments:
+        segments = sorted(segments, key=lambda s: float(s["start"]))
+        cursor = start
+        for seg in segments:
+            s0, s1 = float(seg["start"]), float(seg["end"])
+            if abs(s0 - cursor) > 0.05 or s1 <= s0:
+                raise ValueError(
+                    f"candidate segments must tile the window contiguously "
+                    f"from {start}: got {s0}-{s1} after {cursor}")
+            seg_focus.append(seg.get("focus_x"))
+            cursor = s1
+        if abs(cursor - end) > 0.05:
+            raise ValueError(
+                f"candidate segments end at {cursor}, the window ends at {end}")
+        notes.append(f"{len(segments)} reframed segments from the candidate "
+                     f"(per-segment focus_x)")
+
     clip_key = f"{candidate.get('source_name') or candidate.get('file', 'clip')}:{start:.2f}"
-    lengths = _seeded_lengths(clip_key, total, target, jitter=shot_len is None)
+    if segments:
+        lengths = [round(float(s["end"]) - float(s["start"]), 3) for s in segments]
+    else:
+        lengths = _seeded_lengths(clip_key, total, target, jitter=shot_len is None)
 
     gaps = _word_gaps(words, start, end) if words else []
     if not gaps and words:
@@ -262,13 +289,14 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
         boundaries.append(min(end, round(boundaries[-1] + length, 3)))
     boundaries[-1] = end
     moves = camera_moves(style, lengths, override=zoom)
-    for i in range(1, len(boundaries) - 1):
-        lower = boundaries[i - 1] + MIN_SHOT_LEN
-        upper = boundaries[i + 1] - MIN_SHOT_LEN
-        if lower >= upper:
-            continue
-        snapped = _snap(boundaries[i], gaps, curve)
-        boundaries[i] = round(min(max(snapped, lower), upper), 3)
+    if not segments:
+        for i in range(1, len(boundaries) - 1):
+            lower = boundaries[i - 1] + MIN_SHOT_LEN
+            upper = boundaries[i + 1] - MIN_SHOT_LEN
+            if lower >= upper:
+                continue
+            snapped = _snap(boundaries[i], gaps, curve)
+            boundaries[i] = round(min(max(snapped, lower), upper), 3)
 
     if transition != "cut":
         # a blend eats into both sides of a cut, so it has to fit the shortest shot
@@ -279,7 +307,7 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
 
     shots: list[dict] = []
     for i, (shot_start, shot_end) in enumerate(zip(boundaries, boundaries[1:]), start=1):
-        shots.append({
+        shot = {
             "index": i,
             "start": round(float(shot_start), 3),
             "end": round(float(shot_end), 3),
@@ -288,7 +316,10 @@ def build_plan(candidate: dict, *, style: dict | None = None, words: list | None
             "transition": transition if i > 1 else "cut",
             "transition_duration": transition_len if i > 1 else 0.0,
             "out_start": 0.0, "out_end": 0.0,       # filled in by _timeline below
-        })
+        }
+        if seg_focus and seg_focus[i - 1] is not None:
+            shot["focus_x"] = float(seg_focus[i - 1])
+        shots.append(shot)
     out_duration = _timeline(shots)
 
     shortening = round(total - out_duration, 3)

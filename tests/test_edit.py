@@ -572,3 +572,39 @@ def test_zoompan_expression_never_goes_below_one():
     assert z is None                                  # sub-1.0 is clamped, so it collapses
     z2 = _zoom_expression({"type": "punch_in", "from": 1.0, "to": 1.0, "over": 0.5}, 30)
     assert z2 is None                               # a zero move renders as static
+
+
+# ---------------------------------------------------------------------------
+# reframed segments (multi-speaker sources)
+# ---------------------------------------------------------------------------
+def test_plan_segments_become_shots_with_their_own_focus():
+    """A candidate can pin one crop focus per span: sources that cut
+    between speakers in different parts of the frame cannot be held by a
+    single crop window, so each segment reframes the 9:16 window."""
+    cand = candidate(1.0, 7.0, segments=[
+        {"start": 1.0, "end": 3.5, "focus_x": 0.2},
+        {"start": 3.5, "end": 7.0, "focus_x": 0.8},
+    ])
+    built = plan_mod.build_plan(cand, style=PUNCH_STYLE, words=spoken(1.0, 7.0))
+    assert [(s["start"], s["end"]) for s in built["shots"]] == [(1.0, 3.5), (3.5, 7.0)]
+    assert [s["focus_x"] for s in built["shots"]] == [0.2, 0.8]
+    assert any("reframed segments" in n for n in built["notes"])
+
+
+def test_plan_segments_must_tile_the_window():
+    cand = candidate(1.0, 7.0, segments=[{"start": 1.0, "end": 4.0},
+                                         {"start": 4.5, "end": 7.0}])
+    with pytest.raises(ValueError, match="tile the window"):
+        plan_mod.build_plan(cand, style=PUNCH_STYLE)
+
+
+def test_filtergraph_uses_each_shots_own_focus():
+    cand = candidate(1.0, 7.0, segments=[
+        {"start": 1.0, "end": 3.5, "focus_x": 0.2},
+        {"start": 3.5, "end": 7.0, "focus_x": 0.8},
+    ])
+    built = plan_mod.build_plan(cand, style=PUNCH_STYLE)
+    graph = render_mod.build_filtergraph(built, focus_x=0.5)
+    assert "(iw-ow)*0.2000" in graph
+    assert "(iw-ow)*0.8000" in graph
+    assert "(iw-ow)*0.5000" not in graph

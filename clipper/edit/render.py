@@ -102,11 +102,15 @@ def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | 
     for i, shot in enumerate(shots):
         start, end = shot["start"], shot["end"]
         trim_end = round(min(end, source_duration) if source_duration else end, 3)
+        # a shot may carry its own focus_x: multi-speaker sources cut
+        # between people sitting in different parts of the frame, and one
+        # global crop window cannot hold them all
+        shot_offset_x, _ = crop_offset(focus, shot.get("focus_x", focus_x))
         chain = [
             f"trim=start={start:.3f}:end={trim_end:.3f}",
             "setpts=PTS-STARTPTS",
             f"scale={width}:{height}:force_original_aspect_ratio=increase:flags=lanczos",
-            f"crop={width}:{height}:{offset_x}:(ih-{height})*{focus_y}",
+            f"crop={width}:{height}:{shot_offset_x}:(ih-{height})*{focus_y}",
         ]
         expression = _zoom_expression(shot.get("zoom") or {}, zoom_fps)
         if expression:
