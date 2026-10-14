@@ -374,6 +374,17 @@ def build_parser() -> argparse.ArgumentParser:
                    help="source transcript to use with --plan (default: the source's own)")
     s.set_defaults(func=cmd_captions)
 
+    s = sub.add_parser("cover", help="compose a cover/thumbnail frame from a finished clip")
+    s.add_argument("video")
+    s.add_argument("out")
+    s.add_argument("--at", type=float, required=True,
+                   help="timestamp of the frame to use (pick the payoff face)")
+    s.add_argument("--text", required=True,
+                   help="cover lines separated by | (last line gets the accent)")
+    s.add_argument("--accent", default=None,
+                   help="accent colour name or #RRGGBB (default: white)")
+    s.set_defaults(func=cmd_cover)
+
     s = sub.add_parser("reframe", help="per-segment 9:16 crop focus for a window "
                                        "(scene cuts + face medians -> candidate segments JSON)")
     s.add_argument("file")
@@ -590,6 +601,23 @@ def cmd_arcs(args: argparse.Namespace) -> int:
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_text(json.dumps(payload, indent=2))
         print(f"\nwritten: {out}  ->  python -m clipper edit {args.campaign or '<campaign>'}")
+    return 0
+
+
+def cmd_cover(args: argparse.Namespace) -> int:
+    import tempfile
+
+    from .captions.cover import make_cover
+    from .ffmpeg import ffmpeg_exe, run
+
+    lines = [t for t in (args.text or "").split("|") if t.strip()]
+    with tempfile.TemporaryDirectory() as tmp:
+        frame = str(Path(tmp) / "frame.png")
+        run([ffmpeg_exe(), "-y", "-hide_banner", "-loglevel", "error",
+             "-ss", f"{args.at:.3f}", "-i", args.video, "-frames:v", "1", frame])
+        out = make_cover(frame, args.out, lines,
+                         accent=resolve_accent(args.accent) or "#FDFCFD")
+    print(json.dumps({"cover": str(out), "at": args.at, "lines": lines}, indent=2))
     return 0
 
 

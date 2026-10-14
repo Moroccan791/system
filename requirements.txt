@@ -7,6 +7,7 @@ moonshine-cpp>=0.1.4         # ASR with real weights bundled in the wheel (offli
 
 # ---- stage 1 (style extraction) --------------------------------------------
 opencv-python-headless>=4.9  # shot detection, zoom estimation, glyph masks
+pillow>=10                  # cover-frame composition (captions/cover.py)
 
 # ---- optional, best quality on a local machine ------------------------------
 # faster-whisper>=1.0        # word_timestamps=True -> no aligner needed (recommended on Windows)

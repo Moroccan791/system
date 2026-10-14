@@ -77,10 +77,11 @@ def test_grade_and_insert_chains():
     assert "[vsub][ov0]overlay" in joiner and "[vins0][ov1]overlay" in joiner
     assert len(pre) == 2 and "setpts=PTS-STARTPTS+5.000/TB" in pre[0]
 
-    # a full-frame insert is a cutaway (crop to frame), never a face sticker
+    # a full-frame insert is a cutaway (crop to frame), never a face sticker;
+    # it drifts in slowly (Ken Burns) instead of sitting frozen
     _, pre_full = _insert_chains(
         [{"start": 1.0, "duration": 2.0, "file": "a.png", "at": "full"}], 1080, 1920, "vsub")
-    assert "crop=1080:1920" in pre_full[0]
+    assert "zoompan" in pre_full[0] and "s=1080x1920" in pre_full[0]
 
 
 def test_block_lines_never_run_off_the_frame(tmp_path):

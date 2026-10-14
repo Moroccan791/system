@@ -248,7 +248,7 @@ style profiles, and work files. Range requests work, so seeking works.
 | E2 | Other shapes | 1080×1080 square, 16:9 landscape, 1440p variants | S |
 | E3 | Batch everything | every candidate × every platform in one command | S |
 | E4 | Metadata sidecar | title, description, hashtags written next to each clip | S |
-| E5 | Thumbnail export | a cover frame per clip | S |
+| E5 | Thumbnail export | **Shipped**: `clipper cover <video> cover.jpg --at <payoff-ts> --text "LINE|LINES" [--accent ...]` — the payoff frame composed with graded scrims and the hook in Montserrat ExtraBold (last line in the project accent), from the rendered clip so its handle/watermark is already on it; pixel-tested (tests/test_cover.py) and included in every post folder | done |
 | E6 | Direct upload | post to TikTok/YouTube/Instagram — needs each platform's API and your credentials | L, not offline |
 | E7 | Branding overlay | **Shipped**: `--watermark FILE[,POS[,FRAC]]` (or profile `captions.watermark`) pins a brand image over the whole clip as the topmost layer — above captions and the outro fade, clear and uncropped (CLIPFARM/MILK XP brief); pixel-proven by tests/test_watermark.py. Handle line = C0f | done |
 | E8 | Progress & resume | ETA per clip, skip work that is already rendered | S |

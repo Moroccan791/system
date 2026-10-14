@@ -112,9 +112,17 @@ def _insert_chains(inserts: list[dict], base_w: int, base_h: int,
         fd = min(0.25, dur / 4.0)
         if where == "full":
             # the tutorial's actual pattern: a cutaway. The picture REPLACES
-            # the picture for the beat - never pasted across the subject's face
-            scaler = (f"scale={base_w}:{base_h}:force_original_aspect_ratio=increase,"
-                      f"crop={base_w}:{base_h}")
+            # the picture for the beat - never pasted across the subject's face.
+            # A frozen still reads as a pasted photo, so the cutaway drifts:
+            # rendered 12% oversize and slowly pushed in across its whole
+            # beat (Ken Burns), which is what makes it feel like footage.
+            frames = max(1, round(dur * 30))
+            scaler = (f"scale={int(base_w * 1.12)}:{int(base_h * 1.12)}"
+                      f":force_original_aspect_ratio=increase:flags=lanczos,"
+                      f"crop={int(base_w * 1.12)}:{int(base_h * 1.12)},"
+                      f"zoompan=z='1+0.07*on/{frames}'"
+                      f":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+                      f":d=1:s={base_w}x{base_h}:fps=30")
             y = "0"
         else:
             scaler = f"scale={int(base_w * 0.86)}:-2:force_original_aspect_ratio=decrease"

@@ -118,9 +118,18 @@ focus, not the caption.
 
 ## 6. Package + ship
 
-`post<N>/` at repo root: the platform mp4(s) + `post.txt` (video name,
-handle/tag, title, per-platform description, 7–8 hashtags, any posting
-rules from the brief). `git add -f` the mp4s (media is gitignored),
+`post<N>/` at repo root: the platform mp4(s) + a `cover.jpg` + `post.txt`
+(video name, handle/tag, title, per-platform description, 7–8 hashtags,
+any posting rules from the brief). The cover is composed from the
+rendered clip's payoff frame (so its handle/watermark is already on it):
+```
+.venv/bin/python -m clipper cover <final.mp4> post<N>/cover.jpg \
+    --at <payoff-ts> --text "HOOK LINE|SECOND LINE" --accent <user pick>
+```
+Full-frame B-roll cutaways already drift (slow push-in) and fade in the
+captions pass — stills that sit frozen read as pasted photos. And one
+more B-roll rule from the user: premium, story-matched, at most one or
+two per clip — never extra. `git add -f` the mp4s (media is gitignored),
 commit, push `arena/14b1cc76-system`, present the TikTok/first file.
 **Before ending the turn, `git status` must show no untracked
 deliverables** — untracked files are exactly what sandbox resets eat.
