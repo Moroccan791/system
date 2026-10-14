@@ -219,7 +219,9 @@ def cmd_captions(args: argparse.Namespace) -> int:
         max_words=args.max_words, mode=args.mode, inserts=inserts or None,
         accent=resolve_accent(args.accent), hook=args.hook,
         outro_text=args.outro_text, fade_out=args.fade_out,
-        whoosh=args.whoosh or None, punch=args.punch, **kwargs,
+        whoosh=args.whoosh or None, punch=args.punch,
+        tighten=args.tighten, tighten_gap=args.tighten_gap,
+        sound=args.sound, **kwargs,
     )
     print(json.dumps(result.to_dict(), indent=2))
     for w in result.warnings:
@@ -331,6 +333,15 @@ def build_parser() -> argparse.ArgumentParser:
                    help="fade picture+audio out over the last SECONDS (default: profile)")
     s.add_argument("--punch", action="store_true",
                    help="camera punch (fast zoom spike) on the biggest caption words")
+    s.add_argument("--tighten", action="store_true",
+                   help="cut dead air between sentences (pauses >= --tighten-gap "
+                        "shrink to a breath); captions/punches/sfx are carried "
+                        "through the cuts, no second ASR pass")
+    s.add_argument("--tighten-gap", type=float, default=None, metavar="SECONDS",
+                   help="smallest pause to tighten (default 0.6; profile: tighten_gap)")
+    s.add_argument("--sound", action="store_true",
+                   help="sound design: riser swelling under the hook + a pop on "
+                        "every camera-punch word (assets/sfx, CC0)")
     s.add_argument("--whoosh", type=float, action="append", default=[], metavar="T",
                    help="play the whoosh at T seconds (repeatable)")
     s.add_argument("--accent", default=None, metavar="#RRGGBB",

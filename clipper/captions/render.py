@@ -154,7 +154,7 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
     """Encode `src` to `dst` with the subtitles burned in.
 
     Grade goes *before* subtitles so the text stays crisp white; timed image
-    inserts overlay after them (they live under the text, like the tutorials').
+    inserts sit under the text, so captions stay readable over a cutaway.
     Camera punches also run before the subtitles burn (single pass - the
     grid test in tests/test_punch_grid.py proves the spike survives libass),
     so the captions themselves never move while the picture spikes.
@@ -190,17 +190,21 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         afull = ",".join(x for x in (af, afade) if x) or None
         return ff_render(src, dst, vf=vf, af=afull, preset=p, start=start, duration=duration)
 
-    # with inserts and/or sfx: -filter_complex, extra inputs
-    subs_chain, pre_chains = _insert_chains(inserts or [], tw, th, "vsub")
+    # with inserts and/or sfx: -filter_complex, extra inputs. Inserts
+    # overlay BEFORE the subtitles burn: a cutaway replaces the picture,
+    # never the words - the caption keeps talking over the B-roll.
     fc_parts = []
     if stages:
         fc_parts.append(f"[0:v]{stages}[vg]")
-    fc_parts.append(f"[{('vg' if stages else '0:v')}]{subs}[vsub]")
+    base = "vg" if stages else "0:v"
+    ins_chain, pre_chains = _insert_chains(inserts or [], tw, th, base)
     fc_parts.extend(pre_chains)
-    if subs_chain:
-        fc_parts.append(subs_chain)
+    if ins_chain:
+        fc_parts.append(ins_chain)
+        base = ins_chain.rsplit("[", 1)[-1].rstrip("]")
+    fc_parts.append(f"[{base}]{subs}[vsub]")
     fc = ";".join(fc_parts)
-    last_v = fc.rsplit("[", 1)[-1].rstrip("]")
+    last_v = "vsub"
     if vfade:
         fc += f";[{last_v}]{vfade}[vfinal]"
         last_v = "vfinal"
@@ -227,8 +231,12 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
             a_parts.append(f"[{base_idx + j}:a]adelay={ms}|{ms},"
                            f"volume={float(s_.get('volume') or 0.45):.2f}[sfx{j}]")
             labels.append(f"[sfx{j}]")
+        # normalize=0 matters: amix's default divides the whole mix by the
+        # input count, so every added sfx quietly turned the SPEECH down
+        # (measured: -12dB with the full sound-design stack). The voice is
+        # the mix; effects sit under it at their own volumes.
         a_parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:duration=first:"
-                       f"dropout_transition=0[amix]")
+                       f"dropout_transition=0:normalize=0[amix]")
         a_parts.append(f"[amix]{afade}[aout]" if afade else "[amix]anull[aout]")
         fc += ";" + ";".join(a_parts)
         audio_label = "aout"

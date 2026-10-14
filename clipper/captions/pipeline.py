@@ -94,6 +94,9 @@ def run_captions(
     fade_out: float | None = None,
     whoosh: list[float] | None = None,
     punch: bool = False,
+    tighten: bool = False,
+    tighten_gap: float | None = None,
+    sound: bool = False,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -155,6 +158,44 @@ def run_captions(
         warnings.append("word timings are estimated by the energy aligner (+/- ~100 ms); "
                         "use --asr faster_whisper for exact timings")
 
+    tighten_on = tighten or bool(cap_style.get("tighten"))
+    if tighten_on and transcript.words:
+        # cut the dead air between sentences and carry every timestamp
+        # (words, whooshes, inserts) through the cuts - see captions.tighten
+        from . import tighten as tighten_mod
+        from .remap import remap_words
+
+        total = float(duration) if duration else float(info.duration or 0.0)
+        gap = float(tighten_gap or cap_style.get("tighten_gap")
+                    or tighten_mod.DEFAULT_MIN_GAP)
+        cuts = tighten_mod.dead_air_cuts(transcript.words, min_gap=gap)
+        if cuts:
+            segs = tighten_mod.kept_segments(cuts, total)
+            tightened_path = work / "tightened.mp4"
+            tighten_mod.assemble(src, segs, tightened_path,
+                                 offset=float(start or 0.0))
+            plan = {"shots": [{"start": s, "end": e} for s, e in segs]}
+            new_words = remap_words(plan, transcript.words)
+            transcript = Transcript(
+                words=new_words,
+                text=" ".join(w.text for w in new_words),
+                language=transcript.language, provider=transcript.provider,
+                duration=tighten_mod.kept_duration(segs),
+                meta={**(transcript.meta or {}), "tightened": True})
+            if whoosh:
+                whoosh = [tighten_mod.map_time(t, cuts) for t in whoosh]
+            if inserts:
+                inserts = [{**i, "start": tighten_mod.map_time(
+                    float(i.get("start") or 0.0), cuts)} for i in inserts]
+            removed = round(total - tighten_mod.kept_duration(segs), 2)
+            src = tightened_path
+            info = probe(src)
+            start = duration = None
+            log.info("tightened", cuts=len(cuts), removed_s=removed,
+                     duration=f"{info.duration:.1f}s")
+        else:
+            log.info("tightened", cuts=0, note="no pause long enough to cut")
+
     want_punch = punch or bool(cap_style.get("camera_punch"))
     hook_lines = [x.strip() for x in hook.split("|") if x.strip()] if hook else None
     outro_line = outro_text if outro_text is not None else cap_style.get("outro_text")
@@ -167,6 +208,17 @@ def run_captions(
             sfx = [{"at": float(t), "file": str(whoosh_wav), "volume": 0.45} for t in whoosh]
         else:
             warnings.append(f"whoosh requested but {whoosh_wav} is missing - skipped")
+
+    sound_on = sound or bool(cap_style.get("sound_design"))
+    if sound_on:
+        # a riser swelling under the hook is the cheapest retention trick in
+        # the book; the matching pops ride the camera punches and are added
+        # in the block branch below, where the punch times are known
+        riser_wav = config.ROOT / "assets" / "sfx" / "riser.wav"
+        if riser_wav.exists():
+            sfx = [{"at": 0.0, "file": str(riser_wav), "volume": 0.20}] + list(sfx or [])
+        else:
+            warnings.append(f"sound design requested but {riser_wav} is missing - skipped")
 
     mode = mode or cap_style.get("mode") or "karaoke"
     twidth, theight = int(preset["width"]), int(preset["height"])
@@ -182,7 +234,7 @@ def run_captions(
         cues = blocks  # the report reads block structure instead of word cues
         log.info("blocks", n=len(block_info))
         punch_list = None
-        if want_punch:
+        if want_punch or sound_on:
             # a spike on every big word is a seizure, not a style: keep the
             # strongest, at least 3.5s apart, none under the hook header
             # chronological pass: punches spread across the whole clip so the
@@ -207,9 +259,20 @@ def run_captions(
                     near["at"] = last_at
                     near["strength"] = float(timed[-1].get("emphasis_strength") or 0.8)
                     picked.sort(key=lambda p: p["at"])
-            punch_list = picked or None
-            if punch_list:
-                log.info("camera punches", at=[p["at"] for p in punch_list])
+            if want_punch:
+                punch_list = picked or None
+                if punch_list:
+                    log.info("camera punches", at=[p["at"] for p in punch_list])
+            if sound_on and picked:
+                # one pop per punch, on the exact frame the big word lands -
+                # the ear confirms what the eye just saw zoom
+                pop_wav = config.ROOT / "assets" / "sfx" / "pop.wav"
+                if pop_wav.exists():
+                    sfx = list(sfx or []) + [
+                        {"at": p["at"], "file": str(pop_wav), "volume": 0.32}
+                        for p in picked]
+                    log.info("sound pops", n=len(picked),
+                             at=[p["at"] for p in picked])
         if not block_info:
             warnings.append("no caption blocks produced")
         jsonio.save(work / "cues.json", {"mode": "block", "count": len(block_info),
