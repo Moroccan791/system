@@ -113,6 +113,34 @@ def _insert_chains(inserts: list[dict], base_w: int, base_h: int,
     return ";".join(chains), pre
 
 
+def punch_chain(punches: list[dict], width: int, height: int, *,
+                max_zoom: float = 0.085) -> str:
+    """Camera punches: a fast zoom spike on each payoff word, then settle.
+
+    One gaussian bump per punch (sigma ~0.10s), summed and clamped; the crop
+    window rides the bump and scales back to frame. It runs before the
+    subtitles burn inside the same pass, so captions never move.
+    """
+    if not punches:
+        return ""
+    # scale with eval=frame, NOT crop: crop's w/h expressions have no clock
+    # (n/t exist only for its x/y), so a t-based crop size silently stays
+    # identity forever. Whether the spike really lands cannot be eyeballed
+    # and ORB keypoint medians lie on talking-head footage (the speaker's
+    # arms own the frame edges), so tests/test_punch_grid.py proves it the
+    # only trustworthy way: a synthetic grid, template-matched at two
+    # scales. The same sweep on real footage (static shelf patch, scales
+    # 0.95-1.15) reads 1.00 calm -> ~1.05 on the payoff punch.
+    bumps = "+".join(
+        f"{float(pn.get('strength') or 1.0):.2f}*exp(-pow((t-{float(pn['at']):.3f})/0.105,2))"
+        for pn in punches)
+    env = f"min(1,{bumps})"
+    gain = max_zoom * 1.094          # zoom factor matching the old crop depth
+    zoom = f"(1+{gain:.4f}*{env})"
+    return (f"scale=w='iw*{zoom}':h='ih*{zoom}':eval=frame,"
+            f"crop={width}:{height}:x='(iw-ow)/2':y='(ih-oh)*0.38'")
+
+
 def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
          preset: dict | None = None, fit: str = "cover",
          fonts_dir: str | Path | None = None, start: float | None = None,
@@ -121,11 +149,15 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
          grade: dict | None = None,
          inserts: list[dict] | None = None,
          outro: float = 0.0,
-         sfx: list[dict] | None = None) -> Path:
+         sfx: list[dict] | None = None,
+         punches: list[dict] | None = None) -> Path:
     """Encode `src` to `dst` with the subtitles burned in.
 
     Grade goes *before* subtitles so the text stays crisp white; timed image
     inserts overlay after them (they live under the text, like the tutorials').
+    Camera punches also run before the subtitles burn (single pass - the
+    grid test in tests/test_punch_grid.py proves the spike survives libass),
+    so the captions themselves never move while the picture spikes.
     """
     if not has_filter("subtitles"):
         raise RuntimeError(
@@ -139,7 +171,8 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
     chain = fit_chain(src_info.width, src_info.height, fit, target_size)
     grd = grade_chain(grade)
     subs = subtitles_filter(ass_path, fonts_dir)
-    stages = ",".join(x for x in (chain, grd) if x)
+    punchf = punch_chain(punches or [], tw, th)
+    stages = ",".join(x for x in (chain, punchf, grd) if x)
     af = None
     if src_info.has_audio and p.get("loudness_lufs") is not None and loudness:
         af = f"loudnorm=I={p['loudness_lufs']}:TP=-1.5:LRA=11"

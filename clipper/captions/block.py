@@ -407,10 +407,16 @@ def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
         hard_end = float(sentences[i + 1][0].start) - 0.033 if i + 1 < len(sentences) else None
         events.extend(_sentence_events(sent, style, width=width, height=height,
                                        block=block, hard_end=hard_end))
+        emph_word = sent[emph]
         blocks.append({"start": round(float(sent[0].start), 3),
                        "end": round(float(sent[-1].end), 3),
                        "text": " ".join(str(w.text) for w in sent),
-                       "emphasis": str(sent[emph].text)})
+                       "emphasis": str(emph_word.text),
+                       "emphasis_at": round(float(emph_word.start), 3),
+                       "emphasis_strength": 1.0 if (
+                           re.search(r"\d", str(emph_word.text))
+                           or re.sub(r"[^\w']+", "", str(emph_word.text)).lower()
+                           in NUMBER_WORDS) else 0.8})
 
     _bs = float(block.get("base_size_ass") or 84) * scale
     events.extend(build_hook_events(

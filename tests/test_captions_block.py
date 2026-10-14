@@ -139,3 +139,17 @@ def test_censor_stars_one_letter_of_adult_words():
     assert censor_text("class") == "class"       # no substring false-positives
     assert censor_text("sexting") == "sexting"
     assert censor_text("validation") == "validation"
+
+
+def test_blocks_report_when_the_big_word_lands():
+    words = [W(0.0, 0.3, "Sixty"), W(0.3, 0.3, "eight"), W(0.6, 0.4, "percent.")]
+    text, blocks = build_block_ass(words, STYLE, end=2.0)
+    assert blocks and blocks[0]["emphasis_at"] == 0.6
+    assert blocks[0]["emphasis_strength"] == 1.0      # numbers punch hardest
+
+
+def test_punch_chain_empty_and_built():
+    from clipper.captions.render import punch_chain
+    assert punch_chain([], 1080, 1920) == ""
+    chain = punch_chain([{"at": 10.0, "strength": 0.8}], 1080, 1920)
+    assert "exp(-pow((t-10.000)/0.105,2))" in chain and "eval=frame" in chain and "crop=1080:1920" in chain

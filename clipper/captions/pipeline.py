@@ -93,6 +93,7 @@ def run_captions(
     outro_text: str | None = None,
     fade_out: float | None = None,
     whoosh: list[float] | None = None,
+    punch: bool = False,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -154,6 +155,7 @@ def run_captions(
         warnings.append("word timings are estimated by the energy aligner (+/- ~100 ms); "
                         "use --asr faster_whisper for exact timings")
 
+    want_punch = punch or bool(cap_style.get("camera_punch"))
     hook_lines = [x.strip() for x in hook.split("|") if x.strip()] if hook else None
     outro_line = outro_text if outro_text is not None else cap_style.get("outro_text")
     fade_seconds = (float(fade_out) if fade_out is not None
@@ -179,6 +181,35 @@ def run_captions(
             hook_lines=hook_lines, outro_text=outro_line)
         cues = blocks  # the report reads block structure instead of word cues
         log.info("blocks", n=len(block_info))
+        punch_list = None
+        if want_punch:
+            # a spike on every big word is a seizure, not a style: keep the
+            # strongest, at least 3.5s apart, none under the hook header
+            # chronological pass: punches spread across the whole clip so the
+            # payoff near the end always gets one (strongest-first filled the
+            # cap in the first 30 seconds and left the climax flat)
+            timed = sorted((b for b in block_info if b.get("emphasis_at", 0) >= 1.2),
+                           key=lambda b: float(b["emphasis_at"]))
+            picked: list[dict] = []
+            for b in timed:
+                at = float(b["emphasis_at"])
+                if all(abs(at - float(p["at"])) >= 6.0 for p in picked):
+                    picked.append({"at": at,
+                                   "strength": float(b.get("emphasis_strength") or 0.8)})
+                if len(picked) >= 5:
+                    break
+            if timed:
+                # the climax always gets its spike: if the clip's last big
+                # word isn't covered, it takes the nearest punch's slot
+                last_at = float(timed[-1]["emphasis_at"])
+                if picked and all(abs(last_at - float(p["at"])) >= 6.0 for p in picked):
+                    near = min(picked, key=lambda p: abs(float(p["at"]) - last_at))
+                    near["at"] = last_at
+                    near["strength"] = float(timed[-1].get("emphasis_strength") or 0.8)
+                    picked.sort(key=lambda p: p["at"])
+            punch_list = picked or None
+            if punch_list:
+                log.info("camera punches", at=[p["at"] for p in punch_list])
         if not block_info:
             warnings.append("no caption blocks produced")
         jsonio.save(work / "cues.json", {"mode": "block", "count": len(block_info),
@@ -206,7 +237,7 @@ def run_captions(
         burn(src, out, ass_path, preset=preset, fit=fit, start=start, duration=duration,
              target_size=(twidth, theight),
              grade=style.get("grade") or None, inserts=inserts,
-             outro=fade_seconds, sfx=sfx)
+             outro=fade_seconds, sfx=sfx, punches=punch_list if mode == "block" else None)
         output_path = str(out)
         log.info("wrote", output=output_path)
 
