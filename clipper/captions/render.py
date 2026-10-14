@@ -93,11 +93,18 @@ def _insert_chains(inserts: list[dict], base_w: int, base_h: int,
         t = float(ins.get("start") or 0.0)
         dur = max(0.2, float(ins.get("duration") or 1.8))
         where = str(ins.get("at") or "middle")
-        width_px = int(base_w * 0.86)
-        y = "((H-h)*0.52)" if where == "top_safe" else "(H-h)/2-h*0.18"
         fd = min(0.25, dur / 4.0)
+        if where == "full":
+            # the tutorial's actual pattern: a cutaway. The picture REPLACES
+            # the picture for the beat - never pasted across the subject's face
+            scaler = (f"scale={base_w}:{base_h}:force_original_aspect_ratio=increase,"
+                      f"crop={base_w}:{base_h}")
+            y = "0"
+        else:
+            scaler = f"scale={int(base_w * 0.86)}:-2:force_original_aspect_ratio=decrease"
+            y = "((H-h)*0.52)" if where == "top_safe" else "(H-h)/2-h*0.18"
         pre.append(
-            f"[{i + 1}:v]scale={width_px}:-2:force_original_aspect_ratio=decrease,"
+            f"[{i + 1}:v]{scaler},"
             f"setsar=1,fade=t=in:st=0:d={fd:.3f}:alpha=1,"
             f"fade=t=out:st={dur - fd:.3f}:d={fd:.3f}:alpha=1,setpts=PTS-STARTPTS+{t:.3f}/TB[ov{i}]")
         chains.append(

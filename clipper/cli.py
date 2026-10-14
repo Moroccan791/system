@@ -194,7 +194,7 @@ def cmd_captions(args: argparse.Namespace) -> int:
             raise SystemExit("--insert file is gone: " + parts[2])
         inserts.append({"start": float(parts[0]), "duration": float(parts[1]),
                         "file": parts[2],
-                        "at": parts[3] if len(parts) > 3 else "middle"})
+                        "at": parts[3] if len(parts) > 3 else "full"})
     if inserts:
         log.info("image inserts", n=len(inserts),
                  where=[f"{i['start']}s+{i['duration']}s" for i in inserts])
@@ -306,8 +306,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="caption look: 'block' = the sentence-block grammar (words reveal when "
                         "spoken and stay, the operative word bigger, bottom fade bar)")
     s.add_argument("--insert", action="append", default=[], metavar="T,DUR,FILE[,AT]",
-                   help="overlay an image on the clip: T = when it appears (s), DUR = how long "
-                        "it stays, FILE = image path, AT = middle|top_safe (repeatable)")
+                   help="show an image on the clip: T = when it appears (s), DUR = how long "
+                        "it stays, FILE = image path, AT = full (cutaway, the default - "
+                        "never paste art across a face) | top_safe | middle (repeatable)")
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
     s.add_argument("--plan", default=None,
                    help="edit plan of an assembled clip: reuse the source transcript's timings "
@@ -374,6 +375,15 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--keep-banned", action="store_true",
                    help="keep moments the campaign rules reject, flagged instead of dropped")
     s.set_defaults(func=cmd_select)
+
+    s = sub.add_parser("arcs", help="find story arcs: hook -> payoff -> reaction -> clean end")
+    s.add_argument("transcript", help="transcript json with timed words")
+    s.add_argument("--min", dest="min_seconds", type=float, default=20.0, help="shortest arc")
+    s.add_argument("--max", dest="max_seconds", type=float, default=60.0, help="longest arc")
+    s.add_argument("--source", default=None, help="source video the transcript belongs to")
+    s.add_argument("--campaign", default=None, help="campaign name (candidates land in work/<campaign>/candidates/)")
+    s.add_argument("--out", default=None, help="candidates json to write (default: print only)")
+    s.set_defaults(func=cmd_arcs)
 
     s = sub.add_parser("style", help="stage 1: learn a campaign style from /references")
     s.add_argument("campaign", nargs="?", help="campaign folder (omit to do all)")
@@ -473,6 +483,46 @@ def _print_candidates(payload: dict) -> None:
               f"(the report lists them with reasons)")
     if payload.get("written"):
         print(f"        written: {payload['written']}")
+
+
+def cmd_arcs(args: argparse.Namespace) -> int:
+    """Story arcs, not loud moments: question -> payoff -> silence-bounded end."""
+    from .asr.base import Word
+    from .select import beats
+
+    data = json.loads(Path(args.transcript).read_text())
+    raw = data["words"] if isinstance(data, dict) else data
+    words = [Word.from_dict(w) for w in raw]
+    arcs = beats.scan_arcs(words, min_s=args.min_seconds, max_s=args.max_seconds)
+    if not arcs:
+        print(f"no story arc of {args.min_seconds:.0f}-{args.max_seconds:.0f}s in "
+              f"{Path(args.transcript).name} - the honest answer is: this stretch "
+              "has no hook->payoff->silence shape; do not pad it into one")
+        return 0
+    for a in arcs:
+        print(f"  {a['start']:7.2f} -> {a['end']:7.2f}  ({a['duration']:4.1f}s)  score {a['score']}")
+        print(f"        hook:   {a['hook']}")
+        print(f"        payoff: {a['payoff']}")
+    out = args.out
+    if out is None and args.campaign and args.source:
+        out = str(config.WORK / args.campaign / "candidates" / "arcs.json")
+    if out:
+        if not args.source:
+            raise SystemExit("--out needs --source so `clipper edit` knows the video")
+        payload = {"source": {"file": args.source, "name": Path(args.source).name},
+                   "campaign": args.campaign, "mode": "arcs",
+                   "candidates": [
+                       {"id": f"#A{i + 1}", "start": a["start"], "end": a["end"],
+                        "duration": a["duration"], "score": a["score"],
+                        "text": f"{a['hook']} ... {a['payoff']}",
+                        "reasons": ["story arc (select/beats.py): question hook, "
+                                    "payoff inside, ends at the first real silence - "
+                                    "never mid-sentence, never mid-topic"]}
+                       for i, a in enumerate(arcs)]}
+        Path(out).parent.mkdir(parents=True, exist_ok=True)
+        Path(out).write_text(json.dumps(payload, indent=2))
+        print(f"\nwritten: {out}  ->  python -m clipper edit {args.campaign or '<campaign>'}")
+    return 0
 
 
 def cmd_edit(args: argparse.Namespace) -> int:

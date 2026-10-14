@@ -76,3 +76,15 @@ grammar, ranked by how much it matters.
 | hook header (amber stacked) | after the above — needs a per-clip placement pass | next |
 | one-whoosh sound design | needs an SFX asset library; user supplies | deferred |
 | emoji/icon over payoff | needs an icon set on disk | deferred |
+
+
+## Reviewer amendments (first real viewer, 2026-10-14)
+
+1. **Never paste an image across the speaker's face.** The tutorial pattern is a
+   full-frame *cutaway*: picture replaces picture for the beat. `--insert` now
+   defaults to `full`; overlays are the deliberate exception.
+2. **A clip must know where it starts and ends.** Selection is story-arc shaped
+   (`clipper arcs`): question hook, payoff inside, end at the first real silence
+   plus a short reaction tail. Anything else is reported, not padded.
+3. **Assets are the tool's problem, not the user's.** SFX and icons live in
+   `assets/` (synthesized / openly licensed, fetched from GitHub in-sandbox).

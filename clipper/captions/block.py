@@ -63,20 +63,22 @@ def _text_width(word: str, size: float) -> float:
     width = 0.0
     for ch in word:
         if ch in NARROW:
-            width += 0.30
+            width += 0.34
         elif ch in NARROWER:
-            width += 0.28
+            width += 0.30
         elif ch in WIDE:
-            width += 0.92
+            width += 0.98
         elif ch in WIDE_CAPS:
-            width += 0.74
+            width += 0.82
         elif ch.isdigit():
-            width += 0.62
+            width += 0.66
         elif ch.isupper():
-            width += 0.70
+            width += 0.76
         else:
-            width += 0.56
-    return width * size
+            width += 0.63
+    # Montserrat ExtraBold + outline run wider than the table: the first
+    # real render clipped "All" to "ll" at the frame edge. Err wide.
+    return width * size * 1.10
 
 
 def segment_sentences(words: list[Word], *, max_words: int = 10, max_chars: int = 52,
@@ -196,8 +198,16 @@ def _sentence_events(sentence: list[Word], style: dict, *, width: int, height: i
     sizes = [emphasis_size if i == emphasis else base_size for i in range(len(sentence))]
 
     max_width = width - 2 * (width * 0.07)
+
+    def _widest(ls):
+        return max((sum(_text_width(str(sentence[i].text), sizes[i]) for i in line)
+                    + (len(line) - 1) * base_size * 0.30) for line in ls)
+
     lines = _layout_rows(sentence, emphasis, sizes, max_width)
-    while len(lines) > 3 and base_size > 40:
+    # shrink until every row truly fits: _layout_rows caps at 3 rows by
+    # merging, and a merged row can be wider than the frame - type that
+    # runs off the edge is the loudest amateur tell there is
+    while (len(lines) > 3 or _widest(lines) > max_width) and base_size > 34:
         base_size *= 0.92
         emphasis_size = base_size * float(block.get("emphasis_scale") or 1.6)
         sizes = [emphasis_size if i == emphasis else base_size for i in range(len(sentence))]
@@ -220,7 +230,7 @@ def _sentence_events(sentence: list[Word], style: dict, *, width: int, height: i
         space = base_size * 0.30
         line_w = sum(_text_width(str(sentence[i].text), sizes[i]) for i in line) \
             + (len(line) - 1) * space
-        x = (width - line_w) / 2.0
+        x = max(6.0, (width - line_w) / 2.0)
         for i in line:
             w = sentence[i]
             text = _escape(str(w.text))

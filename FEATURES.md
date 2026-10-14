@@ -173,6 +173,10 @@ style profiles, and work files. Range requests work, so seeking works.
 | V10 | Silence tightening | jump-cut the dead air out, with a small zoom to hide the cut — the single biggest win on podcasts | S |
 | V11 | Shot entrance motion | a scale-pop on every cut instead of a static frame | S |
 | V12 | Hook-first opening | start on the strongest sentence, then rewind into the clip | M |
+| S9 | **Shipped**: `clipper arcs <transcript> [--source V --campaign C]` - story-arc selection (select/beats.py): hook (question) -> build -> payoff (number/conclusion) -> ends at the first real silence with a capped reaction tail. Crosstalk that never breathes is reported *unbounded*, a short beat is reported *too short* - never padded into a fake arc. Written candidates feed `clipper edit` directly | done |
+| C0e | **Shipped**: `--insert` defaults to `full` - a timed image is a full-frame *cutaway* (the tutorial pattern, and the reviewer's fix: never paste art across the subject's face); `middle`/`top_safe` remain for deliberate overlays | done |
+| A9 | **Shipped**: asset libraries sourced in-repo, no user homework: `assets/sfx/` (whoosh/riser/pop, synthesized in pure Python - CC0 by construction) and `assets/icons/` (Twemoji v14.0.2, CC-BY 4.0, renamed to spoken words for matching) | done |
+
 | C0 | **Shipped**: `--mode block` - the tutorial caption grammar as code. Words reveal exactly when spoken and stay until the sentence clears; the operative word sits bigger (auto-picked: numbers and content words beat "getting"); every word fades in with the same small rise; blocks clear the instant the next one starts. Never overedits by construction | done |
 | C0b | **Shipped**: the bottom fade bar - a black gradient drawn as ASS vector strips behind the caption zone, sized from the profile's margin, so white text sits down on any footage | done |
 | C0c | **Shipped**: `grade` section in the style profile: `{"vignette": 0.26, "contrast": 1.05, "saturation": 1.06}` burned in *before* the subtitles - the "cinematic look" from the tutorials, kept subtle on purpose | done |

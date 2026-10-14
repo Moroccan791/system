@@ -76,3 +76,18 @@ def test_grade_and_insert_chains():
         1080, 1920, "vsub")
     assert "[vsub][ov0]overlay" in joiner and "[vins0][ov1]overlay" in joiner
     assert len(pre) == 2 and "setpts=PTS-STARTPTS+5.000/TB" in pre[0]
+
+    # a full-frame insert is a cutaway (crop to frame), never a face sticker
+    _, pre_full = _insert_chains(
+        [{"start": 1.0, "duration": 2.0, "file": "a.png", "at": "full"}], 1080, 1920, "vsub")
+    assert "crop=1080:1920" in pre_full[0]
+
+
+def test_block_lines_never_run_off_the_frame(tmp_path):
+    words = [W(i * 0.3, 0.25, t) for i, t in enumerate(
+        "All right well anyway let us go around the table and ask everybody".split())]
+    path, _ = write_block_ass(tmp_path / "w.ass", words, STYLE, end=5.0)
+    for line in path.read_text().splitlines():
+        m = re.search(r"\\pos\(([-\d.]+),", line)
+        if m:
+            assert float(m.group(1)) >= 0, "a caption word starts off-frame"
