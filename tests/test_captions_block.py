@@ -129,3 +129,13 @@ def test_hook_and_outro_events_are_written():
     assert hook[1].find("1c") > 0                      # last hook line accented
     outro = [l for l in text.splitlines() if "@somehandle" in l]
     assert len(outro) == 1 and "0:00:38.20" in outro[0]  # fades in for the outro
+
+
+def test_censor_stars_one_letter_of_adult_words():
+    from clipper.captions.block import censor_text
+    assert censor_text("sex") == "s*x"
+    assert censor_text("Fuck") == "F*ck"
+    assert censor_text("sex,") == "s*x,"
+    assert censor_text("class") == "class"       # no substring false-positives
+    assert censor_text("sexting") == "sexting"
+    assert censor_text("validation") == "validation"

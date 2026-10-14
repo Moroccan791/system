@@ -52,6 +52,25 @@ NUMBER_WORDS = frozenset("""zero one two three four five six seven eight nine te
 
 SENTENCE_END = (".", "?", "!", "…")
 
+# 18+ words get one letter starred in captions (s*x, f*ck): platform-safe
+# text, same readability. Display-only - timing and emphasis never see it.
+ADULT_WORDS = frozenset("""sex fuck fucking fucked fucker shit shitty bitch bitches
+    dick cock pussy porn nude naked boobs tits cum horny erection orgasm blowjob
+    handjob threesome slut whore ass fucking""".split())
+
+
+def censor_text(text: str) -> str:
+    """Star the second letter of any 18+ token: sex -> s*x, Fuck -> F*ck."""
+    m = re.match(r"^(\W*)([A-Za-z']+)(\W*)$", text)
+    if not m:
+        return text
+    pre, core, post = m.groups()
+    low = core.lower()
+    if low in ADULT_WORDS or low.startswith(("fuck", "sex")) and len(low) <= 5:
+        if len(core) >= 3:
+            core = core[0] + "*" + core[2:]
+    return pre + core + post
+
 
 def _text_width(word: str, size: float) -> float:
     """Rough advance width in pixels for a heavy sans at `size` ASS px.
@@ -264,12 +283,15 @@ def _sentence_events(sentence: list[Word], style: dict, *, width: int, height: i
                     display = display.upper()
                 elif casing == "title" and display[:1].islower():
                     display = display[:1].upper() + display[1:]
+            if block.get("censor_18", True):
+                display = censor_text(display)
             text = _escape(display)
             # baseline align: the top of *this* word sits below a taller neighbour's
             y = y_acc + (line_max - size) * 0.75
             tags = (rf"\pos({x:.1f},{y:.1f})"
                     rf"\fs{size:.0f}"
                     rf"\fad({fade_ms},0)"
+                    rf"\fscx118\fscy118\t(0,{rise_ms},\fscx100\fscy100)"
                     rf"\move({x:.1f},{y + rise_px:.1f},{x:.1f},{y:.1f},0,{rise_ms})")
             accent = block.get("emphasis_color")
             if i == emphasis and accent:
@@ -335,7 +357,7 @@ def build_hook_events(hook_lines: list[str], outro_text: str | None, *,
             if accent and i == len(hook_lines) - 1:
                 tags += rf"\1c{ass_color(str(accent))}"
             events.append(f"Dialogue: 3,0:00:00.00,{fmt_ass(hook_seconds)},Hook,,0,0,0,,"
-                          f"{{{tags}}}{_escape(line)}")
+                          f"{{{tags}}}{_escape(censor_text(line))}")
             y += fs * 1.12
     if outro_text and end:
         st = max(0.0, end - outro_seconds)
