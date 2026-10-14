@@ -111,4 +111,4 @@ def test_accent_colors_only_the_emphasis_word(tmp_path):
     path, blocks = write_block_ass(tmp_path / "a.ass", words, style, end=2.0)
     colored = [l for l in path.read_text().splitlines() if "\\1c" in l]
     assert len(colored) == 1 and "Validation." in colored[0]
-    assert "&H0031C5FF&" in colored[0]          # ASS colors are BBGGRR
+    assert "\\1c&H0031C5FF" in colored[0]          # ASS colors are BBGGRR
