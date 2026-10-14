@@ -127,3 +127,30 @@ def test_ass_only_skips_video(tmp_path):
     ) if (__import__("pathlib").Path(__file__).parent.parent / "samples" / "campaign_demo" / "raw" / "raw_01.mp4").exists() else None
     if result is not None:
         assert result.output is None and result.ass
+
+
+def test_select_hits_reserves_the_real_climax_not_the_tail_fragment():
+    from clipper.captions.pipeline import _select_hits
+    blocks = [
+        {"emphasis_at": 3.0, "emphasis_strength": 1.0, "end": 4.0, "text": "Men match six in a thousand."},
+        {"emphasis_at": 10.0, "emphasis_strength": 0.8, "end": 11.0, "text": "Women match ten percent."},
+        {"emphasis_at": 42.8, "emphasis_strength": 1.0, "end": 45.3,
+         "text": "Sixty eight percent of men report getting friend zoned."},
+        {"emphasis_at": 46.9, "emphasis_strength": 1.0, "end": 47.6,
+         "text": "From a dead yeah 68 of them"},
+    ]
+    hits = _select_hits(blocks)
+    times = [h["at"] for h in hits]
+    assert 42.8 in times                      # the payoff gets its spike
+    assert 46.9 not in times                  # the tail fragment / fade zone does not
+    assert all(abs(a - b) >= 6.0 for i, a in enumerate(times) for b in times[i + 1:])
+
+
+def test_select_hits_skips_the_hook_zone_and_caps_at_five():
+    from clipper.captions.pipeline import _select_hits
+    blocks = [{"emphasis_at": float(t), "emphasis_strength": 0.8,
+               "end": float(t) + 1.0, "text": f"Block number {t} here."}
+              for t in (0.5, 8, 15, 22, 29, 36, 43, 50)]
+    hits = _select_hits(blocks)
+    assert len(hits) <= 5
+    assert all(h["at"] >= 1.2 for h in hits)

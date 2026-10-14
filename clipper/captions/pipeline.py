@@ -68,6 +68,46 @@ def resolve_style(name: str | None = None, style_path: str | Path | None = None,
     return style, source
 
 
+def _select_hits(block_info: list[dict]) -> list[dict]:
+    """Camera-punch / sound-pop moments from caption blocks.
+
+    Chronological, >=6s apart, at most 5 - and the climax is reserved
+    FIRST: the strongest sentence-complete block in the last 45% of the
+    clip. Reserving "the last block" instead backfired on real footage:
+    the final block is often a crosstalk tail fragment ("From a dead
+    yeah 68 of them") and the spike landed in the fade-out on junk
+    while the actual payoff sentence went unpunched.
+    """
+    timed = sorted((b for b in block_info
+                    if float(b.get("emphasis_at") or 0) >= 1.2),
+                   key=lambda b: float(b["emphasis_at"]))
+    if not timed:
+        return []
+    dur = max(float(b.get("end") or 0) for b in block_info)
+
+    def hit(b: dict) -> dict:
+        return {"at": float(b["emphasis_at"]),
+                "strength": float(b.get("emphasis_strength") or 0.8)}
+
+    late = [b for b in timed
+            if float(b["emphasis_at"]) >= 0.55 * dur
+            and float(b["emphasis_at"]) <= dur - 1.0] or timed
+    climax = max(late, key=lambda b: (
+        float(b.get("emphasis_strength") or 0.8),
+        1 if str(b.get("text") or "").rstrip().endswith((".", "?", "!")) else 0,
+        len(str(b.get("text") or "").split()),
+        float(b["emphasis_at"])))
+    picked = [hit(climax)]
+    for b in timed:
+        if len(picked) >= 5:
+            break
+        at = float(b["emphasis_at"])
+        if all(abs(at - float(p["at"])) >= 6.0 for p in picked):
+            picked.append(hit(b))
+    picked.sort(key=lambda p: p["at"])
+    return picked
+
+
 def run_captions(
     src: str | Path,
     out: str | Path | None = None,
@@ -235,30 +275,8 @@ def run_captions(
         log.info("blocks", n=len(block_info))
         punch_list = None
         if want_punch or sound_on:
-            # a spike on every big word is a seizure, not a style: keep the
-            # strongest, at least 3.5s apart, none under the hook header
-            # chronological pass: punches spread across the whole clip so the
-            # payoff near the end always gets one (strongest-first filled the
-            # cap in the first 30 seconds and left the climax flat)
-            timed = sorted((b for b in block_info if b.get("emphasis_at", 0) >= 1.2),
-                           key=lambda b: float(b["emphasis_at"]))
-            picked: list[dict] = []
-            for b in timed:
-                at = float(b["emphasis_at"])
-                if all(abs(at - float(p["at"])) >= 6.0 for p in picked):
-                    picked.append({"at": at,
-                                   "strength": float(b.get("emphasis_strength") or 0.8)})
-                if len(picked) >= 5:
-                    break
-            if timed:
-                # the climax always gets its spike: if the clip's last big
-                # word isn't covered, it takes the nearest punch's slot
-                last_at = float(timed[-1]["emphasis_at"])
-                if picked and all(abs(last_at - float(p["at"])) >= 6.0 for p in picked):
-                    near = min(picked, key=lambda p: abs(float(p["at"]) - last_at))
-                    near["at"] = last_at
-                    near["strength"] = float(timed[-1].get("emphasis_strength") or 0.8)
-                    picked.sort(key=lambda p: p["at"])
+            # a spike on every big word is a seizure, not a style
+            picked = _select_hits(block_info)
             if want_punch:
                 punch_list = picked or None
                 if punch_list:
