@@ -217,7 +217,9 @@ def cmd_captions(args: argparse.Namespace) -> int:
         args.file, args.out, style_path=args.style, campaign=args.campaign,
         platform=args.platform, fit=args.fit, ass_only=args.ass_only,
         max_words=args.max_words, mode=args.mode, inserts=inserts or None,
-        accent=resolve_accent(args.accent), **kwargs,
+        accent=resolve_accent(args.accent), hook=args.hook,
+        outro_text=args.outro_text, fade_out=args.fade_out,
+        whoosh=args.whoosh or None, **kwargs,
     )
     print(json.dumps(result.to_dict(), indent=2))
     for w in result.warnings:
@@ -321,6 +323,14 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--mode", default=None, choices=["line", "word", "block"],
                    help="caption look: 'block' = the sentence-block grammar (words reveal when "
                         "spoken and stay, the operative word bigger, bottom fade bar)")
+    s.add_argument("--hook", default=None, metavar="'LINE1|LINE2'",
+                   help="stacked hook title for the first seconds, lines split by |")
+    s.add_argument("--outro-text", default=None,
+                   help="closing line over the fade-out (e.g. the creator's handle)")
+    s.add_argument("--fade-out", type=float, default=None, metavar="SECONDS",
+                   help="fade picture+audio out over the last SECONDS (default: profile)")
+    s.add_argument("--whoosh", type=float, action="append", default=[], metavar="T",
+                   help="play the whoosh at T seconds (repeatable)")
     s.add_argument("--accent", default=None, metavar="#RRGGBB",
                    help="color for the big (emphasis) word of each caption block: a "
                         "palette name (gold, crimson, azure, lime, violet, pink, white) "

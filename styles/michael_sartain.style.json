@@ -101,7 +101,9 @@
       "outline_width": 4,
       "_source": "distilled from the two Premiere tutorials the user provided - recipes/professional_podcast_reel.md"
     },
-    "mode": "block"
+    "mode": "block",
+    "fade_out_seconds": 0.7,
+    "outro_text": "@michaelsartainpodcast"
   },
   "audio": {
     "music_bed": false,

@@ -3,7 +3,7 @@
 import re
 
 from clipper.asr.base import Word
-from clipper.captions.block import (build_fade_bar, declutter, pick_emphasis,
+from clipper.captions.block import (build_block_ass, build_fade_bar, declutter, pick_emphasis,
                                     segment_sentences, write_block_ass)
 from clipper.captions.render import _insert_chains, grade_chain
 
@@ -112,3 +112,20 @@ def test_accent_colors_only_the_emphasis_word(tmp_path):
     colored = [l for l in path.read_text().splitlines() if "\\1c" in l]
     assert len(colored) == 1 and "Validation." in colored[0]
     assert "\\1c&H0031C5FF" in colored[0]          # ASS colors are BBGGRR
+
+
+def test_hook_and_outro_events_are_written():
+    style = {"captions": {"font_name": "Montserrat", "primary_text_color": "#FDFCFD",
+                          "outline_color": "#275B77", "position": {"margin_v": 420},
+                          "block": {"base_size_ass": 84, "emphasis_scale": 1.6,
+                                    "emphasis_color": "#FFC531"}}}
+    words = [W(0.0, 0.3, "Men"), W(0.3, 0.3, "need"), W(0.6, 0.4, "validation.")]
+    text, blocks = build_block_ass(words, style, end=40.0,
+                                   hook_lines=["WOMEN MATCH 10%", "MEN: 6 IN 1000"],
+                                   outro_text="@somehandle")
+    assert "Style: Hook," in text
+    hook = [l for l in text.splitlines() if ",Hook," in l]
+    assert len(hook) == 2 and "MEN: 6 IN 1000" in hook[1]
+    assert hook[1].find("1c") > 0                      # last hook line accented
+    outro = [l for l in text.splitlines() if "@somehandle" in l]
+    assert len(outro) == 1 and "0:00:38.20" in outro[0]  # fades in for the outro

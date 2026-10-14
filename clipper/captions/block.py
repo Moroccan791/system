@@ -314,8 +314,41 @@ def build_fade_bar(width: int, height: int, *, alpha: float = 0.55,
     return events
 
 
+def build_hook_events(hook_lines: list[str], outro_text: str | None, *,
+                      width: int, height: int, end: float | None,
+                      base_size: float, emphasis_size: float,
+                      accent: str | None, hook_seconds: float = 2.8,
+                      outro_seconds: float = 1.8) -> list[str]:
+    """The first and last impression, as ASS events on their own layer.
+
+    Hook: stacked claim lines top-centre for the first seconds - a scroller
+    gets the point before a word is spoken; the last line carries the accent.
+    Outro: one closing line (handle / follow CTA, the creator's choice) that
+    fades in as the picture fades out, so the clip lands instead of stopping.
+    """
+    events: list[str] = []
+    if hook_lines:
+        fs = emphasis_size * 1.05
+        y = height * 0.058
+        for i, line in enumerate(hook_lines):
+            tags = (rf"\an8\pos({width / 2:.0f},{y:.0f})\fs{fs:.0f}\fad(120,220)")
+            if accent and i == len(hook_lines) - 1:
+                tags += rf"\1c{ass_color(str(accent))}"
+            events.append(f"Dialogue: 3,0:00:00.00,{fmt_ass(hook_seconds)},Hook,,0,0,0,,"
+                          f"{{{tags}}}{_escape(line)}")
+            y += fs * 1.12
+    if outro_text and end:
+        st = max(0.0, end - outro_seconds)
+        events.append(f"Dialogue: 3,{fmt_ass(st)},{fmt_ass(end)},Block,,0,0,0,,"
+                      rf"{{\an5\pos({width / 2:.0f},{height * 0.40:.0f})"
+                      rf"\fs{base_size:.0f}\fad(300,260)}}{_escape(outro_text)}")
+    return events
+
+
 def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
-                    height: int = 1920, end: float | None = None) -> tuple[str, list[dict]]:
+                    height: int = 1920, end: float | None = None,
+                    hook_lines: list[str] | None = None,
+                    outro_text: str | None = None) -> tuple[str, list[dict]]:
     """A complete .ass script in block mode, plus the block list it encodes."""
     cap = style.get("captions", {}) or {}
     block = cap.get("block", {}) or {}
@@ -357,6 +390,12 @@ def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
                        "text": " ".join(str(w.text) for w in sent),
                        "emphasis": str(sent[emph].text)})
 
+    _bs = float(block.get("base_size_ass") or 84) * scale
+    events.extend(build_hook_events(
+        hook_lines or [], outro_text, width=width, height=height, end=end,
+        base_size=_bs, emphasis_size=_bs * float(block.get("emphasis_scale") or 1.6),
+        accent=block.get("emphasis_color")))
+
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {width}
@@ -366,6 +405,7 @@ ScaledBorderAndShadow: yes
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Block,{font_name},{int(round(84 * scale))},{primary},{secondary},{outline_color},&H00000000,-1,0,0,0,100,100,0,0,1,{outline},{shadow},7,0,0,0,1
+Style: Hook,{font_name},{int(round(120 * scale))},{primary},{secondary},{outline_color},&H00000000,-1,0,0,0,100,100,0,0,1,{outline},{shadow},8,0,0,0,1
 Style: Bar,Arial,10,&H007D7D7D,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1
 
 [Events]
@@ -376,8 +416,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 def write_block_ass(path: str | Path, words: list[Word], style: dict, *,
                     width: int = 1080, height: int = 1920,
-                    end: float | None = None) -> tuple[Path, list[dict]]:
-    text, blocks = build_block_ass(words, style, width=width, height=height, end=end)
+                    end: float | None = None,
+                    hook_lines: list[str] | None = None,
+                    outro_text: str | None = None) -> tuple[Path, list[dict]]:
+    text, blocks = build_block_ass(words, style, width=width, height=height, end=end,
+                                   hook_lines=hook_lines, outro_text=outro_text)
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(text, encoding="utf-8")

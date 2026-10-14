@@ -119,7 +119,9 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
          duration: float | None = None, loudness: bool = True,
          target_size: tuple[int, int] | None = None,
          grade: dict | None = None,
-         inserts: list[dict] | None = None) -> Path:
+         inserts: list[dict] | None = None,
+         outro: float = 0.0,
+         sfx: list[dict] | None = None) -> Path:
     """Encode `src` to `dst` with the subtitles burned in.
 
     Grade goes *before* subtitles so the text stays crisp white; timed image
@@ -141,22 +143,34 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
     af = None
     if src_info.has_audio and p.get("loudness_lufs") is not None and loudness:
         af = f"loudnorm=I={p['loudness_lufs']}:TP=-1.5:LRA=11"
+    # the ending is part of the edit: picture and sound leave together over
+    # the last `outro` seconds instead of stopping mid-air on a hard cut
+    eff_dur = float(duration) if duration else float(src_info.duration or 0.0) - float(start or 0.0)
+    vfade = afade = ""
+    if outro and eff_dur > float(outro) + 0.1:
+        vfade = f"fade=t=out:st={eff_dur - float(outro):.3f}:d={float(outro):.3f}"
+        afade = f"afade=t=out:st={eff_dur - float(outro):.3f}:d={float(outro):.3f}"
     log.info("rendering", out=Path(dst).name, fit=fit, size=f"{src_info.width}x{src_info.height}")
 
-    if not inserts:
-        vf = f"{stages},{subs}" if stages else subs
-        return ff_render(src, dst, vf=vf, af=af, preset=p, start=start, duration=duration)
+    if not inserts and not sfx:
+        vf = ",".join(x for x in (stages, subs, vfade) if x)
+        afull = ",".join(x for x in (af, afade) if x) or None
+        return ff_render(src, dst, vf=vf, af=afull, preset=p, start=start, duration=duration)
 
-    # with inserts: -filter_complex, extra image inputs
-    subs_chain, pre_chains = _insert_chains(inserts, tw, th, "vsub")
+    # with inserts and/or sfx: -filter_complex, extra inputs
+    subs_chain, pre_chains = _insert_chains(inserts or [], tw, th, "vsub")
     fc_parts = []
     if stages:
         fc_parts.append(f"[0:v]{stages}[vg]")
     fc_parts.append(f"[{('vg' if stages else '0:v')}]{subs}[vsub]")
     fc_parts.extend(pre_chains)
-    fc_parts.append(subs_chain)
+    if subs_chain:
+        fc_parts.append(subs_chain)
     fc = ";".join(fc_parts)
     last_v = fc.rsplit("[", 1)[-1].rstrip("]")
+    if vfade:
+        fc += f";[{last_v}]{vfade}[vfinal]"
+        last_v = "vfinal"
 
     args = [ffmpeg_exe(), "-y", "-nostdin", "-v", "error", "-stats"]
     if start:
@@ -167,14 +181,32 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
     else:
         full = probe(src).duration or 0.0
         duration = full - (start or 0.0)
-    for ins in inserts:
+    for ins in inserts or []:
         args += ["-loop", "1", "-t", f"{max(0.2, float(ins.get('duration') or 1.8)):.3f}",
                  "-i", str(ins["file"])]
+    audio_label = None
+    if sfx and src_info.has_audio:
+        base_idx = 1 + len(inserts or [])
+        a_parts = [f"[0:a]{af or 'anull'}[abase]"]
+        labels = ["[abase]"]
+        for j, s_ in enumerate(sfx):
+            ms = int(float(s_.get("at") or 0.0) * 1000)
+            a_parts.append(f"[{base_idx + j}:a]adelay={ms}|{ms},"
+                           f"volume={float(s_.get('volume') or 0.45):.2f}[sfx{j}]")
+            labels.append(f"[sfx{j}]")
+        a_parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:duration=first:"
+                       f"dropout_transition=0[amix]")
+        a_parts.append(f"[amix]{afade}[aout]" if afade else "[amix]anull[aout]")
+        fc += ";" + ";".join(a_parts)
+        audio_label = "aout"
+        for s_ in sfx:
+            args += ["-i", str(s_["file"])]
     args += ["-filter_complex", fc, "-map", f"[{last_v}]"]
     if src_info.has_audio:
-        args += ["-map", "0:a?"]
-    if af:
-        args += ["-af", af]
+        args += ["-map", f"[{audio_label}]" if audio_label else "0:a?"]
+    if af and not audio_label:
+        afull = ",".join(x for x in (af, afade) if x)
+        args += ["-af", afull]
     args += ["-c:v", p.get("vcodec", "libx264"), "-preset", p.get("preset", "medium"),
              "-crf", str(p.get("crf", 18)), "-pix_fmt", p.get("pix_fmt", "yuv420p")]
     if p.get("fps"):

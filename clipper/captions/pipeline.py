@@ -89,6 +89,10 @@ def run_captions(
     words: list | None = None,
     inserts: list[dict] | None = None,
     accent: str | None = None,
+    hook: str | None = None,
+    outro_text: str | None = None,
+    fade_out: float | None = None,
+    whoosh: list[float] | None = None,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -150,6 +154,18 @@ def run_captions(
         warnings.append("word timings are estimated by the energy aligner (+/- ~100 ms); "
                         "use --asr faster_whisper for exact timings")
 
+    hook_lines = [x.strip() for x in hook.split("|") if x.strip()] if hook else None
+    outro_line = outro_text if outro_text is not None else cap_style.get("outro_text")
+    fade_seconds = (float(fade_out) if fade_out is not None
+                    else float(cap_style.get("fade_out_seconds") or 0.0))
+    sfx = None
+    if whoosh:
+        whoosh_wav = config.ROOT / "assets" / "sfx" / "whoosh.wav"
+        if whoosh_wav.exists():
+            sfx = [{"at": float(t), "file": str(whoosh_wav), "volume": 0.45} for t in whoosh]
+        else:
+            warnings.append(f"whoosh requested but {whoosh_wav} is missing - skipped")
+
     mode = mode or cap_style.get("mode") or "karaoke"
     twidth, theight = int(preset["width"]), int(preset["height"])
     if mode == "block":
@@ -159,7 +175,8 @@ def run_captions(
         ass_path, block_info = block_mod.write_block_ass(
             work / "captions.ass", transcript.words, style,
             width=twidth, height=theight,
-            end=min(float(info.duration or 1e9), float(transcript.duration or 1e9)))
+            end=min(float(info.duration or 1e9), float(transcript.duration or 1e9)),
+            hook_lines=hook_lines, outro_text=outro_line)
         cues = blocks  # the report reads block structure instead of word cues
         log.info("blocks", n=len(block_info))
         if not block_info:
@@ -188,7 +205,8 @@ def run_captions(
         out = Path(out) if out else config.OUTPUT / f"{name}.captioned.mp4"
         burn(src, out, ass_path, preset=preset, fit=fit, start=start, duration=duration,
              target_size=(twidth, theight),
-             grade=style.get("grade") or None, inserts=inserts)
+             grade=style.get("grade") or None, inserts=inserts,
+             outro=fade_seconds, sfx=sfx)
         output_path = str(out)
         log.info("wrote", output=output_path)
 
