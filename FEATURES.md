@@ -16,7 +16,7 @@ here has followed so far.
 ## 1. What you have right now
 
 Everything below runs in this sandbox: CPU only, no accounts, no paid tools,
-FFmpeg 7.0.2 with libass. 229 tests cover it (`python -m pytest`).
+FFmpeg 7.0.2 with libass. 233 tests cover it (`python -m pytest`).
 
 ### Stage 0 — look at a campaign
 ```bash
@@ -173,6 +173,8 @@ style profiles, and work files. Range requests work, so seeking works.
 | V10 | Silence tightening | jump-cut the dead air out, with a small zoom to hide the cut — the single biggest win on podcasts | S |
 | V11 | Shot entrance motion | a scale-pop on every cut instead of a static frame | S |
 | V12 | Hook-first opening | start on the strongest sentence, then rewind into the clip | M |
+| V0 | **Shipped**: `--focus-x 0.0-1.0` moves the 9:16 window sideways across the slack, for the many studio shots where the person who matters is off centre (`--focus` still picks the vertical band). On a real podcast this was the difference between a clip of Michael and a clip of his chair | done |
+| V0b | **Shipped**: hand-picked moments. `select` writes candidates, but stage 4 reads whatever is in `work/<campaign>/candidates/` — drop a JSON with one window in it (id, start, end, duration, text) and `edit --ids "#68"` assembles it. The machine proposes; you can overrule | done |
 | V13 | Multi-moment clips | stitch 2–3 candidates into one longer story clip | M |
 | V14 | Storyboard renders | one variant per cut pattern so you can pick, instead of one take | M |
 

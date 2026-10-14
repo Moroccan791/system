@@ -452,6 +452,27 @@ Honest limits of this layer:
 * rules cannot judge meaning. "Off-campaign" here means "matched a listed word",
   which is shown next to every verdict so you can overrule it.
 
+### Framing, and overruling the machine
+
+The 9:16 window is not always centred on the person who matters. `--focus` picks
+the vertical band, `--focus-x` picks the horizontal position across the slack:
+
+```bash
+python -m clipper edit <campaign> --ids "#68" --focus-x 0.62     # 0 left, 0.5 middle, 1 right
+```
+
+`select` writes candidates, but stage 4 assembles **whatever is in
+`work/<campaign>/candidates/`**. When the machine's pick is not the moment you
+want, write a candidate file by hand - one window with an `id`, `start`, `end`,
+`duration` and `text` - and edit that:
+
+```bash
+python -m clipper edit <campaign> --ids "#68" --focus-x 0.62 --tag pick68
+```
+
+The selection stage proposes; it does not get the last word. (The 22s clip in
+`output/` was picked this way, out of a moment `select` had only scored 0.43.)
+
 ---
 
 ## Captions on an assembled clip
@@ -532,7 +553,7 @@ styles/ work/ output/ generated; work/ and output/ are gitignored
 ## Tests
 
 ```bash
-python -m pytest              # 229 tests, ~4 min
+python -m pytest              # 233 tests, ~75 s
 python -m pytest -m integration
 ```
 

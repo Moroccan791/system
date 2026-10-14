@@ -527,3 +527,17 @@ def test_load_style_falls_back_to_defaults(tmp_path, monkeypatch):
     style = load_style("no-such-campaign")
     assert style["pacing"]["avg_shot_len"] is None
     assert style["zoom"]["dominant"] == config.DEFAULT_STYLE["zoom"]["dominant"]
+
+
+def test_focus_x_moves_the_vertical_window_sideways():
+    from clipper.edit.render import build_filtergraph, crop_offset
+
+    assert crop_offset("centre")[0] == "(iw-ow)/2"
+    assert crop_offset("centre", 0.35)[0] == "(iw-ow)*0.3500"
+    assert crop_offset("centre", -4)[0] == "(iw-ow)*0.0000"      # clamped
+    assert crop_offset("centre", 9)[0] == "(iw-ow)*1.0000"
+
+    plan = {"target": {"width": 1080, "height": 1920, "fps": 30},
+            "shots": [{"start": 0, "end": 2, "zoom": {"type": "static"}}]}
+    graph = build_filtergraph(plan, focus="top", focus_x=0.25)
+    assert "crop=1080:1920:(iw-ow)*0.2500:(ih-1920)*0.18" in graph

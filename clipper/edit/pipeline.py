@@ -55,7 +55,8 @@ def candidates_for(campaign: str | None, work_dir: Path | None = None,
 
 
 def edit_campaign(campaign: str, *, top: int | None = None, shot_len: float | None = None,
-                  platform: str = "tiktok", focus: str = "centre", style_path=None,
+                  platform: str = "tiktok", focus: str = "centre", focus_x: float | None = None,
+                  style_path=None,
                   ids: list[str] | None = None, transcript=None, work_dir: Path | None = None,
                   render: bool = True, transition: str | None = None,
                   transition_duration: float | None = None, tag: str | None = None) -> list[dict]:
@@ -120,7 +121,7 @@ def edit_campaign(campaign: str, *, top: int | None = None, shot_len: float | No
             record = {"plan": built, "plan_path": str(plan_path), "clip": None}
             if render:
                 clip_path = out_dir / f"{stem}.mp4"
-                render_mod.render_plan(built, clip_path, focus=focus)
+                render_mod.render_plan(built, clip_path, focus=focus, focus_x=focus_x)
                 record["clip"] = str(clip_path)
             log.step("edit", clip=stem, shots=len(built["shots"]),
                      seconds=f"{built['clip']['duration']:.1f}")

@@ -48,9 +48,28 @@ def _blends(shots: list[dict], source_duration: float | None = None) -> list[tup
     return found
 
 
+def crop_offset(focus: str = "centre", focus_x: float | None = None) -> tuple[str, str]:
+    """Where the 9:16 window sits on a landscape frame.
+
+    `focus` picks the band vertically (centre / top / bottom); `focus_x` picks the
+    horizontal position as a fraction of the slack, 0.0 = hard left, 0.5 =
+    centred, 1.0 = hard right. Side-on studio shots put the speaker off centre,
+    so sometimes 0.35 is the difference between a clip of someone and a clip of
+    a chair.
+    """
+    focus_y = FOCUS_Y.get(focus, "0.5")
+    if focus_x is None:
+        x = "(iw-ow)/2"
+    else:
+        clamped = min(max(float(focus_x), 0.0), 1.0)
+        x = f"(iw-ow)*{clamped:.4f}"
+    return x, focus_y
+
+
 def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | None = None,
                       with_audio: bool = True,
-                      source_duration: float | None = None) -> str:
+                      source_duration: float | None = None,
+                      focus_x: float | None = None) -> str:
     """The `-filter_complex` string for a plan (kept separate so it is testable).
 
     Hard cuts are concatenated; blends are done with `xfade`, and the outgoing
@@ -68,7 +87,7 @@ def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | 
     zoom_fps = int(round(source_fps)) if source_fps else fps
     width = int(plan["target"]["width"])
     height = int(plan["target"]["height"])
-    focus_y = FOCUS_Y.get(focus, "0.5")
+    offset_x, focus_y = crop_offset(focus, focus_x)
     shots = plan["shots"]
     blends = _blends(shots, source_duration)
     parts: list[str] = []
@@ -79,7 +98,7 @@ def build_filtergraph(plan: dict, *, focus: str = "centre", source_fps: float | 
             f"trim=start={start:.3f}:end={trim_end:.3f}",
             "setpts=PTS-STARTPTS",
             f"scale={width}:{height}:force_original_aspect_ratio=increase",
-            f"crop={width}:{height}:(iw-{width})/2:(ih-{height})*{focus_y}",
+            f"crop={width}:{height}:{offset_x}:(ih-{height})*{focus_y}",
         ]
         expression = _zoom_expression(shot.get("zoom") or {}, zoom_fps)
         if expression:
@@ -179,6 +198,7 @@ def _blend_chain(shots: list[dict], blends: list[tuple[int, str, float]]) -> str
 
 
 def render_plan(plan: dict, out_path: str | Path, *, focus: str = "centre",
+                focus_x: float | None = None,
                 crf: int = 18, preset: str = "veryfast", audio_bitrate: str = "256k") -> Path:
     """Cut, zoom and concatenate the moment into a mezzanine clip."""
     out_path = Path(out_path)
@@ -195,7 +215,8 @@ def render_plan(plan: dict, out_path: str | Path, *, focus: str = "centre",
         log.debug("source has no audio track, rendering video only", file=source.name)
     args = [
         ffmpeg_exe(), "-y", "-v", "error", "-nostdin", "-i", str(source),
-        "-filter_complex", build_filtergraph(plan, focus=focus, source_fps=info.fps,
+        "-filter_complex", build_filtergraph(plan, focus=focus, focus_x=focus_x,
+                                             source_fps=info.fps,
                                              with_audio=with_audio,
                                              source_duration=info.duration),
         "-map", "[v]", *(["-map", "[a]"] if with_audio else []),
