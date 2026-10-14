@@ -1,0 +1,23 @@
+{
+  "source": {
+    "file": "campaigns/michael_sartain/raw/YTDown.com_YouTube_Media_XrdXKjTOQBg_Women-Are-Shocked-By-The-Reality-Of-Dating-For-Men_002_720p.mp4",
+    "name": "YTDown.com_YouTube_Media_XrdXKjTOQBg_Women-Are-Shocked-By-The-Reality-Of-Dating-For-Men_002_720p.mp4"
+  },
+  "campaign": "michael_sartain",
+  "mode": "manual-semantic",
+  "candidates": [
+    {
+      "id": "#S2",
+      "start": 136.7,
+      "end": 184.6,
+      "duration": 47.9,
+      "score": 0.85,
+      "text": "Women match with about 10% of the people they try to match with. Men match with six out of every one thousand. ... Worst statistic when it comes to dating apps: 68% of men report getting friend zoned.",
+      "reasons": [
+        "HOOK by contrast in the first sentence: 10% vs 6-in-1000; payoff stat (68% friendzoned) lands at ~44s with his reaction after",
+        "Michael leads ~80%; stable two-shot, face x=0.68-0.72 measured; one brief source wide (panel reaction) inside",
+        "47.9s: inside the campaign 20-180s window"
+      ]
+    }
+  ]
+}

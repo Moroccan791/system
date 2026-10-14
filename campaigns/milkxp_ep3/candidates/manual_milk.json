@@ -1,0 +1,165 @@
+{
+  "source": {
+    "file": "campaigns/milkxp_ep3/raw/MilkPEP_milkXP_Episode3_YT_16x9.mp4",
+    "name": "MilkPEP_milkXP_Episode3_YT_16x9.mp4"
+  },
+  "campaign": "milkxp_ep3",
+  "mode": "manual-semantic",
+  "candidates": [
+    {
+      "id": "#M1",
+      "start": 232.0,
+      "end": 281.6,
+      "duration": 49.6,
+      "score": 0.9,
+      "text": "This video is brought to you by milk focus fuel. Milk has 13 essential nutrients... the nutrients in milk help you lock in focus. Okay you know what, let's just try that again... just drink some milk, focus and lock in... We did it, good job Mr. Greg.",
+      "reasons": [
+        "MILK MOMENT: the creator delivers the milk facts in his own words, then the take falls apart into bloopers and a retake that lands - organic, funny, positive",
+        "only claim language is the brief-approved 'help you lock in / focus'; no best/perfect/healthy wording, no swearing, no other drinks",
+        "closes on 'We did it' - a real ending, not a mid-topic cut"
+      ],
+      "segments": [
+        {
+          "start": 232.0,
+          "end": 234.0,
+          "focus_x": 0.522
+        },
+        {
+          "start": 234.0,
+          "end": 237.64,
+          "focus_x": 0.482
+        },
+        {
+          "start": 237.64,
+          "end": 242.24,
+          "focus_x": 0.483
+        },
+        {
+          "start": 242.24,
+          "end": 244.24,
+          "focus_x": 0.453
+        },
+        {
+          "start": 244.24,
+          "end": 247.05,
+          "focus_x": 0.547
+        },
+        {
+          "start": 247.05,
+          "end": 248.45,
+          "focus_x": 0.588
+        },
+        {
+          "start": 248.45,
+          "end": 252.45,
+          "focus_x": 0.54
+        },
+        {
+          "start": 252.45,
+          "end": 255.76,
+          "focus_x": 0.894
+        },
+        {
+          "start": 255.76,
+          "end": 257.06,
+          "focus_x": 0.774
+        },
+        {
+          "start": 257.06,
+          "end": 260.23,
+          "focus_x": 0.48
+        },
+        {
+          "start": 260.23,
+          "end": 262.8,
+          "focus_x": 0.781
+        },
+        {
+          "start": 262.8,
+          "end": 264.3,
+          "focus_x": 0.839
+        },
+        {
+          "start": 264.3,
+          "end": 268.53,
+          "focus_x": 0.527
+        },
+        {
+          "start": 268.53,
+          "end": 271.17,
+          "focus_x": 0.37
+        },
+        {
+          "start": 271.17,
+          "end": 273.27,
+          "focus_x": 0.553
+        },
+        {
+          "start": 273.27,
+          "end": 274.51,
+          "focus_x": 0.627
+        },
+        {
+          "start": 274.51,
+          "end": 278.34,
+          "focus_x": 0.852
+        },
+        {
+          "start": 278.34,
+          "end": 279.68,
+          "focus_x": 0.99
+        },
+        {
+          "start": 279.68,
+          "end": 281.6,
+          "focus_x": 0.46
+        }
+      ]
+    },
+    {
+      "id": "#F2",
+      "start": 550.7,
+      "end": 566.8,
+      "duration": 16.1,
+      "score": 0.88,
+      "text": "The grade that you're going to get is... An A minus. Thank you. Congratulations, even the teacher can improve, guys. Next time I am getting an A plus, there is nothing stopping me. We'll see about that. All right, challenge accepted.",
+      "reasons": [
+        "FUNNY: the students grade their teacher - drumroll pause, 'an A minus', his deadpan 'next time I am getting an A plus, there is nothing stopping me', buttoned with 'challenge accepted'",
+        "clean dialogue, zero profanity, no brands or other drinks; the show's own A- sticker graphic sits outside the 9:16 crop",
+        "starts on 'The grade that you're going to get is' (the 'class have decided' line is excluded: moonshine garbles it and a word fix can't repair a three-token garble); the hook carries the setup"
+      ],
+      "segments": [
+        {
+          "start": 550.7,
+          "end": 553.99,
+          "focus_x": 0.481
+        },
+        {
+          "start": 553.99,
+          "end": 559.26,
+          "focus_x": 0.514
+        },
+        {
+          "start": 559.26,
+          "end": 560.43,
+          "focus_x": 0.026
+        },
+        {
+          "start": 560.43,
+          "end": 564.26,
+          "focus_x": 0.159
+        },
+        {
+          "start": 564.26,
+          "end": 565.6,
+          "focus_x": 0.01
+        },
+        {
+          "start": 565.6,
+          "end": 566.8,
+          "focus_x": 0.127
+        }
+      ]
+    }
+  ]
+}

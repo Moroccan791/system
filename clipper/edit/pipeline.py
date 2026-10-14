@@ -41,10 +41,19 @@ def load_style(campaign: str | None = None, style_path: str | Path | None = None
 
 def candidates_for(campaign: str | None, work_dir: Path | None = None,
                    media: str | None = None) -> list[dict]:
-    """All candidate payloads written by stage 2."""
+    """All candidate payloads written by stage 2.
+
+    work/ is the scratch copy; if it has none (a fresh checkout, a wiped
+    sandbox), fall back to the campaign's own candidates folder - that
+    one is committed, so a hand-picked moment survives with its campaign
+    instead of having to be re-derived from memory.
+    """
     folder = (Path(work_dir) if work_dir else (config.WORK / campaign if campaign else config.WORK))
+    paths = sorted(folder.glob("candidates/*.json"))
+    if not paths and campaign and not work_dir:
+        paths = sorted((config.CAMPAIGNS / campaign).glob("candidates/*.json"))
     out: list[dict] = []
-    for path in sorted(folder.glob("candidates/*.json")):
+    for path in paths:
         if media and Path(media).stem != path.stem:
             continue
         payload = jsonio.load(path, None)

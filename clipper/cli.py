@@ -374,6 +374,17 @@ def build_parser() -> argparse.ArgumentParser:
                    help="source transcript to use with --plan (default: the source's own)")
     s.set_defaults(func=cmd_captions)
 
+    s = sub.add_parser("reframe", help="per-segment 9:16 crop focus for a window "
+                                       "(scene cuts + face medians -> candidate segments JSON)")
+    s.add_argument("file")
+    s.add_argument("start", type=float)
+    s.add_argument("end", type=float)
+    s.add_argument("--min-seg", type=float, default=1.1,
+                   help="merge source cuts closer together than this (seconds)")
+    s.add_argument("--scene", type=float, default=0.35,
+                   help="ffmpeg scene-detection threshold")
+    s.set_defaults(func=cmd_reframe)
+
     s = sub.add_parser("edit", help="stage 4: assemble candidates into vertical clips")
     s.add_argument("campaign")
     s.add_argument("--top", type=int, default=None, help="only the best N candidates per file")
@@ -579,6 +590,15 @@ def cmd_arcs(args: argparse.Namespace) -> int:
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_text(json.dumps(payload, indent=2))
         print(f"\nwritten: {out}  ->  python -m clipper edit {args.campaign or '<campaign>'}")
+    return 0
+
+
+def cmd_reframe(args: argparse.Namespace) -> int:
+    from .edit.reframe import reframe_map
+
+    segments = reframe_map(args.file, args.start, args.end,
+                           min_seg=args.min_seg, threshold=args.scene)
+    print(json.dumps(segments, indent=2))
     return 0
 
 
