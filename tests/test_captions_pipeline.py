@@ -154,3 +154,16 @@ def test_select_hits_skips_the_hook_zone_and_caps_at_five():
     hits = _select_hits(blocks)
     assert len(hits) <= 5
     assert all(h["at"] >= 1.2 for h in hits)
+
+
+def test_word_fixes_keep_punctuation_and_case():
+    from clipper.asr.base import Word
+    from clipper.captions.pipeline import _apply_word_fixes
+    words = [Word(text="No", start=0.0, end=0.2),
+             Word(text="Fence,", start=0.2, end=0.5),
+             Word(text="fence", start=1.0, end=1.3),
+             Word(text="offense", start=2.0, end=2.4)]
+    n = _apply_word_fixes(words, {"fence": "offense"})
+    assert n == 2
+    assert words[1].text == "Offense," and words[2].text == "offense"
+    assert words[3].text == "offense"

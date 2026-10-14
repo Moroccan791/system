@@ -103,7 +103,16 @@
     },
     "mode": "block",
     "fade_out_seconds": 0.7,
-    "outro_text": "@michaelsartainpodcast"
+    "outro_text": "@michaelsartainpodcast",
+    "handle": "@michaelsartainpodcast",
+    "handles": {
+      "tiktok": "@michaelsartainpodcast",
+      "reels": "@michaelsartain",
+      "shorts": "@michaelsartain"
+    },
+    "word_fixes": {
+      "fence": "offense"
+    }
   },
   "audio": {
     "music_bed": false,

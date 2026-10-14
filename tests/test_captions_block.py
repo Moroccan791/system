@@ -153,3 +153,18 @@ def test_punch_chain_empty_and_built():
     assert punch_chain([], 1080, 1920) == ""
     chain = punch_chain([{"at": 10.0, "strength": 0.8}], 1080, 1920)
     assert "exp(-pow((t-10.000)/0.105,2))" in chain and "eval=frame" in chain and "crop=1080:1920" in chain
+
+
+def test_handle_is_pinned_for_the_whole_clip(tmp_path):
+    words = [W(0.0, 0.3, "Hello"), W(0.3, 0.3, "world.")]
+    path, _ = write_block_ass(tmp_path / "c.ass", words, STYLE, end=12.0,
+                              handle="@someone")
+    text = path.read_text()
+    assert "Style: Handle" in text
+    assert "0:00:00.00,0:00:12.00,Handle" in text and "@someone" in text
+
+
+def test_no_handle_no_event(tmp_path):
+    words = [W(0.0, 0.3, "Hello"), W(0.3, 0.3, "world.")]
+    path, _ = write_block_ass(tmp_path / "c.ass", words, STYLE, end=12.0)
+    assert ",Handle," not in path.read_text()

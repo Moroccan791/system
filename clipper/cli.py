@@ -221,7 +221,10 @@ def cmd_captions(args: argparse.Namespace) -> int:
         outro_text=args.outro_text, fade_out=args.fade_out,
         whoosh=args.whoosh or None, punch=args.punch,
         tighten=args.tighten, tighten_gap=args.tighten_gap,
-        sound=args.sound, **kwargs,
+        sound=args.sound, handle=args.handle,
+        word_fixes={k.strip(): v.strip() for k, _, v in
+                    (spec.partition("=") for spec in args.fix) if k.strip()} or None,
+        **kwargs,
     )
     print(json.dumps(result.to_dict(), indent=2))
     for w in result.warnings:
@@ -342,6 +345,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--sound", action="store_true",
                    help="sound design: riser swelling under the hook + a pop on "
                         "every camera-punch word (assets/sfx, CC0)")
+    s.add_argument("--handle", default=None, metavar="@NAME",
+                   help="creator handle pinned at the right edge for the whole "
+                        "clip (default: the profile's, per platform)")
+    s.add_argument("--fix", action="append", default=[], metavar="WRONG=RIGHT",
+                   help="correct a mis-transcribed word before captioning "
+                        "(repeatable; the creator profile can carry standing "
+                        "fixes as captions.word_fixes)")
     s.add_argument("--whoosh", type=float, action="append", default=[], metavar="T",
                    help="play the whoosh at T seconds (repeatable)")
     s.add_argument("--accent", default=None, metavar="#RRGGBB",

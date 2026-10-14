@@ -68,6 +68,30 @@ def resolve_style(name: str | None = None, style_path: str | Path | None = None,
     return style, source
 
 
+def _apply_word_fixes(words, fixes: dict[str, str]) -> int:
+    """Word corrections as data ('fence' -> 'offense'), applied to every
+    transcript word before anything is timed, tightened or captioned - so
+    a fix told once lives in the creator's profile and heals every future
+    clip. Matching ignores case and surrounding punctuation; the
+    replacement inherits both, so 'Fence,' becomes 'Offense,'."""
+    if not fixes:
+        return 0
+    table = {str(k).strip().lower(): str(v) for k, v in fixes.items()}
+    n = 0
+    for w in words:
+        text = str(w.text)
+        core = text.strip(".,!?;:\"'()[]")
+        if not core or core.lower() not in table:
+            continue
+        rep = table[core.lower()]
+        if core[:1].isupper():
+            rep = rep[:1].upper() + rep[1:]
+        i = text.index(core)
+        w.text = text[:i] + rep + text[i + len(core):]
+        n += 1
+    return n
+
+
 def _select_hits(block_info: list[dict]) -> list[dict]:
     """Camera-punch / sound-pop moments from caption blocks.
 
@@ -137,6 +161,8 @@ def run_captions(
     tighten: bool = False,
     tighten_gap: float | None = None,
     sound: bool = False,
+    handle: str | None = None,
+    word_fixes: dict | None = None,
 ) -> CaptionResult:
     t0 = time.time()
     src = Path(src)
@@ -198,6 +224,15 @@ def run_captions(
         warnings.append("word timings are estimated by the energy aligner (+/- ~100 ms); "
                         "use --asr faster_whisper for exact timings")
 
+    fixes = dict(cap_style.get("word_fixes") or {})
+    if word_fixes:
+        fixes.update(word_fixes)
+    if fixes and transcript.words:
+        applied = _apply_word_fixes(transcript.words, fixes)
+        if applied:
+            transcript.text = " ".join(w.text for w in transcript.words)
+            log.info("word fixes", applied=applied, rules=fixes)
+
     tighten_on = tighten or bool(cap_style.get("tighten"))
     if tighten_on and transcript.words:
         # cut the dead air between sentences and carry every timestamp
@@ -239,6 +274,9 @@ def run_captions(
     want_punch = punch or bool(cap_style.get("camera_punch"))
     hook_lines = [x.strip() for x in hook.split("|") if x.strip()] if hook else None
     outro_line = outro_text if outro_text is not None else cap_style.get("outro_text")
+    handle_line = handle if handle is not None else (
+        (cap_style.get("handles") or {}).get(platform)
+        or cap_style.get("handle"))
     fade_seconds = (float(fade_out) if fade_out is not None
                     else float(cap_style.get("fade_out_seconds") or 0.0))
     sfx = None
@@ -270,7 +308,8 @@ def run_captions(
             work / "captions.ass", transcript.words, style,
             width=twidth, height=theight,
             end=min(float(info.duration or 1e9), float(transcript.duration or 1e9)),
-            hook_lines=hook_lines, outro_text=outro_line)
+            hook_lines=hook_lines, outro_text=outro_line,
+            handle=handle_line)
         cues = blocks  # the report reads block structure instead of word cues
         log.info("blocks", n=len(block_info))
         punch_list = None
@@ -291,6 +330,22 @@ def run_captions(
                         for p in picked]
                     log.info("sound pops", n=len(picked),
                              at=[p["at"] for p in picked])
+        if sound_on and block_info:
+            tick_a = config.ROOT / "assets" / "sfx" / "tick.wav"
+            tick_b = config.ROOT / "assets" / "sfx" / "tick2.wav"
+            if tick_a.exists():
+                # a soft keyboard tick as each caption block lands, very
+                # low in the mix; two alternating clicks keep it human
+                # instead of metronome-like
+                vol = float(cap_style.get("tick_volume") or 0.16)
+                ticks = [{"at": float(b["start"]),
+                          "file": str(tick_a if i % 2 == 0 else tick_b),
+                          "volume": vol}
+                         for i, b in enumerate(block_info)
+                         if float(b.get("start") or 0) >= 0.05]
+                if ticks:
+                    sfx = list(sfx or []) + ticks
+                    log.info("caption ticks", n=len(ticks), volume=vol)
         if not block_info:
             warnings.append("no caption blocks produced")
         jsonio.save(work / "cues.json", {"mode": "block", "count": len(block_info),

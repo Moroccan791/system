@@ -370,7 +370,8 @@ def build_hook_events(hook_lines: list[str], outro_text: str | None, *,
 def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
                     height: int = 1920, end: float | None = None,
                     hook_lines: list[str] | None = None,
-                    outro_text: str | None = None) -> tuple[str, list[dict]]:
+                    outro_text: str | None = None,
+                    handle: str | None = None) -> tuple[str, list[dict]]:
     """A complete .ass script in block mode, plus the block list it encodes."""
     cap = style.get("captions", {}) or {}
     block = cap.get("block", {}) or {}
@@ -423,6 +424,12 @@ def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
         hook_lines or [], outro_text, width=width, height=height, end=end,
         base_size=_bs, emphasis_size=_bs * float(block.get("emphasis_scale") or 1.6),
         accent=block.get("emphasis_color")))
+    if handle and end:
+        # the creator's handle pinned to the right edge for the WHOLE clip:
+        # the campaign's in-video tag requirement, met by construction, and
+        # quiet enough (small, 65% opaque) to never fight the captions
+        events.append(f"Dialogue: 2,0:00:00.00,{fmt_ass(end)},Handle,,0,0,0,,"
+                      f"{_escape(handle)}")
 
     head = f"""[Script Info]
 ScriptType: v4.00+
@@ -434,6 +441,7 @@ ScaledBorderAndShadow: yes
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Block,{font_name},{int(round(84 * scale))},{primary},{secondary},{outline_color},&H00000000,-1,0,0,0,100,100,0,0,1,{outline},{shadow},7,0,0,0,1
 Style: Hook,{font_name},{int(round(120 * scale))},{primary},{secondary},{outline_color},&H00000000,-1,0,0,0,100,100,0,0,1,{outline},{shadow},8,0,0,0,1
+Style: Handle,{font_name},{int(round(36 * scale))},&H59FFFFFF,&H000000FF,{outline_color},&H00000000,0,0,0,0,100,100,0,0,1,{max(1, outline // 2)},{shadow},3,{int(round(28 * scale))},{int(round(36 * scale))},{int(round(34 * scale))},1
 Style: Bar,Arial,10,&H007D7D7D,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1
 
 [Events]
@@ -446,9 +454,11 @@ def write_block_ass(path: str | Path, words: list[Word], style: dict, *,
                     width: int = 1080, height: int = 1920,
                     end: float | None = None,
                     hook_lines: list[str] | None = None,
-                    outro_text: str | None = None) -> tuple[Path, list[dict]]:
+                    outro_text: str | None = None,
+                    handle: str | None = None) -> tuple[Path, list[dict]]:
     text, blocks = build_block_ass(words, style, width=width, height=height, end=end,
-                                   hook_lines=hook_lines, outro_text=outro_text)
+                                   hook_lines=hook_lines, outro_text=outro_text,
+                                   handle=handle)
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(text, encoding="utf-8")
