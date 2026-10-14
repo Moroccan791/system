@@ -17,6 +17,21 @@ from pathlib import Path
 
 FOCUS_CHOICES = ("centre", "top", "bottom")
 
+# named caption accents; --accent also takes any #RRGGBB. Chosen per project,
+# never silently defaulted - the profile's white stays the baseline.
+ACCENTS = {
+    "gold": "#FFC531", "amber": "#FFC531", "crimson": "#FF3B30", "red": "#FF3B30",
+    "azure": "#35C4FF", "blue": "#35C4FF", "lime": "#9BE82E", "green": "#9BE82E",
+    "violet": "#B18CFF", "purple": "#B18CFF", "pink": "#FF6EC7", "white": "#FDFCFD",
+}
+
+
+def resolve_accent(value: str | None) -> str | None:
+    if not value:
+        return None
+    v = value.strip()
+    return ACCENTS.get(v.lower(), v)
+
 from . import __version__, config
 from .util import log
 
@@ -202,7 +217,7 @@ def cmd_captions(args: argparse.Namespace) -> int:
         args.file, args.out, style_path=args.style, campaign=args.campaign,
         platform=args.platform, fit=args.fit, ass_only=args.ass_only,
         max_words=args.max_words, mode=args.mode, inserts=inserts or None,
-        accent=args.accent, **kwargs,
+        accent=resolve_accent(args.accent), **kwargs,
     )
     print(json.dumps(result.to_dict(), indent=2))
     for w in result.warnings:
@@ -307,8 +322,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="caption look: 'block' = the sentence-block grammar (words reveal when "
                         "spoken and stay, the operative word bigger, bottom fade bar)")
     s.add_argument("--accent", default=None, metavar="#RRGGBB",
-                   help="color for the big (emphasis) word of each caption block, "
-                        "e.g. --accent #FFC531; connectives stay white")
+                   help="color for the big (emphasis) word of each caption block: a "
+                        "palette name (gold, crimson, azure, lime, violet, pink, white) "
+                        "or any #RRGGBB; connectives stay white")
     s.add_argument("--insert", action="append", default=[], metavar="T,DUR,FILE[,AT]",
                    help="show an image on the clip: T = when it appears (s), DUR = how long "
                         "it stays, FILE = image path, AT = full (cutaway, the default - "
