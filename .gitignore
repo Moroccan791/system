@@ -30,6 +30,14 @@ campaigns/
 *.flac
 *.webm
 
+# ...but motion-graphics deliverable packs ARE the product - track them
+!motion/demo/*.mp4
+!motion/demo2/*.mp4
+!motion/review_a/*.mp4
+!motion/review_b/*.mp4
+!motion/review_c/*.mp4
+!motion/review_d/*.mp4
+
 # debug / scratch
 .arena/
 *.log
