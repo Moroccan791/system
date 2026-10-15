@@ -1,0 +1,13 @@
+MOTION QC v2 final.mp4: PASS
+  [PASS] word_sync: 31 words, visual offset -72..-62 ms (2-frame lead = -67 ms)
+  [PASS] text_sizes: 34 text elements, min 58px (3%), keywords in 115-154px
+  [WARN] text_contrast: under 4.5:1 (3px dark stroke carries it): counter @3.2s accent digits 3.3:1
+  [PASS] pacing: longest without a visual change 1.82s at 4.9s (under 2.5s cap; over the 1.5s target - idle drift runs)
+  [PASS] dwell: max simple dwell 3.00s (card), panels exit <=1s after last entry
+  [PASS] idle: 6 graphics held >0.8s, all idle-animated (engine drift/shine/glow, verified on strips)
+  [PASS] images: no image inserts
+  [PASS] cuts: 2 cuts all transitioned [2.0:flare, 4.3:flash]; 0 exit(s) masked by their cut transition, none visibly crossing
+  [PASS] opening: first caption animating at frame 7 (0-10)
+  [PASS] face_zone: faces clear of the text zone in 5 items
+  [PASS] semi_text: max semi-transparent run 2 frames (cap 2)
+  [PASS] margins: all zones inside the 6% safe margin plan

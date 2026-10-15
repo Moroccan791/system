@@ -4,47 +4,164 @@
   "width": 1080,
   "height": 1920,
   "duration": 10.0,
-  "brand": { "accent": "#9BE82E", "ink": "#0D0F12", "paper": "#FFFFFF" },
+  "brand": {
+    "accent": "#9BE82E",
+    "ink": "#0D0F12",
+    "paper": "#FFFFFF"
+  },
   "items": [
-    { "type": "fx", "kind": "opening", "at": 0.0, "dur": 0.27 },
     {
-      "type": "poster", "at": 0.30, "until": 2.17,
+      "type": "fx",
+      "kind": "opening",
+      "at": 0.0,
+      "dur": 0.27
+    },
+    {
+      "type": "poster",
+      "at": 0.14,
+      "until": 1.9,
       "rows": [
-        [ { "w": "The", "at": 0.30 }, { "w": "grade", "at": 0.42 },
-          { "w": "that", "at": 0.72 }, { "w": "you're", "at": 1.01 } ],
-        [ { "w": "GOING", "at": 1.40, "kind": "key" },
-          { "w": "to", "at": 1.83 }, { "w": "get", "at": 1.94 } ]
+        [
+          {
+            "w": "The",
+            "at": 0.14
+          },
+          {
+            "w": "grade",
+            "at": 0.335
+          },
+          {
+            "w": "that",
+            "at": 0.704
+          },
+          {
+            "w": "you're",
+            "at": 0.857
+          }
+        ],
+        [
+          {
+            "w": "GOING",
+            "at": 1.228,
+            "kind": "key"
+          },
+          {
+            "w": "to",
+            "at": 1.585
+          },
+          {
+            "w": "get",
+            "at": 1.69
+          }
+        ]
       ]
     },
     {
-      "type": "poster", "at": 2.17, "until": 4.05,
+      "type": "poster",
+      "at": 1.912,
+      "until": 4.16,
       "rows": [
-        [ { "w": "is", "at": 2.17 }, { "w": "an A", "at": 3.34 } ],
-        [ { "w": "MINUS", "at": 3.58, "kind": "key" } ]
+        [
+          {
+            "w": "is",
+            "at": 1.912
+          },
+          {
+            "w": "an A",
+            "at": 3.088
+          }
+        ],
+        [
+          {
+            "w": "MINUS",
+            "at": 3.423,
+            "kind": "key"
+          }
+        ]
       ]
     },
     {
-      "type": "chip", "at": 5.55, "until": 6.55,
-      "title": "STUDENTS GRADE", "sub": "THE TEACHER",
+      "type": "chip",
+      "at": 5.55,
+      "until": 6.55,
+      "title": "STUDENTS GRADE",
       "iconSvg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#0D0F12' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10' fill='rgba(255,255,255,.35)' stroke='none'/><path d='M8 12.5l2.6 2.6L16 9.5'/></svg>"
     },
-    { "type": "fx", "kind": "flare", "at": 6.61, "dur": 0.5, "x": 0.80, "y": 0.15 },
     {
-      "type": "poster", "at": 6.61, "until": 8.42,
+      "type": "fx",
+      "kind": "flare",
+      "at": 6.61,
+      "dur": 0.267
+    },
+    {
+      "type": "poster",
+      "at": 6.352,
+      "until": 8.42,
       "rows": [
-        [ { "w": "Thank", "at": 6.61 }, { "w": "you.", "at": 6.98 } ],
-        [ { "w": "CONGRATULATIONS", "at": 7.41, "kind": "key" } ]
+        [
+          {
+            "w": "Thank",
+            "at": 6.352
+          },
+          {
+            "w": "you.",
+            "at": 6.74
+          }
+        ],
+        [
+          {
+            "w": "CONGRATULATIONS",
+            "at": 7.024,
+            "kind": "key"
+          }
+        ]
       ]
     },
-    { "type": "fx", "kind": "flash", "at": 8.42, "dur": 0.4, "strength": 0.8 },
     {
-      "type": "card", "at": 8.42, "until": 10.0, "bg": "dark", "bgColor": "#0B1F14",
+      "type": "fx",
+      "kind": "flash",
+      "at": 8.3,
+      "dur": 0.267,
+      "strength": 0.8
+    },
+    {
+      "type": "card",
+      "at": 7.817,
+      "until": 10.0,
+      "bg": "dark",
+      "bgColor": "#0B1F14",
       "lines": [
-        [ { "w": "Even", "at": 8.42, "kind": "serif", "size": 84 },
-          { "w": "the", "at": 8.69, "size": 84 },
-          { "w": "teacher", "at": 8.96, "size": 84 } ],
-        [ { "w": "CAN", "at": 9.29, "size": 148 },
-          { "w": "IMPROVE", "at": 9.42, "kind": "key", "size": 148 } ]
+        [
+          {
+            "w": "Even",
+            "at": 7.817,
+            "kind": "serif",
+            "size": 84
+          },
+          {
+            "w": "the",
+            "at": 8.143,
+            "size": 84
+          },
+          {
+            "w": "teacher",
+            "at": 8.283,
+            "size": 84
+          }
+        ],
+        [
+          {
+            "w": "CAN",
+            "at": 8.73,
+            "size": 148
+          },
+          {
+            "w": "IMPROVE",
+            "at": 8.945,
+            "kind": "key",
+            "size": 148
+          }
+        ]
       ]
     }
   ]

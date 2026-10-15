@@ -152,4 +152,9 @@ if __name__ == "__main__":
         base, frames, tl_path, out = (Path(sys.argv[1]), Path(sys.argv[2]),
                                       Path(sys.argv[3]), Path(sys.argv[4]))
         composite(base, frames, json.loads(tl_path.read_text()), out)
+        side = Path(str(tl_path) + ".transitions.json")
+        if side.exists():   # cut/transition sidecar travels with the video
+            dest = out.with_name(out.stem + ".transitions.json")
+            dest.write_text(side.read_text())
+            print(dest)
         print(out)

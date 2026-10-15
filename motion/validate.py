@@ -73,6 +73,37 @@ def main(path: str) -> int:
             if until - it["at"] < float(it.get("countDur") or 0.9) + 0.3:
                 problems.append(f"counter at {it['at']}: until {until} leaves no "
                                 f"beat after the count lands")
+        # ---- permanent-rules spec, Part 1 --------------------------------
+        dwell = until - it["at"]
+        if it["type"] == "fx" and it.get("kind") in ("flash", "flare", "leak"):
+            d = float(it.get("dur") or 0)
+            if not 0.19 <= d <= 0.34:
+                problems.append(f"fx {it.get('kind')} at {it['at']}: dur {d}s is "
+                                f"outside the 6-10 frame transition window")
+        if it["type"] == "chip" and it.get("sub"):
+            problems.append(f"chip at {it['at']}: a chip is a single text line "
+                            f"(a sub breaks the 6-7% bar height / 3% text floor); "
+                            f"merge it into title or drop it")
+        if it["type"] in ("poster", "card", "counter", "chip", "pip", "broll") \
+                and dwell > 3.0:
+            problems.append(f"{it['type']} at {it['at']}: dwell {dwell:.2f}s over "
+                            f"the 3s cap (a graphic must change or leave)")
+        if it["type"] in ("list", "process"):
+            subs = it.get("items") or it.get("steps") or []
+            if subs:
+                tail = until - float(subs[-1]["at"])
+                if tail > 1.0:
+                    problems.append(f"{it['type']} at {it['at']}: finished panel "
+                                    f"dwells {tail:.2f}s after its last entry "
+                                    f"(cap 1.0s - exit when done)")
+        if it["type"] == "broll":
+            mode = it.get("mode") or "fullbleed"
+            if mode == "fullbleed" and not 1.0 <= dwell <= 1.8:
+                problems.append(f"broll at {it['at']}: full-bleed insert dwell "
+                                f"{dwell:.2f}s outside 1.0-1.8s")
+            if mode == "card" and not 0.60 <= float(it.get("w") or 0.65) <= 0.70:
+                problems.append(f"broll card at {it['at']}: width "
+                                f"{it.get('w')} outside 60-70% of frame")
         for key in ("items", "steps"):
             subs = it.get(key) or []
             if not subs:
@@ -84,9 +115,19 @@ def main(path: str) -> int:
                 if b - a < 0.18:
                     problems.append(f"{it['type']} at {it['at']}: {key} stagger "
                                     f"{b - a:.2f}s under the 6-frame minimum")
+                if b - a > 1.5:
+                    problems.append(f"{it['type']} at {it['at']}: {key} gap "
+                                    f"{b - a:.2f}s over 1.5s - a panel may only "
+                                    f"live while it keeps adding entries")
             if subs and until < ats[-1] + 0.8:
                 problems.append(f"{it['type']} at {it['at']}: until {until} gives the "
                                 f"last entry no dwell time")
+    # image cadence: at most one PiP / B-roll insert per 6 s window
+    imgs = [i for i in items if i["type"] in ("pip", "broll")]
+    for a, b in zip(imgs, imgs[1:]):
+        if b["at"] - a["at"] < 6.0:
+            problems.append(f"images at {a['at']} and {b['at']}: under the "
+                            f"6s minimum spacing between image inserts")
     for p in problems:
         print(f"RULE {p}")
     if problems:

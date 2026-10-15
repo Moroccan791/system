@@ -113,3 +113,33 @@ milk-jug gag, so it is skipped; no text crosses a shot change).
 QC: all 5 checks PASS (see `qc_report.txt`). Timeline:
 `motion/timelines/milk_budget_stage2.json`; stills:
 `motion/test_assets/`.
+
+## Stage A — permanent rules (Parts 1–5 audit in `AUDIT.md`)
+
+Pipeline gains a step: `transitions.py` runs before validation. It
+detects hard cuts in the base (scene score ≥0.25, verified frame-by-
+frame on this footage) and injects a rotating 8–10f transition
+(flare/flash/leak/bwflash, peak on the cut) wherever the author did
+not already place one, writing `<tl>.transitions.json`; composite
+copies it next to the render as `<video stem>.transitions.json` and
+QC checks against it.
+
+```bash
+.venv/bin/python motion/transitions.py <base.mp4> motion/timelines/<t>.json work/<job>/timeline_fx.json
+.venv/bin/python motion/validate.py work/<job>/timeline_fx.json
+node motion/render.mjs work/<job>/timeline_fx.json work/<job>/frames
+.venv/bin/python motion/composite.py <base.mp4> work/<job>/frames work/<job>/timeline_fx.json work/<job>/final.mp4
+.venv/bin/python motion/qc.py work/<job>/timeline_fx.json <transcript.json> work/<job>/final.mp4 work/<job>/frames
+```
+
+QC v2 = 12 checks (word lead −2f measured, text sizes ≥3% / keywords
+6–8%, sampled contrast, pacing, dwell, idle, images, cuts, opening
+frames 0–10, face zone, semi, margins). Engine rules now baked in:
+no text under 58 px anywhere (plates grow, type never sinks),
+keywords are ink-on-accent plates, words lead speech by 2 frames,
+exits are 8f slide+blur, counters pulse 106%, every held graphic
+drifts/shines/pulses, flare is a full-frame diagonal light leak,
+B-roll is full-bleed (1.0–1.8 s) or a 60–70% card. One documented
+interpretation (rule 1.12) lives in `AUDIT.md` — read it before
+judging the cuts check. Stage A review pack: `motion/review_a/`
+(3 source videos, QC v2 all-PASS).

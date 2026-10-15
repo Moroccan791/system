@@ -18,90 +18,90 @@
     },
     {
       "type": "poster",
-      "at": 0.312,
-      "until": 1.07,
+      "at": 0.01,
+      "until": 0.5,
       "rows": [
         [
           {
-            "w": "You",
-            "at": 0.312
-          },
-          {
-            "w": "only",
-            "at": 0.554
+            "w": "We",
+            "at": 0.01
           },
           {
             "w": "have",
-            "at": 0.862
+            "at": 0.3
           }
         ]
       ]
     },
     {
       "type": "counter",
-      "at": 1.058,
+      "at": 0.45,
       "value": 2500,
       "prefix": "$",
       "label": "FOR THE NEEDS",
       "countDur": 0.85,
-      "until": 3.35
+      "until": 3.3
     },
     {
       "type": "list",
-      "at": 3.615,
+      "at": 3.3,
       "title": "WHAT ELSE DO WE NEED?",
       "items": [
         {
           "text": "TV",
-          "at": 3.615
+          "at": 3.3
         },
         {
           "text": "GAMING CONSOLE",
-          "at": 3.962
+          "at": 3.61
         },
         {
           "text": "BASKETBALL",
-          "at": 4.91
+          "at": 4.58
         }
       ],
-      "until": 5.72
+      "until": 5.53
     },
     {
       "type": "poster",
-      "at": 5.742,
-      "until": 6.97,
+      "at": 5.84,
+      "until": 7.02,
       "rows": [
         [
           {
             "w": "We",
-            "at": 5.742
+            "at": 5.84
           },
           {
             "w": "need",
-            "at": 5.9
+            "at": 5.94
           },
           {
             "w": "a",
-            "at": 6.141
+            "at": 6.18
           }
         ],
         [
           {
             "w": "BASKETBALL",
-            "at": 6.256,
+            "at": 6.3,
             "kind": "key"
           },
           {
             "w": "HOOP",
-            "at": 6.761
+            "at": 6.81
           }
         ]
+      ],
+      "zone": [
+        0.65,
+        0.88
       ]
     },
     {
       "type": "pip",
-      "at": 7.06,
-      "until": 9.3,
+      "at": 7.1,
+      "until": 9.35,
       "src": "motion/test_assets/hoop.jpg",
       "label": "BASKETBALL HOOP",
       "sub": "for the lounge",
@@ -109,92 +109,69 @@
     },
     {
       "type": "chip",
-      "at": 9.507,
+      "at": 9.7,
       "until": 11.3,
       "title": "WANTS CATEGORY",
-      "sub": "NOT A NEED",
       "iconSvg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#0D0F12' stroke-width='2.6' stroke-linecap='round'><circle cx='12' cy='12' r='10' fill='rgba(255,255,255,.35)' stroke='none'/><path d='M9 9l6 6M15 9l-6 6'/></svg>"
     },
     {
       "type": "poster",
-      "at": 11.839,
-      "until": 14.05,
+      "at": 12.17,
+      "until": 13.8,
       "rows": [
         [
           {
             "w": "Okay,",
-            "at": 11.839
+            "at": 12.17
           },
           {
             "w": "let's",
-            "at": 12.151
+            "at": 12.46
           },
           {
             "w": "talk",
-            "at": 12.446
+            "at": 12.77
           }
         ],
         [
           {
             "w": "more",
-            "at": 12.836
+            "at": 13.09
           },
           {
             "w": "about",
-            "at": 13.205
-          },
-          {
-            "w": "NEEDS",
-            "at": 13.774,
-            "kind": "key"
+            "at": 13.42
           }
         ]
       ]
     },
     {
       "type": "poster",
-      "at": 14.521,
-      "until": 15.9,
+      "at": 14.5,
+      "until": 15.95,
       "rows": [
         [
           {
-            "w": "a",
-            "at": 14.521
-          },
-          {
-            "w": "bunch",
-            "at": 14.629
-          },
-          {
-            "w": "of",
-            "at": 14.959
-          }
-        ],
-        [
-          {
             "w": "CRAZY",
-            "at": 15.2,
+            "at": 14.5,
             "kind": "neon"
           },
           {
             "w": "LED",
-            "at": 15.503
+            "at": 15.14
           },
           {
-            "w": "lights",
-            "at": 15.691
+            "w": "lights.",
+            "at": 15.4
           }
         ]
       ]
     },
     {
       "type": "broll",
-      "at": 16.0,
-      "until": 17.7,
-      "zone": [
-        0.34,
-        0.82
-      ],
+      "mode": "fullbleed",
+      "at": 15.95,
+      "until": 17.65,
       "src": "motion/test_assets/led_lounge.jpg",
       "label": "LED LIGHTS",
       "sub": "sets the vibe",
@@ -202,47 +179,35 @@
     },
     {
       "type": "poster",
-      "at": 17.806,
-      "until": 19.34,
+      "at": 18.25,
+      "until": 19.3,
       "rows": [
         [
           {
-            "w": "going",
-            "at": 17.806
-          },
-          {
-            "w": "to",
-            "at": 18.017
-          },
-          {
-            "w": "need",
-            "at": 18.136
-          },
-          {
             "w": "some",
-            "at": 18.255
+            "at": 18.25
           },
           {
             "w": "of",
-            "at": 18.467
+            "at": 18.4
           },
           {
             "w": "those",
-            "at": 18.58
+            "at": 18.5
           }
         ],
         [
           {
             "w": "in",
-            "at": 18.785
+            "at": 18.79
           },
           {
             "w": "the",
-            "at": 18.947
+            "at": 18.95
           },
           {
             "w": "WANTS",
-            "at": 19.138,
+            "at": 19.08,
             "kind": "key"
           }
         ]
@@ -250,82 +215,117 @@
     },
     {
       "type": "poster",
-      "at": 19.348,
-      "until": 21.3,
+      "at": 19.36,
+      "until": 21.45,
       "rows": [
         [
           {
             "w": "Maybe",
-            "at": 19.348
+            "at": 19.36
           },
           {
             "w": "we",
-            "at": 19.665
+            "at": 19.61
           },
           {
             "w": "can",
-            "at": 19.778
+            "at": 19.71
           },
           {
             "w": "even",
-            "at": 19.885
+            "at": 19.91
           },
           {
             "w": "have",
-            "at": 20.035
+            "at": 20.06
           },
           {
             "w": "some",
-            "at": 20.217
+            "at": 20.24
           }
         ],
         [
           {
             "w": "POSTERS",
-            "at": 20.463,
+            "at": 20.43,
             "kind": "key"
           },
           {
             "w": "without",
-            "at": 20.752
+            "at": 20.79
           },
           {
-            "w": "budgeting",
-            "at": 21.018
+            "w": "budgeting.",
+            "at": 21.06
           }
         ]
       ]
     },
     {
       "type": "process",
-      "at": 23.135,
+      "at": 23.17,
       "title": "THE BUDGET SPLIT",
       "steps": [
         {
           "text": "NEEDS",
           "sub": "$2,500",
-          "at": 23.135
+          "at": 23.17
         },
         {
           "text": "WANTS",
           "sub": "$1,500",
-          "at": 23.961
+          "at": 23.98
         },
         {
           "text": "SAVE",
           "sub": "$1,000",
-          "at": 25.271
+          "at": 25.18
         }
       ],
-      "until": 28.3
+      "until": 26.13
     },
     {
       "type": "fx",
       "kind": "flare",
-      "at": 25.271,
-      "dur": 0.5,
-      "x": 0.82,
-      "y": 0.14
+      "at": 25.18,
+      "dur": 0.267
+    },
+    {
+      "type": "poster",
+      "at": 26.54,
+      "until": 28.75,
+      "rows": [
+        [
+          {
+            "w": "that's",
+            "at": 26.54
+          },
+          {
+            "w": "20%",
+            "at": 26.85,
+            "kind": "key"
+          },
+          {
+            "w": "of",
+            "at": 27.1
+          },
+          {
+            "w": "that",
+            "at": 27.21
+          }
+        ],
+        [
+          {
+            "w": "total",
+            "at": 27.71
+          },
+          {
+            "w": "BUDGET",
+            "at": 28.05,
+            "kind": "key"
+          }
+        ]
+      ]
     }
   ]
 }

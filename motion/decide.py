@@ -298,7 +298,7 @@ def classify(u, log):
             log.append(f"  process @{steps[0]['at']:6.2f}  {len(steps)} steps: "
                        f"{' / '.join(s['text'] for s in steps)}")
             return [{"type": "process", "at": steps[0]["at"], "title": title,
-                     "steps": steps, "until": round(steps[-1]["at"] + 1.8, 3)}]
+                     "steps": steps, "until": round(steps[-1]["at"] + 0.95, 3)}]
 
     # 2. LIST: comma phrases (a money headline first also gets a counter)
     if phr:
@@ -322,7 +322,7 @@ def classify(u, log):
                        f"{' / '.join(p['text'] for p in plates)}")
             items.append({"type": "list", "at": plates[0]["at"],
                           "title": title or "THE LIST", "items": plates,
-                          "until": round(plates[-1]["at"] + 1.6, 3)})
+                          "until": round(plates[-1]["at"] + 0.95, 3)})
             return items
 
     # 3. COUNTER: a headline number carries the sentence
