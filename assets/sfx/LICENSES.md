@@ -15,6 +15,8 @@ required.
 | `keys/key1.wav` … `keys/key5.wav` | five soft keystroke variants: band-passed noise tick + low sine "thock", 80 ms, 48 kHz | `clipper/captions/keysfx.py` |
 | `keys/enter.wav` | two-part enter key (press + release), ~155 ms, 48 kHz | `clipper/captions/keysfx.py` |
 
+| `../music/dark.wav`, `../music/bright.wav`, `../music/chill.wav` | synthesized chord-pad music beds (32 s loops, 48 kHz) | `clipper/captions/musicbed.py` |
+
 Regenerate the key bank any time with:
 
 ```bash

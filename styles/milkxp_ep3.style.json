@@ -35,7 +35,12 @@
     },
     "fade_out_seconds": 0.7,
     "outro_text": "milkXP EP.3 - FULL EPISODE ON YOUTUBE",
-    "word_fixes": {}
+    "word_fixes": {},
+    "poster": {
+      "keyword_color": "#9BE82E",
+      "card_bg": "#0B1F14",
+      "sticker_bg": "#9BE82E"
+    }
   },
   "audio": {
     "music_bed": false,

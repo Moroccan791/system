@@ -33,6 +33,12 @@
   an "enter" click to finish, ≈ −25 dB under the voice; caption
   blocks land with a much lighter tick. Off also stops the headline
   typing (never type silently).
+- **Next-level format available** (`--mode poster`): centre-frame
+  poster captions, kinetic claim cards (`--card`), proof stickers
+  (`--sticker`), accumulating lists (`--list`) and ducked music beds
+  (`--music dark|bright|chill`) — the grammar decoded in
+  `recipes/next_level_format.md`. Use it for explainer-style clips;
+  QC's `visual_pacing` check (event every ≤3.5 s) gates it.
 - **Automated QC after every render**: `<video>.qc.json` lands next
   to the output (also `clipper qc VIDEO --ass … --transcript …
   --hook "…"` standalone): first caption ≤ 1 s, no caption over a

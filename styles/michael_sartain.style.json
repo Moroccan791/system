@@ -113,6 +113,11 @@
     },
     "word_fixes": {
       "fence": "offense"
+    },
+    "poster": {
+      "keyword_color": "#FFC531",
+      "card_bg": "#171106",
+      "sticker_bg": "#FFC531"
     }
   },
   "audio": {

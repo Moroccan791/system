@@ -75,9 +75,9 @@ def parse_ass_events(path: str | Path) -> list[dict]:
 # ------------------------------------------------------------------- checks
 
 def check_first_caption(events: list[dict]) -> dict:
-    blocks = [e for e in events if e["style"] == "Block"]
+    blocks = [e for e in events if e["style"] in ("Block", "Poster")]
     if not blocks:
-        return _check("first_caption", "warn", "no Block caption events in the ASS")
+        return _check("first_caption", "warn", "no caption events in the ASS")
     first = min(e["start"] for e in blocks)
     ok = first <= 1.0
     return _check("first_caption", "pass" if ok else "fail",
@@ -85,9 +85,9 @@ def check_first_caption(events: list[dict]) -> dict:
 
 
 def check_caption_face(video: Path, events: list[dict]) -> dict:
-    blocks = [e for e in events if e["style"] == "Block" and e["pos"]]
+    blocks = [e for e in events if e["style"] in ("Block", "Poster") and e["pos"]]
     if not blocks:
-        return _check("caption_face", "warn", "no positioned Block events to check")
+        return _check("caption_face", "warn", "no positioned caption events to check")
     try:
         import cv2
     except ImportError:
@@ -124,8 +124,13 @@ def check_caption_face(video: Path, events: list[dict]) -> dict:
         x, y = e["pos"]
         fs = e["fs"] or 84 * scale
         w = _text_width(e["text"], fs) * fx
-        # Block events anchor top-left (\an7): box = pos .. pos+size
-        box = (x * fx, y * fy, x * fx + w, y * fy + fs * 1.22 * fy)
+        if e["style"] == "Poster":
+            # \an5: pos is the centre of the stack row
+            box = (x * fx - w / 2, y * fy - fs * 0.6 * fy,
+                   x * fx + w / 2, y * fy + fs * 0.6 * fy)
+        else:
+            # Block events anchor top-left (\an7): box = pos .. pos+size
+            box = (x * fx, y * fy, x * fx + w, y * fy + fs * 1.22 * fy)
         for f in faces:
             fx0, fy0, fw, fh = (float(f[0]), float(f[1]),
                                 float(f[2]), float(f[3]))
@@ -261,6 +266,25 @@ def check_logo_scan(video: Path) -> dict:
     return _check("logo_scan", "pass", "no persistent corner graphic detected")
 
 
+def check_visual_pacing(events: list[dict]) -> dict:
+    """The next-level rule: a visual event at least every ~3.5 s.
+
+    Caption blocks, poster stacks, claim cards and sticker changes all
+    count; a longer stretch means the frame sat still while someone was
+    talking - exactly what the reference format never allows.
+    """
+    starts = sorted(e["start"] for e in events
+                    if e["style"] in ("Block", "Poster", "Card"))
+    if len(starts) < 2:
+        return _check("visual_pacing", "warn", "too few visual events to judge")
+    gaps = [(b - a, a) for a, b in zip(starts, starts[1:])]
+    worst, at = max(gaps)
+    ok = worst <= 3.5
+    return _check("visual_pacing", "pass" if ok else "fail",
+                  f"longest stretch without a visual event {worst:.1f} s "
+                  f"at {at:.1f} s (limit 3.5 s)")
+
+
 # -------------------------------------------------------------------- entry
 
 def run_qc(video: str | Path, *, ass: str | Path | None = None,
@@ -277,6 +301,7 @@ def run_qc(video: str | Path, *, ass: str | Path | None = None,
         checks.append(_check("first_caption", "warn", "no ASS supplied"))
         checks.append(_check("caption_face", "warn", "no ASS supplied"))
     checks.append(check_static_shot(video))
+    checks.append(check_visual_pacing(events))
     checks.append(check_loudness(video))
     checks.append(check_hook(hook_lines, words or []))
     checks.append(check_duration(video))

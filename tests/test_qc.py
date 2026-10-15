@@ -81,5 +81,6 @@ def test_run_qc_reports_every_check(moving_video, ass_file):
                            {"text": "happens", "start": 0.3}])
     names = {c["name"] for c in report["checks"]}
     assert names == {"first_caption", "caption_face", "static_shot",
-                     "loudness", "hook_match", "duration", "logo_scan"}
+                     "visual_pacing", "loudness", "hook_match", "duration",
+                     "logo_scan"}
     assert all(c["status"] in {"pass", "warn", "fail"} for c in report["checks"])

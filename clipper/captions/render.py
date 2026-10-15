@@ -175,7 +175,8 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
          outro: float = 0.0,
          sfx: list[dict] | None = None,
          punches: list[dict] | None = None,
-         watermark: dict | None = None) -> Path:
+         watermark: dict | None = None,
+         music: str | None = None, music_volume: float = 0.5) -> Path:
     """Encode `src` to `dst` with the subtitles burned in.
 
     Grade goes *before* subtitles so the text stays crisp white; timed image
@@ -210,7 +211,7 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         afade = f"afade=t=out:st={eff_dur - float(outro):.3f}:d={float(outro):.3f}"
     log.info("rendering", out=Path(dst).name, fit=fit, size=f"{src_info.width}x{src_info.height}")
 
-    if not inserts and not sfx and not watermark:
+    if not inserts and not sfx and not watermark and not music:
         vf = ",".join(x for x in (stages, subs, vfade) if x)
         afull = ",".join(x for x in (af, afade) if x) or None
         return ff_render(src, dst, vf=vf, af=afull, preset=p, start=start, duration=duration)
@@ -247,11 +248,23 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         args += ["-loop", "1", "-t", f"{max(0.2, float(ins.get('duration') or 1.8)):.3f}",
                  "-i", str(ins["file"])]
     audio_label = None
-    if sfx and src_info.has_audio:
+    if (sfx or music) and src_info.has_audio:
         base_idx = 1 + len(inserts or [])
         a_parts = [f"[0:a]{af or 'anull'}[abase]"]
         labels = ["[abase]"]
-        for j, s_ in enumerate(sfx):
+        if music:
+            # the bed loops under everything, sidechain-ducked by the
+            # voice itself: it breathes down on every syllable and comes
+            # back in the gaps, like the reference edits
+            mus_idx = base_idx + len(sfx or [])
+            a_parts[0] = f"[0:a]{af or 'anull'},asplit[vmain][vkey]"
+            labels = ["[vmain]"]
+            a_parts.append(f"[{mus_idx}:a]atrim=0:{float(duration or 0):.3f},"
+                           f"asetpts=N/SR/TB,volume={float(music_volume):.2f}[musraw]")
+            a_parts.append("[musraw][vkey]sidechaincompress=threshold=0.015:"
+                           "ratio=8:attack=15:release=280:makeup=1[musduck]")
+            labels.append("[musduck]")
+        for j, s_ in enumerate(sfx or []):
             ms = int(float(s_.get("at") or 0.0) * 1000)
             rate = float(s_.get("rate") or 1.0)
             # asetrate+aresample = a few % of pitch humanization, so repeated
@@ -270,13 +283,16 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         a_parts.append(f"[amix]{afade}[aout]" if afade else "[amix]anull[aout]")
         fc += ";" + ";".join(a_parts)
         audio_label = "aout"
-        for s_ in sfx:
+        for s_ in sfx or []:
             args += ["-i", str(s_["file"])]
+        if music:
+            args += ["-stream_loop", "-1", "-i", str(music)]
     if watermark:
         # brand mark last of all: above the captions and above the outro
         # fade, pinned for the whole clip, full opacity - campaign briefs
         # that mandate a watermark say keep it clear and never crop it off
-        wm_idx = 1 + len(inserts or []) + (len(sfx) if audio_label else 0)
+        wm_idx = 1 + len(inserts or []) + ((len(sfx or []) + (1 if music else 0))
+                                           if audio_label else 0)
         pos = str(watermark.get("position") or "tr").lower()
         mgn = int(watermark.get("margin") or 36)
         xy = {"tr": (f"W-w-{mgn}", str(mgn)), "br": (f"W-w-{mgn}", f"H-h-{mgn}"),

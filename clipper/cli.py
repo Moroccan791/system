@@ -213,6 +213,29 @@ def cmd_captions(args: argparse.Namespace) -> int:
     if inserts:
         log.info("image inserts", n=len(inserts),
                  where=[f"{i['start']}s+{i['duration']}s" for i in inserts])
+    cards = []
+    for spec in args.card:
+        parts = [x.strip() for x in spec.split(",")]
+        if len(parts) < 3:
+            raise SystemExit("--card should be AT,DUR,LINE1[,LINE2...]")
+        cards.append({"at": float(parts[0]), "dur": float(parts[1]),
+                      "lines": [p for p in parts[2:] if p]})
+    stickers = []
+    for spec in args.sticker:
+        parts = [x.strip() for x in spec.split(";")]
+        if len(parts) < 3:
+            raise SystemExit("--sticker should be AT;DUR;TEXT[;SUB[;POS]]")
+        stickers.append({"at": float(parts[0]), "dur": float(parts[1]),
+                         "text": parts[2],
+                         "sub": parts[3] if len(parts) > 3 else "",
+                         "pos": parts[4] if len(parts) > 4 else "tl"})
+    lists = []
+    for spec in args.list_items:
+        parts = [x.strip() for x in spec.split(";")]
+        if len(parts) < 3:
+            raise SystemExit("--list should be AT;DUR;ITEM1|ITEM2|...")
+        lists.append({"at": float(parts[0]), "dur": float(parts[1]),
+                      "items": [p for p in parts[2].split("|") if p.strip()]})
     result = run_captions(
         args.file, args.out, style_path=args.style, campaign=args.campaign,
         platform=args.platform, fit=args.fit, ass_only=args.ass_only,
@@ -222,6 +245,8 @@ def cmd_captions(args: argparse.Namespace) -> int:
         whoosh=args.whoosh or None, punch=args.punch,
         tighten=args.tighten, tighten_gap=args.tighten_gap,
         sound=args.sound, typing_sound=args.typing_sound == "on",
+        cards=cards or None, stickers=stickers or None,
+        lists=lists or None, music=args.music,
         handle=args.handle, watermark=args.watermark,
         word_fixes={k.strip(): v.strip() for k, _, v in
                     (spec.partition("=") for spec in args.fix) if k.strip()} or None,
@@ -326,9 +351,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--device", default=None, help="cpu | cuda (faster_whisper)")
     s.add_argument("--compute-type", default=None, help="int8 | float16 | float32")
     s.add_argument("--max-words", type=int, default=None, help="words per cue")
-    s.add_argument("--mode", default=None, choices=["line", "word", "block"],
+    s.add_argument("--mode", default=None, choices=["line", "word", "block", "poster"],
                    help="caption look: 'block' = the sentence-block grammar (words reveal when "
-                        "spoken and stay, the operative word bigger, bottom fade bar)")
+                        "spoken and stay, the operative word bigger, bottom fade bar); "
+                        "'poster' = the next-level grammar (centre-frame stacked type, "
+                        "connectives small/serif, the keyword huge in the accent - "
+                        "recipes/next_level_format.md)")
     s.add_argument("--hook", default=None, metavar="'LINE1|LINE2'",
                    help="stacked hook title for the first seconds, lines split by |")
     s.add_argument("--outro-text", default=None,
@@ -374,6 +402,20 @@ def build_parser() -> argparse.ArgumentParser:
                    help="show an image on the clip: T = when it appears (s), DUR = how long "
                         "it stays, FILE = image path, AT = full (cutaway, the default - "
                         "never paste art across a face) | top_safe | middle (repeatable)")
+    s.add_argument("--card", action="append", default=[], metavar="AT,DUR,LINE1[,LINE2...]",
+                   help="poster mode: a full-screen claim card at AT seconds for DUR - "
+                        "the claim re-typeset huge on a brand panel, lines stagger in "
+                        "(last line takes the accent). Repeatable")
+    s.add_argument("--sticker", action="append", default=[], metavar="AT;DUR;TEXT[;SUB[;POS]]",
+                   help="a persistent proof sticker (number + subline on an accent chip) "
+                        "pinned at POS (tl|tr|bl|br) while the talking continues. Repeatable")
+    s.add_argument("--list", dest="list_items", action="append", default=[],
+                   metavar="AT;DUR;ITEM1|ITEM2|...",
+                   help="an accumulating numbered list: items land one by one and stay. "
+                        "Repeatable")
+    s.add_argument("--music", default=None, metavar="MOOD",
+                   help="music bed under the voice, sidechain-ducked: dark | bright | "
+                        "chill (synthesized CC0 beds in assets/music) or off")
     s.add_argument("--ass-only", action="store_true", help="write .ass, do not encode video")
     s.add_argument("--plan", default=None,
                    help="edit plan of an assembled clip: reuse the source transcript's timings "

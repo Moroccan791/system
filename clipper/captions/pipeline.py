@@ -132,6 +132,46 @@ def _select_hits(block_info: list[dict]) -> list[dict]:
     return picked
 
 
+def _typing_strokes(hook_lines, block_info, name, cap_style) -> list[dict]:
+    """Keystroke sfx for typed text: the hook headline types word by word
+    (marks come from the same hook_word_times the ASS used, so sound and
+    text land on the same frame), every caption block lands with one very
+    light tick. Five synthesized variants, a random pick per stroke,
+    +-10% volume / +-3% pitch - human, never looped."""
+    import random
+
+    from . import keysfx
+    from .block import hook_type_marks
+
+    bank = keysfx.bank_files()
+    if not bank:
+        return []
+    rng = random.Random(f"keys:{name}")
+    key_vol = float(cap_style.get("key_volume") or 0.10)
+    tick_vol = float(cap_style.get("tick_volume") or 0.07)
+    strokes: list[dict] = []
+    for at, kind in hook_type_marks(hook_lines or []):
+        if kind == "enter":
+            strokes.append({"at": at, "file": bank["enter"],
+                            "volume": round(key_vol * 1.1, 3),
+                            "rate": round(rng.uniform(0.99, 1.01), 3)})
+        else:
+            strokes.append({"at": at, "file": rng.choice(bank["keys"]),
+                            "volume": round(key_vol * rng.uniform(0.9, 1.1), 3),
+                            "rate": round(rng.uniform(0.97, 1.03), 3)})
+    for b in block_info:
+        at = float(b.get("start") or 0)
+        if at < 0.05:
+            continue
+        strokes.append({"at": at, "file": rng.choice(bank["keys"]),
+                        "volume": round(tick_vol * rng.uniform(0.9, 1.1), 3),
+                        "rate": round(rng.uniform(0.97, 1.03), 3)})
+    if strokes:
+        log.info("typing sound", n=len(strokes), key_vol=key_vol,
+                 tick_vol=tick_vol)
+    return strokes
+
+
 def run_captions(
     src: str | Path,
     out: str | Path | None = None,
@@ -162,6 +202,10 @@ def run_captions(
     tighten_gap: float | None = None,
     sound: bool = False,
     typing_sound: bool = True,
+    cards: list[dict] | None = None,
+    stickers: list[dict] | None = None,
+    lists: list[dict] | None = None,
+    music: str | None = None,
     handle: str | None = None,
     word_fixes: dict | None = None,
     watermark: str | None = None,
@@ -325,7 +369,34 @@ def run_captions(
 
     mode = mode or cap_style.get("mode") or "karaoke"
     twidth, theight = int(preset["width"]), int(preset["height"])
-    if mode == "block":
+    if mode == "poster":
+        from . import poster as poster_mod
+
+        ass_path, block_info = poster_mod.write_poster_ass(
+            work / "captions.ass", transcript.words, style,
+            width=twidth, height=theight,
+            end=min(float(info.duration or 1e9), float(transcript.duration or 1e9)),
+            hook_lines=hook_lines, outro_text=outro_line,
+            handle=handle_line, cards=cards, stickers=stickers, lists=lists)
+        cues = block_info
+        log.info("poster blocks", n=len(block_info),
+                 cards=len(cards or []), stickers=len(stickers or []))
+        punch_list = None
+        if want_punch:
+            picked = _select_hits(block_info)
+            punch_list = picked or None
+            if punch_list:
+                log.info("camera punches", at=[p["at"] for p in punch_list])
+        if not block_info:
+            warnings.append("no poster blocks produced")
+        if typing_sound and block_info:
+            strokes = _typing_strokes(hook_lines, block_info, name, cap_style)
+            if strokes:
+                sfx = list(sfx or []) + strokes
+        jsonio.save(work / "cues.json", {"mode": "poster",
+                                        "count": len(block_info),
+                                        "blocks": block_info})
+    elif mode == "block":
         from . import block as block_mod
 
         blocks = getattr(block_mod, "segment_sentences")(transcript.words)
@@ -356,41 +427,9 @@ def run_captions(
                     log.info("sound pops", n=len(picked),
                              at=[p["at"] for p in picked])
         if typing_sound and block_info:
-            # keystroke system: the hook headline types word by word (marks
-            # come from the same hook_word_times the ASS used, so sound and
-            # text land on the same frame), and every caption block gets one
-            # very light key tick. Five synthesized variants, a random pick
-            # per stroke, +-10% volume / +-3% pitch - human, never looped.
-            from . import keysfx
-
-            bank = keysfx.bank_files()
-            if bank:
-                import random
-
-                rng = random.Random(f"keys:{name}")
-                key_vol = float(cap_style.get("key_volume") or 0.10)
-                tick_vol = float(cap_style.get("tick_volume") or 0.07)
-                strokes: list[dict] = []
-                for at, kind in block_mod.hook_type_marks(hook_lines or []):
-                    if kind == "enter":
-                        strokes.append({"at": at, "file": bank["enter"],
-                                        "volume": round(key_vol * 1.1, 3),
-                                        "rate": round(rng.uniform(0.99, 1.01), 3)})
-                    else:
-                        strokes.append({"at": at, "file": rng.choice(bank["keys"]),
-                                        "volume": round(key_vol * rng.uniform(0.9, 1.1), 3),
-                                        "rate": round(rng.uniform(0.97, 1.03), 3)})
-                for b in block_info:
-                    at = float(b.get("start") or 0)
-                    if at < 0.05:
-                        continue
-                    strokes.append({"at": at, "file": rng.choice(bank["keys"]),
-                                    "volume": round(tick_vol * rng.uniform(0.9, 1.1), 3),
-                                    "rate": round(rng.uniform(0.97, 1.03), 3)})
-                if strokes:
-                    sfx = list(sfx or []) + strokes
-                    log.info("typing sound", n=len(strokes), key_vol=key_vol,
-                             tick_vol=tick_vol)
+            strokes = _typing_strokes(hook_lines, block_info, name, cap_style)
+            if strokes:
+                sfx = list(sfx or []) + strokes
             else:
                 warnings.append("typing sound on but the key bank is missing "
                                 "(run: python -m clipper.captions.keysfx)")
@@ -418,11 +457,17 @@ def run_captions(
     output_path = None
     if burn_in and not ass_only:
         out = Path(out) if out else config.OUTPUT / f"{name}.captioned.mp4"
+        from .musicbed import bed_file
+
+        music_path = bed_file(music) if music else None
+        if music and not music_path:
+            warnings.append(f"music bed '{music}' not found in assets/music - skipped")
         burn(src, out, ass_path, preset=preset, fit=fit, start=start, duration=duration,
              target_size=(twidth, theight),
              grade=style.get("grade") or None, inserts=inserts,
-             outro=fade_seconds, sfx=sfx, punches=punch_list if mode == "block" else None,
-             watermark=wm)
+             outro=fade_seconds, sfx=sfx,
+             punches=punch_list if mode in ("block", "poster") else None,
+             watermark=wm, music=music_path)
         output_path = str(out)
         log.info("wrote", output=output_path)
 

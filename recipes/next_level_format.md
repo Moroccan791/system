@@ -82,20 +82,25 @@ Fiverr watermark — these are pro-editor outputs, i.e. the benchmark.
 
 ## Build plan (in order)
 
-1. **`poster` caption mode** — centre-frame stacked type from the
-   same true-sync words: keyword huge, connectives small (optional
-   serif-italic second font), one accent. QC face-check extends to it.
-2. **Claim cards** — PIL-rendered full-screen cards (brand colour,
-   kinetic stagger via the existing typed-text timing), auto-inserted
-   at agent-chosen sentence boundaries; whoosh in/out.
-3. **Card inserts** — image + label chip composited over a blurred
-   frame (ffmpeg overlay), placed below the chin, face-checked.
-4. **Stickers** — persistent badge/list events in ASS with timed
-   accumulation (steps, counters, proof numbers).
-5. **Music beds** — 3–4 synthesized loopable beds (CC0, same synth
-   approach as the key bank) + `sidechaincompress` ducking under voice.
-6. **Pacing planner + QC** — segment plans target a visual event
-   every ≤2 s; QC gains a "max visual gap" check.
+1. **`poster` caption mode** ✅ SHIPPED — centre-frame stacked type
+   from the same true-sync words: keyword huge, connectives small
+   (serif for pure-filler rows, DejaVu Serif), one accent. Stacks sit
+   on the chest (`center_y` 0.66); QC face-check covers Poster events.
+2. **Claim cards** ✅ SHIPPED — ASS-rendered full-screen brand panels,
+   lines stagger in (`--card AT,DUR,LINE1,LINE2`), last line accented.
+3. **Card inserts** ⏳ NEXT — image + label chip composited over a
+   blurred frame (ffmpeg overlay), placed below the chin, face-checked.
+4. **Stickers + lists** ✅ SHIPPED — persistent accent chips
+   (`--sticker AT;DUR;TEXT;SUB;POS`) and accumulating numbered lists
+   (`--list AT;DUR;A|B|C`) as long-duration ASS events.
+5. **Music beds** ✅ SHIPPED — 3 synthesized loopable beds (dark /
+   bright / chill, `assets/music/`, CC0) + `sidechaincompress`
+   ducking under the voice (`--music MOOD`).
+6. **Pacing planner + QC** ✅ QC SHIPPED — `visual_pacing` check (a
+   visual event at least every 3.5 s) runs on every render; the
+   planner itself is the agent's segment choice per clip.
+
+First demo: `post6/` (MILK grading clip in the new format, QC PASS).
 
 Hard rules that stay: never cover the face (cards sit below the chin,
 QC-verified), captions = exactly what was said, assets licensed/CC0
