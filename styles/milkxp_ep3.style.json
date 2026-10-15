@@ -20,7 +20,7 @@
       "base_size_ass": 84,
       "emphasis_scale": 1.6,
       "emphasis_case": "title",
-      "max_words": 10,
+      "max_words": 4,
       "max_chars": 52,
       "rise_px": 16,
       "rise_ms": 250,
@@ -30,7 +30,8 @@
       "fade_bar": true,
       "fade_bar_alpha": 0.5,
       "fade_bar_height": 0.3,
-      "outline_width": 4
+      "outline_width": 4,
+      "max_rows": 2
     },
     "fade_out_seconds": 0.7,
     "outro_text": "milkXP EP.3 - FULL EPISODE ON YOUTUBE",

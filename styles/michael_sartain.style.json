@@ -88,7 +88,7 @@
       "base_size_ass": 84,
       "emphasis_scale": 1.6,
       "emphasis_case": "title",
-      "max_words": 10,
+      "max_words": 4,
       "max_chars": 52,
       "rise_px": 16,
       "rise_ms": 250,
@@ -99,7 +99,8 @@
       "fade_bar_alpha": 0.5,
       "fade_bar_height": 0.3,
       "outline_width": 4,
-      "_source": "distilled from the two Premiere tutorials the user provided - recipes/professional_podcast_reel.md"
+      "_source": "distilled from the two Premiere tutorials the user provided - recipes/professional_podcast_reel.md",
+      "max_rows": 2
     },
     "mode": "block",
     "fade_out_seconds": 0.7,

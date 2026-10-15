@@ -10,18 +10,45 @@
   agent, hooks first, polish after), and a real ending: closing line +
   fade-out (picture and audio) + outro text. Never mid-topic, never an
   abrupt cut.
+- **Hook-first selection** (the editor spec): the clip starts on the
+  claim / number / surprise / punchline — never a throwaway lead-in
+  ("so", "no offense", "okay", "you see"); setup is cut to one short
+  line or dropped. The on-screen headline must match what is said in
+  the first 2 s. Default length 25–40 s unless the story needs more
+  (a campaign doc's window overrules). End on the punchline or an
+  open loop, never mid-sentence. Each clip of a batch takes a
+  different segment, hook and framing — hooks must mesmerize:
+  contrast / confession / number the viewer *feels*.
 - **Captions** reproduce what was actually said, in true sync with the
-  voice (engine-level; never hand-tune one clip — fix the pipeline).
-  18+ words are starred (`s*x`, `f*ck`). Big-word accent colour is the
-  user's pick per project, never imposed.
+  voice (engine-level; never hand-tune one clip — fix the pipeline):
+  **2–4 words at a time, max two lines**, one fixed lower-centre
+  position, one style all video, never over the face or hands, the
+  spoken/key word in the project accent. 18+ words are starred
+  (`s*x`, `f*ck`). Big-word accent colour is the user's pick per
+  project, never imposed.
+- **Typing sound** (default ON, `--typing-sound on|off`): the hook
+  headline types on word by word; every keystroke is one of five
+  synthesized key clicks (`assets/sfx/keys/`, CC0 — see
+  `assets/sfx/LICENSES.md`), random pick, ±10% volume / ±3% pitch,
+  an "enter" click to finish, ≈ −25 dB under the voice; caption
+  blocks land with a much lighter tick. Off also stops the headline
+  typing (never type silently).
+- **Automated QC after every render**: `<video>.qc.json` lands next
+  to the output (also `clipper qc VIDEO --ass … --transcript …
+  --hook "…"` standalone): first caption ≤ 1 s, no caption over a
+  face (YuNet), no static background > 4 s, loudness in window,
+  headline ↔ first-2 s overlap, duration, corner-logo scan. A FAIL
+  is reported in the render warnings — read it before packaging;
+  fix the cause, never hand-wave it.
 - **Framing**: faces fully in frame, always (an ear cut off = rejected
   clip). One continuous gentle push; camera punches only on payoff
   words; per-segment reframe when speakers sit in different places.
 - **B-roll**: full-frame cutaways only, at most one or two, never pasted
   over a face, never "extra". Images are generated or campaign-supplied
   (licensing) — stock with watermarks is a no.
-- **Sound**: sound design on (riser, payoff pops, caption typing ticks
-  at 0.16 — audible but very low), whoosh on the payoff.
+- **Sound**: sound design on (riser, payoff pops, quiet whoosh/hit on
+  punches and cuts), loudness normalized, music (if any) ducked under
+  the voice; typing sound as above, sitting far under the voice.
 - **Deliverable per clip** = video(s) + posting pack (title,
   per-platform description, 7–8 hashtags) in a `post<N>/` folder in
   this repo — the user downloads from GitHub, the preview does not

@@ -221,7 +221,8 @@ def cmd_captions(args: argparse.Namespace) -> int:
         outro_text=args.outro_text, fade_out=args.fade_out,
         whoosh=args.whoosh or None, punch=args.punch,
         tighten=args.tighten, tighten_gap=args.tighten_gap,
-        sound=args.sound, handle=args.handle, watermark=args.watermark,
+        sound=args.sound, typing_sound=args.typing_sound == "on",
+        handle=args.handle, watermark=args.watermark,
         word_fixes={k.strip(): v.strip() for k, _, v in
                     (spec.partition("=") for spec in args.fix) if k.strip()} or None,
         **kwargs,
@@ -345,6 +346,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--sound", action="store_true",
                    help="sound design: riser swelling under the hook + a pop on "
                         "every camera-punch word (assets/sfx, CC0)")
+    s.add_argument("--typing-sound", choices=["on", "off"], default="on",
+                   help="keystroke sounds: the hook headline types on word by "
+                        "word with soft synthesized key clicks (5 variants, "
+                        "random pick, +-10%% volume / +-3%% pitch, an 'enter' "
+                        "click to finish) and every caption block lands with a "
+                        "very light tick, all well under the voice. Default on; "
+                        "--typing-sound off also stops the headline typing.")
     s.add_argument("--handle", default=None, metavar="@NAME",
                    help="creator handle pinned at the right edge for the whole "
                         "clip (default: the profile's, per platform)")
@@ -384,6 +392,21 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--accent", default=None,
                    help="accent colour name or #RRGGBB (default: white)")
     s.set_defaults(func=cmd_cover)
+
+    s = sub.add_parser("qc", help="automated post-render QC report: first "
+                                  "caption <= 1 s, no caption over a face, no "
+                                  "static shot > 4 s, loudness, hook match, "
+                                  "corner-logo scan")
+    s.add_argument("video")
+    s.add_argument("--ass", default=None,
+                   help="the clip's .ass (default: work/<name>/captions.ass)")
+    s.add_argument("--transcript", default=None,
+                   help="clip transcript JSON for the hook check (default: "
+                        "work/<name>/transcript.json)")
+    s.add_argument("--hook", default=None,
+                   help="hook headline lines separated by | (checked against "
+                        "the first 2 s of speech)")
+    s.set_defaults(func=cmd_qc)
 
     s = sub.add_parser("reframe", help="per-segment 9:16 crop focus for a window "
                                        "(scene cuts + face medians -> candidate segments JSON)")
@@ -602,6 +625,29 @@ def cmd_arcs(args: argparse.Namespace) -> int:
         Path(out).write_text(json.dumps(payload, indent=2))
         print(f"\nwritten: {out}  ->  python -m clipper edit {args.campaign or '<campaign>'}")
     return 0
+
+
+def cmd_qc(args: argparse.Namespace) -> int:
+    from .qc import format_report, run_qc
+
+    video = Path(args.video)
+    ass = Path(args.ass) if args.ass else config.WORK / video.stem / "captions.ass"
+    words = None
+    tpath = (Path(args.transcript) if args.transcript
+             else config.WORK / video.stem / "transcript.json")
+    if tpath.exists():
+        data = json.loads(tpath.read_text())
+        words = [{"text": w.get("text", ""), "start": float(w.get("start") or 0)}
+                 for w in data.get("words", [])]
+    hook_lines = ([x.strip() for x in args.hook.split("|") if x.strip()]
+                  if args.hook else None)
+    report = run_qc(video, ass=ass if ass.exists() else None,
+                    hook_lines=hook_lines, words=words)
+    out = video.with_name(video.stem + ".qc.json")
+    out.write_text(json.dumps(report, indent=2))
+    print(format_report(report))
+    print(f"report: {out}")
+    return 0 if report["ok"] else 1
 
 
 def cmd_cover(args: argparse.Namespace) -> int:

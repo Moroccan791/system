@@ -253,7 +253,12 @@ def burn(src: str | Path, dst: str | Path, ass_path: str | Path, *,
         labels = ["[abase]"]
         for j, s_ in enumerate(sfx):
             ms = int(float(s_.get("at") or 0.0) * 1000)
-            a_parts.append(f"[{base_idx + j}:a]adelay={ms}|{ms},"
+            rate = float(s_.get("rate") or 1.0)
+            # asetrate+aresample = a few % of pitch humanization, so repeated
+            # keystrokes never sound like one sample looping
+            pitch = (f"asetrate=48000*{rate:.4f},aresample=48000,"
+                     if abs(rate - 1.0) > 0.001 else "")
+            a_parts.append(f"[{base_idx + j}:a]{pitch}adelay={ms}|{ms},"
                            f"volume={float(s_.get('volume') or 0.45):.2f}[sfx{j}]")
             labels.append(f"[sfx{j}]")
         # normalize=0 matters: amix's default divides the whole mix by the

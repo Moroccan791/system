@@ -161,6 +161,7 @@ def run_captions(
     tighten: bool = False,
     tighten_gap: float | None = None,
     sound: bool = False,
+    typing_sound: bool = True,
     handle: str | None = None,
     word_fixes: dict | None = None,
     watermark: str | None = None,
@@ -185,6 +186,10 @@ def run_captions(
         style = config.deep_merge(style, {"captions": {"max_words_per_cue": int(max_words)}})
     if accent:
         style = config.deep_merge(style, {"captions": {"block": {"emphasis_color": accent}}})
+    if not typing_sound:
+        # the headline must not type silently: the ASS stagger and the
+        # keystroke mix are one feature, gated by the same flag
+        style = config.deep_merge(style, {"captions": {"block": {"typing_hook": False}}})
     cap_style = style["captions"]
 
     info = probe(src)
@@ -350,22 +355,45 @@ def run_captions(
                         for p in picked]
                     log.info("sound pops", n=len(picked),
                              at=[p["at"] for p in picked])
-        if sound_on and block_info:
-            tick_a = config.ROOT / "assets" / "sfx" / "tick.wav"
-            tick_b = config.ROOT / "assets" / "sfx" / "tick2.wav"
-            if tick_a.exists():
-                # a soft keyboard tick as each caption block lands, very
-                # low in the mix; two alternating clicks keep it human
-                # instead of metronome-like
-                vol = float(cap_style.get("tick_volume") or 0.16)
-                ticks = [{"at": float(b["start"]),
-                          "file": str(tick_a if i % 2 == 0 else tick_b),
-                          "volume": vol}
-                         for i, b in enumerate(block_info)
-                         if float(b.get("start") or 0) >= 0.05]
-                if ticks:
-                    sfx = list(sfx or []) + ticks
-                    log.info("caption ticks", n=len(ticks), volume=vol)
+        if typing_sound and block_info:
+            # keystroke system: the hook headline types word by word (marks
+            # come from the same hook_word_times the ASS used, so sound and
+            # text land on the same frame), and every caption block gets one
+            # very light key tick. Five synthesized variants, a random pick
+            # per stroke, +-10% volume / +-3% pitch - human, never looped.
+            from . import keysfx
+
+            bank = keysfx.bank_files()
+            if bank:
+                import random
+
+                rng = random.Random(f"keys:{name}")
+                key_vol = float(cap_style.get("key_volume") or 0.10)
+                tick_vol = float(cap_style.get("tick_volume") or 0.07)
+                strokes: list[dict] = []
+                for at, kind in block_mod.hook_type_marks(hook_lines or []):
+                    if kind == "enter":
+                        strokes.append({"at": at, "file": bank["enter"],
+                                        "volume": round(key_vol * 1.1, 3),
+                                        "rate": round(rng.uniform(0.99, 1.01), 3)})
+                    else:
+                        strokes.append({"at": at, "file": rng.choice(bank["keys"]),
+                                        "volume": round(key_vol * rng.uniform(0.9, 1.1), 3),
+                                        "rate": round(rng.uniform(0.97, 1.03), 3)})
+                for b in block_info:
+                    at = float(b.get("start") or 0)
+                    if at < 0.05:
+                        continue
+                    strokes.append({"at": at, "file": rng.choice(bank["keys"]),
+                                    "volume": round(tick_vol * rng.uniform(0.9, 1.1), 3),
+                                    "rate": round(rng.uniform(0.97, 1.03), 3)})
+                if strokes:
+                    sfx = list(sfx or []) + strokes
+                    log.info("typing sound", n=len(strokes), key_vol=key_vol,
+                             tick_vol=tick_vol)
+            else:
+                warnings.append("typing sound on but the key bank is missing "
+                                "(run: python -m clipper.captions.keysfx)")
         if not block_info:
             warnings.append("no caption blocks produced")
         jsonio.save(work / "cues.json", {"mode": "block", "count": len(block_info),
@@ -397,6 +425,29 @@ def run_captions(
              watermark=wm)
         output_path = str(out)
         log.info("wrote", output=output_path)
+
+        # automated QC on every render (House rule): first caption within
+        # 1 s, no caption over a face, no static shot over 4 s, sane
+        # loudness, headline matching the opening words. The report lands
+        # next to the video; failures ride along as warnings.
+        try:
+            from ..qc import run_qc
+
+            report = run_qc(
+                out, ass=ass_path, hook_lines=hook_lines,
+                words=[{"text": str(w.text), "start": float(w.start)}
+                       for w in transcript.words])
+            qc_path = out.with_name(out.stem + ".qc.json")
+            jsonio.save(qc_path, report)
+            log.info("qc", status="PASS" if report["ok"] else "FAIL",
+                     report=str(qc_path),
+                     failed=[c["name"] for c in report["checks"]
+                             if c["status"] == "fail"])
+            for c in report["checks"]:
+                if c["status"] == "fail":
+                    warnings.append(f"qc: {c['name']}: {c['detail']}")
+        except Exception as exc:  # QC must never sink a finished render
+            warnings.append(f"qc: could not run ({exc})")
 
     result = CaptionResult(
         source=str(src), provider=transcript.provider,

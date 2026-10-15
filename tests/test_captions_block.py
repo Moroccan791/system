@@ -126,8 +126,10 @@ def test_hook_and_outro_events_are_written():
                                    outro_text="@somehandle")
     assert "Style: Hook," in text
     hook = [l for l in text.splitlines() if ",Hook," in l]
-    assert len(hook) == 2 and "MEN: 6 IN 1000" in hook[1]
-    assert hook[1].find("1c") > 0                      # last hook line accented
+    # the headline types on word by word; the completed lines are the
+    # longest step of each row, and the last line carries the accent
+    assert "WOMEN MATCH 10%" in hook[2] and "MEN: 6 IN 1000" in hook[-1]
+    assert hook[-1].find("1c") > 0                     # last hook line accented
     outro = [l for l in text.splitlines() if "@somehandle" in l]
     assert len(outro) == 1 and "0:00:38.20" in outro[0]  # fades in for the outro
 

@@ -207,10 +207,11 @@ def _wrap(sentence: list[Word], emphasis: int, sizes: list[float], *,
 
 
 def _layout_rows(sentence: list[Word], emphasis: int, sizes: list[float],
-                 max_width: float) -> list[list[int]]:
+                 max_width: float, max_rows: int = 2) -> list[list[int]]:
     rows = _wrap(sentence, emphasis, sizes, max_width=max_width)
-    # at most 3 rows: merge the narrowest neighbours until it fits
-    while len(rows) > 3:
+    # at most max_rows rows (2 by House rule): merge the narrowest
+    # neighbours until it fits
+    while len(rows) > max_rows:
         widths = [sum(_text_width(str(sentence[j].text), sizes[j]) for j in r)
                   for r in rows]
         i = min(range(len(rows)), key=lambda k: widths[k])
@@ -245,15 +246,16 @@ def _sentence_events(sentence: list[Word], style: dict, *, width: int, height: i
         return max((sum(_text_width(str(sentence[i].text), sizes[i]) for i in line)
                     + (len(line) - 1) * base_size * 0.30) for line in ls)
 
-    lines = _layout_rows(sentence, emphasis, sizes, max_width)
-    # shrink until every row truly fits: _layout_rows caps at 3 rows by
+    max_rows = max(1, int(block.get("max_rows") or 2))
+    lines = _layout_rows(sentence, emphasis, sizes, max_width, max_rows)
+    # shrink until every row truly fits: _layout_rows caps the rows by
     # merging, and a merged row can be wider than the frame - type that
     # runs off the edge is the loudest amateur tell there is
-    while (len(lines) > 3 or _widest(lines) > max_width) and base_size > 34:
+    while (len(lines) > max_rows or _widest(lines) > max_width) and base_size > 34:
         base_size *= 0.92
         emphasis_size = base_size * float(block.get("emphasis_scale") or 1.6)
         sizes = [emphasis_size if i == emphasis else base_size for i in range(len(sentence))]
-        lines = _layout_rows(sentence, emphasis, sizes, max_width)
+        lines = _layout_rows(sentence, emphasis, sizes, max_width, max_rows)
 
     line_heights = [max(sizes[i] for i in line) * 1.22 for line in lines]
     block_h = sum(line_heights)
@@ -336,28 +338,76 @@ def build_fade_bar(width: int, height: int, *, alpha: float = 0.55,
     return events
 
 
+TYPE_WORD_DT = 0.095   # seconds between typed words on the hook headline
+TYPE_LINE_DT = 0.12    # extra pause when typing moves to the next line
+TYPE_START = 0.05
+
+
+def hook_word_times(hook_lines: list[str]) -> list[list[float]]:
+    """Appearance time of every hook word when the headline is typed on.
+
+    Pure function of the lines, so the ASS events and the keystroke sounds
+    the pipeline mixes are scheduled from one shared source of truth.
+    """
+    times: list[list[float]] = []
+    t = TYPE_START
+    for li, line in enumerate(hook_lines):
+        if li:
+            t += TYPE_LINE_DT
+        row = []
+        for _ in str(line).split():
+            row.append(round(t, 3))
+            t += TYPE_WORD_DT
+        times.append(row)
+    return times
+
+
+def hook_type_marks(hook_lines: list[str]) -> list[tuple[float, str]]:
+    """(time, 'key'|'enter') marks for the keystroke mix of a typed hook."""
+    times = hook_word_times(hook_lines)
+    marks = [(t, "key") for row in times for t in row]
+    if marks:
+        marks.append((round(marks[-1][0] + TYPE_WORD_DT + 0.10, 3), "enter"))
+    return marks
+
+
 def build_hook_events(hook_lines: list[str], outro_text: str | None, *,
                       width: int, height: int, end: float | None,
                       base_size: float, emphasis_size: float,
                       accent: str | None, hook_seconds: float = 2.8,
-                      outro_seconds: float = 1.8) -> list[str]:
+                      outro_seconds: float = 1.8,
+                      typing: bool = False) -> list[str]:
     """The first and last impression, as ASS events on their own layer.
 
     Hook: stacked claim lines top-centre for the first seconds - a scroller
     gets the point before a word is spoken; the last line carries the accent.
-    Outro: one closing line (handle / follow CTA, the creator's choice) that
-    fades in as the picture fades out, so the clip lands instead of stopping.
+    With typing=True the headline types on word by word (hook_word_times
+    schedules both the text and the keystroke sounds). Outro: one closing
+    line (handle / follow CTA) that fades in as the picture fades out, so
+    the clip lands instead of stopping.
     """
     events: list[str] = []
     if hook_lines:
         fs = emphasis_size * 1.05
         y = height * 0.058
+        times = hook_word_times(hook_lines) if typing else None
         for i, line in enumerate(hook_lines):
             tags = (rf"\an8\pos({width / 2:.0f},{y:.0f})\fs{fs:.0f}\fad(120,220)")
             if accent and i == len(hook_lines) - 1:
                 tags += rf"\1c{ass_color(str(accent))}"
-            events.append(f"Dialogue: 3,0:00:00.00,{fmt_ass(hook_seconds)},Hook,,0,0,0,,"
-                          f"{{{tags}}}{_escape(censor_text(line))}")
+            if typing and times and times[i]:
+                words = censor_text(str(line)).split()
+                for k, start_t in enumerate(times[i]):
+                    # non-overlapping steps: each partial line is replaced by
+                    # the next, longer one, or double text would draw
+                    end_t = times[i][k + 1] if k + 1 < len(times[i]) else hook_seconds
+                    shown = " ".join(words[: k + 1])
+                    events.append(
+                        f"Dialogue: 3,{fmt_ass(start_t)},{fmt_ass(end_t)},Hook,,0,0,0,,"
+                        f"{{{tags}}}{_escape(shown)}")
+            else:
+                events.append(f"Dialogue: 3,0:00:00.00,{fmt_ass(hook_seconds)},Hook,,0,0,0,,"
+                              f"{{{tags}}}{_escape(censor_text(line))}")
             y += fs * 1.12
     if outro_text and end:
         st = max(0.0, end - outro_seconds)
@@ -387,7 +437,7 @@ def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
                                                      or max(2, float(cap.get("shadow") or 0))) * scale)))
 
     sentences = segment_sentences(declutter(words),
-                                  max_words=int(block.get("max_words") or 10),
+                                  max_words=int(block.get("max_words") or 4),
                                   max_chars=int(block.get("max_chars") or 52))
     events: list[str] = []
     blocks: list[dict] = []
@@ -423,7 +473,8 @@ def build_block_ass(words: list[Word], style: dict, *, width: int = 1080,
     events.extend(build_hook_events(
         hook_lines or [], outro_text, width=width, height=height, end=end,
         base_size=_bs, emphasis_size=_bs * float(block.get("emphasis_scale") or 1.6),
-        accent=block.get("emphasis_color")))
+        accent=block.get("emphasis_color"),
+        typing=bool(block.get("typing_hook", True))))
     if handle and end:
         # the creator's handle pinned to the right edge for the WHOLE clip:
         # the campaign's in-video tag requirement, met by construction, and
