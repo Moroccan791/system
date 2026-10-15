@@ -1,0 +1,54 @@
+{
+ "version": 1,
+ "campaign": "michael_sartain",
+ "clip": {
+  "min_seconds": 20.0,
+  "max_seconds": 60.0
+ },
+ "hook": {
+  "within_seconds": 5
+ },
+ "format": {
+  "aspect": "9:16",
+  "captions_required": true
+ },
+ "topics": {
+  "approved": [
+   "dating",
+   "relationships",
+   "masculinity",
+   "confidence",
+   "networking",
+   "lifestyle",
+   "women",
+   "men",
+   "attraction",
+   "social"
+  ],
+  "banned": [
+   "politics",
+   "election",
+   "money",
+   "crypto",
+   "adult",
+   "sex",
+   "rage"
+  ]
+ },
+ "entities": {
+  "banned": []
+ },
+ "phrases": {
+  "banned": []
+ },
+ "tone": {
+  "warn": [
+   "demeaning women",
+   "rage bait"
+  ]
+ },
+ "brand": {
+  "face_min_coverage": null,
+  "notes": []
+ }
+}

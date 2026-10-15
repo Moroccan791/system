@@ -1,0 +1,55 @@
+{
+ "source": {
+  "file": "campaigns/michael_sartain/raw/men-cant-accept-her-past.mp4",
+  "name": "men-cant-accept-her-past.mp4"
+ },
+ "campaign": "michael_sartain",
+ "mode": "manual-semantic",
+ "candidates": [
+  {
+   "id": "#M3",
+   "start": 456.6,
+   "end": 477.2,
+   "duration": 20.6,
+   "score": 0.85,
+   "text": "Truth does not need to be infectious... you have to listen to people who are smarter than you... let your ego sit down... that truth is not viral. If it was viral, more people would be successful.",
+   "reasons": [
+    "HOOK: aphorism claim at 0s; payoff line 'if it was viral, more people would be successful' closes it; ends before the culture-war stretch",
+    "Michael solo, clean bright single shot - ideal 9:16 crop",
+    "20.6s inside campaign 20-60s"
+   ],
+   "segments": [
+    {
+     "start": 456.6,
+     "end": 459.96,
+     "focus_x": 0.319
+    },
+    {
+     "start": 459.96,
+     "end": 463.32,
+     "focus_x": 0.319
+    },
+    {
+     "start": 463.32,
+     "end": 466.68,
+     "focus_x": 0.319
+    },
+    {
+     "start": 466.68,
+     "end": 470.04,
+     "focus_x": 0.319
+    },
+    {
+     "start": 470.04,
+     "end": 473.62,
+     "focus_x": 0.07
+    },
+    {
+     "start": 473.62,
+     "end": 477.2,
+     "focus_x": 0.07
+    }
+   ]
+  }
+ ]
+}

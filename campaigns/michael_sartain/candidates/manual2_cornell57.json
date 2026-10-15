@@ -1,0 +1,85 @@
+{
+ "source": {
+  "file": "campaigns/michael_sartain/raw/cornell-7-story.mp4",
+  "name": "cornell-7-story.mp4"
+ },
+ "campaign": "michael_sartain",
+ "mode": "manual-semantic",
+ "candidates": [
+  {
+   "id": "#M2",
+   "start": 165.16,
+   "end": 200.4,
+   "duration": 35.24,
+   "score": 0.9,
+   "text": "Something they could have called the cops, but they didn't. There were 57 men in the group chat... every single one should have known. Oh wait - we don't know any of those things for a fact... should someone have done something? 100%. We don't know if what they're saying is literal or crazy.",
+   "reasons": [
+    "HOOK: cops/57-men claim in first seconds; contrarian twist mid-clip; ends BEFORE the Charlie Kirk stretch (banned: politics)",
+    "Michael solo cam left panel (name-labelled), clearly >=50%",
+    "35.5s inside campaign 20-60s"
+   ],
+   "segments": [
+    {
+     "start": 165.16,
+     "end": 168.1,
+     "focus_x": 0.0
+    },
+    {
+     "start": 168.1,
+     "end": 171.04,
+     "focus_x": 0.0
+    },
+    {
+     "start": 171.04,
+     "end": 173.98,
+     "focus_x": 0.0
+    },
+    {
+     "start": 173.98,
+     "end": 176.92,
+     "focus_x": 0.0
+    },
+    {
+     "start": 176.92,
+     "end": 179.86,
+     "focus_x": 0.0
+    },
+    {
+     "start": 179.86,
+     "end": 182.8,
+     "focus_x": 0.0
+    },
+    {
+     "start": 182.8,
+     "end": 185.74,
+     "focus_x": 0.0
+    },
+    {
+     "start": 185.74,
+     "end": 188.68,
+     "focus_x": 0.0
+    },
+    {
+     "start": 188.68,
+     "end": 191.62,
+     "focus_x": 0.0
+    },
+    {
+     "start": 191.62,
+     "end": 194.56,
+     "focus_x": 0.0
+    },
+    {
+     "start": 194.56,
+     "end": 197.5,
+     "focus_x": 0.0
+    },
+    {
+     "start": 197.5,
+     "end": 200.4,
+     "focus_x": 0.0
+    }
+   ]
+  }
+ ]
+}

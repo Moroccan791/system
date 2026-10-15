@@ -1,0 +1,65 @@
+{
+ "source": {
+  "file": "campaigns/michael_sartain/raw/women-make-you-wait-beta.mp4",
+  "name": "women-make-you-wait-beta.mp4"
+ },
+ "campaign": "michael_sartain",
+ "mode": "manual-semantic",
+ "candidates": [
+  {
+   "id": "#M1",
+   "start": 393.54,
+   "end": 414.9,
+   "duration": 21.36,
+   "score": 0.9,
+   "text": "You made one guy wait. Another guy NOT wait. Can you explain why? ... I need a mental connection before you can even turn me on. I'm not into casual stuff.",
+   "reasons": [
+    "HOOK: Michael's title-thesis question lands at 0.1s; her answer is the payoff; cut lands before the adult-rated stretch at ~7:00",
+    "panel two-shot: Michael (right, Men of Action) drives the moment",
+    "21.5s inside campaign 20-60s"
+   ],
+   "segments": [
+    {
+     "start": 393.54,
+     "end": 396.05,
+     "focus_x": 0.827
+    },
+    {
+     "start": 396.05,
+     "end": 398.7,
+     "focus_x": 0.827
+    },
+    {
+     "start": 398.7,
+     "end": 400.5,
+     "focus_x": 0.0
+    },
+    {
+     "start": 400.5,
+     "end": 401.73,
+     "focus_x": 1.0
+    },
+    {
+     "start": 401.73,
+     "end": 405.023,
+     "focus_x": 0.684
+    },
+    {
+     "start": 405.023,
+     "end": 408.315,
+     "focus_x": 0.684
+    },
+    {
+     "start": 408.315,
+     "end": 411.607,
+     "focus_x": 0.684
+    },
+    {
+     "start": 411.607,
+     "end": 414.9,
+     "focus_x": 0.684
+    }
+   ]
+  }
+ ]
+}

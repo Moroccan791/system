@@ -3,12 +3,12 @@
   "campaign": "michael_sartain",
   "source": {
     "references": [
-      "YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p.mp4",
-      "YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p.mp4",
-      "YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p.mp4"
+      "80pct-men-wont-succeed.mp4",
+      "being-called-a-player.mp4",
+      "society-going-downhill.mp4"
     ],
     "notes": "font family cannot be identified from pixels - keeping the default; set captions.font_family by hand if the campaign uses a specific font; font size carries about +/-52% uncertainty: the font face cannot be identified from pixels, so the size is right for the rendering default (Montserrat) and off if the campaign uses a much wider/taller face",
-    "extracted_at": "2026-10-14T03:36:09",
+    "extracted_at": "2026-10-15T18:36:48",
     "sample": {
       "fps": 6.0,
       "width": 480
@@ -21,17 +21,10 @@
     "median_shot_len": 1.167
   },
   "zoom": {
-    "dominant": "punch",
+    "dominant": "static",
     "punch_in_scale": 1.12,
     "punch_in_duration": 0.5,
-    "punch_in_ratio": 0.6,
-    "_chosen": true,
-    "_measured": {
-      "dominant": "static",
-      "punch_in_scale": 1.14,
-      "punch_in_duration": 0.583,
-      "note": "the three reference Shorts are mostly static per shot (6 static, 1 punch-in, 2 pull-out of 12 measured) - their polish is captions, graphics and b-roll, not camera moves. 'punch' is a deliberate choice for the TikTok podcast look, not a measurement."
-    }
+    "confidence": 0.586
   },
   "transitions": {
     "in": "cut",
@@ -72,53 +65,18 @@
     "evidence": {
       "cue_count": 152,
       "frames": [
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p_caption_0.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p_caption_1.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_VxVMWWWwVKM_Being-Called-A-Player-Isn-t-A-Bad-Thing_002_720p_caption_2.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p_caption_0.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p_caption_1.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_jJuni2tGUDg_Is-Our-Society-Going-Down-Hill_002_720p_caption_2.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_0.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_1.png",
-        "/home/user/system/work/michael_sartain/style/evidence/YTDown.com_Shorts_Media_mGG7OEATpkk_80-Of-Men-Aren-t-Going-To-Succeed_001_1080p_caption_2.png"
+        "/home/user/system/work/michael_sartain/style/evidence/80pct-men-wont-succeed_caption_0.png",
+        "/home/user/system/work/michael_sartain/style/evidence/80pct-men-wont-succeed_caption_1.png",
+        "/home/user/system/work/michael_sartain/style/evidence/80pct-men-wont-succeed_caption_2.png",
+        "/home/user/system/work/michael_sartain/style/evidence/being-called-a-player_caption_0.png",
+        "/home/user/system/work/michael_sartain/style/evidence/being-called-a-player_caption_1.png",
+        "/home/user/system/work/michael_sartain/style/evidence/being-called-a-player_caption_2.png",
+        "/home/user/system/work/michael_sartain/style/evidence/society-going-downhill_caption_0.png",
+        "/home/user/system/work/michael_sartain/style/evidence/society-going-downhill_caption_1.png",
+        "/home/user/system/work/michael_sartain/style/evidence/society-going-downhill_caption_2.png"
       ]
     },
-    "font_size_uncertainty": 0.52,
-    "block": {
-      "base_size_ass": 84,
-      "emphasis_scale": 1.6,
-      "emphasis_case": "title",
-      "max_words": 4,
-      "max_chars": 52,
-      "rise_px": 16,
-      "rise_ms": 250,
-      "fade_in_ms": 120,
-      "word_wipe_ms": 90,
-      "clear_after": 0.35,
-      "fade_bar": true,
-      "fade_bar_alpha": 0.5,
-      "fade_bar_height": 0.3,
-      "outline_width": 4,
-      "_source": "distilled from the two Premiere tutorials the user provided - recipes/professional_podcast_reel.md",
-      "max_rows": 2
-    },
-    "mode": "block",
-    "fade_out_seconds": 0.7,
-    "outro_text": "@michaelsartainpodcast",
-    "handle": "@michaelsartainpodcast",
-    "handles": {
-      "tiktok": "@michaelsartainpodcast",
-      "reels": "@michaelsartain",
-      "shorts": "@michaelsartain"
-    },
-    "word_fixes": {
-      "fence": "offense"
-    },
-    "poster": {
-      "keyword_color": "#FFC531",
-      "card_bg": "#171106",
-      "sticker_bg": "#FFC531"
-    }
+    "font_size_uncertainty": 0.52
   },
   "audio": {
     "music_bed": false,
@@ -127,13 +85,5 @@
     "confidence": 0.52,
     "ducking": false
   },
-  "confidence": 0.689,
-  "grade": {
-    "vignette": 0.26,
-    "contrast": 1.05,
-    "saturation": 1.06,
-    "_source": "tutorial recipe: feathered edge-darkening + mild lift, 'the cinematic look'",
-    "denoise": 0.6,
-    "sharpen": 0.35
-  }
+  "confidence": 0.689
 }
