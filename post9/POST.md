@@ -1,6 +1,6 @@
 # Post 9 — “Truth Doesn’t Go Viral” (Michael Sartain)
 
-- **Video:** `sartain_truth_isnt_viral.mp4` (20.6 s, 1080×1920, QC PASS, −14 LUFS)
+- **Video:** `sartain_truth_isnt_viral.mp4` (20.6 s, 1080×1920) — **v2: full motion-graphics edit** (Stages A–D system: poster typography with keyword plates, full-screen payoff card “If it was viral, more people would be successful.”, designed transitions + sound design). Motion QC v2 **PASS at level 0** + sound QC PASS, **−14.1 LUFS / TP −2.1 dBTP**. (v1 was plain word-pop captions; replaced.)
 - **Cover:** `cover.jpg`
 - **Source:** Men Simply Can’t Accept A Woman’s PAST — 7:36.6–7:57.2
 - **Hook (0 s):** “Truth does not need to be infectious.”
