@@ -20,6 +20,17 @@
         "paper": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
       }
     },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "radius": { "enum": ["sharp", "round", "pill"] },
+        "glow": { "type": "number", "minimum": 0, "maximum": 2 },
+        "speed": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
+        "easing": { "enum": ["pop", "snap", "soft"] },
+        "fontMode": { "enum": ["sans", "serif"] }
+      }
+    },
     "items": { "type": "array", "items": { "$ref": "#/definitions/item" } }
   },
   "definitions": {
@@ -50,7 +61,7 @@
       "type": "object",
       "required": ["type", "at"],
       "properties": {
-        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process"] },
+        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process", "vector"] },
         "at": { "type": "number", "minimum": 0 },
         "until": { "type": "number", "exclusiveMinimum": 0 },
         "rows": {
@@ -76,6 +87,7 @@
         },
         "wordSize": { "type": "number", "minimum": 58, "maximum": 220 },
         "kind": { "enum": ["flash", "flare", "leak", "opening", "bwflash"] },
+        "name": { "type": "string" },
         "mode": { "enum": ["fullbleed", "card"] },
         "dur": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 },
         "x": { "type": "number", "minimum": 0, "maximum": 1 },

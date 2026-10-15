@@ -1,0 +1,4 @@
+{"name": "clean-blue", "accent": "#38BDF8", "ink": "#0B1220", "paper": "#FFFFFF",
+ "radius": "round", "glow": 0.9, "speed": 0.95, "easing": "soft",
+ "fontMode": "sans", "transitionOrder": ["leak", "flash", "flare", "bwflash"],
+ "soundSeedSalt": 37}

@@ -1,0 +1,198 @@
+{
+ "video": "/home/user/system/work/stage1_test/final_s.mp4",
+ "items": [
+  {
+   "type": "fx",
+   "at": 0.0,
+   "until": 0.0,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 0.14,
+   "until": 1.9,
+   "enter_f": 10,
+   "hold_s": 1.76,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 1.912,
+   "until": 4.16,
+   "enter_f": 10,
+   "hold_s": 2.25,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 2.9,
+   "until": 2.9,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 5.467,
+   "until": 5.467,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "chip",
+   "at": 5.55,
+   "until": 6.55,
+   "enter_f": 10,
+   "hold_s": 1.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 6.352,
+   "until": 8.42,
+   "enter_f": 10,
+   "hold_s": 2.07,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 6.61,
+   "until": 6.61,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "card",
+   "at": 7.817,
+   "until": 10.0,
+   "enter_f": 10,
+   "hold_s": 2.18,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 8.3,
+   "until": 8.3,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 9.317,
+   "until": 9.317,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  }
+ ],
+ "words": [
+  {
+   "word": "The",
+   "caption_t": 0.14,
+   "kind": "-"
+  },
+  {
+   "word": "grade",
+   "caption_t": 0.335,
+   "kind": "-"
+  },
+  {
+   "word": "that",
+   "caption_t": 0.704,
+   "kind": "-"
+  },
+  {
+   "word": "you're",
+   "caption_t": 0.857,
+   "kind": "-"
+  },
+  {
+   "word": "GOING",
+   "caption_t": 1.228,
+   "kind": "key"
+  },
+  {
+   "word": "to",
+   "caption_t": 1.585,
+   "kind": "-"
+  },
+  {
+   "word": "get",
+   "caption_t": 1.69,
+   "kind": "-"
+  },
+  {
+   "word": "is",
+   "caption_t": 1.912,
+   "kind": "-"
+  },
+  {
+   "word": "an A",
+   "caption_t": 3.088,
+   "kind": "-"
+  },
+  {
+   "word": "MINUS",
+   "caption_t": 3.423,
+   "kind": "key"
+  },
+  {
+   "word": "Thank",
+   "caption_t": 6.352,
+   "kind": "-"
+  },
+  {
+   "word": "you.",
+   "caption_t": 6.74,
+   "kind": "-"
+  },
+  {
+   "word": "CONGRATULATIONS",
+   "caption_t": 7.024,
+   "kind": "key"
+  },
+  {
+   "word": "Even",
+   "caption_t": 7.817,
+   "kind": "serif"
+  },
+  {
+   "word": "the",
+   "caption_t": 8.143,
+   "kind": "-"
+  },
+  {
+   "word": "teacher",
+   "caption_t": 8.283,
+   "kind": "-"
+  },
+  {
+   "word": "CAN",
+   "caption_t": 8.73,
+   "kind": "-"
+  },
+  {
+   "word": "IMPROVE",
+   "caption_t": 8.945,
+   "kind": "key"
+  }
+ ],
+ "inserts": [],
+ "transitions": [],
+ "sound": {
+  "events": 20,
+  "events_per_sec": 2.02,
+  "accent_events_per_sec": 1.11,
+  "loudness": {
+   "lufs": -14.1,
+   "true_peak": -2.78
+  },
+  "impacts_on_cut_frame": true
+ },
+ "longest_no_visual_change_s": 2.04
+}

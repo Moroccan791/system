@@ -99,13 +99,12 @@
       ]
     },
     {
-      "type": "pip",
+      "type": "vector",
+      "name": "hoop",
       "at": 7.1,
       "until": 9.35,
-      "src": "motion/test_assets/hoop_b.jpg",
       "label": "BASKETBALL HOOP",
-      "sub": "for the lounge",
-      "illustrative": true
+      "sub": "for the lounge"
     },
     {
       "type": "chip",
@@ -168,14 +167,13 @@
       ]
     },
     {
-      "type": "broll",
+      "type": "vector",
+      "name": "led",
       "mode": "fullbleed",
       "at": 15.95,
       "until": 17.65,
-      "src": "motion/test_assets/led_lounge_b.jpg",
       "label": "LED LIGHTS",
-      "sub": "sets the vibe",
-      "illustrative": true
+      "sub": "sets the vibe"
     },
     {
       "type": "poster",

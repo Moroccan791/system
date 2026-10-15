@@ -71,28 +71,43 @@ video; ~1/s at typical cut density). Also in Stage C (user-reported):
 speaker face cut in 28% of frames before, 0 cut frames after
 (worst margin 8 px); process panels gained dark plates.
 
-## Part 4 — any video → Stage D (all MISSING today)
+## Part 4 — any video → Stage D — DONE (pack `review_d/`)
 
-Themes as config (≥5), auto-brand colour extraction, `--seed` variation
-+ choice log, 16:9/9:16/1:1 + face-tracked reframing, multi-speaker,
-filler/pause removal, auto-hook selection, QC-fail → simpler retry →
-poster fallback, `decision_log.json`. The motion layer today is
-1080×1920-only by schema (const), one hand-picked accent per timeline.
+Themes as config (5 files in `motion/themes/`: palette, fonts, radius,
+glow, speed, easing, transition order, sound pack), auto-brand colour
+extraction (`brand.py`: closest theme + accent override; brand-locked
+timeline accent always wins), `--seed` variation + full choice log in
+`decision_log.json` (three demos = three themes/seeds), 16:9/9:16/1:1
+via canvas config + face-tracked reframing (Stage C), multi-speaker at
+authoring level (any speaker can be captioned/graphic subject),
+filler/pause removal + auto-hook (`prep.py`, hook = number-first
+scoring; 0.58 s pause found in stage-2), QC-fail → simplified →
+poster-captions fallback (`produce.py`, levels recorded, never broken
+output). The governing demo is `stage2_test` — vector-first (below).
 
-## Part 5 — review pack + QC report
+**Vector-first amendment (user, Stage D):** picturable nouns are
+animated SVG scenes (`vector`: hoop/led/donut/arrow/burst, deterministic
+frame-clock animation, accent-true, no ILLUSTRATIVE tag), generated
+photos remain fallback-with-review-flag only. Native SVG in `stage.html`
+chosen over a second renderer (Motion Canvas/Lottie): same look, zero
+dependencies, egress-safe. Design rule learned: author scenes in unit
+width × canvas-derived height — portrait canvases are not scaled
+landscape scenes (see `buildScene`).
+
+## Part 5 — review pack + QC report — DONE
 
 | Piece | Status |
 |-------|--------|
 | Contact sheet 1f/0.5 s | DONE (`composite.py --sheet`) |
-| 5-frame strips around transitions | DONE (strips at every item start) |
-| Frames 0–10 strip | DONE (Stage A review pack) |
-| `review_pack/images/` | Stage B |
-| `decision_log.json` | Stage D |
-| Per-word offsets / per-element sizes, contrast, margins, face, transition overlap | DONE (Stage A, QC v2, 12 checks) |
-| Per-graphic enter/hold/idle/exit frames | QC v2 dwell + idle-by-construction report |
-| Transition list | QC v2 from the transitions sidecar |
-| Sounds/sec + offsets; LUFS + true peak | Stage C |
-| "Never call a render correct until every hard rule passes" | Enforced by QC exit code; review pack ships the report verbatim |
+| 5-frame strips around transitions | DONE (every transition, `report.py`) |
+| Frames 0–10 strip | DONE (`report.py`, every render) |
+| `review_pack/images/` | DONE (Stage B archive; Stage D pack carries the photo choices the vectors replaced, `review_d/images/`) |
+| `decision_log.json` | DONE (Stage D, every `produce.py` render) |
+| Per-word offsets / per-element sizes, contrast, margins, face, transition overlap | DONE (QC v2 + `report.py` Part-5 JSON/txt) |
+| Per-graphic enter/hold/idle/exit frames | DONE (`report.py` from measured item bounds) |
+| Transition list | DONE (QC v2 + `report.py`) |
+| Sounds/sec + offsets; LUFS + true peak | DONE (Stage C, `sound_log.json` beside every render) |
+| "Never call a render correct until every hard rule passes" | Enforced by QC exit code; `produce.py` refuses to ship below the gate without engaging the fallback chain and recording it |
 
 ## Stage A fix order (this stage)
 

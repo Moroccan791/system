@@ -154,3 +154,32 @@ B-roll is full-bleed (1.0–1.8 s) or a 60–70% card. One documented
 interpretation (rule 1.12) lives in `AUDIT.md` — read it before
 judging the cuts check. Stage A review pack: `motion/review_a/`
 (3 source videos, QC v2 all-PASS).
+
+## Stage D — themes, any video, vector-first (`produce.py`)
+
+One command per video from Stage D on:
+
+```bash
+.venv/bin/python motion/produce.py <timeline.json> <base.mp4> \
+    <transcript.json> work/<job> [--theme <name>] [--seed N] \
+    [--typing-sound on|off]
+```
+
+`produce.py` injects transitions, validates, renders, composites,
+runs QC v2 + sound, writes the Part-5 review pack and
+`decision_log.json`, and only escalates the fallback chain
+(L1 simplified → L2 plain poster captions) if QC fails — the level
+is recorded; it never ships a broken video. Themes live in
+`motion/themes/` (config only: palette, fonts, radius, glow, speed,
+easing, transition order, sound pack); `brand.py` extracts a palette
+from the footage and picks the closest theme + accent override when
+no theme is given (a timeline accent always wins: brand lock).
+`prep.py` (hook pick + pause tightening) runs before authoring.
+
+**Vector components** (`vector` item, `mode: card|fullbleed`, scenes:
+hoop, led, donut, arrow, burst): animated SVG drawn deterministically
+from the frame clock in the video accent — the Fiverr-style look.
+`decide.py` prefers vector for picturable nouns; generated photos
+(Stage B) are fallback-only with the review flag. Scenes are authored
+in unit width × canvas height — check composited frames, not just the
+overlay stream. Stage D pack: `motion/review_d/`.

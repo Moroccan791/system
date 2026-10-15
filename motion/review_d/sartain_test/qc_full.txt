@@ -1,0 +1,53 @@
+FULL QC REPORT final_s.mp4
+items: 10  words: 31  inserts: 0  transitions: 0
+longest no-visual-change: 1.82s
+sound: 24 events (1.96/s, accents 0.82/s), -14.12 LUFS / -1.81 dBTP, impacts on cut frame: True
+
+WORDS (caption time / kind):
+    0.22s  63%              key
+    0.45s  of               -
+    0.62s  men              -
+    0.79s  under            -
+    1.08s  30               -
+    1.19s  are              -
+    1.34s  single.          -
+    1.61s  On               -
+    1.76s  dating           -
+    2.09s  apps,            -
+    2.37s  women            -
+    2.94s  get              -
+    6.72s  as               -
+    6.83s  many             -
+    7.03s  MATCHES          key
+    7.40s  as               -
+    7.65s  men              -
+    8.07s  do.              -
+    8.28s  On               -
+    8.39s  Tinder,          -
+    9.40s  NINE             key
+    9.55s  TIMES            key
+    9.93s  as               -
+   10.06s  many             -
+   10.28s  men              -
+   10.42s  as               -
+   10.68s  women.           -
+   11.53s  Yeah,            -
+   11.93s  there's          -
+   12.21s  NINE             key
+   12.34s  TIMES.           key
+
+ITEMS (enter / hold / exit):
+    0.00-  0.00s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    0.22-  1.62s  poster   hold 1.4s  8f slide+blur+fade (engine)
+    1.61-  3.32s  poster   hold 1.71s  8f slide+blur+fade (engine)
+    1.90-  1.90s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    3.16-  5.95s  counter  hold 2.79s  8f slide+blur+fade (engine)
+    4.13-  4.13s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    4.90-  4.90s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    6.72-  8.30s  poster   hold 1.58s  8f slide+blur+fade (engine)
+    8.28- 11.28s  card     hold 3.0s  8f slide+blur+fade (engine)
+   11.53- 12.55s  poster   hold 1.02s  8f slide+blur+fade (engine)
+
+INSERTS:
+
+TRANSITIONS:

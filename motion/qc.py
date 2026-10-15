@@ -298,7 +298,8 @@ IDLE = {"poster": "stack drift 100->103%", "card": "card drift 100->103%",
         "chip": "shine sweep every 1.2s + drift", "counter": "glow pulse 1.2s",
         "list": "wrap drift 100->102%", "process": "wrap drift 100->102%",
         "pip": "still push-in 100->108% + card drift",
-        "broll": "still push-in 100->108%", "fx": "self-animating"}
+        "broll": "still push-in 100->108%", "fx": "self-animating",
+        "vector": "scene animates from the frame clock (ball/strip/draw-on)"}
 
 
 def idle(tl: dict) -> tuple[str, str]:
@@ -313,7 +314,7 @@ def idle(tl: dict) -> tuple[str, str]:
 
 # --------------------------------------------------------------- images
 def images(tl: dict) -> tuple[str, str]:
-    imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll")]
+    imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll", "vector")]
     if not imgs:
         return "pass", "no image inserts"
     lines, bad = [], []
@@ -322,9 +323,11 @@ def images(tl: dict) -> tuple[str, str]:
             bad.append(f"images {b['at'] - a['at']:.1f}s apart (<6s)")
     for it in imgs:
         src = str(it.get("src") or "")
-        origin = "generated" if ("generated" in src or "test_assets" in src
-                                  or "illustr" in src) else "asset/footage"
-        if it["type"] == "pip":
+        origin = "vector" if it["type"] == "vector" else \
+            "generated" if ("generated" in src or "test_assets" in src
+                            or "illustr" in src) else "asset/footage"
+        if it["type"] == "pip" or (it["type"] == "vector"
+                                   and (it.get("mode") or "card") == "card"):
             wdt = float(it.get("w") or 0.58) * 100
         else:
             wdt = 100.0 if (it.get("mode") or "fullbleed") == "fullbleed" \

@@ -84,7 +84,15 @@ def main(path: str) -> int:
             problems.append(f"chip at {it['at']}: a chip is a single text line "
                             f"(a sub breaks the 6-7% bar height / 3% text floor); "
                             f"merge it into title or drop it")
-        if it["type"] in ("poster", "card", "counter", "chip", "pip", "broll") \
+        if it["type"] == "vector" and it.get("name") not in (
+                "hoop", "led", "donut", "arrow", "burst"):
+            problems.append(f"vector at {it['at']}: unknown scene "
+                            f"{it.get('name')!r} (hoop, led, donut, arrow, burst)")
+        if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed" \
+                and not 1.0 <= dwell <= 1.8:
+            problems.append(f"vector broll at {it['at']}: full-bleed dwell "
+                            f"{dwell:.2f}s outside 1.0-1.8s")
+        if it["type"] in ("poster", "card", "counter", "chip", "pip", "broll", "vector") \
                 and dwell > 3.0:
             problems.append(f"{it['type']} at {it['at']}: dwell {dwell:.2f}s over "
                             f"the 3s cap (a graphic must change or leave)")
@@ -122,8 +130,8 @@ def main(path: str) -> int:
             if subs and until < ats[-1] + 0.8:
                 problems.append(f"{it['type']} at {it['at']}: until {until} gives the "
                                 f"last entry no dwell time")
-    # image cadence: at most one PiP / B-roll insert per 6 s window
-    imgs = [i for i in items if i["type"] in ("pip", "broll")]
+    # image cadence: at most one PiP / B-roll / vector insert per 6 s
+    imgs = [i for i in items if i["type"] in ("pip", "broll", "vector")]
     for a, b in zip(imgs, imgs[1:]):
         if b["at"] - a["at"] < 6.0:
             problems.append(f"images at {a['at']} and {b['at']}: under the "

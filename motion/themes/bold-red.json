@@ -1,0 +1,4 @@
+{"name": "bold-red", "accent": "#FF3355", "ink": "#0D0F12", "paper": "#FFFFFF",
+ "radius": "sharp", "glow": 0.7, "speed": 1.15, "easing": "snap",
+ "fontMode": "sans", "transitionOrder": ["flash", "bwflash", "flare", "leak"],
+ "soundSeedSalt": 11}

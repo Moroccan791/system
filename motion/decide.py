@@ -50,6 +50,9 @@ CONCRETE = set("tv television console basketball hoop car house roof phone "
                "laptop computer website couch poster posters lights sign dog "
                "watch shoes sneakers gaming camera book pool garden kitchen "
                "bedroom office store shop".split())
+# nouns with a native animated-vector scene (preferred over photos)
+VECTOR_SCENES = {"hoop": "hoop", "basketball": "hoop", "lights": "led",
+                 "light": "led", "led": "led"}
 CLAIM_MARKERS = set("never always nobody everyone everybody nothing everything "
                     "stop truth cannot can't wont won't impossible nobody's "
                     "everyone's".split())
@@ -488,8 +491,13 @@ def main() -> int:
         if b - a > 2.5:
             print(f"  ! pacing gap {b - a:.1f}s at {a:.1f}s - add a beat (chip/fx) or extend a hold")
     for noun, at in sorted(suggestions.items(), key=lambda kv: kv[1]):
-        print(f"  ? PiP/B-roll candidate: '{noun}' @{at:.1f}s "
-              f"(client media, or generated + illustrative)")
+        scene = VECTOR_SCENES.get(noun)
+        if scene:  # Fiverr-style: animated vector beats a photo insert
+            print(f"  ? vector candidate: '{noun}' @{at:.1f}s "
+                  f"-> vector scene '{scene}' (animated SVG, no photo)")
+        else:
+            print(f"  ? PiP/B-roll candidate: '{noun}' @{at:.1f}s "
+                  f"(client media, or generated + illustrative)")
     return 0
 
 
