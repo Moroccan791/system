@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "motion timeline",
+  "type": "object",
+  "required": ["version", "fps", "width", "height", "duration", "brand", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "fps": { "const": 30 },
+    "width": { "const": 1080 },
+    "height": { "const": 1920 },
+    "duration": { "type": "number", "exclusiveMinimum": 0 },
+    "brand": {
+      "type": "object",
+      "required": ["accent"],
+      "additionalProperties": false,
+      "properties": {
+        "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "ink": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "paper": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+      }
+    },
+    "items": { "type": "array", "items": { "$ref": "#/definitions/item" } }
+  },
+  "definitions": {
+    "word": {
+      "type": "object",
+      "required": ["w", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "w": { "type": "string", "minLength": 1 },
+        "at": { "type": "number", "minimum": 0 },
+        "kind": { "enum": ["conn", "key", "serif", "word"] },
+        "size": { "type": "number", "minimum": 20, "maximum": 320 },
+        "glow": { "type": "boolean" }
+      }
+    },
+    "item": {
+      "type": "object",
+      "required": ["type", "at"],
+      "properties": {
+        "type": { "enum": ["poster", "chip", "card", "fx"] },
+        "at": { "type": "number", "minimum": 0 },
+        "until": { "type": "number", "exclusiveMinimum": 0 },
+        "rows": {
+          "type": "array", "minItems": 1, "maxItems": 2,
+          "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
+        },
+        "connSize": { "type": "number", "minimum": 30, "maximum": 90 },
+        "keySize": { "type": "number", "minimum": 60, "maximum": 200 },
+        "zone": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "type": "number", "minimum": 0.3, "maximum": 0.95 }
+        },
+        "title": { "type": "string" },
+        "sub": { "type": "string" },
+        "titleSize": { "type": "number", "minimum": 24, "maximum": 90 },
+        "subSize": { "type": "number", "minimum": 20, "maximum": 60 },
+        "iconSvg": { "type": "string" },
+        "bg": { "enum": ["dark", "accent", "white"] },
+        "bgColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "lines": {
+          "type": "array", "minItems": 1, "maxItems": 3,
+          "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
+        },
+        "wordSize": { "type": "number", "minimum": 50, "maximum": 220 },
+        "kind": { "enum": ["flash", "flare", "leak", "opening", "bwflash"] },
+        "dur": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 },
+        "x": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "strength": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "poster" } } },
+          "then": { "required": ["rows", "until"] } },
+        { "if": { "properties": { "type": { "const": "chip" } } },
+          "then": { "required": ["title", "until"] } },
+        { "if": { "properties": { "type": { "const": "card" } } },
+          "then": { "required": ["lines", "until"] } },
+        { "if": { "properties": { "type": { "const": "fx" } } },
+          "then": { "required": ["kind"] } }
+      ]
+    }
+  }
+}

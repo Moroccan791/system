@@ -102,6 +102,14 @@ Fiverr watermark — these are pro-editor outputs, i.e. the benchmark.
 
 First demo: `post6/` (MILK grading clip in the new format, QC PASS).
 
+**Direction update:** this ASS-based format was the stepping stone.
+The long-term system is the HTML/CSS motion-graphics layer in
+`motion/` (frame-by-frame Chromium renders composited with ffmpeg —
+see `motion/README.md`). Stage 1 (poster/chip/card/FX) is built and
+QC-green on a 10 s demo (`motion/demo/`); stage 2 adds the
+proof/PiP cards, B-roll windows, counters, lists and process graphics
+from the table above, in that engine.
+
 Hard rules that stay: never cover the face (cards sit below the chin,
 QC-verified), captions = exactly what was said, assets licensed/CC0
 (no ripped meme clips — we generate or use campaign-supplied media).

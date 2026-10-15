@@ -16,3 +16,4 @@ pillow>=10                  # cover-frame composition (captions/cover.py)
 
 # ---- development -------------------------------------------------------------
 pytest>=8                # the regression suite (python -m pytest tests/)
+jsonschema

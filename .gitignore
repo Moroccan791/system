@@ -33,3 +33,4 @@ campaigns/
 # debug / scratch
 .arena/
 *.log
+motion/node_modules/
