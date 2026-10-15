@@ -31,6 +31,17 @@ node motion/render.mjs motion/timelines/<name>.json work/<job>/frames
     motion/timelines/<name>.json work/<job>/demo   # contact sheet + strips
 ```
 
+Stage C additions: bases are built with `reframe.py` (face-tracked
+9:16 crop of the 16:9 source — the speaker's face is never cut), and
+every render finishes with `sound.py` (frame-exact synthesised CC0
+sound design, −14 LUFS; see `review_c/README.md`):
+
+```bash
+.venv/bin/python motion/reframe.py work/<job>/seg_raw.mp4 work/<job>/seg_f.mp4
+.venv/bin/python motion/sound.py work/<job>/timeline_fx.json \
+    work/<job>/final.mp4 work/<job>/final_s.mp4 [--typing-sound off]
+```
+
 Setup (after a sandbox reset): `bash scripts/bootstrap.sh`, then
 `npm install` inside `motion/` (puppeteer-core + @sparticuz/chromium;
 the renderer extracts the bundled NSS libs to `/tmp/al2023` itself).

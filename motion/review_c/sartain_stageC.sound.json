@@ -1,0 +1,218 @@
+{
+ "video": "work/sartain_test/final_s.mp4",
+ "seed": 7,
+ "typing_sound": true,
+ "events": 24,
+ "events_per_sec": 2.04,
+ "accent_events_per_sec": 0.85,
+ "by_kind": {
+  "whoosh": 1,
+  "pop": 5,
+  "key": 11,
+  "riser": 1,
+  "impact": 1,
+  "tick": 3,
+  "land": 1,
+  "snap": 1
+ },
+ "cuts_covered": 2,
+ "impacts_on_cut_frame": true,
+ "loudness": {
+  "lufs": -14.1,
+  "true_peak": -1.47
+ },
+ "events_detail": [
+  {
+   "t": 0.0,
+   "kind": "whoosh",
+   "gain_db": -14.0,
+   "note": "opening",
+   "variant": 1,
+   "frame": 0
+  },
+  {
+   "t": 0.22,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 1,
+   "frame": 7
+  },
+  {
+   "t": 0.22,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 1,
+   "frame": 7
+  },
+  {
+   "t": 1.583,
+   "kind": "riser",
+   "gain_db": -12.0,
+   "note": "riser to cut",
+   "variant": 1,
+   "frame": 47
+  },
+  {
+   "t": 1.61,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 2,
+   "frame": 48
+  },
+  {
+   "t": 1.61,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 2,
+   "frame": 48
+  },
+  {
+   "t": 2.033,
+   "kind": "impact",
+   "gain_db": -5.0,
+   "note": "cut flare",
+   "variant": 1,
+   "frame": 61
+  },
+  {
+   "t": 2.94,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 3,
+   "frame": 88
+  },
+  {
+   "t": 3.16,
+   "kind": "tick",
+   "gain_db": -18.0,
+   "note": "count",
+   "variant": 1,
+   "frame": 95
+  },
+  {
+   "t": 3.535,
+   "kind": "tick",
+   "gain_db": -17.0,
+   "note": "count",
+   "variant": 2,
+   "frame": 106
+  },
+  {
+   "t": 3.91,
+   "kind": "tick",
+   "gain_db": -16.0,
+   "note": "count",
+   "variant": 3,
+   "frame": 117
+  },
+  {
+   "t": 4.06,
+   "kind": "land",
+   "gain_db": -4.0,
+   "note": "counter lands on the word",
+   "variant": 1,
+   "frame": 122
+  },
+  {
+   "t": 4.3,
+   "kind": "snap",
+   "gain_db": -9.0,
+   "note": "cut flash",
+   "variant": 1,
+   "frame": 129
+  },
+  {
+   "t": 6.72,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 3,
+   "frame": 202
+  },
+  {
+   "t": 6.72,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 4,
+   "frame": 202
+  },
+  {
+   "t": 7.03,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 5,
+   "frame": 211
+  },
+  {
+   "t": 8.28,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "card enter",
+   "variant": 4,
+   "frame": 248
+  },
+  {
+   "t": 8.28,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 6,
+   "frame": 248
+  },
+  {
+   "t": 9.4,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 7,
+   "frame": 282
+  },
+  {
+   "t": 9.55,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 8,
+   "frame": 286
+  },
+  {
+   "t": 11.53,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 5,
+   "frame": 346
+  },
+  {
+   "t": 11.53,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 9,
+   "frame": 346
+  },
+  {
+   "t": 12.21,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 10,
+   "frame": 366
+  },
+  {
+   "t": 12.34,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 11,
+   "frame": 370
+  }
+ ]
+}

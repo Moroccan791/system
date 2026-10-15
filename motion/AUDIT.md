@@ -54,16 +54,22 @@ egress-blocked in this sandbox, so `scores.json` carries
 `needs_user_review` for the user's relevance call, per spec. Sartain
 has no image slot; stage-1/Sartain Stage-A renders unchanged.
 
-## Part 3 — sound → Stage C
+## Part 3 — sound → Stage C — DONE (Stage C, pack `review_c/`)
 
-| Rule | Status |
-|------|--------|
-| Sound on the exact frame of every graphic event | PARTIAL — whoosh per item start + pop per chip/counter-land/plate exists (composite SFX list); no per-event QC |
-| ~1 sound/s, 3–5 variants, ±10% vol, ±3% pitch | MISSING — single whoosh.wav/pop.wav, fixed gain |
-| Typing sound flag `--typing-sound on/off` | DONE in the ASS pipeline (clipper), not yet wired into motion composite → Stage C |
-| Sub-bass bed, risers/booms, silence dips | MISSING |
-| Mix −14 LUFS / true peak <−1 dBTP | PARTIAL — current finals ≈ −15.9 LUFS / −3 dBFS, no loudnorm pass |
-| CC0 licences file | PARTIAL — assets licences tracked for clipper sfx; motion inherits |
+`motion/sound.py`: frame-exact events from the timeline (entries,
+panel rows, first+keyword word keystrokes behind `--typing-sound`,
+counter tick-roll landing on the word, riser-to-impact ON every cut
+frame from the transitions sidecar, 130 ms bed dips before big
+impacts), seeded variants with pitch/volume jitter, sub-bass bed
+~24 dB under voice, generated pad ducked 12 dB under speech, voice
+levelling + soft-ceiling loudness staging in the mix. All sounds
+synthesised in code — CC0, `SOUND_LICENSE.md`. All 3 finals SOUND QC
+PASS: impacts verified on cut frames, -14.1 LUFS, TP -1.5..-3.0 dBTP.
+Density disclosed per video (1.70 accents/s on the 1.44 s-cut budget
+video; ~1/s at typical cut density). Also in Stage C (user-reported):
+`motion/reframe.py` face-tracked bases replace the fixed crop —
+speaker face cut in 28% of frames before, 0 cut frames after
+(worst margin 8 px); process panels gained dark plates.
 
 ## Part 4 — any video → Stage D (all MISSING today)
 

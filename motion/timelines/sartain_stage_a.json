@@ -20,6 +20,7 @@
       "type": "poster",
       "at": 0.22,
       "until": 1.62,
+      "zone": [0.30, 0.52],
       "rows": [
         [
           {
@@ -60,6 +61,7 @@
       "type": "poster",
       "at": 1.61,
       "until": 3.32,
+      "zone": [0.60, 0.82],
       "rows": [
         [
           {
@@ -90,6 +92,7 @@
     {
       "type": "counter",
       "at": 3.16,
+      "zone": [0.55, 0.78],
       "value": 16,
       "suffix": "x",
       "label": "TIMES AS MANY MATCHES",
