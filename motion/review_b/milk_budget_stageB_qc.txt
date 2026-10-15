@@ -1,0 +1,13 @@
+MOTION QC v2 final.mp4: PASS
+  [PASS] word_sync: 36 words, visual offset -72..-62 ms (2-frame lead = -67 ms)
+  [PASS] text_sizes: 59 text elements, min 58px (3%), keywords in 115-154px
+  [WARN] text_contrast: under 4.5:1 (3px dark stroke carries it): counter @0.5s accent digits 3.2:1
+  [PASS] pacing: longest without a visual change 1.36s at 25.2s (inside the 1.5s rhythm)
+  [PASS] dwell: max simple dwell 2.85s (counter), panels exit <=1s after last entry
+  [PASS] idle: 12 graphics held >0.8s, all idle-animated (engine drift/shine/glow, verified on strips)
+  [PASS] images: pip @7.1s generated 58%w 2.25s ILLUSTRATIVE; broll @15.9s generated 100%w 1.70s ILLUSTRATIVE
+  [PASS] cuts: 20 cuts all transitioned [0.8:flare, 2.0:flash, 3.1:leak, 4.7:bwflash, 5.8:flare, 7.1:flash, 8.5:leak, 9.9:bwflash, 10.9:flare, 12.1:flash, 13.1:leak, 14.5:bwflash, 16.0:flare, 16.8:flash, 17.8:leak, 19.5:bwflash, 20.5:flare, 22.5:flash, 24.1:leak, 28.5:bwflash]; 4 exit(s) masked by their cut transition, none visibly crossing
+  [PASS] opening: first caption animating at frame 0 (0-10)
+  [PASS] face_zone: faces clear of the text zone in 11 items
+  [PASS] semi_text: max semi-transparent run 2 frames (cap 2)
+  [PASS] margins: all zones inside the 6% safe margin plan

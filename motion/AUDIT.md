@@ -37,15 +37,22 @@ Baseline evidence: stage-1 QC PASS (5/5), stage-2 QC PASS (5/5),
 | 1.22 | Generated image ⇒ ILLUSTRATIVE, never real proof | DONE | Schema + validator + rendered tag (tag type raised to 3%). |
 | 1.23 | Brand lock: 1 accent + black/white (or client colours) | DONE | Schema brand + validator; grade leans footage toward accent (composite). Themes generalise this in Stage D. |
 
-## Part 2 — image quality → Stage B (all MISSING today, by stage design)
+## Part 2 — image quality → Stage B — DONE (Stage B, pack `review_b/`)
 
-Photoreal prompt discipline (subject/camera/lighting/palette), fixed
-negative prompt, 4 candidates/slot, ≥1080×1920 gate, Laplacian sharpness,
-exposure + palette-distance rejects, CLIP relevance (open_clip) with
-honest "unavailable" fallback + mandatory review flag, one-shot regen
-then no-image fallback, grade/grain match, subject crop, per-video
-style consistency, `review_pack/images/` archive. Current state: two
-hand-generated stills in `motion/test_assets/`, marked illustrative.
+`motion/images.py` implements the full spec: prompts = sentence subject
++ rotating framing (never the same look twice in a row) + the base
+video's measured lighting/palette + fixed photoreal style suffix and
+negative prompt; 4 candidates/slot gated on resolution (upscale
+flagged), Laplacian sharpness ≥45, clipping ≤12%, palette ΔE ≤38;
+best-passing selection, grade/grain match (Reinhard Lab → video +
+matched grain σ), subject crop to slot size; candidates + scores +
+chosen archived to `review_b/images/`. Proven on the stage-2 video:
+both slots re-sourced (hoop PiP, LED B-roll), re-render QC v2 PASS
+12/12. **CLIP relevance: UNAVAILABLE, declared** — weight hosts are
+egress-blocked in this sandbox, so `scores.json` carries
+`clip_relevance: null` and every generated image is flagged
+`needs_user_review` for the user's relevance call, per spec. Sartain
+has no image slot; stage-1/Sartain Stage-A renders unchanged.
 
 ## Part 3 — sound → Stage C
 

@@ -102,7 +102,7 @@
       "type": "pip",
       "at": 7.1,
       "until": 9.35,
-      "src": "motion/test_assets/hoop.jpg",
+      "src": "motion/test_assets/hoop_b.jpg",
       "label": "BASKETBALL HOOP",
       "sub": "for the lounge",
       "illustrative": true
@@ -172,7 +172,7 @@
       "mode": "fullbleed",
       "at": 15.95,
       "until": 17.65,
-      "src": "motion/test_assets/led_lounge.jpg",
+      "src": "motion/test_assets/led_lounge_b.jpg",
       "label": "LED LIGHTS",
       "sub": "sets the vibe",
       "illustrative": true
