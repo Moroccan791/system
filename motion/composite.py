@@ -77,10 +77,16 @@ def composite(base: Path, frames: Path, tl: dict, out: Path) -> Path:
         at = float(it.get("at") or 0)
         if at <= 0.05:
             continue
-        if it["type"] in ("card", "chip", "fx"):
+        if it["type"] in ("card", "chip", "fx", "pip", "broll", "counter",
+                          "list", "process"):
             sfx.append((at, WHOOSH, 0.30))
         if it["type"] == "chip":
             sfx.append((at, POP, 0.25))
+        if it["type"] == "counter":   # soft pop the frame the count lands
+            sfx.append((at + float(it.get("countDur") or 0.9), POP, 0.22))
+        for key in ("items", "steps"):   # a pop per plate / step as it lands
+            for sub in it.get(key) or []:
+                sfx.append((float(sub["at"]), POP, 0.18))
     info = probe(base)
 
     args = [ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),

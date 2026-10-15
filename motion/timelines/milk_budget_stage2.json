@@ -1,0 +1,331 @@
+{
+  "version": 1,
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "duration": 28.8,
+  "brand": {
+    "accent": "#9BE82E",
+    "ink": "#0D0F12",
+    "paper": "#FFFFFF"
+  },
+  "items": [
+    {
+      "type": "fx",
+      "kind": "opening",
+      "at": 0.0,
+      "dur": 0.27
+    },
+    {
+      "type": "poster",
+      "at": 0.312,
+      "until": 1.07,
+      "rows": [
+        [
+          {
+            "w": "You",
+            "at": 0.312
+          },
+          {
+            "w": "only",
+            "at": 0.554
+          },
+          {
+            "w": "have",
+            "at": 0.862
+          }
+        ]
+      ]
+    },
+    {
+      "type": "counter",
+      "at": 1.058,
+      "value": 2500,
+      "prefix": "$",
+      "label": "FOR THE NEEDS",
+      "countDur": 0.85,
+      "until": 3.35
+    },
+    {
+      "type": "list",
+      "at": 3.615,
+      "title": "WHAT ELSE DO WE NEED?",
+      "items": [
+        {
+          "text": "TV",
+          "at": 3.615
+        },
+        {
+          "text": "GAMING CONSOLE",
+          "at": 3.962
+        },
+        {
+          "text": "BASKETBALL",
+          "at": 4.91
+        }
+      ],
+      "until": 5.72
+    },
+    {
+      "type": "poster",
+      "at": 5.742,
+      "until": 6.97,
+      "rows": [
+        [
+          {
+            "w": "We",
+            "at": 5.742
+          },
+          {
+            "w": "need",
+            "at": 5.9
+          },
+          {
+            "w": "a",
+            "at": 6.141
+          }
+        ],
+        [
+          {
+            "w": "BASKETBALL",
+            "at": 6.256,
+            "kind": "key"
+          },
+          {
+            "w": "HOOP",
+            "at": 6.761
+          }
+        ]
+      ]
+    },
+    {
+      "type": "pip",
+      "at": 7.06,
+      "until": 9.3,
+      "src": "motion/test_assets/hoop.jpg",
+      "label": "BASKETBALL HOOP",
+      "sub": "for the lounge",
+      "illustrative": true
+    },
+    {
+      "type": "chip",
+      "at": 9.507,
+      "until": 11.3,
+      "title": "WANTS CATEGORY",
+      "sub": "NOT A NEED",
+      "iconSvg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#0D0F12' stroke-width='2.6' stroke-linecap='round'><circle cx='12' cy='12' r='10' fill='rgba(255,255,255,.35)' stroke='none'/><path d='M9 9l6 6M15 9l-6 6'/></svg>"
+    },
+    {
+      "type": "poster",
+      "at": 11.839,
+      "until": 14.05,
+      "rows": [
+        [
+          {
+            "w": "Okay,",
+            "at": 11.839
+          },
+          {
+            "w": "let's",
+            "at": 12.151
+          },
+          {
+            "w": "talk",
+            "at": 12.446
+          }
+        ],
+        [
+          {
+            "w": "more",
+            "at": 12.836
+          },
+          {
+            "w": "about",
+            "at": 13.205
+          },
+          {
+            "w": "NEEDS",
+            "at": 13.774,
+            "kind": "key"
+          }
+        ]
+      ]
+    },
+    {
+      "type": "poster",
+      "at": 14.521,
+      "until": 15.9,
+      "rows": [
+        [
+          {
+            "w": "a",
+            "at": 14.521
+          },
+          {
+            "w": "bunch",
+            "at": 14.629
+          },
+          {
+            "w": "of",
+            "at": 14.959
+          }
+        ],
+        [
+          {
+            "w": "CRAZY",
+            "at": 15.2,
+            "kind": "neon"
+          },
+          {
+            "w": "LED",
+            "at": 15.503
+          },
+          {
+            "w": "lights",
+            "at": 15.691
+          }
+        ]
+      ]
+    },
+    {
+      "type": "broll",
+      "at": 16.0,
+      "until": 17.7,
+      "zone": [
+        0.34,
+        0.82
+      ],
+      "src": "motion/test_assets/led_lounge.jpg",
+      "label": "LED LIGHTS",
+      "sub": "sets the vibe",
+      "illustrative": true
+    },
+    {
+      "type": "poster",
+      "at": 17.806,
+      "until": 19.34,
+      "rows": [
+        [
+          {
+            "w": "going",
+            "at": 17.806
+          },
+          {
+            "w": "to",
+            "at": 18.017
+          },
+          {
+            "w": "need",
+            "at": 18.136
+          },
+          {
+            "w": "some",
+            "at": 18.255
+          },
+          {
+            "w": "of",
+            "at": 18.467
+          },
+          {
+            "w": "those",
+            "at": 18.58
+          }
+        ],
+        [
+          {
+            "w": "in",
+            "at": 18.785
+          },
+          {
+            "w": "the",
+            "at": 18.947
+          },
+          {
+            "w": "WANTS",
+            "at": 19.138,
+            "kind": "key"
+          }
+        ]
+      ]
+    },
+    {
+      "type": "poster",
+      "at": 19.348,
+      "until": 21.3,
+      "rows": [
+        [
+          {
+            "w": "Maybe",
+            "at": 19.348
+          },
+          {
+            "w": "we",
+            "at": 19.665
+          },
+          {
+            "w": "can",
+            "at": 19.778
+          },
+          {
+            "w": "even",
+            "at": 19.885
+          },
+          {
+            "w": "have",
+            "at": 20.035
+          },
+          {
+            "w": "some",
+            "at": 20.217
+          }
+        ],
+        [
+          {
+            "w": "POSTERS",
+            "at": 20.463,
+            "kind": "key"
+          },
+          {
+            "w": "without",
+            "at": 20.752
+          },
+          {
+            "w": "budgeting",
+            "at": 21.018
+          }
+        ]
+      ]
+    },
+    {
+      "type": "process",
+      "at": 23.135,
+      "title": "THE BUDGET SPLIT",
+      "steps": [
+        {
+          "text": "NEEDS",
+          "sub": "$2,500",
+          "at": 23.135
+        },
+        {
+          "text": "WANTS",
+          "sub": "$1,500",
+          "at": 23.961
+        },
+        {
+          "text": "SAVE",
+          "sub": "$1,000",
+          "at": 25.271
+        }
+      ],
+      "until": 28.3
+    },
+    {
+      "type": "fx",
+      "kind": "flare",
+      "at": 25.271,
+      "dur": 0.5,
+      "x": 0.82,
+      "y": 0.14
+    }
+  ]
+}

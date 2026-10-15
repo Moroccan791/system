@@ -30,16 +30,27 @@
       "properties": {
         "w": { "type": "string", "minLength": 1 },
         "at": { "type": "number", "minimum": 0 },
-        "kind": { "enum": ["conn", "key", "serif", "word"] },
+        "kind": { "enum": ["conn", "key", "serif", "word", "neon"] },
         "size": { "type": "number", "minimum": 20, "maximum": 320 },
-        "glow": { "type": "boolean" }
+        "glow": { "type": "boolean" },
+        "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+      }
+    },
+    "plate": {
+      "type": "object",
+      "required": ["text", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "sub": { "type": "string" },
+        "at": { "type": "number", "minimum": 0 }
       }
     },
     "item": {
       "type": "object",
       "required": ["type", "at"],
       "properties": {
-        "type": { "enum": ["poster", "chip", "card", "fx"] },
+        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process"] },
         "at": { "type": "number", "minimum": 0 },
         "until": { "type": "number", "exclusiveMinimum": 0 },
         "rows": {
@@ -69,7 +80,20 @@
         "x": { "type": "number", "minimum": 0, "maximum": 1 },
         "y": { "type": "number", "minimum": 0, "maximum": 1 },
         "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
-        "strength": { "type": "number", "minimum": 0, "maximum": 1 }
+        "strength": { "type": "number", "minimum": 0, "maximum": 1 },
+        "src": { "type": "string", "minLength": 1 },
+        "label": { "type": "string" },
+        "illustrative": { "type": "boolean" },
+        "w": { "type": "number", "minimum": 0.4, "maximum": 0.75 },
+        "value": { "type": "number", "exclusiveMinimum": 0 },
+        "prefix": { "type": "string", "maxLength": 3 },
+        "suffix": { "type": "string", "maxLength": 4 },
+        "decimals": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "countDur": { "type": "number", "minimum": 0.3, "maximum": 3 },
+        "items": { "type": "array", "minItems": 2, "maxItems": 6,
+                   "items": { "$ref": "#/definitions/plate" } },
+        "steps": { "type": "array", "minItems": 2, "maxItems": 5,
+                   "items": { "$ref": "#/definitions/plate" } }
       },
       "allOf": [
         { "if": { "properties": { "type": { "const": "poster" } } },
@@ -79,7 +103,17 @@
         { "if": { "properties": { "type": { "const": "card" } } },
           "then": { "required": ["lines", "until"] } },
         { "if": { "properties": { "type": { "const": "fx" } } },
-          "then": { "required": ["kind"] } }
+          "then": { "required": ["kind"] } },
+        { "if": { "properties": { "type": { "const": "pip" } } },
+          "then": { "required": ["src", "until", "illustrative"] } },
+        { "if": { "properties": { "type": { "const": "broll" } } },
+          "then": { "required": ["src", "until", "illustrative"] } },
+        { "if": { "properties": { "type": { "const": "counter" } } },
+          "then": { "required": ["value", "until"] } },
+        { "if": { "properties": { "type": { "const": "list" } } },
+          "then": { "required": ["items", "until"] } },
+        { "if": { "properties": { "type": { "const": "process" } } },
+          "then": { "required": ["steps", "until"] } }
       ]
     }
   }

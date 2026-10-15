@@ -47,7 +47,16 @@ black/white per video). Item types:
 | `chip` | accent label bar, 8-frame wipe + pop | 1 |
 | `card` | full-screen claim card (serif/sans mixing allowed) | 1 |
 | `fx` | `flare` / `leak` / `edge` light effects, footage-level `opening` (blur-zoom, first 8f) and `bwflash` | 1 |
-| `pip`, `broll`, `counter`, `list`, `process` | stage 2 — not built yet | 2 |
+| `pip` | proof/PiP photo card (~58% width, below the chin, white print frame, optional label pill; `illustrative: true` renders an ILLUSTRATIVE tag) | 2 |
+| `broll` | B-roll window (92% width, aperture clip-open, Ken Burns drift, label over a bottom scrim) | 2 |
+| `counter` | big accent number counting up with prefix/suffix, label under, lock-pop when it lands | 2 |
+| `list` | accumulating plates (title pill + numbered dark plates, 6-frame-min stagger, latest badge lit) | 2 |
+| `process` | step stack (title pill, numbered circles + connector, steps check off as the next one lands) | 2 |
+
+Word kind `neon` (poster/card): hot emotional keywords render in an
+electric red/blue with a 4-frame glow flicker at entry (opacity stays
+clean for the semi-transparent QC); `serif` is the soft/reflective
+variant. Media `src` paths may be repo-root-relative.
 
 House rules enforced by `validate.py` + `qc.py`: word starts match
 speech within ±40 ms; a visual change at least every 2.5 s (target
@@ -63,10 +72,44 @@ full-screen card; concrete noun → PiP/B-roll (client footage first,
 generated = marked illustrative); emotional word → neon or
 serif-italic variant; default = poster captions.
 
+## Decision rules (`decide.py`)
+
+```bash
+.venv/bin/python motion/decide.py <transcript.json> <out.json> [--accent #9BE82E]
+```
+
+Classifies every utterance by the first matching rule and emits a
+draft timeline that passes `validate.py`: percent allocations /
+sequence markers → process steps; comma enumerations → list plates
+(a money headline in front also earns a counter); a headline money /
+percent number → counter; a short strong claim → full-screen card;
+everything else → poster captions with the keyword in the accent,
+hot emotional words neon, soft ones serif-italic. Concrete nouns are
+reported as PiP/B-roll candidates with timestamps (media choice stays
+a human call — client footage first, generated stills always marked
+illustrative). Poster stacks are repaired so neighbours abut but
+never overlap; pacing gaps > 2.5 s are warned about at authoring
+time. Tests: `tests/test_decide.py`; the rules were verified against
+six real episode transcripts (all produce valid timelines) — on the
+stage-2 test's own transcript they independently find the same
+counter and list the test authors by hand.
+
 ## Stage-1 proof
 
 `motion/demo/` — 10 s test on the MILK XP grading clip (accent
 `#9BE82E`): poster captions, label chip, edge glow, B/W flash and a
 full-screen claim card. QC: all 5 checks PASS (see `qc_report.txt`).
-Stage 2 (components 4/6/7/8/9 + formalised decision rules) starts
-only after approval of this contact sheet.
+
+## Stage-2 proof
+
+`motion/demo2/` — 28.8 s test on the budget-allocation scene (same
+accent): every component in one cut — opening blur-zoom, posters
+(with a neon CRAZY), $2,500 counter, TV/console/basketball list
+plates, basketball-hoop PiP card, LED-lounge B-roll window (both
+stills generated, both tagged ILLUSTRATIVE), wants chip, and the
+NEEDS/WANTS/SAVE process stack lighting up as spoken. Base is two
+shots joined at the cut (the middle shot carries the show's own
+milk-jug gag, so it is skipped; no text crosses a shot change).
+QC: all 5 checks PASS (see `qc_report.txt`). Timeline:
+`motion/timelines/milk_budget_stage2.json`; stills:
+`motion/test_assets/`.

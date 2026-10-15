@@ -44,6 +44,12 @@ async function main() {
     return i >= 0 ? Number(args[i + 1]) : null;
   };
   const tl = JSON.parse(fs.readFileSync(timelinePath, "utf8"));
+  // media srcs may be repo-root-relative; the stage wants absolute paths
+  for (const item of tl.items || []) {
+    if (item.src && !item.src.startsWith("/")) {
+      item.src = path.resolve(HERE, "..", item.src);
+    }
+  }
   const fps = tl.fps || 30;
   const total = Math.round((tl.duration || 10) * fps);
   const from = opt("--from") ?? 0;
@@ -53,7 +59,7 @@ async function main() {
   const libDir = await ensureLibs();
   const browser = await puppeteer.launch({
     args: [...chromium.args, "--no-sandbox", "--disable-dev-shm-usage",
-           "--force-color-profile=srgb"],
+           "--force-color-profile=srgb", "--allow-file-access-from-files"],
     executablePath: await chromium.executablePath(),
     headless: true,
     env: { ...process.env, LD_LIBRARY_PATH: libDir },
@@ -64,6 +70,9 @@ async function main() {
   await page.evaluate((t) => window.setTimeline(t), tl);
   await page.evaluate(() => document.fonts.ready.then(() => true));
   await page.evaluate(() => window.layoutStage());
+  // PiP / B-roll stills must be decoded before any frame is shot
+  await page.evaluate(() => Promise.all([...document.images].map((img) =>
+    img.complete ? 1 : new Promise((r) => { img.onload = img.onerror = () => r(1); }))));
 
   let semiFrames = 0, semiMaxRun = 0;
   const t0 = Date.now();

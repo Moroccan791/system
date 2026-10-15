@@ -1,0 +1,6 @@
+MOTION QC milk_budget_stage2.mp4: PASS
+  [PASS] word_sync: 38 words, worst offset 0 ms (cap 40)
+  [PASS] pacing: longest without a visual change 2.45 s at 7.1 s (cap 2.5)
+  [PASS] face_zone: faces clear of the text zone in 10 items
+  [PASS] semi_text: max semi-transparent run 2 frames (cap 2)
+  [PASS] margins: all zones inside the 6% safe margin plan

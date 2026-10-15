@@ -42,6 +42,72 @@
   .card .cw.serif { font-family: "SerifX"; font-style: italic; font-weight: 700; }
   .card .cline { display: flex; justify-content: center; align-items: baseline; white-space: nowrap; }
 
+  .poster .w.neon, .card .cw.neon { font-weight: 800; letter-spacing: .015em; }
+
+  /* ---- PiP / proof card ---- */
+  .pip { display: flex; align-items: flex-start; justify-content: center; }
+  .pip .pcard { position: relative; background: #fff; border-radius: 34px; padding: 14px;
+                box-shadow: 0 26px 64px rgba(0,0,0,.5); will-change: transform, filter, opacity; }
+  .pip .pimg { border-radius: 22px; overflow: hidden; position: relative; }
+  .pip .pimg img { display: block; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+  .pip .plab { position: absolute; left: 24px; bottom: 24px; display: flex; flex-direction: column;
+               background: rgba(8,10,13,.85); border-radius: 20px; padding: 16px 26px; }
+  .pip .plab .l1 { font-family: "MontserratX"; font-weight: 800; color: #fff; line-height: 1.05; white-space: nowrap; }
+  .pip .plab .l2 { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.72); line-height: 1.15; white-space: nowrap; }
+  .tagill { position: absolute; top: -20px; right: 28px; z-index: 3; font-family: "MontserratX"; font-weight: 800;
+            letter-spacing: .14em; padding: 10px 20px; border-radius: 999px; box-shadow: 0 10px 26px rgba(0,0,0,.35); }
+
+  /* ---- B-roll window ---- */
+  .broll .win { position: absolute; overflow: hidden; border-radius: 40px;
+                box-shadow: 0 30px 80px rgba(0,0,0,.55); will-change: clip-path, filter, opacity; }
+  .broll .win img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+  .broll .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 42%;
+                  background: linear-gradient(180deg, transparent, rgba(0,0,0,.66)); }
+  .broll .blab { position: absolute; left: 42px; bottom: 36px; display: flex; flex-direction: column; }
+  .broll .blab .l1 { font-family: "MontserratX"; font-weight: 800; color: #fff; line-height: 1.04;
+                     text-shadow: 0 4px 18px rgba(0,0,0,.5); white-space: nowrap; }
+  .broll .blab .l2 { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.8);
+                     line-height: 1.15; white-space: nowrap; }
+  .broll .tagill { top: 24px; right: 24px; }
+
+  /* ---- number counter ---- */
+  .counter { position: absolute; inset: 0; }
+  .counter .cwrap { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; }
+  .counter .num { font-family: "MontserratX"; font-weight: 800; letter-spacing: .005em;
+                  text-shadow: 0 10px 34px rgba(0,0,0,.45); will-change: transform, opacity, filter; white-space: nowrap; }
+  .counter .num .affix { font-size: .44em; }
+  .counter .clab { font-family: "MontserratX"; font-weight: 600; color: #fff; letter-spacing: .16em;
+                   text-shadow: 0 4px 16px rgba(0,0,0,.55); margin-top: 10px; white-space: nowrap; }
+
+  /* ---- list plates ---- */
+  .listp { position: absolute; inset: 0; }
+  .listp .lwrap { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .listp .lhead { font-family: "MontserratX"; font-weight: 800; letter-spacing: .08em; color: #0d0f12;
+                  padding: 18px 38px; border-radius: 999px; box-shadow: 0 14px 36px rgba(0,0,0,.4); white-space: nowrap; }
+  .listp .plate { display: flex; align-items: center; gap: 26px; background: rgba(9,11,15,.88); border-radius: 26px;
+                  padding: 26px 38px 26px 28px; box-shadow: 0 16px 44px rgba(0,0,0,.42); will-change: transform, opacity, filter; }
+  .listp .badge { flex: 0 0 auto; width: 66px; height: 66px; border-radius: 50%; display: flex; align-items: center;
+                  justify-content: center; font-family: "MontserratX"; font-weight: 800; }
+  .listp .ptx { display: flex; flex-direction: column; }
+  .listp .pt1 { color: #fff; font-family: "MontserratX"; font-weight: 800; line-height: 1.05; white-space: nowrap; }
+  .listp .pt2 { color: rgba(255,255,255,.66); font-family: "MontserratX"; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+
+  /* ---- process / step stack ---- */
+  .proc { position: absolute; inset: 0; }
+  .proc .pwrap { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; }
+  .proc .ptitle { font-family: "MontserratX"; font-weight: 800; letter-spacing: .08em; color: #0d0f12;
+                  padding: 18px 38px; border-radius: 999px; box-shadow: 0 14px 36px rgba(0,0,0,.4);
+                  margin-bottom: 34px; white-space: nowrap; }
+  .proc .srow { display: flex; align-items: flex-start; gap: 28px; will-change: transform, opacity, filter; }
+  .proc .scol { display: flex; flex-direction: column; align-items: center; }
+  .proc .scirc { width: 74px; height: 74px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                 font-family: "MontserratX"; font-weight: 800; flex: 0 0 auto; }
+  .proc .sline { width: 6px; height: 40px; border-radius: 3px; margin: 8px 0; }
+  .proc .stx { display: flex; flex-direction: column; padding-top: 6px; min-width: 430px; }
+  .proc .st1 { color: #fff; font-family: "MontserratX"; font-weight: 800; line-height: 1.05; white-space: nowrap;
+               text-shadow: 0 4px 16px rgba(0,0,0,.4); }
+  .proc .st2 { color: rgba(255,255,255,.7); font-family: "MontserratX"; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+
   /* ---- light fx ---- */
   .fxlayer { position: absolute; inset: 0; overflow: hidden; }
   .fx-flash { position: absolute; inset: 0; }
@@ -83,10 +149,11 @@ function buildPoster(item) {
     row.forEach(wd => {
       const s = document.createElement("span");
       const kind = wd.kind || "conn";
-      s.className = "w " + (kind === "key" ? "key" : kind === "serif" ? "serif" : "conn");
+      s.className = "w " + (kind === "key" ? "key" : kind === "serif" ? "serif" : kind === "neon" ? "neon" : "conn");
       s.textContent = wd.w;
-      s.style.fontSize = (kind === "key" ? (item.keySize || 118) : (item.connSize || 54)) + "px";
+      s.style.fontSize = (kind === "key" || kind === "neon" ? (item.keySize || 118) : (item.connSize || 54)) + "px";
       if (kind === "key") s.style.color = item.accent || ACCENT;
+      if (kind === "neon") s.style.color = wd.color || "#FF3355";
       if (wd.glow) s.dataset.glow = "1";
       r.appendChild(s);
       const sp = document.createElement("span");
@@ -128,10 +195,11 @@ function buildCard(item) {
     const ln = el("cline", root);
     line.forEach(wd => {
       const s = document.createElement("span");
-      s.className = "cw" + (wd.kind === "serif" ? " serif" : "");
+      s.className = "cw" + (wd.kind === "serif" ? " serif" : "") + (wd.kind === "neon" ? " neon" : "");
       s.textContent = wd.w;
       s.style.fontSize = (wd.size || item.wordSize || 120) + "px";
       if (wd.kind === "key") s.style.color = item.accent || ACCENT;
+      if (wd.kind === "neon") s.style.color = wd.color || "#FF3355";
       if (item.bg === "accent" && wd.kind === "key") s.style.color = "#ffffff";
       ln.appendChild(s);
       const sp = document.createElement("span");
@@ -165,6 +233,167 @@ function buildFx(item) {
   return { item, root, node };
 }
 
+function zoneCentre(item, def) {
+  const zone = item.zone || def || [0.615, 0.845];
+  return { zone, cy: ((zone[0] + zone[1]) / 2) * H };
+}
+
+function mediaSrc(item) {
+  return item.src && item.src.startsWith("/") ? "file://" + item.src : item.src;
+}
+
+function illTag(parent, item, size) {
+  if (!item.illustrative) return null;
+  const tag = el("tagill", parent);
+  tag.textContent = "ILLUSTRATIVE";
+  tag.style.background = item.accent || ACCENT;
+  tag.style.color = "#0d0f12";
+  tag.style.fontSize = (size || 26) + "px";
+  return tag;
+}
+
+function buildPip(item) {
+  const root = el("item pip", stage);
+  const { cy } = zoneCentre(item);
+  const cardW = Math.round((item.w || 0.58) * W);
+  const imgH = Math.round(cardW * 0.66);
+  root.style.paddingTop = Math.max(0, Math.round(cy - (imgH + 28) / 2)) + "px";
+  const card = el("pcard", root);
+  card.style.width = cardW + "px";
+  const pimg = el("pimg", card);
+  pimg.style.height = imgH + "px";
+  const img = document.createElement("img");
+  img.src = mediaSrc(item);
+  pimg.appendChild(img);
+  illTag(card, item);
+  if (item.label) {
+    const lab = el("plab", pimg);
+    const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "44px";
+    if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "34px"; }
+  }
+  return { item, root, pipCard: card, pipImg: img };
+}
+
+function buildBroll(item) {
+  const root = el("item broll", stage);
+  const zone = item.zone || [0.30, 0.80];
+  const winW = Math.round(0.92 * W), winH = Math.round((zone[1] - zone[0]) * H);
+  const win = el("win", root);
+  win.style.left = ((W - winW) / 2) + "px";
+  win.style.top = (zone[0] * H) + "px";
+  win.style.width = winW + "px";
+  win.style.height = winH + "px";
+  win.style.border = `4px solid ${item.accent || ACCENT}`;
+  const img = document.createElement("img");
+  img.src = mediaSrc(item);
+  win.appendChild(img);
+  el("scrim", win);
+  if (item.label) {
+    const lab = el("blab", win);
+    const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
+    if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "40px"; }
+  }
+  illTag(win, item);
+  return { item, root, win, bimg: img };
+}
+
+function buildCounter(item) {
+  const root = el("item counter", stage);
+  const { cy } = zoneCentre(item);
+  const wrap = el("cwrap", root);
+  wrap.style.top = Math.round(cy - 135) + "px";
+  const num = el("num", wrap);
+  num.style.color = item.accent || ACCENT;
+  num.style.fontSize = "200px";
+  if (item.prefix) { const s = document.createElement("span"); s.className = "affix"; s.textContent = item.prefix; num.appendChild(s); }
+  const val = document.createElement("span");
+  val.textContent = "0";
+  num.appendChild(val);
+  if (item.suffix) { const s = document.createElement("span"); s.className = "affix"; s.textContent = item.suffix; num.appendChild(s); }
+  if (item.label) { const lab = el("clab", wrap); lab.textContent = item.label; }
+  layoutJobs.push(() => {
+    let fs = 200;
+    while (num.scrollWidth > 950 && fs > 90) { fs -= 10; num.style.fontSize = fs + "px"; }
+  });
+  return { item, root, num, numVal: val };
+}
+
+function buildList(item) {
+  const root = el("item listp", stage);
+  const zone = item.zone || [0.50, 0.95];
+  const wrap = el("lwrap", root);
+  wrap.style.top = (zone[0] * H) + "px";
+  let head = null;
+  if (item.title) {
+    head = el("lhead", wrap);
+    head.textContent = item.title;
+    head.style.background = item.accent || ACCENT;
+    head.style.fontSize = "42px";
+  }
+  const plates = (item.items || []).map((pl, i) => {
+    const pel = el("plate", wrap);
+    const badge = el("badge", pel);
+    badge.textContent = String(i + 1);
+    badge.style.fontSize = "36px";
+    const tx = el("ptx", pel);
+    const t1 = el("pt1", tx); t1.textContent = pl.text; t1.style.fontSize = "54px";
+    let t2 = null;
+    if (pl.sub) { t2 = el("pt2", tx); t2.textContent = pl.sub; t2.style.fontSize = "36px"; }
+    layoutJobs.push(() => {
+      let fs = 54;
+      while (t1.scrollWidth > 540 && fs > 30) { fs -= 4; t1.style.fontSize = fs + "px"; if (t2) t2.style.fontSize = Math.round(fs * 0.66) + "px"; }
+    });
+    return { el: pel, badge, at: pl.at };
+  });
+  return { item, root, plates, lhead: head };
+}
+
+function buildProcess(item) {
+  const root = el("item proc", stage);
+  const { cy } = zoneCentre(item, [0.52, 0.92]);
+  const wrap = el("pwrap", root);
+  wrap.style.top = Math.round(cy) + "px";
+  wrap.style.transform = "translateY(-50%)";
+  if (item.title) {
+    const t = el("ptitle", wrap);
+    t.textContent = item.title;
+    t.style.background = item.accent || ACCENT;
+    t.style.fontSize = "42px";
+  }
+  const steps = (item.steps || []).map((st, i, arr) => {
+    const row = el("srow", wrap);
+    const col = el("scol", row);
+    const circ = el("scirc", col);
+    circ.textContent = String(i + 1);
+    circ.style.fontSize = "36px";
+    let line = null;
+    if (i < arr.length - 1) line = el("sline", col);
+    const tx = el("stx", row);
+    const t1 = el("st1", tx); t1.textContent = st.text; t1.style.fontSize = "56px";
+    if (st.sub) { const t2 = el("st2", tx); t2.textContent = st.sub; t2.style.fontSize = "38px"; }
+    layoutJobs.push(() => {
+      let fs = 56;
+      while (t1.scrollWidth > 560 && fs > 32) { fs -= 4; t1.style.fontSize = fs + "px"; }
+    });
+    return { row, circ, line, at: st.at };
+  });
+  return { item, root, steps };
+}
+
+function lifeFx(t, at, until, enterFrames) {
+  // opacity resolves within 2 frames either side (semi-transparent QC);
+  // the exit is a blur-out whose opacity only drops in the last 2 frames
+  const opIn = clamp01((t - at) / (2 / FPS));
+  const x = exitFade(until + 5 / FPS, t);
+  return { op: Math.min(opIn, x.op), blur: x.blur, pIn: clamp01((t - at) / ((enterFrames || 10) / FPS)) };
+}
+
+function fmtVal(v, dec) {
+  const parts = v.toFixed(dec).split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
 function autofit(node, maxFrac, singleLine) {
   // shrink until the content fits the frame width (never touch the edges)
   const maxW = maxFrac * W;
@@ -189,7 +418,7 @@ function wordEnter(wd, t) {
   const rot = 1.6 * (1 - easeOut(p));
   const op = clamp01(dt / (2 / FPS));
   let scale = 1;
-  if (wd.kind === "key") {
+  if (wd.kind === "key" || wd.kind === "neon") {
     const pk = clamp01(dt / (10 / FPS));
     scale = pk < 0.62 ? 0.85 + (1.08 - 0.85) * easeOut(pk / 0.62)
                      : 1.08 - 0.08 * easeOut((pk - 0.62) / 0.38);
@@ -218,6 +447,14 @@ function applyWord(wd, t, until) {
     const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
     const c = wd.el.style.color;
     shadow = `0 0 ${26 * pulse + 10}px ${c}, 0 6px 22px rgba(0,0,0,.4)`;
+  }
+  if (wd.kind === "neon") {
+    // electric glow with a 4-frame flicker at entry (glow only - the
+    // word's opacity curve stays clean for the semi-transparent QC)
+    const f = Math.round((t - wd.at) * FPS);
+    const flick = f >= 3 && f <= 6 ? [0.45, 1, 0.6, 1][f - 3] : 1;
+    const c = wd.el.style.color;
+    shadow = `0 0 ${Math.round(17 * flick)}px ${c}, 0 0 ${Math.round(46 * flick)}px ${c}, 0 6px 22px rgba(0,0,0,.45)`;
   }
   elx.style.opacity = Math.min(e.op, x.op).toFixed(3);
   elx.style.filter = `blur(${Math.max(e.blur, x.blur).toFixed(2)}px)`;
@@ -274,6 +511,102 @@ function renderAt(tMs) {
       const outP = clamp01((until - t) / (4 / FPS));
       b.root.style.opacity = Math.min(inP, outP).toFixed(3);
     }
+    if (b.pipCard) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 10);
+      b.pipCard.style.opacity = L.op.toFixed(3);
+      b.pipCard.style.filter = `blur(${(L.blur * 1.4).toFixed(2)}px)`;
+      b.pipCard.style.transform = `translateY(${((1 - easeOut(L.pIn)) * 46).toFixed(1)}px) ` +
+        `rotate(${(-1.4 * (1 - easeOut(L.pIn))).toFixed(2)}deg) scale(${(0.88 + 0.12 * easeOut(L.pIn)).toFixed(3)})`;
+      const life = clamp01((t - it.at) / Math.max(0.001, until - it.at));
+      b.pipImg.style.transform = `scale(${(1.05 + 0.08 * life).toFixed(3)})`;
+      trackSemi(b.pipCard, L.op);
+    }
+    if (b.win) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 10);
+      const p = easeOut(L.pIn);
+      b.win.style.clipPath = `inset(${((1 - p) * 44).toFixed(2)}% ${((1 - p) * 10).toFixed(2)}% ` +
+        `${((1 - p) * 44).toFixed(2)}% ${((1 - p) * 10).toFixed(2)}% round 40px)`;
+      b.win.style.opacity = L.op.toFixed(3);
+      b.win.style.filter = `blur(${(L.blur * 1.4).toFixed(2)}px)`;
+      const life = clamp01((t - it.at) / Math.max(0.001, until - it.at));
+      b.bimg.style.transform = `scale(${(1.07 + 0.08 * life).toFixed(3)}) translateX(${(-1.6 + 3.2 * life).toFixed(2)}%)`;
+      trackSemi(b.win, L.op);
+    }
+    if (b.num) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 6);
+      const cd = it.countDur || 0.9;
+      const p = clamp01((t - it.at) / cd);
+      b.numVal.textContent = fmtVal((it.value || 0) * easeOut(p), it.decimals || 0);
+      let sc = 0.92 + 0.08 * easeOut(clamp01((t - it.at) / (6 / FPS)));
+      if (p >= 1) {   // lock pop once the count lands
+        const q = clamp01((t - it.at - cd) / (6 / FPS));
+        sc *= 1 + 0.1 * Math.sin(q * Math.PI);
+      }
+      b.num.style.opacity = L.op.toFixed(3);
+      b.num.style.filter = `blur(${(L.blur * 1.4).toFixed(2)}px)`;
+      b.num.style.transform = `scale(${sc.toFixed(3)})`;
+      trackSemi(b.num, L.op);
+    }
+    if (b.plates) {
+      const until = it.until ?? it.at + 2;
+      const x = exitFade(until + 5 / FPS, t);
+      b.root.style.opacity = x.op.toFixed(3);
+      b.root.style.filter = `blur(${(x.blur * 1.2).toFixed(2)}px)`;
+      if (b.lhead) b.lhead.style.opacity = clamp01((t - it.at) / (2 / FPS)).toFixed(3);
+      let lastStarted = -1;
+      b.plates.forEach((pl, i) => { if (t >= pl.at) lastStarted = i; });
+      b.plates.forEach((pl, i) => {
+        const dt = t - pl.at;
+        const p = easeOut(clamp01(dt / (7 / FPS)));
+        const op = clamp01(dt / (2 / FPS));
+        pl.el.style.opacity = op.toFixed(3);
+        pl.el.style.transform = `translateX(${(-70 * (1 - p)).toFixed(1)}px)`;
+        pl.el.style.filter = `blur(${(5 * (1 - p)).toFixed(2)}px)`;
+        const active = i === lastStarted;
+        pl.badge.style.background = active ? (it.accent || ACCENT) : "rgba(255,255,255,.16)";
+        pl.badge.style.color = active ? "#0d0f12" : "#ffffff";
+        trackSemi(pl.el, op);
+      });
+    }
+    if (b.steps) {
+      const until = it.until ?? it.at + 2;
+      const x = exitFade(until + 5 / FPS, t);
+      b.root.style.opacity = x.op.toFixed(3);
+      b.root.style.filter = `blur(${(x.blur * 1.2).toFixed(2)}px)`;
+      let lastStarted = -1;
+      b.steps.forEach((s, i) => { if (t >= s.at) lastStarted = i; });
+      b.steps.forEach((s, i) => {
+        const dt = t - s.at;
+        const p = easeOut(clamp01(dt / (7 / FPS)));
+        const op = clamp01(dt / (2 / FPS));
+        s.row.style.opacity = op.toFixed(3);
+        s.row.style.transform = `translateY(${(26 * (1 - p)).toFixed(1)}px)`;
+        if (i < lastStarted) {
+          s.circ.textContent = "✓";
+          s.circ.style.background = "rgba(255,255,255,.14)";
+          s.circ.style.color = "#ffffff";
+          s.circ.style.border = `3px solid ${hexA(it.accent || ACCENT, .85)}`;
+          s.circ.style.boxShadow = "none";
+        } else if (i === lastStarted) {
+          s.circ.textContent = String(i + 1);
+          s.circ.style.background = it.accent || ACCENT;
+          s.circ.style.color = "#0d0f12";
+          s.circ.style.border = "3px solid transparent";
+          s.circ.style.boxShadow = `0 0 30px ${hexA(it.accent || ACCENT, .55)}`;
+        } else {
+          s.circ.textContent = String(i + 1);
+          s.circ.style.background = "transparent";
+          s.circ.style.color = "rgba(255,255,255,.55)";
+          s.circ.style.border = "3px solid rgba(255,255,255,.3)";
+          s.circ.style.boxShadow = "none";
+        }
+        if (s.line) s.line.style.background = i < lastStarted ? (it.accent || ACCENT) : "rgba(255,255,255,.18)";
+        trackSemi(s.row, op);
+      });
+    }
   }
   return stats;
 }
@@ -284,7 +617,9 @@ window.setTimeline = function (tl) {
   stage.innerHTML = "";
   builtItems = [];
   layoutJobs.length = 0;
-  const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx };
+  const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx,
+                     pip: buildPip, broll: buildBroll, counter: buildCounter,
+                     list: buildList, process: buildProcess };
   for (const item of tl.items || []) {
     if (item.type === "fx" && item.until == null) item.until = item.at + (item.dur || 0.45);
     const b = builders[item.type];

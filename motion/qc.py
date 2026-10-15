@@ -48,16 +48,23 @@ def word_sync(tl: dict, transcript: dict) -> tuple[str, str]:
     worst = 0.0
     misses = []
     for text, at in authored:
-        while si < len(spoken) and spoken[si][0] != text:
-            si += 1
-        if si >= len(spoken):
+        # closest matching occurrence in order: uncaptioned beats
+        # (counters, list plates) legitimately skip spoken words, so a
+        # repeated word must bind to the occurrence nearest its
+        # authored time - the offset is then measured honestly
+        best, best_off = None, None
+        for j in range(si, min(len(spoken), si + 80)):
+            if spoken[j][0] == text:
+                off = abs(at - spoken[j][1]) * 1000
+                if best_off is None or off < best_off:
+                    best, best_off = j, off
+        if best is None:
             misses.append(text)
             continue
-        off = abs(at - spoken[si][1]) * 1000
-        worst = max(worst, off)
-        if off > CHECK_MS:
-            misses.append(f"{text} ({off:.0f} ms)")
-        si += 1
+        worst = max(worst, best_off)
+        if best_off > CHECK_MS:
+            misses.append(f"{text} ({best_off:.0f} ms)")
+        si = best + 1
     if misses:
         return "fail", f"words out of sync: {', '.join(misses[:5])}"
     return "pass", f"{len(authored)} words, worst offset {worst:.0f} ms (cap {CHECK_MS:.0f})"
@@ -70,6 +77,11 @@ def pacing(tl: dict) -> tuple[str, str]:
         for row in (it.get("rows") or it.get("lines") or []):
             for w in row:
                 events.add(round(float(w["at"]), 3))
+        for key in ("items", "steps"):
+            for sub in it.get(key) or []:
+                events.add(round(float(sub["at"]), 3))
+        if it["type"] == "counter":
+            events.add(round(float(it["at"]) + float(it.get("countDur") or 0.9), 3))
     ev = sorted(events)
     gaps = [(b - a, a) for a, b in zip(ev, ev[1:])]
     if not gaps:
@@ -80,7 +92,12 @@ def pacing(tl: dict) -> tuple[str, str]:
 
 
 def face_zone(video: Path, tl: dict) -> tuple[str, str]:
-    posters = [i for i in tl["items"] if i["type"] == "poster"]
+    # every text-bearing component that sits over the footage: posters,
+    # counters, PiP cards, list plates and process stacks (full-screen
+    # cards and B-roll windows are editorial takeovers, checked by eye
+    # on the contact sheet instead)
+    posters = [i for i in tl["items"]
+               if i["type"] in ("poster", "pip", "counter", "list", "process")]
     if not posters:
         return "warn", "no poster items"
     try:
@@ -96,9 +113,10 @@ def face_zone(video: Path, tl: dict) -> tuple[str, str]:
     det = _detector()
     if det is None:
         return "warn", "YuNet unavailable"
+    zone_def = {"list": [0.50, 0.95], "process": [0.52, 0.92]}
     hits = []
     for it in posters:
-        zone = it.get("zone") or [0.615, 0.845]
+        zone = it.get("zone") or zone_def.get(it["type"]) or [0.615, 0.845]
         zy0, zy1 = zone[0] * 1920, zone[1] * 1920
         t = (float(it["at"]) + float(it.get("until") or it["at"])) / 2
         frame = next(iter_frames(video, size=(540, 960), start=t, duration=0.1), None)
@@ -114,9 +132,9 @@ def face_zone(video: Path, tl: dict) -> tuple[str, str]:
             if fy0 < zy1 * fy and fy0 + fh > zy0 * fy:
                 hits.append(f"{t:.1f} s")
                 break
-    return (("fail", f"face enters poster zone at {', '.join(hits[:4])}")
-            if hits else ("pass", f"faces clear of the poster zone in "
-                                  f"{len(posters)} stacks"))
+    return (("fail", f"face enters text zone at {', '.join(hits[:4])}")
+            if hits else ("pass", f"faces clear of the text zone in "
+                                  f"{len(posters)} items"))
 
 
 def semi_text(frames: Path) -> tuple[str, str]:
