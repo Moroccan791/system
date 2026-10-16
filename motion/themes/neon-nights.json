@@ -1,5 +1,20 @@
-{"name": "neon-nights", "accent": "#A78BFA", "ink": "#0D0F12", "paper": "#FFFFFF",
- "radius": "round", "glow": 1.6, "speed": 1.0, "easing": "pop",
- "fontMode": "sans", "captionStyle": "neon",
- "transitionOrder": ["flare", "leak", "flash", "bwflash"],
- "soundSeedSalt": 113}
+{
+ "name": "neon-nights",
+ "accent": "#A78BFA",
+ "ink": "#0D0F12",
+ "paper": "#FFFFFF",
+ "radius": "round",
+ "glow": 1.6,
+ "speed": 1.0,
+ "easing": "pop",
+ "fontMode": "sans",
+ "captionStyle": "neon",
+ "transitionOrder": [
+  "flare",
+  "leak",
+  "flash",
+  "bwflash"
+ ],
+ "soundSeedSalt": 113,
+ "fontPack": "grotesk"
+}

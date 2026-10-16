@@ -7,6 +7,14 @@
   @font-face { font-family: "MontserratX"; src: url("file:///home/user/system/assets/fonts/Montserrat-SemiBold.ttf"); font-weight: 600; }
   @font-face { font-family: "SerifX"; src: url("file:///home/user/system/assets/fonts/DejaVuSerif-Bold.ttf"); font-weight: 700; }
   @font-face { font-family: "SerifX"; src: url("file:///home/user/system/assets/fonts/DejaVuSerif.ttf"); font-weight: 400; }
+  /* font packs (theme fontPack / produce --font): OFL-1.1 faces,
+     chosen per video - see motion/fonts.py. MontserratX stays the
+     default workhorse. */
+  @font-face { font-family: "PackAnton"; src: url("file:///home/user/system/assets/fonts/Anton.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackBebas"; src: url("file:///home/user/system/assets/fonts/BebasNeue.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackGrotesk"; src: url("file:///home/user/system/assets/fonts/SpaceGrotesk-Bold.woff2"); font-weight: 700; }
+  @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Bold.woff2"); font-weight: 700; }
+  @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Italic.woff2"); font-weight: 700; font-style: italic; }
   html, body { margin: 0; padding: 0; width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
   #stage { position: absolute; inset: 0; }
   .item { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
@@ -249,7 +257,23 @@ function buildPoster(item) {
   // spatial placement (place3d): the stack stands IN the room -
   // perspective-tilted, optionally zoom-locked to the camera move
   const sp3d = item.place3d || null;
-  layoutJobs.push(() => autofit(stack, 0.88));
+  layoutJobs.push(() => {
+    // hero words must NEVER bleed off-frame: shrink the hero itself
+    // (floor 110px) until it leaves room for its row-mates. The old
+    // behaviour leaned on autofit's 0.62 scale floor, which silently
+    // let a 2200px row render at 1360px in a 1080 frame.
+    for (const wd of words) {
+      if (wd.kind !== "hero") continue;
+      let fs = parseFloat(wd.el.style.fontSize);
+      while (wd.el.offsetWidth > 0.78 * W && fs > 110) {
+        fs *= 0.94;
+        wd.el.style.fontSize = fs.toFixed(0) + "px";
+      }
+    }
+    // behind-the-person stacks fit wider: the words must flank the
+    // silhouette, so they are allowed 94% of the frame
+    autofit(stack, item.behind ? 0.94 : 0.88);
+  });
   return { item, root, words, stack, sp3d };
 }
 
@@ -2090,7 +2114,10 @@ function applyWord(wd, t, until) {
   // exit discipline, so the semi-transparent QC is untouched. Key
   // words keep their plate (already the highlight of the stack).
   let karaNow = false;
-  if (wd.kara && wd.kind !== "key") {
+  if (wd.kara && wd.kind !== "key" && wd.kind !== "hero") {
+    // heroes never swell: a hero already fills its row, so the
+    // karaoke 13% lean-in pushed MILLIONAIRE off-frame (user-
+    // reported on test edit #1). Heroes keep colour + glow only.
     karaNow = t >= wd.at - WORD_LEAD && t < (wd.end ?? until);
     if (karaNow) {
       e.scale *= 1.13;
@@ -2403,7 +2430,14 @@ window.setTimeline = function (tl) {
     // luminance and raises this on bright footage): deepens the
     // stack's ground plate so words hold 4.5:1 anywhere
     (THEME.captionShade > 0
-      ? `.poster .stack::before { background: radial-gradient(ellipse at center, rgba(4,7,10,${Math.min(0.92, 0.55 + THEME.captionShade).toFixed(2)}) 55%, rgba(4,7,10,0) 88%) !important; }` : "");
+      ? `.poster .stack::before { background: radial-gradient(ellipse at center, rgba(4,7,10,${Math.min(0.92, 0.55 + THEME.captionShade).toFixed(2)}) 55%, rgba(4,7,10,0) 88%) !important; }` : "") +
+    // font pack (theme fontPack / produce --font): one display face
+    // across posters, cards, slates, chips, lower-thirds, counters.
+    // Serif-italic WORDS keep SerifX - that contrast is a meaning
+    // cue (reflective), not a style accident.
+    ({ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk",
+       serif: "PackSerif" }[THEME.fontPack]
+      ? `.poster .w, .card .cw, .slate .hk-line, .slate .hk-kicker, .slate .hk-sub, .chip .t1, .lowerthird .ltname, .counter .num { font-family: "${{ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk", serif: "PackSerif" }[THEME.fontPack]}" !important; }` : "");
   stage.innerHTML = "";
   builtItems = [];
   layoutJobs.length = 0;

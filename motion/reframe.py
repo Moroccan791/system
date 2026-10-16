@@ -175,7 +175,11 @@ def face_report(src: Path) -> dict:
     Returns the median face box (normalised) and the caption/poster
     zones that clear it - the numbers an author (or produce.py)
     needs to place text without a hand-check on every job."""
-    fps, total, w, h, samples = detect_track(src, 3, [])
+    _cap = cv2.VideoCapture(str(src))
+    n0 = int(_cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    _cap.release()
+    fps, total, w, h, samples = detect_track(
+        src, 3 if n0 <= 1000 else 6, [])
     boxes = [p for _, p, _ in samples if p is not None]
     if not boxes:
         return {"src": str(src), "faces_detected_pct": 0.0,

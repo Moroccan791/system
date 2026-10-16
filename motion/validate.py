@@ -112,6 +112,82 @@ def main(path: str) -> int:
             if not 0.3 <= d <= 1.0:
                 problems.append(f"freeze at {it['at']}: dur {d}s outside "
                                 f"0.3-1.0s (hold the beat, then move)")
+        # text may never render off-frame: estimate every row's
+        # rendered width with the engine's own model (0.62em average
+        # advance, hero shrink floor 110px, stack autofit 0.88/0.94)
+        if it["type"] in ("poster", "card"):
+            sizes = {"hero": float(it.get("heroSize") or 250),
+                     "key": float(it.get("keySize") or 118),
+                     "neon": float(it.get("keySize") or 118),
+                     "conn": float(it.get("connSize") or 58)}
+            row_est = []
+            for row in (it.get("rows") or it.get("lines") or []):
+                est = 0.0
+                for w in row:
+                    kind = w.get("kind") or "conn"
+                    size = float(w.get("size")
+                                 or it.get("wordSize")
+                                 or (sizes.get(kind, 58)
+                                     if it["type"] == "poster" else 120))
+                    if kind == "hero":
+                        # engine: hero shrinks (floor 110px) until it
+                        # alone fits 78% of the frame
+                        size = max(110.0, min(
+                            size, 0.78 * 1080 / max(len(w["w"]), 1)
+                            / 0.62))
+                    est += len(w["w"]) * size * 0.62 \
+                        + (26 if kind == "key" else 16)
+                row_est.append(est)
+            if row_est:
+                widest = max(row_est)
+                scale = min(1.0, (0.94 if it.get("behind") else 0.88)
+                            * 1080 / widest)
+                if widest * scale > 1060:
+                    problems.append(
+                        f"{it['type']} at {it['at']}: a row renders "
+                        f"~{widest * scale:.0f}px wide in a 1080 frame - "
+                        f"shorten the hero word, split the row, or "
+                        f"lower heroSize (text may not leave the screen)")
+            # a graphic lives exactly as long as its spoken phrase:
+            # the moment the words end, it starts leaving
+            if words:
+                last_at = max(w["at"] for w in words)
+                cap = 1.2 if it["type"] == "card" else 1.0
+                if until - last_at > cap:
+                    problems.append(
+                        f"{it['type']} at {it['at']}: outstays its "
+                        f"phrase by {until - last_at:.1f}s after the "
+                        f"last word (cap {cap}s) - end it with the "
+                        f"speech, not after it")
+        if it.get("behind") and it["type"] == "poster":
+            # the silhouette eats whatever is not wider than the body
+            # at that height: hero must be a flanking phrase anchored
+            # at head height (hardcoded from the matte, not taste)
+            heroes = [w for r in (it.get("rows") or []) for w in r
+                      if w.get("kind") == "hero"]
+            if heroes:
+                hero_row = max(
+                    (r for r in it["rows"]
+                     if any(w.get("kind") == "hero" for w in r)),
+                    key=lambda r: sum(len(w["w"]) for w in r
+                                      if w.get("kind") == "hero"))
+                n_hero = sum(1 for w in hero_row
+                             if w.get("kind") == "hero")
+                longest = max(len(w["w"]) for w in hero_row
+                              if w.get("kind") == "hero")
+                if n_hero < 2 and longest < 8:
+                    problems.append(
+                        f"behind poster at {it['at']}: a lone short "
+                        f"hero word disappears behind the speaker - "
+                        f"use a >=2-word hero row (it must flank the "
+                        f"silhouette, like '57 MEN', not hide behind it)")
+                zone = it.get("zone") or [0.30, 0.42]
+                if (zone[0] + zone[1]) / 2 > 0.42:
+                    problems.append(
+                        f"behind poster at {it['at']}: anchored at "
+                        f"y={((zone[0] + zone[1]) / 2):.2f}, where the "
+                        f"shoulders/torso eat the words - anchor at "
+                        f"head height (zone centre <= 0.42)")
         if it["type"] == "lowerthird" and not 1.8 <= dwell <= 6.0:
             problems.append(f"lowerthird at {it['at']}: dwell {dwell:.2f}s "
                             f"outside 1.8-6.0s (name them, let it be read, "

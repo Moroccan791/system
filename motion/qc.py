@@ -24,6 +24,13 @@ while one fails):
   face_zone     YuNet faces vs the text zone at poster moments
   semi_text     no element semi-transparent >2 consecutive frames
   margins       zones keep the 6% safe-margin plan
+  duration      video length matches the authored timeline
+  value_anchor  a graphic that NAMES a number (counter value, data
+                scene label) may not appear before that number is
+                spoken - no spoilers, no early scenes
+  behind_fit    behind-the-person heroes measured against the real
+                silhouette in the frame: the words must flank the
+                body at the height they sit, not hide behind it
 """
 from __future__ import annotations
 
@@ -486,6 +493,138 @@ def semi_text(frames: Path) -> tuple[str, str]:
             ("pass", f"max semi-transparent run {run} frames (cap 2)"))
 
 
+NUM_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+             "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+             "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20,
+             "thirty": 30, "forty": 40, "fifty": 50, "hundred": 100,
+             "thousand": 1000, "million": 1000000}
+
+
+def _numbers_in(text: str) -> list[float]:
+    out = []
+    for tok in re.findall(r"\d[\d,\.]*", str(text)):
+        try:
+            out.append(float(tok.replace(",", "")))
+        except ValueError:
+            pass
+    return out
+
+
+def value_anchor(tl: dict, transcript) -> tuple[str, str]:
+    """A graphic that names a number may not appear before the
+    number is spoken (test edit #1: the '100 YEARS' scene landed
+    ~0.4s before 'hundred'). Numbers must be anchored to speech."""
+    words = transcript.get("words") or [] \
+        if isinstance(transcript, dict) else transcript
+    spoken: dict[float, float] = {}
+    for w in words:
+        tok = re.sub(r"[^a-z0-9\.]", "", str(
+            w.get("text") or w.get("word") or "").lower())
+        vals = _numbers_in(tok)
+        if tok in NUM_WORDS:
+            vals.append(float(NUM_WORDS[tok]))
+        for v in vals:
+            spoken.setdefault(v, float(w["start"]))
+    if not spoken:
+        return "warn", "no numbers in transcript"
+    claims, bad = 0, []
+    for it in tl["items"]:
+        named: list[float] = []
+        if it["type"] == "counter" and it.get("value") is not None:
+            named.append(float(it["value"]))
+        if it["type"] == "vector":
+            texts = [it.get("title"), it.get("word"), it.get("place")]
+            texts += it.get("labels") or []
+            texts += [e.get("label") for e in it.get("events") or []]
+            for t in texts:
+                named += _numbers_in(t or "")
+        for v in dict.fromkeys(named):
+            if v != int(v):
+                continue
+            claims += 1
+            onset = spoken.get(v)
+            if onset is not None and float(it["at"]) < onset - 0.05:
+                bad.append(f"{it['type']} @{it['at']:.2f}s names "
+                           f"{int(v)} before it is spoken "
+                           f"({onset:.2f}s)")
+    if bad:
+        return "fail", "; ".join(bad[:3])
+    return "pass", f"{claims} numbered graphic(s) land on or after " \
+                   f"their spoken number"
+
+
+def behind_fit(video: Path, tl: dict) -> tuple[str, str]:
+    """Behind-the-person fit, measured on the real frame: the hero
+    must be wider than the silhouette AT THE HEIGHT IT SITS (head
+    ~1.15x face width; shoulders/torso ~2.3x), or it hides."""
+    behind = [i for i in tl["items"] if i.get("behind")
+              and i["type"] == "poster"]
+    if not behind:
+        return "pass", "no behind-the-person posters"
+    try:
+        import cv2  # noqa: F401
+    except ImportError:
+        return "warn", "opencv unavailable"
+    from clipper.edit.reframe import _MODEL, _detector
+    from clipper.ffmpeg import iter_frames
+    if not _MODEL.exists():
+        return "warn", "YuNet model missing"
+    det = _detector()
+    if det is None:
+        return "warn", "YuNet unavailable"
+    lines, bad = [], []
+    for it in behind:
+        heroes = [w for r in (it.get("rows") or []) for w in r
+                  if w.get("kind") == "hero"]
+        if not heroes:
+            continue
+        est = sum(len(w["w"]) for w in heroes) \
+            * float(it.get("heroSize") or 250) * 0.62
+        rendered = min(est, 0.94 * 1080)
+        zone = it.get("zone") or [0.30, 0.42]
+        cy = (zone[0] + zone[1]) / 2
+        t = (float(it["at"]) + float(it.get("until") or it["at"])) / 2
+        frame = next(iter_frames(video, size=(540, 960), start=t,
+                                 duration=0.1), None)
+        if frame is None:
+            continue
+        det.setInputSize((frame.shape[1], frame.shape[0]))
+        _, faces = det.detect(frame)
+        if faces is None or not len(faces):
+            lines.append(f"@{t:.1f}s no face found")
+            continue
+        f = max(faces, key=lambda b: b[2] * b[3])
+        face_w = float(f[2]) * 2.0           # 540 -> 1080 scale
+        face_bottom = (float(f[1]) + float(f[3])) / 960.0
+        body_w = face_w * (2.3 if cy > face_bottom else 1.15)
+        src = "face proxy"
+        # better: measure the matte itself (it knows about raised
+        # hands and the mic, which a face box cannot see)
+        mask_path = video.with_name("person_mask.mp4")
+        if mask_path.exists():
+            mframe = next(iter_frames(mask_path, size=(540, 960),
+                                      start=t, duration=0.1), None)
+            if mframe is not None:
+                import numpy as np
+                band = mframe[int(max(0.0, cy - 0.035) * 960):
+                              int(min(1.0, cy + 0.035) * 960)]
+                rows = (band.max(axis=2) > 127).sum(axis=1)
+                if len(rows) and rows.max() > 0:
+                    body_w = float(rows.max()) * 2.0
+                    src = "matte"
+        margin = (rendered - body_w) / 2
+        lines.append(f"@{t:.1f}s hero {rendered:.0f}px vs body "
+                     f"{body_w:.0f}px ({src}) -> {margin:.0f}px/side")
+        if margin < 100:
+            bad.append(f"behind hero @{it['at']:.1f}s flanks the "
+                       f"silhouette by only {margin:.0f}px/side "
+                       f"(<100) - widen the hero phrase or raise it "
+                       f"to head height")
+    if bad:
+        return "fail", "; ".join(bad[:2])
+    return "pass", "; ".join(lines) if lines else "no hero rows"
+
+
 def duration(video: Path, tl: dict) -> tuple[str, str]:
     # a filter graph that stalls (framesync EOF race) can silently
     # ship a video seconds short while every visual check passes -
@@ -522,6 +661,8 @@ def main() -> int:
               ("cuts", *cuts(video, tl)),
               ("opening", *opening(tl)),
               ("face_zone", *face_zone(video, tl)),
+              ("value_anchor", *value_anchor(tl, transcript)),
+              ("behind_fit", *behind_fit(video, tl)),
               ("semi_text", *semi_text(frames)),
               ("margins", *margins(tl))]
     ok = all(s != "fail" for _, s, _ in checks)

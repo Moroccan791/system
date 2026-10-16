@@ -648,6 +648,46 @@ that pass obeys these rules:
    frame inside every new scene before shipping (a scene you haven't seen
    is a scene that isn't done).
 
+## Fit laws (hardcoded from test edit #1's failures)
+
+These came from a user's frame-by-frame review of a real edit;
+they are enforced in code now, not taste:
+
+- **Text may not leave the screen.** Hero words shrink themselves
+  to fit (engine, floor 110px) and heroes never take the karaoke
+  swell; the validator estimates every row's rendered width with
+  the engine's model and rejects rows that would bleed. If it
+  fires: shorten the word, split the row, lower `heroSize`.
+- **A graphic lives exactly as long as its spoken phrase.** Poster
+  tails cap at 1.0s past the last word onset (cards 1.2s) in the
+  validator; `decide.py` clamps to 0.9s. No graphic may sit on
+  screen after its sentence has moved on.
+- **Numbers land when spoken.** QC `value_anchor`: a counter or a
+  data scene whose label names a number fails if it appears >50ms
+  before that number's spoken onset. Anchor scenes to the number
+  word, never to the start of the sentence about it.
+- **Behind-the-person fit is measured, not guessed.** QC
+  `behind_fit` reads the actual matte silhouette at the stack's
+  height (face proxy when no mask exists) and requires ≥100px of
+  hero flanking each side. Authoring half (validator): hero row =
+  a ≥2-word phrase, zone centre ≤0.42 (head height — shoulders and
+  raised hands eat anything lower).
+- **Caption zones come from the footage.** produce.py tracks the
+  face on every job and writes the measured zone onto any poster
+  that doesn't carry one (`--no-auto-zones` opts out; authored
+  zones, behind and place3d items are never overridden).
+
+## Font packs (choose per video)
+
+`python motion/fonts.py` lists them; `produce.py --font <name>`
+applies one to a whole video (themes karaoke-bold/bounce-party/
+neon-nights carry anton/bebas/grotesk built in). montserrat =
+default workhorse; anton = tall condensed statement caps; bebas =
+clean editorial caps; grotesk = techy, keeps lowercase; serif =
+Playfair elegance. One pack per video — a font is a voice, and a
+video has one voice. All faces OFL-1.1, vendored in
+`assets/fonts/`.
+
 ## Retention, audio, camera & packaging (the second stack)
 
 - **Retention score** (`retention.py`, run by produce.py into every

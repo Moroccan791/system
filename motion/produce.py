@@ -156,6 +156,15 @@ def main() -> int:
         log["base_treated"] = str(base)
 
     theme = load_theme(opt("--theme"), base, tl_src, log)
+    if opt("--font"):
+        # whole-video font pack choice (motion/fonts.py lists them);
+        # overrides the theme's pack, never the brand accent
+        if opt("--font") in ("montserrat", "anton", "bebas",
+                             "grotesk", "serif"):
+            theme["fontPack"] = opt("--font")
+            log["font_pack"] = opt("--font")
+        else:
+            log["font_pack"] = f"unknown {opt('--font')!r} - ignored"
     # adaptive caption shade: measure what actually sits behind the
     # caption zone; bright footage earns a deeper ground plate
     try:
@@ -176,10 +185,22 @@ def main() -> int:
                                     f"{sum(lum) / len(lum):.2f} -> shade 0.4")
     except Exception as e:  # measurement must never block a render
         log["caption_shade"] = f"skipped ({e})"
-    if flag("--face-report"):
+    # fit captions to THIS video, not to taste: track the face and
+    # hand every un-zoned poster the measured caption zone (authored
+    # zones and behind/place3d items are deliberate and stay put).
+    # --no-auto-zones opts out; --face-report just forces the log.
+    auto_zone = None
+    if not flag("--no-auto-zones") or flag("--face-report"):
         fr = py("reframe.py", "--report", str(base))
         try:
             log["face_report"] = json.loads(fr.stdout)
+            z = log["face_report"].get("recommended_caption_zone")
+            if z and not flag("--no-auto-zones"):
+                auto_zone = [max(0.30, min(z[0], 0.90)),
+                             max(0.35, min(z[1], 0.95))]
+                log["auto_zones"] = (f"poster zone {auto_zone} from "
+                                     f"face bottom "
+                                     f"{log['face_report'].get('face_bottom')}")
         except Exception:
             log["face_report"] = "unavailable"
     import numpy as np
@@ -197,9 +218,15 @@ def main() -> int:
         tl = json.loads(json.dumps(tl))
         tl["theme"] = {k: theme[k] for k in
                        ("radius", "glow", "speed", "easing", "fontMode",
-                        "captionStyle", "captionShade")
+                        "captionStyle", "captionShade", "fontPack")
                        if k in theme}
         tl.setdefault("brand", {})["accent"] = theme["accent"]
+        if auto_zone:
+            for it in tl["items"]:
+                if it["type"] == "poster" and "zone" not in it \
+                        and not it.get("behind") \
+                        and not it.get("place3d"):
+                    it["zone"] = list(auto_zone)
         if level == 1:
             tl = simplify(tl, 1)
         # branded end card: auto-injected when the timeline's brand

@@ -550,6 +550,15 @@ def main() -> int:
         print(f"  ! duration {duration:.1f}s clips a word's dwell; "
               f"extended to {needed:.1f}s")
         duration = round(needed, 3)
+    # phrase-window law (last word wins): a graphic ends WITH its
+    # spoken phrase - clamp poster/card tails to <=0.9s past the
+    # last word onset, after every other mutation has had its say
+    for i in items:
+        if i["type"] in ("poster", "card"):
+            ws = flat_words(i)
+            if ws:
+                lw = max(w["at"] for w in ws)
+                i["until"] = round(min(float(i["until"]), lw + 0.9), 3)
     tl = {"version": 1, "fps": 30, "width": 1080, "height": 1920,
           "duration": duration, "brand": {"accent": args.accent}, "items": items}
     Path(args.out).write_text(json.dumps(tl, indent=2))
