@@ -137,6 +137,8 @@ const clamp01 = v => Math.max(0, Math.min(1, v));
 const easeOut = t => 1 - Math.pow(1 - t, 3);
 const easeOutBack = t => { const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
 const easeIn = t => t * t;
+const easeInOut = t => t * t * (3 - 2 * t);
+const fmt = v => fmtVal(v, 0);
 const F = s => Math.round(s * FPS); // seconds -> frames
 
 let TL = null, builtItems = [], ACCENT = "#FFC531", stats = null;
@@ -472,6 +474,151 @@ function buildScene(svg, V, ac, item, vw, vh) {
     n.head = svgEl("path", { d: `M ${505 * s} ${y1 * s} l ${-40 * s} ${8 * s} M ${505 * s} ${y1 * s} l ${-9 * s} ${38 * s}`, stroke: ac, "stroke-width": 13 * s, fill: "none", "stroke-linecap": "round", opacity: 0 }, svg);
     n.len = 680 * s;
     n.path.setAttribute("stroke-dasharray", n.len);
+  } else if (V.name === "bars") {
+    // SHOW data: bars grow staggered, values count up with them
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const vals = item.values || [60, 85, 45], labs = item.labels || [];
+    // centred band: full-bleed is tall, a floor-to-ceiling chart would run
+    // into the kicker label at the bottom
+    const chartH = Math.min(Math.max(H - 240, 200), 560);
+    n.mx = Math.max(...vals, 1);
+    n.base = H / 2 + chartH / 2; n.top = n.base - chartH; n.bars = [];
+    svgEl("line", { x1: 26 * s, y1: n.base * s, x2: 574 * s, y2: n.base * s, stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const k = vals.length, slot = 488 / k, bw = Math.min(76, slot * 0.52);
+    vals.forEach((v, i) => {
+      const cx = 56 + slot * (i + 0.5);
+      const fill = i === (item.hot ?? -1) ? ac : "#455a7d";
+      const r = svgEl("rect", { x: (cx - bw / 2) * s, y: n.base * s, width: bw * s, height: 0, rx: 9 * s, fill }, svg);
+      const tv = svgEl("text", { x: cx * s, y: (n.base - 12) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 44 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      const tl = svgEl("text", { x: cx * s, y: (n.base + 42) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 27 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tl.textContent = (labs[i] || "").toUpperCase();
+      fitSvg(tl, slot * 0.94 * s);
+      n.bars.push({ r, tv, tl, v, cx, hMax: (n.base - n.top) * (v / n.mx) });
+    });
+  } else if (V.name === "line") {
+    // SHOW change: a data line draws itself, points pop as it passes
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const pts = (item.points || [12, 34, 28, 62, 92]).map(v => Math.max(0, Math.min(100, v)));
+    const chartH2 = Math.min(Math.max(H - 240, 200), 560);
+    n.base = H / 2 + chartH2 / 2; n.top = n.base - chartH2; n.dots = [];
+    for (let g = 0; g < 3; g++) {
+      const gy = n.top + (n.base - n.top) * g / 2;
+      svgEl("line", { x1: 40 * s, y1: gy * s, x2: 566 * s, y2: gy * s, stroke: "#232d40", "stroke-width": 3 * s, "stroke-dasharray": `${8 * s} ${8 * s}` }, svg);
+    }
+    svgEl("line", { x1: 40 * s, y1: n.base * s, x2: 566 * s, y2: n.base * s, stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const P = pts.map((v, i) => [70 + i * (452 / Math.max(1, pts.length - 1)), n.base - (v / 100) * (n.base - n.top)]);
+    let d = `M ${P[0][0] * s} ${P[0][1] * s}`, len = 0;
+    for (let i = 1; i < P.length; i++) {
+      d += ` L ${P[i][0] * s} ${P[i][1] * s}`;
+      len += Math.hypot((P[i][0] - P[i - 1][0]) * s, (P[i][1] - P[i - 1][1]) * s);
+    }
+    n.path = svgEl("path", { d, fill: "none", stroke: ac, "stroke-width": 9 * s, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-dasharray": len }, svg);
+    n.len = len;
+    P.forEach(([px, py]) => {
+      n.dots.push(svgEl("circle", { cx: px * s, cy: py * s, r: 0, fill: "#14181f", stroke: ac, "stroke-width": 6 * s }, svg));
+    });
+    const [ex, ey] = P[P.length - 1];
+    n.end = svgEl("text", { x: Math.min(520, ex) * s, y: (ey - 30) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 56 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+    n.endVal = pts[pts.length - 1];
+  } else if (V.name === "versus") {
+    // COMPARE: two sides slide in, numbers count, winner gets the accent
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const L = item.left || { label: "A", value: 50 }, R = item.right || { label: "B", value: 50 };
+    const py = H * 0.20, ph = H * 0.56;
+    const mk = (x, side, win) => {
+      const g = svgEl("g", {}, svg);
+      svgEl("rect", { x: x * s, y: py * s, width: 232 * s, height: ph * s, rx: 18 * s, fill: win ? "#26314a" : "#1b2434", stroke: win ? ac : "#2b3547", "stroke-width": win ? 5 * s : 3 * s }, g);
+      const tv = svgEl("text", { x: (x + 116) * s, y: (py + ph * 0.52) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 96 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      const tl = svgEl("text", { x: (x + 116) * s, y: (py + ph * 0.52 + 52) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 29 * s, "font-weight": 700, "font-family": "MontserratX" }, g);
+      tl.textContent = (side.label || "").toUpperCase();
+      fitSvg(tl, 208 * s);
+      return { g, tv, val: side.value || 0 };
+    };
+    n.vsL = mk(34, L, item.win === "left");
+    n.vsR = mk(334, R, item.win === "right");
+    n.badge = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 300 * s, cy: (py + ph / 2) * s, r: 34 * s, fill: ac }, n.badge);
+    const bt = svgEl("text", { x: 300 * s, y: (py + ph / 2 + 12) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, n.badge);
+    bt.textContent = "VS";
+    n.vsCy = py + ph / 2;
+  } else if (V.name === "people") {
+    // SHOW quantity of people: a pictogram grid fills to the count
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const total = Math.max(1, Math.min(100, item.total || item.count || 57));
+    n.count = Math.min(total, item.count || total); n.total = total;
+    n.num = svgEl("text", { x: 300 * s, y: 92 * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 88 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    const cols = item.cols || 10, rows = Math.ceil(total / cols);
+    const cw = 488 / cols, chh = (H - 190) / rows, r = Math.min(cw, chh) * 0.30;
+    n.icons = [];
+    for (let i = 0; i < total; i++) {
+      const cx = 56 + cw * (i % cols + 0.5), cy = 128 + chh * (Math.floor(i / cols) + 0.5);
+      const g = svgEl("g", { opacity: 0 }, svg);
+      const col = i < n.count ? ac : "#2A3342";
+      svgEl("circle", { cx: cx * s, cy: (cy - r * 0.62) * s, r: r * 0.52 * s, fill: col }, g);
+      svgEl("path", { d: `M ${(cx - r) * s} ${(cy + r * 0.95) * s} A ${r * s} ${r * s} 0 0 1 ${(cx + r) * s} ${(cy + r * 0.95) * s} Z`, fill: col }, g);
+      n.icons.push({ g, cx, cy });
+    }
+  } else if (V.name === "stack") {
+    // SHOW composition: a 100% bar fills segment by segment
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const parts = item.parts || [70, 30], labs = item.labels || [];
+    const cols = [ac, "#5B729E", "#33456A", "#7E93BC"];
+    const bx = 50, bw2 = 500, by = H / 2 - 36, bh = 72, tot = parts.reduce((a, b) => a + b, 0) || 1;
+    const cid = "stk" + Math.round(item.at * 100);
+    const cp = svgEl("clipPath", { id: cid }, svg);
+    svgEl("rect", { x: bx * s, y: by * s, width: bw2 * s, height: bh * s, rx: 16 * s }, cp);
+    const gAll = svgEl("g", { "clip-path": `url(#${cid})` }, svg);
+    svgEl("rect", { x: bx * s, y: by * s, width: bw2 * s, height: bh * s, fill: "#232d40" }, gAll);
+    n.segs = []; let acc = 0;
+    parts.forEach((p, i) => {
+      const w = bw2 * p / tot, x = bx + acc; acc += w;
+      const r = svgEl("rect", { x: x * s, y: by * s, width: w * s, height: bh * s, fill: cols[i % 4] }, gAll);
+      const tv = svgEl("text", { x: (x + w / 2) * s, y: (by + bh + 44) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 36 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      const tl = svgEl("text", { x: (x + w / 2) * s, y: (by - 18) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 26 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tl.textContent = (labs[i] || "").toUpperCase();
+      fitSvg(tl, Math.min(190, w + 70) * s);
+      n.segs.push({ r, tv, tl, x, w, p });
+    });
+  } else if (V.name === "timeline") {
+    // ORIENT in time: a line draws, events land as it reaches them
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const evs = item.events || [{ x: 0.05, label: "START" }, { x: 0.95, label: "NOW" }];
+    n.midY = H / 2; n.evs = [];
+    n.tline = svgEl("line", { x1: 50 * s, y1: n.midY * s, x2: 550 * s, y2: n.midY * s, stroke: ac, "stroke-width": 7 * s, "stroke-linecap": "round", "stroke-dasharray": 500 * s }, svg);
+    evs.forEach((e, i) => {
+      const x = 50 + 500 * Math.max(0, Math.min(1, e.x ?? i / Math.max(1, evs.length - 1)));
+      const up = i % 2 === 0;
+      const dot = svgEl("circle", { cx: x * s, cy: n.midY * s, r: 0, fill: "#14181f", stroke: "#FFFFFF", "stroke-width": 6 * s }, svg);
+      // edge events anchor inward so labels never leave the frame
+      const anchor = x < 150 ? "start" : (x > 450 ? "end" : "middle");
+      const tx = anchor === "start" ? Math.max(36, x - 14)
+        : (anchor === "end" ? Math.min(564, x + 14) : x);
+      const tl = svgEl("text", { x: tx * s, y: (n.midY + (up ? -44 : 62)) * s, "text-anchor": anchor, fill: "#FFFFFF", "font-size": 36 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      tl.textContent = (e.label || "").toUpperCase();
+      fitSvg(tl, 210 * s);
+      const ts = svgEl("text", { x: tx * s, y: (n.midY + (up ? -76 : 94)) * s, "text-anchor": anchor, fill: ac, "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      ts.textContent = (e.sub || "").toUpperCase();
+      fitSvg(ts, 210 * s);
+      n.evs.push({ dot, tl, ts, x: e.x ?? i / Math.max(1, evs.length - 1) });
+    });
+  } else if (V.name === "quote") {
+    // PROVE: the actual words, big, with attribution
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const dy = Math.max(0, (H - 460) / 2);  // centre the block when tall
+    const mark = svgEl("text", { x: 82 * s, y: (170 + dy) * s, fill: ac, "font-size": 190 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    mark.textContent = "“";
+    n.qlines = [];
+    (item.quoteLines || []).slice(0, 3).forEach((ln, i) => {
+      const tx = svgEl("text", { x: 300 * s, y: (215 + dy + i * 68) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 47 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = ln;
+      fitSvg(tx, 536 * s);
+      n.qlines.push(tx);
+    });
+    if (item.by) {
+      n.qby = svgEl("text", { x: 300 * s, y: (235 + dy + (item.quoteLines || []).length * 68) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 28 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      fitSvg(n.qby, 500 * s);
+      n.qby.textContent = "— " + item.by.toUpperCase();
+    }
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -522,6 +669,76 @@ function animateVector(b, t, lifeP) {
     n.path.setAttribute("stroke-dashoffset", (n.len * (1 - easeOut(q))).toFixed(1));
     n.head.setAttribute("opacity", q > 0.85 ? ((q - 0.85) / 0.15).toFixed(2) : 0);
     n.head.setAttribute("transform", `translate(0 ${(Math.sin(lt * 3) * 5 * s).toFixed(1)})`);
+  } else if (V.name === "bars") {
+    n.bars.forEach((b, i) => {
+      const q = easeOut(clamp01((lt - 0.12 - i * 0.13) / 0.6));
+      b.r.setAttribute("height", (b.hMax * q * s).toFixed(1));
+      b.r.setAttribute("y", ((n.base - b.hMax * q) * s).toFixed(1));
+      b.tv.textContent = fmt(Math.round(b.v * q));
+      b.tv.setAttribute("y", ((n.base - b.hMax * q - 14) * s).toFixed(1));
+      b.tv.setAttribute("opacity", q > 0.06 ? 1 : 0);
+      b.tl.setAttribute("opacity", clamp01((lt - 0.5 - i * 0.13) / 0.3).toFixed(2));
+    });
+  } else if (V.name === "line") {
+    const q = easeInOut(clamp01(lt / Math.min(1.4, dur * 0.62)));
+    n.path.style.strokeDashoffset = n.len * (1 - q);
+    const cnt = n.dots.length;
+    n.dots.forEach((d, i) => {
+      const frac = cnt <= 1 ? 1 : i / (cnt - 1);
+      const pq = easeOutBack(clamp01((q - frac) / 0.12));
+      d.setAttribute("r", (11 * Math.max(0, pq) * s).toFixed(1));
+    });
+    n.end.textContent = fmt(Math.round(n.endVal * q)) + (b.item.unit || "");
+    n.end.setAttribute("opacity", clamp01((q - 0.75) / 0.2).toFixed(2));
+  } else if (V.name === "versus") {
+    const qL = easeOut(clamp01(lt / 0.45)), qR = easeOut(clamp01((lt - 0.12) / 0.45));
+    n.vsL.g.style.transform = `translateX(${(-52 * (1 - qL) * s).toFixed(1)}px)`;
+    n.vsL.g.style.opacity = qL.toFixed(2);
+    n.vsR.g.style.transform = `translateX(${(52 * (1 - qR) * s).toFixed(1)}px)`;
+    n.vsR.g.style.opacity = qR.toFixed(2);
+    const qc = easeOut(clamp01((lt - 0.3) / 0.75));
+    n.vsL.tv.textContent = fmt(Math.round(n.vsL.val * qc)) + (b.item.unit || "");
+    n.vsR.tv.textContent = fmt(Math.round(n.vsR.val * qc)) + (b.item.unit || "");
+    const qb = easeOutBack(clamp01((lt - 0.35) / 0.3));
+    n.badge.style.transformOrigin = `${300 * s}px ${n.vsCy * s}px`;
+    n.badge.style.transform = `scale(${Math.max(0.001, qb).toFixed(3)})`;
+  } else if (V.name === "people") {
+    const total = n.total, span = Math.min(1.6, dur * 0.6);
+    let shown = 0;
+    n.icons.forEach((ic, i) => {
+      const q = easeOutBack(clamp01((lt - 0.12 - (span * i) / total) / 0.22));
+      ic.g.style.transformOrigin = `${ic.cx * s}px ${ic.cy * s}px`;
+      ic.g.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+      ic.g.style.opacity = clamp01(q * 1.6).toFixed(2);
+      if (q > 0.5 && i < n.count) shown = i + 1;
+    });
+    n.num.textContent = fmt(shown);
+  } else if (V.name === "stack") {
+    n.segs.forEach((sg, i) => {
+      const q = easeOut(clamp01((lt - 0.15 - i * 0.2) / 0.55));
+      sg.r.style.transformOrigin = `${sg.x * s}px 0px`;
+      sg.r.style.transform = `scaleX(${Math.max(0.001, q).toFixed(3)})`;
+      sg.tv.textContent = fmt(Math.round(sg.p * q)) + "%";
+      const o = clamp01((q - 0.5) / 0.35).toFixed(2);
+      sg.tv.setAttribute("opacity", o);
+      sg.tl.setAttribute("opacity", o);
+    });
+  } else if (V.name === "timeline") {
+    const q = easeInOut(clamp01(lt / Math.min(1.3, dur * 0.6)));
+    n.tline.style.strokeDashoffset = (500 * s * (1 - q)).toFixed(1);
+    n.evs.forEach((e) => {
+      const pq = easeOutBack(clamp01((q - e.x) / 0.1));
+      e.dot.setAttribute("r", (12 * Math.max(0, pq) * s).toFixed(1));
+      const o = clamp01((q - e.x) / 0.08).toFixed(2);
+      e.tl.setAttribute("opacity", o); e.ts.setAttribute("opacity", o);
+    });
+  } else if (V.name === "quote") {
+    n.qlines.forEach((tx, i) => {
+      const q = easeOut(clamp01((lt - 0.25 - i * 0.16) / 0.4));
+      tx.setAttribute("opacity", q.toFixed(2));
+      tx.style.transform = `translateY(${((1 - q) * 16 * s).toFixed(1)}px)`;
+    });
+    if (n.qby) n.qby.setAttribute("opacity", clamp01((lt - 0.25 - (n.qlines.length) * 0.16) / 0.4).toFixed(2));
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;
@@ -628,6 +845,20 @@ function fmtVal(v, dec) {
   const parts = v.toFixed(dec).split(".");
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return parts.join(".");
+}
+
+function fitSvg(tx, maxW) {
+  // SVG text cannot wrap: shrink its font-size (measured once fonts are
+  // in, via layoutJobs) until it fits maxW px. Floor 40% of authored size.
+  layoutJobs.push(() => {
+    let fs = parseFloat(tx.getAttribute("font-size"));
+    const floor = fs * 0.4;
+    for (let i = 0; i < 24; i++) {
+      if (tx.getComputedTextLength() <= maxW || fs <= floor) break;
+      fs *= 0.94;
+      tx.setAttribute("font-size", fs.toFixed(1));
+    }
+  });
 }
 
 function autofit(node, maxFrac, singleLine) {

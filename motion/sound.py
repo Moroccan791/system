@@ -177,6 +177,16 @@ def build_events(tl: dict, cuts: list[dict], typing: bool,
         elif ty in ("pip", "broll"):
             add(at, "whoosh", -10, f"{ty} enter")
             add(until, "swipe", -18, f"{ty} exit")
+        elif ty == "vector":
+            # a scene must not move in silence: full-bleed cuts whoosh in,
+            # card panels pop; data scenes tick softly while they build
+            full = (it.get("mode") or "card") == "fullbleed"
+            add(at, "whoosh" if full else "pop", -10 if full else -6,
+                f"scene {it.get('name')} enter")
+            if full and until - at >= 1.6:
+                for k in (0.45, 0.9):
+                    add(at + k, "tick", -22, "scene build")
+            add(until, "swipe", -20, "scene exit")
         elif ty == "chip":
             add(at, "pop", -6, "chip enter")
         elif ty == "fx" and it.get("kind") == "opening":

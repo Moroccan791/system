@@ -314,14 +314,27 @@ def idle(tl: dict) -> tuple[str, str]:
 
 # --------------------------------------------------------------- images
 def images(tl: dict) -> tuple[str, str]:
-    imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll", "vector")]
-    if not imgs:
+    # cadence classes mirror validate.py: picture inserts (pip/broll/
+    # metaphor vectors) keep 6s spacing; full-bleed DATA scenes are
+    # animated content and may chain at 2.4s (see motion/MOTIONS.md)
+    DATA_SCENES = ("bars", "line", "versus", "people", "stack", "timeline",
+                   "quote")
+    imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll")
+            or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
+    data = [i for i in tl["items"] if i["type"] == "vector"
+            and i.get("name") in DATA_SCENES
+            and (i.get("mode") or "card") == "fullbleed"]
+    all_imgs = imgs + data
+    if not all_imgs:
         return "pass", "no image inserts"
     lines, bad = [], []
     for a, b in zip(imgs, imgs[1:]):
         if b["at"] - a["at"] < 6.0:
             bad.append(f"images {b['at'] - a['at']:.1f}s apart (<6s)")
-    for it in imgs:
+    for a, b in zip(data, data[1:]):
+        if b["at"] - a["at"] < 2.4:
+            bad.append(f"data scenes {b['at'] - a['at']:.1f}s apart (<2.4s)")
+    for it in sorted(all_imgs, key=lambda i: i["at"]):
         src = str(it.get("src") or "")
         origin = "vector" if it["type"] == "vector" else \
             "generated" if ("generated" in src or "test_assets" in src

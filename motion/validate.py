@@ -85,13 +85,36 @@ def main(path: str) -> int:
                             f"(a sub breaks the 6-7% bar height / 3% text floor); "
                             f"merge it into title or drop it")
         if it["type"] == "vector" and it.get("name") not in (
-                "hoop", "led", "donut", "arrow", "burst"):
+                "hoop", "led", "donut", "arrow", "burst",
+                "bars", "line", "versus", "people", "stack", "timeline", "quote"):
             problems.append(f"vector at {it['at']}: unknown scene "
-                            f"{it.get('name')!r} (hoop, led, donut, arrow, burst)")
-        if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed" \
-                and not 1.0 <= dwell <= 1.8:
-            problems.append(f"vector broll at {it['at']}: full-bleed dwell "
-                            f"{dwell:.2f}s outside 1.0-1.8s")
+                            f"{it.get('name')!r} (see motion/MOTIONS.md)")
+        if it["type"] == "vector":
+            nm = it.get("name")
+            if nm == "bars" and not 2 <= len(it.get("values") or []) <= 7:
+                problems.append(f"bars at {it['at']}: needs 2-7 values")
+            if nm == "line" and not 2 <= len(it.get("points") or []) <= 8:
+                problems.append(f"line at {it['at']}: needs 2-8 points")
+            if nm == "people" and not 1 <= (it.get("count") or 0) <= 100:
+                problems.append(f"people at {it['at']}: count must be 1-100 "
+                                f"(a pictogram grid, not a number)")
+            if nm == "versus" and not (it.get("left") and it.get("right")):
+                problems.append(f"versus at {it['at']}: needs left and right")
+            if nm == "stack" and not 2 <= len(it.get("parts") or []) <= 4:
+                problems.append(f"stack at {it['at']}: needs 2-4 parts")
+            if nm == "timeline" and not 2 <= len(it.get("events") or []) <= 5:
+                problems.append(f"timeline at {it['at']}: needs 2-5 events")
+            if nm == "quote" and not 1 <= len(it.get("quoteLines") or []) <= 3:
+                problems.append(f"quote at {it['at']}: needs 1-3 quoteLines")
+        if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed":
+            # data scenes keep moving (fills/growth) so they may hold longer;
+            # metaphor scenes must stay punchy
+            lo, hi = (1.2, 2.5) if it.get("name") in (
+                "bars", "line", "versus", "people", "stack", "timeline",
+                "quote") else (1.0, 1.8)
+            if not lo <= dwell <= hi:
+                problems.append(f"vector broll at {it['at']}: full-bleed dwell "
+                                f"{dwell:.2f}s outside {lo}-{hi}s")
         if it["type"] in ("poster", "card", "counter", "chip", "pip", "broll", "vector") \
                 and dwell > 3.0:
             problems.append(f"{it['type']} at {it['at']}: dwell {dwell:.2f}s over "
@@ -130,12 +153,24 @@ def main(path: str) -> int:
             if subs and until < ats[-1] + 0.8:
                 problems.append(f"{it['type']} at {it['at']}: until {until} gives the "
                                 f"last entry no dwell time")
-    # image cadence: at most one PiP / B-roll / vector insert per 6 s
-    imgs = [i for i in items if i["type"] in ("pip", "broll", "vector")]
+    # image cadence: at most one PiP / B-roll / metaphor-vector insert per 6 s
+    DATA_SCENES = ("bars", "line", "versus", "people", "stack", "timeline",
+                   "quote")
+    imgs = [i for i in items if i["type"] in ("pip", "broll")
+            or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     for a, b in zip(imgs, imgs[1:]):
         if b["at"] - a["at"] < 6.0:
             problems.append(f"images at {a['at']} and {b['at']}: under the "
                             f"6s minimum spacing between image inserts")
+    # data scenes are animated content, not stills: they may chain in an
+    # MG-led stretch, but never crowd (2.4s min between full-bleed starts)
+    data = [i for i in items if i["type"] == "vector"
+            and i.get("name") in DATA_SCENES
+            and (i.get("mode") or "card") == "fullbleed"]
+    for a, b in zip(data, data[1:]):
+        if b["at"] - a["at"] < 2.4:
+            problems.append(f"data scenes at {a['at']} and {b['at']}: under "
+                            f"the 2.4s minimum spacing between data scenes")
     for p in problems:
         print(f"RULE {p}")
     if problems:
