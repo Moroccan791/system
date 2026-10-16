@@ -124,6 +124,9 @@ def _snap(t: float, gaps: list[float], curve: dict | None, *, window: float = 0.
 
 ZOOM_MODES = ("static", "punch", "push", "pull", "mixed", "none")
 MAX_PUSH_SCALE = 1.35           # a 35% push across one shot; beyond that it reads as a zoom
+SLOW_PUSH_CAP = 1.05            # adopted 2026-10-16 (quality A/B "B"): past 1.05 a slow
+                                # push mostly enlarges upscale softness on low-res
+                                # sources; brief punch-ins keep the style scale
 
 
 def camera_moves(style: dict, shot_durations: list[float], *,
@@ -166,9 +169,9 @@ def camera_moves(style: dict, shot_durations: list[float], *,
     for i, duration in enumerate(shot_durations):
         punch = {"type": "punch_in", "from": 1.0, "to": round(scale, 4),
                  "over": round(min(over, duration), 3)}
-        push = {"type": "slow_push", "from": 1.0, "to": round(min(scale, MAX_PUSH_SCALE), 4),
+        push = {"type": "slow_push", "from": 1.0, "to": round(min(scale, SLOW_PUSH_CAP), 4),
                 "over": round(duration, 3)}
-        pull = {"type": "pull_out", "from": round(min(scale, MAX_PUSH_SCALE), 4), "to": 1.0,
+        pull = {"type": "pull_out", "from": round(min(scale, SLOW_PUSH_CAP), 4), "to": 1.0,
                 "over": round(duration, 3)}
         if mode == "punch":
             moves.append(punch)

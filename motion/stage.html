@@ -672,10 +672,12 @@ function animateVector(b, t, lifeP) {
   } else if (V.name === "bars") {
     n.bars.forEach((b, i) => {
       const q = easeOut(clamp01((lt - 0.12 - i * 0.13) / 0.6));
-      b.r.setAttribute("height", (b.hMax * q * s).toFixed(1));
-      b.r.setAttribute("y", ((n.base - b.hMax * q) * s).toFixed(1));
+      // a zero value still draws a stub: no bar at all reads as broken
+      const hh = b.v === 0 ? 7 * q : b.hMax * q;
+      b.r.setAttribute("height", (hh * s).toFixed(1));
+      b.r.setAttribute("y", ((n.base - hh) * s).toFixed(1));
       b.tv.textContent = fmt(Math.round(b.v * q));
-      b.tv.setAttribute("y", ((n.base - b.hMax * q - 14) * s).toFixed(1));
+      b.tv.setAttribute("y", ((n.base - hh - 14) * s).toFixed(1));
       b.tv.setAttribute("opacity", q > 0.06 ? 1 : 0);
       b.tl.setAttribute("opacity", clamp01((lt - 0.5 - i * 0.13) / 0.3).toFixed(2));
     });
@@ -688,8 +690,10 @@ function animateVector(b, t, lifeP) {
       const pq = easeOutBack(clamp01((q - frac) / 0.12));
       d.setAttribute("r", (11 * Math.max(0, pq) * s).toFixed(1));
     });
-    n.end.textContent = fmt(Math.round(n.endVal * q)) + (b.item.unit || "");
-    n.end.setAttribute("opacity", clamp01((q - 0.75) / 0.2).toFixed(2));
+    // the end value arrives WITH the line tip, not ahead of it
+    const eq = easeOut(clamp01((q - 0.78) / 0.22));
+    n.end.textContent = fmt(Math.round(n.endVal * eq)) + (b.item.unit || "");
+    n.end.setAttribute("opacity", clamp01((q - 0.8) / 0.15).toFixed(2));
   } else if (V.name === "versus") {
     const qL = easeOut(clamp01(lt / 0.45)), qR = easeOut(clamp01((lt - 0.12) / 0.45));
     n.vsL.g.style.transform = `translateX(${(-52 * (1 - qL) * s).toFixed(1)}px)`;
@@ -719,7 +723,9 @@ function animateVector(b, t, lifeP) {
       sg.r.style.transformOrigin = `${sg.x * s}px 0px`;
       sg.r.style.transform = `scaleX(${Math.max(0.001, q).toFixed(3)})`;
       sg.tv.textContent = fmt(Math.round(sg.p * q)) + "%";
-      const o = clamp01((q - 0.5) / 0.35).toFixed(2);
+      // a sliver segment (<26 units) cannot carry text: it still fills,
+      // but its label/% stay hidden instead of floating over neighbours
+      const o = sg.w < 26 ? 0 : clamp01((q - 0.5) / 0.35).toFixed(2);
       sg.tv.setAttribute("opacity", o);
       sg.tl.setAttribute("opacity", o);
     });
@@ -727,9 +733,13 @@ function animateVector(b, t, lifeP) {
     const q = easeInOut(clamp01(lt / Math.min(1.3, dur * 0.6)));
     n.tline.style.strokeDashoffset = (500 * s * (1 - q)).toFixed(1);
     n.evs.forEach((e) => {
-      const pq = easeOutBack(clamp01((q - e.x) / 0.1));
+      // normalise per-event progress so the LAST event also completes:
+      // un-normalised, a dot at x=0.94 would freeze mid-overshoot and its
+      // label would cap at ~75% opacity
+      const prog = e.x >= 1 ? 1 : clamp01((q - e.x) / (1 - e.x));
+      const pq = easeOutBack(clamp01(prog / 0.35));
       e.dot.setAttribute("r", (12 * Math.max(0, pq) * s).toFixed(1));
-      const o = clamp01((q - e.x) / 0.08).toFixed(2);
+      const o = clamp01(prog / 0.3).toFixed(2);
       e.tl.setAttribute("opacity", o); e.ts.setAttribute("opacity", o);
     });
   } else if (V.name === "quote") {

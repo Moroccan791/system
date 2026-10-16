@@ -11,6 +11,7 @@ for every run.
 Usage:
   python motion/produce.py <timeline.json> <base.mp4> <transcript.json>
       <job_dir> [--theme neon-dark] [--seed 7] [--typing-sound on]
+      [--treat on|off]   quality treatment B on the base (default on)
 """
 from __future__ import annotations
 
@@ -35,6 +36,26 @@ def run(cmd: list[str], **kw) -> subprocess.CompletedProcess:
 
 def py(script: str, *args: str) -> subprocess.CompletedProcess:
     return run([sys.executable, str(HERE / script), *args])
+
+
+# Quality treatment "B" (adopted as the default 2026-10-16 after an A/B on
+# the 57-men clip): light denoise -> mild sharpen -> fine temporal grain.
+# On low-res sources (a face a few hundred px wide, upscaled 2-3x) this
+# removes the blocky upscale mush and reads filmic instead of blurry.
+# Costs minutes per clip at preset medium; --treat off skips it.
+TREAT_VF = "hqdn3d=3:2:6:4,unsharp=5:5:0.45:3:3:0.15,noise=alls=7:allf=t"
+
+
+def treat_base(base: Path, job: Path) -> Path:
+    sys.path.insert(0, str(ROOT))
+    from clipper.ffmpeg import ffmpeg_exe
+    out = job / "base_treated.mp4"
+    r = run([ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),
+             "-vf", TREAT_VF, "-c:v", "libx264", "-crf", "16",
+             "-preset", "medium", "-c:a", "copy", str(out)])
+    if r.returncode != 0:
+        raise RuntimeError(f"base treatment failed: {r.stderr[-300:]}")
+    return out
 
 
 def load_theme(name: str | None, base: Path, tl: dict,
@@ -109,6 +130,11 @@ def main() -> int:
         transcript = transcript.get("words") or []
     log: dict = {"seed": seed, "timeline": str(tl_path),
                  "base": str(base), "choices": {}, "levels": []}
+
+    if opt("--treat", "on") != "off":
+        base = treat_base(base, job)
+        log["treatment"] = "B (hqdn3d+unsharp+grain, crf16); base_treated.mp4"
+        log["base_treated"] = str(base)
 
     theme = load_theme(opt("--theme"), base, tl_src, log)
     import numpy as np

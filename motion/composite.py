@@ -101,7 +101,12 @@ def composite(base: Path, frames: Path, tl: dict, out: Path) -> Path:
             "-filter_complex", fc, "-map", "[vout]"]
     if tl.get("duration"):
         args += ["-t", f"{float(tl['duration']):.3f}"]
+    # VBV cap on the CRF: with the grain treatment adopted (2026-10-16),
+    # uncapped crf17 spends ~30 Mbps preserving noise and a 35s clip
+    # balloons past 100 MB. Platforms re-encode to ~10 Mbps anyway, so
+    # 10M/20M keeps the visible quality and bounds delivery size.
     args += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "17",
+             "-maxrate", "10M", "-bufsize", "20M",
              "-pix_fmt", "yuv420p", "-an", str(vid)]
     _run(args)
     # Pass 2: audio (base voice + transition SFX) muxed onto the video.
