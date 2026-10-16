@@ -14,6 +14,14 @@ pillow>=10                  # cover-frame composition (captions/cover.py)
 # pywhispercpp>=1.3          # whisper.cpp bindings (needs a ggml model file you download yourself)
 # rapidocr-onnxruntime>=1.3  # OCR reference captions to read text/casing (stage 1, optional)
 
+# ---- behind-the-person matte (motion/matte.py) ------------------------------
+mediapipe==0.10.21            # selfie segmentation, model bundled in the wheel
+                              # (1.x removed the solutions API - do not bump)
+opencv-contrib-python-headless==4.11.0.86
+                              # mediapipe's cv2 build; headless because the
+                              # GUI wheel needs libGL the sandbox lacks. This
+                              # supersedes opencv-python-headless (same cv2).
+
 # ---- development -------------------------------------------------------------
 pytest>=8                # the regression suite (python -m pytest tests/)
 jsonschema

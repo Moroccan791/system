@@ -175,7 +175,42 @@ def main() -> int:
             log["levels"].append({"level": level, "stage": "validate"})
             continue
         frames = job / f"frames_l{level}"
-        r = run(["node", str(HERE / "render.mjs"), str(fx_path),
+        behind_frames = None
+        mask = None
+        render_tl = fx_path
+        if any(it.get("behind") for it in fx["items"]):
+            # behind-the-person: matte once per job (pure function of
+            # the base), then render the behind layer and the main
+            # layer separately; composite stacks base -> behind ->
+            # speaker -> main. A matte failure fails the level, never
+            # silently drops the effect.
+            mask = job / "person_mask.mp4"
+            if not mask.exists():
+                m = py("matte.py", str(base), str(mask))
+                if m.returncode != 0:
+                    log["levels"].append(
+                        {"level": level, "stage": "matte",
+                         "error": (m.stderr or m.stdout)[-300:]})
+                    continue
+            main_tl = json.loads(fx_path.read_text())
+            behind_tl = json.loads(fx_path.read_text())
+            behind_items = [i for i in main_tl["items"] if i.get("behind")]
+            main_tl["items"] = [i for i in main_tl["items"]
+                                if not i.get("behind")]
+            behind_tl["items"] = behind_items
+            render_tl = job / f"timeline_main_l{level}.json"
+            render_tl.write_text(json.dumps(main_tl))
+            behind_path = job / f"timeline_behind_l{level}.json"
+            behind_path.write_text(json.dumps(behind_tl))
+            behind_frames = job / f"behind_l{level}"
+            rb = run(["node", str(HERE / "render.mjs"), str(behind_path),
+                      str(behind_frames)], cwd=HERE)
+            if rb.returncode != 0 or len(list(behind_frames.glob("*.png"))) < 10:
+                log["levels"].append(
+                    {"level": level, "stage": "render-behind",
+                     "error": (rb.stderr or rb.stdout)[-300:]})
+                continue
+        r = run(["node", str(HERE / "render.mjs"), str(render_tl),
                  str(frames)], cwd=HERE)
         n_frames = len(list(frames.glob("*.png"))) if frames.exists() else 0
         if r.returncode != 0 or n_frames < 10:
@@ -184,8 +219,10 @@ def main() -> int:
                                   "frames_rendered": n_frames})
             continue
         final = job / "final.mp4"
-        c = py("composite.py", str(base), str(frames), str(fx_path),
-               str(final))
+        cargs = [str(base), str(frames), str(fx_path), str(final)]
+        if behind_frames is not None:
+            cargs += ["--behind", str(behind_frames), "--mask", str(mask)]
+        c = py("composite.py", *cargs)
         if c.returncode != 0 or not final.exists():
             log["levels"].append({"level": level, "stage": "composite",
                                   "error": (c.stderr or c.stdout)[-300:]})

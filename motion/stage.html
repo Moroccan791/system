@@ -176,7 +176,8 @@ function buildPoster(item) {
   const root = el("item poster", stage);
   const zone = item.zone || [0.615, 0.845];
   const wrap = el("stackwrap", root);
-  wrap.style.cssText = `position:absolute;left:0;right:0;top:${(((zone[0] + zone[1]) / 2) * H).toFixed(0)}px;transform:translateY(-50%);display:flex;justify-content:center;`;
+  const topFrac = (item.place3d && item.place3d.y) || ((zone[0] + zone[1]) / 2);
+  wrap.style.cssText = `position:absolute;left:0;right:0;top:${(topFrac * H).toFixed(0)}px;transform:translateY(-50%);display:flex;justify-content:center;`;
   const stack = el("stack", wrap);
   const words = [];
   const style = item.captionStyle || THEME.captionStyle || "pop";
@@ -232,8 +233,11 @@ function buildPoster(item) {
     for (let i = 0; i < words.length; i++)
       words[i].end = i + 1 < words.length ? words[i + 1].at : (item.until ?? item.at + 2);
   }
+  // spatial placement (place3d): the stack stands IN the room -
+  // perspective-tilted, optionally zoom-locked to the camera move
+  const sp3d = item.place3d || null;
   layoutJobs.push(() => autofit(stack, 0.88));
-  return { item, root, words, stack };
+  return { item, root, words, stack, sp3d };
 }
 
 function buildChip(item) {
@@ -350,7 +354,11 @@ function buildLower(item) {
     role.textContent = item.sub.toUpperCase();
     role.style.fontSize = (item.subSize || 58) + "px";
   }
-  return { item, root, lower: plate };
+  const streak = el("streak", plate);
+  streak.style.cssText = "position:absolute;top:-20%;bottom:-20%;width:110px;" +
+    "transform:skewX(-18deg);pointer-events:none;" +
+    "background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);";
+  return { item, root, lower: plate, ltStreak: streak };
 }
 
 function zoneCentre(item, def) {
@@ -2080,7 +2088,21 @@ function renderAt(tMs) {
     // stacks breathe 100 -> 103% across their whole lifetime
     if (b.stack) {
       const drift = 1 + 0.03 * lifeP;
-      b.stack.style.transform = `scale(${((b.stack._fitScale || 1) * drift).toFixed(4)})`;
+      if (b.sp3d) {
+        // standing in the room: perspective tilt (rotY/rotX around the
+        // authored anchor) + optional zoom-lock - when the camera
+        // pushes 1.00 -> 1.05, author zoom [1, 1.05] and the word
+        // scales with the room instead of floating over it
+        const p3 = b.sp3d;
+        const z = p3.zoom ? p3.zoom[0] + (p3.zoom[1] - p3.zoom[0]) * lifeP : 1;
+        b.stack.style.transform =
+          `perspective(${(p3.persp || 950).toFixed(0)}px) ` +
+          `rotateY(${(p3.rotY || 0).toFixed(2)}deg) ` +
+          `rotateX(${(p3.rotX || 0).toFixed(2)}deg) ` +
+          `scale(${(((b.stack._fitScale || 1) * drift) * z).toFixed(4)})`;
+      } else {
+        b.stack.style.transform = `scale(${((b.stack._fitScale || 1) * drift).toFixed(4)})`;
+      }
       b.stack.style.transformOrigin = "50% 50%";
     }
     if (b.bar) {
@@ -2117,8 +2139,16 @@ function renderAt(tMs) {
       const xq = clamp01((t - until) / (2 / FPS));
       const op = Math.min(clamp01((t - it.at) / (2 / FPS)), 1 - xq);
       b.lower.style.opacity = op.toFixed(3);
+      // idle life (QC law: nothing fully static >0.8s): a slow drift
+      // plus a shine sweep across the plate every 1.2s, chip-style
       b.lower.style.transform =
-        `translateX(${(-112 * (1 - pin) - 10 * xq).toFixed(1)}%)`;
+        `translateX(${(-112 * (1 - pin) - 10 * xq).toFixed(1)}%) ` +
+        `scale(${(1 + 0.012 * lifeP).toFixed(4)})`;
+      if (b.ltStreak) {
+        const c = ((t - it.at) / 1.2) % 1;
+        b.ltStreak.style.left = `${-30 + c * 150}%`;
+        b.ltStreak.style.opacity = pin >= 1 && c < 0.45 ? 0.9 : 0;
+      }
       trackSemi(b.lower, op);
     }
     if (b.item.type === "card") {

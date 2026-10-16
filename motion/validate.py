@@ -80,6 +80,13 @@ def main(path: str) -> int:
             if not 0.19 <= d <= 0.34:
                 problems.append(f"fx {it.get('kind')} at {it['at']}: dur {d}s is "
                                 f"outside the 6-10 frame transition window")
+        if it.get("behind") and it["type"] not in ("poster", "card"):
+            problems.append(f"{it['type']} at {it['at']}: behind=true only "
+                            f"exists on poster/card (words the speaker "
+                            f"stands in front of)")
+        if it.get("place3d") and it["type"] != "poster":
+            problems.append(f"{it['type']} at {it['at']}: place3d (spatial "
+                            f"placement) only exists on posters")
         if it["type"] == "lowerthird" and not 1.8 <= dwell <= 6.0:
             problems.append(f"lowerthird at {it['at']}: dwell {dwell:.2f}s "
                             f"outside 1.8-6.0s (name them, let it be read, "

@@ -41,7 +41,9 @@ def _grade(accent: str) -> str:
             f"bs={0.05 * (b - .5):.3f}")
 
 
-def composite(base: Path, frames: Path, tl: dict, out: Path) -> Path:
+def composite(base: Path, frames: Path, tl: dict, out: Path,
+              behind_frames: Path | None = None,
+              mask: Path | None = None) -> Path:
     fps = int(tl.get("fps") or 30)
     accent = (tl.get("brand") or {}).get("accent") or "#FFC531"
     items = tl.get("items") or []
@@ -69,6 +71,20 @@ def composite(base: Path, frames: Path, tl: dict, out: Path) -> Path:
             f"[o1][z2]overlay=0:0:enable='between(t,{f1:.4f},{f2:.4f})'[opened]",
         ]
         src = "[opened]"
+    if behind_frames is not None and mask is not None:
+        # behind-the-person stack: the same graded stream splits - one
+        # copy takes the behind-graphics, the other is re-alpha'd with
+        # the person matte and laid back over them, so authorised words
+        # sit physically behind the speaker (matte.py makes the mask;
+        # grade parity is automatic, both copies share the grade)
+        chains += [
+            f"{src}split=2[bgb][fgp]",
+            "[bgb][2:v]overlay=0:0:format=auto:eof_action=pass[withb]",
+            f"[3:v]fps={fps}[maskf]",
+            "[fgp][maskf]alphamerge,format=yuva444p[person]",
+            "[withb][person]overlay=0:0:format=auto:eof_action=pass[srcb]",
+        ]
+        src = "[srcb]"
     chains.append(f"{src}[1:v]overlay=0:0:format=auto:eof_action=pass,fps={fps}[vout]")
 
     # audio: whoosh on card/chip/fx transitions, pop on chips
@@ -97,8 +113,11 @@ def composite(base: Path, frames: Path, tl: dict, out: Path) -> Path:
     # endings. Two passes keep both streams full-length.)
     vid = out.with_suffix(".vid.mp4")
     args = [ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),
-            "-framerate", str(fps), "-i", str(frames / "%05d.png"),
-            "-filter_complex", fc, "-map", "[vout]"]
+            "-framerate", str(fps), "-i", str(frames / "%05d.png")]
+    if behind_frames is not None and mask is not None:
+        args += ["-framerate", str(fps), "-i", str(behind_frames / "%05d.png"),
+                 "-i", str(mask)]
+    args += ["-filter_complex", fc, "-map", "[vout]"]
     if tl.get("duration"):
         args += ["-t", f"{float(tl['duration']):.3f}"]
     # VBV cap on the CRF: with the grain treatment adopted (2026-10-16),
@@ -168,9 +187,17 @@ if __name__ == "__main__":
         for p in contact_sheet(video, json.loads(tl_path.read_text()), prefix):
             print(p)
     else:
-        base, frames, tl_path, out = (Path(sys.argv[1]), Path(sys.argv[2]),
-                                      Path(sys.argv[3]), Path(sys.argv[4]))
-        composite(base, frames, json.loads(tl_path.read_text()), out)
+        argv = sys.argv[1:]
+        behind = mask = None
+        if "--behind" in argv:
+            behind = Path(argv[argv.index("--behind") + 1])
+            mask = Path(argv[argv.index("--mask") + 1])
+            argv = [a for a in argv if a not in ("--behind", "--mask")
+                    and a not in (str(behind), str(mask))]
+        base, frames, tl_path, out = (Path(argv[0]), Path(argv[1]),
+                                      Path(argv[2]), Path(argv[3]))
+        composite(base, frames, json.loads(tl_path.read_text()), out,
+                  behind_frames=behind, mask=mask)
         side = Path(str(tl_path) + ".transitions.json")
         if side.exists():   # cut/transition sidecar travels with the video
             dest = out.with_name(out.stem + ".transitions.json")

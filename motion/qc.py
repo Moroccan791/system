@@ -298,6 +298,7 @@ IDLE = {"poster": "stack drift 100->103%", "card": "card drift 100->103%",
         "chip": "shine sweep every 1.2s + drift", "counter": "glow pulse 1.2s",
         "list": "wrap drift 100->102%", "process": "wrap drift 100->102%",
         "pip": "still push-in 100->108% + card drift",
+        "lowerthird": "shine sweep every 1.2s + drift",
         "broll": "still push-in 100->108%", "fx": "self-animating",
         "vector": "scene animates from the frame clock (ball/strip/draw-on)"}
 
@@ -424,8 +425,12 @@ def opening(tl: dict) -> tuple[str, str]:
 
 # ------------------------------------------------------------ face/margin
 def face_zone(video: Path, tl: dict) -> tuple[str, str]:
+    # behind=true posters are MEANT to sit under the face (the speaker
+    # stands in front of the words) - the face-zone rule is inverted
+    # for them, so they are exempt here, not flagged
     posters = [i for i in tl["items"]
-               if i["type"] in ("poster", "pip", "counter", "list", "process")]
+               if i["type"] in ("poster", "pip", "counter", "list", "process")
+               and not i.get("behind")]
     if not posters:
         return "warn", "no poster items"
     try:

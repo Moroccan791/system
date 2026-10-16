@@ -71,6 +71,18 @@
         },
         "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon"] },
         "heroSize": { "type": "number", "minimum": 150, "maximum": 340 },
+        "behind": { "type": "boolean" },
+        "place3d": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "y": { "type": "number", "minimum": 0.05, "maximum": 0.95 },
+            "rotY": { "type": "number", "minimum": -40, "maximum": 40 },
+            "rotX": { "type": "number", "minimum": -30, "maximum": 30 },
+            "persp": { "type": "number", "minimum": 500, "maximum": 1600 },
+            "zoom": { "type": "array", "minItems": 2, "maxItems": 2,
+                      "items": { "type": "number", "minimum": 0.5, "maximum": 1.6 } }
+          }
+        },
         "connSize": { "type": "number", "minimum": 58, "maximum": 90 },
         "keySize": { "type": "number", "minimum": 115, "maximum": 154 },
         "zone": {

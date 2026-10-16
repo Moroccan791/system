@@ -117,6 +117,8 @@ presented as proof.
 | A win is claimed ("he won…") | **trophy** | PROVE |
 | Levelling up, stages climbed | **ladder** (`count` rungs) | ORIENT |
 | A rating ("four stars", "an eight") | **stars** (`value` /5) | PROVE |
+| The thesis word/hook number, speaker steady | poster `behind: true` (+ hero word) | EMPHASISE |
+| A statement that should stand in the room | poster `place3d` (tilt + zoom-lock) | EMPHASISE |
 | A deadline counts down ("3 days left") | **countdown** (`value`) | ORIENT |
 | Searching / looking for the one | **search** | SHOW |
 | Money made, winnings, being rich | **cash** (`value`) | SHOW |
@@ -486,6 +488,30 @@ introductions and re-introductions after a long cutaway: opening
 seconds, guest names, "as X said". Dwell 1.8–6s (validator). It is
 not a caption — QC does not count it as one, and every word under it
 still needs its poster.
+
+#### behind the speaker — EMPHASISE by depth
+A poster (or card) with `"behind": true`: the speaker is segmented
+(`matte.py`, MediaPipe selfie segmentation, CPU) and the words are
+composited BETWEEN the room and the person — the speaker physically
+stands in front of the text. The statement-word-behind-the-head
+shot, owned end-to-end (Moonshot charges Pro tier for this). Use it
+for the clip's thesis word or hook number at a moment the speaker is
+steady and centred; pair with `kind: "hero"` for the full effect.
+The matte is firmed/feathered/temporally smoothed; wispy hair edges
+are its limit, so keep behind-words BIG and short. QC face-zone is
+inverted for these (overlap with the face is the point) and
+exempts them. One per clip is a moment; three is a gimmick.
+
+#### spatial placement — posters standing in the room
+`place3d` on a poster: `{y, rotY, rotX, persp, zoom}` tilts the
+stack in perspective at an authored height so it reads as standing
+in the room rather than pasted on the frame. `zoom: [from, to]`
+locks it to the camera move: when the clip pushes 1.00→1.05 (see
+the reframe log), author the same ramp and the word scales WITH
+the room. For static cameras — most talking-head footage — a tilt
+alone sells it. Keep tilts ≤ ~20°; beyond that it's a billboard
+falling over. Not for caption workhorse stacks: one placed
+statement per beat.
 
 #### card — EMPHASISE a thesis / PROVE a verbatim line
 Full statement card, ≤3 lines, ≤5 words/line, words pop on onsets. Use for
