@@ -176,10 +176,22 @@ from the footage and picks the closest theme + accent override when
 no theme is given (a timeline accent always wins: brand lock).
 `prep.py` (hook pick + pause tightening) runs before authoring.
 
-**Vector components** (`vector` item, `mode: card|fullbleed`, scenes:
-hoop, led, donut, arrow, burst): animated SVG drawn deterministically
-from the frame clock in the video accent — the Fiverr-style look.
-`decide.py` prefers vector for picturable nouns; generated photos
-(Stage B) are fallback-only with the review flag. Scenes are authored
-in unit width × canvas height — check composited frames, not just the
+**Vector components** (`vector` item, `mode: card|fullbleed`, **51
+scenes** — full inventory in `MOTIONS.md`): animated SVG drawn
+deterministically from the frame clock in the video accent — the
+Fiverr-style look. `decide.py` auto-assigns scenes from spoken
+triggers (Seeded clip position); generated photos (Stage B) are
+fallback-only with the review flag. Scenes are authored in unit
+width × canvas height — check composited frames, not just the
 overlay stream. Stage D pack: `motion/review_d/`.
+
+**Caption & typography packs** (catalogue in `MOTIONS.md`):
+seven `captionStyle` engines (pop, karaoke, stretch, wiggle,
+glide, bounce, neon-finish) via config or `decide.py
+--caption-style`; hero lockups (whole-phrase animated posters,
+one spoken word per beat, always zone-safe) and name-tag
+lower-thirds (1.8–6 s, forbidden over slates). Posters also
+support `behind: true` — the person stands IN FRONT of the
+graphic (MediaPipe matte, `matte.py`, QC face-zone inverted) —
+and `place3d` spatial tilt with an authored zoom-lock ramp.
+Proofs: `demo_library/motions_demo2.mp4`, `behind_demo.mp4`.
