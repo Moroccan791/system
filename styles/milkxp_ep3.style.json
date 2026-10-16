@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "campaign": "milkxp_ep3",
+  "source": {
+    "references": [],
+    "notes": "CLIPFARM x MILK XP EP.3 brief (user-supplied Google Doc): YouTube Shorts + TikTok; Milk watermark on every clip, clear and never cropped; tag @milkxpofficial in every post caption; funny moments AND milk moments; no swearing; milk talk positive only, no exaggerated claims (best/perfect/ideal/greatest/healthy); no other drink brands shown or named; only official footage."
+  },
+  "captions": {
+    "mode": "block",
+    "font_family": null,
+    "font_weight": "bold",
+    "casing": "upper",
+    "primary_color": "#FDFCFD",
+    "outline_color": "#1A1A1A",
+    "outline_width": 7,
+    "max_lines": 1,
+    "max_words_per_cue": 1,
+    "max_chars_per_line": 8,
+    "block": {
+      "base_size_ass": 84,
+      "emphasis_scale": 1.6,
+      "emphasis_case": "title",
+      "max_words": 4,
+      "max_chars": 52,
+      "rise_px": 16,
+      "rise_ms": 250,
+      "fade_in_ms": 120,
+      "word_wipe_ms": 90,
+      "clear_after": 0.35,
+      "fade_bar": true,
+      "fade_bar_alpha": 0.5,
+      "fade_bar_height": 0.3,
+      "outline_width": 4,
+      "max_rows": 2
+    },
+    "fade_out_seconds": 0.7,
+    "outro_text": "milkXP EP.3 - FULL EPISODE ON YOUTUBE",
+    "word_fixes": {},
+    "poster": {
+      "keyword_color": "#9BE82E",
+      "card_bg": "#0B1F14",
+      "sticker_bg": "#9BE82E"
+    }
+  },
+  "audio": {
+    "music_bed": false,
+    "target_lufs": -20.0,
+    "ducking": false
+  },
+  "grade": {
+    "vignette": 0.15,
+    "contrast": 1.04,
+    "saturation": 1.05,
+    "denoise": 0.4,
+    "sharpen": 0.3
+  }
+}

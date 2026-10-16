@@ -1,0 +1,600 @@
+{
+ "version": 1,
+ "fps": 30,
+ "width": 1080,
+ "height": 1920,
+ "duration": 35.29,
+ "brand": {
+  "accent": "#FF3355",
+  "ink": "#0D0F12",
+  "paper": "#FFFFFF"
+ },
+ "items": [
+  {
+   "type": "fx",
+   "kind": "opening",
+   "at": 0.0,
+   "dur": 0.27
+  },
+  {
+   "type": "poster",
+   "at": 0.03,
+   "until": 0.435,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "in",
+      "at": 0.03
+     },
+     {
+      "w": "the",
+      "at": 0.135
+     },
+     {
+      "w": "four-year.",
+      "at": 0.135,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 1.098,
+   "until": 2.54,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "It's",
+      "at": 1.098
+     },
+     {
+      "w": "something",
+      "at": 1.257
+     },
+     {
+      "w": "they",
+      "at": 1.601
+     },
+     {
+      "w": "could",
+      "at": 1.766,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "have",
+      "at": 2.019
+     },
+     {
+      "w": "called",
+      "at": 2.089,
+      "kind": "key"
+     },
+     {
+      "w": "the",
+      "at": 2.33
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 2.457,
+   "until": 3.143,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "cops,",
+      "at": 2.457,
+      "kind": "key"
+     },
+     {
+      "w": "but",
+      "at": 2.688
+     }
+    ],
+    [
+     {
+      "w": "they",
+      "at": 2.848
+     },
+     {
+      "w": "didn't.",
+      "at": 2.918,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "counter",
+   "at": 3.423,
+   "zone": [
+    0.6,
+    0.82
+   ],
+   "value": 57,
+   "label": "MEN IN THE GROUP CHAT",
+   "countDur": 0.9,
+   "until": 6.123
+  },
+  {
+   "type": "poster",
+   "at": 6.583,
+   "until": 8.13,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "one.",
+      "at": 6.583
+     },
+     {
+      "w": "Guys,",
+      "at": 6.701
+     },
+     {
+      "w": "remember,",
+      "at": 6.886,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "they",
+      "at": 7.677
+     },
+     {
+      "w": "were",
+      "at": 7.92,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 8.088,
+   "until": 9.105,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "57.",
+      "at": 8.088,
+      "kind": "key"
+     },
+     {
+      "w": "This",
+      "at": 8.226
+     },
+     {
+      "w": "is",
+      "at": 8.371
+     }
+    ],
+    [
+     {
+      "w": "the",
+      "at": 8.499
+     },
+     {
+      "w": "first",
+      "at": 8.637
+     },
+     {
+      "w": "claim.",
+      "at": 8.895,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "people",
+   "mode": "fullbleed",
+   "label": "MEN IN THE GROUP CHAT",
+   "count": 57,
+   "total": 57,
+   "at": 9.3,
+   "until": 11.55
+  },
+  {
+   "type": "vector",
+   "name": "quote",
+   "mode": "fullbleed",
+   "quoteLines": [
+    "Every single one of them",
+    "should have known"
+   ],
+   "by": "Michael Sartain",
+   "at": 11.75,
+   "until": 14.0
+  },
+  {
+   "type": "poster",
+   "at": 14.226,
+   "until": 15.769,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "on.",
+      "at": 14.226
+     },
+     {
+      "w": "They",
+      "at": 14.352
+     },
+     {
+      "w": "obviously",
+      "at": 14.744,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "were",
+      "at": 15.262
+     },
+     {
+      "w": "all",
+      "at": 15.392
+     },
+     {
+      "w": "awake.",
+      "at": 15.559,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "versus",
+   "mode": "fullbleed",
+   "label": "HIS POINT",
+   "left": {
+    "label": "AWAKE",
+    "value": 57
+   },
+   "right": {
+    "label": "STEPPED IN",
+    "value": 0
+   },
+   "win": "left",
+   "at": 15.9,
+   "until": 18.1
+  },
+  {
+   "type": "poster",
+   "at": 18.166,
+   "until": 19.723,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "we",
+      "at": 18.166
+     },
+     {
+      "w": "don't",
+      "at": 18.467
+     },
+     {
+      "w": "know",
+      "at": 18.705,
+      "kind": "key"
+     },
+     {
+      "w": "any",
+      "at": 18.929
+     }
+    ],
+    [
+     {
+      "w": "of",
+      "at": 19.107
+     },
+     {
+      "w": "those",
+      "at": 19.26
+     },
+     {
+      "w": "things",
+      "at": 19.513,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 19.808,
+   "until": 20.949,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "for",
+      "at": 19.808
+     },
+     {
+      "w": "a",
+      "at": 19.999
+     },
+     {
+      "w": "fact",
+      "at": 20.09,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "and",
+      "at": 20.503
+     },
+     {
+      "w": "like",
+      "at": 20.615
+     },
+     {
+      "w": "I",
+      "at": 20.739,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "bars",
+   "mode": "fullbleed",
+   "label": "OF THE 57 IN THE CHAT",
+   "values": [
+    57,
+    57,
+    0
+   ],
+   "labels": [
+    "IN CHAT",
+    "AWAKE",
+    "STEPPED IN"
+   ],
+   "hot": 2,
+   "at": 20.85,
+   "until": 22.9
+  },
+  {
+   "type": "poster",
+   "at": 23.18,
+   "until": 24.502,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "of",
+      "at": 23.18
+     },
+     {
+      "w": "us",
+      "at": 23.373
+     },
+     {
+      "w": "have",
+      "at": 23.561
+     },
+     {
+      "w": "been",
+      "at": 23.748,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "in",
+      "at": 23.818
+     },
+     {
+      "w": "group",
+      "at": 23.949
+     },
+     {
+      "w": "chats",
+      "at": 24.292,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "line",
+   "mode": "fullbleed",
+   "label": "HOW THE CHAT FILLED UP",
+   "points": [
+    4,
+    14,
+    11,
+    33,
+    57
+   ],
+   "at": 24.6,
+   "until": 26.9
+  },
+  {
+   "type": "poster",
+   "at": 26.957,
+   "until": 27.973,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "group",
+      "at": 26.957,
+      "kind": "key"
+     },
+     {
+      "w": "chat",
+      "at": 27.259
+     },
+     {
+      "w": "have",
+      "at": 27.43
+     }
+    ],
+    [
+     {
+      "w": "done",
+      "at": 27.552
+     },
+     {
+      "w": "something?",
+      "at": 27.714,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 28.253,
+   "until": 28.884,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "A",
+      "at": 28.253
+     },
+     {
+      "w": "hundred",
+      "at": 28.387
+     },
+     {
+      "w": "percent.",
+      "at": 28.674,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "stack",
+   "mode": "fullbleed",
+   "label": "EVERY SINGLE ONE OF THEM",
+   "parts": [
+    99,
+    1
+   ],
+   "labels": [
+    "KNEW BETTER",
+    "EXCUSED"
+   ],
+   "at": 28.9,
+   "until": 31.05
+  },
+  {
+   "type": "vector",
+   "name": "timeline",
+   "mode": "fullbleed",
+   "label": "THE ARGUMENT",
+   "events": [
+    {
+     "x": 0.06,
+     "label": "57 MEN",
+     "sub": "IN THE CHAT"
+    },
+    {
+     "x": 0.5,
+     "label": "ALL AWAKE",
+     "sub": "EVERY ONE"
+    },
+    {
+     "x": 0.94,
+     "label": "NO ONE ACTED",
+     "sub": "HIS POINT"
+    }
+   ],
+   "at": 31.38,
+   "until": 33.75
+  },
+  {
+   "type": "poster",
+   "at": 33.856,
+   "until": 35.01,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "what",
+      "at": 33.856
+     },
+     {
+      "w": "they're",
+      "at": 34.045
+     },
+     {
+      "w": "saying",
+      "at": 34.256,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "is",
+      "at": 34.572
+     },
+     {
+      "w": "crazy.",
+      "at": 34.717,
+      "kind": "key"
+     }
+    ]
+   ]
+  }
+ ]
+}

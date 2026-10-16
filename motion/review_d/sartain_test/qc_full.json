@@ -1,0 +1,255 @@
+{
+ "video": "/home/user/system/work/sartain_test/final_s.mp4",
+ "items": [
+  {
+   "type": "fx",
+   "at": 0.0,
+   "until": 0.0,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 0.22,
+   "until": 1.62,
+   "enter_f": 10,
+   "hold_s": 1.4,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 1.61,
+   "until": 3.32,
+   "enter_f": 10,
+   "hold_s": 1.71,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 1.9,
+   "until": 1.9,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "counter",
+   "at": 3.16,
+   "until": 5.95,
+   "enter_f": 10,
+   "hold_s": 2.79,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 4.133,
+   "until": 4.133,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 4.9,
+   "until": 4.9,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 6.72,
+   "until": 8.3,
+   "enter_f": 10,
+   "hold_s": 1.58,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "card",
+   "at": 8.28,
+   "until": 11.28,
+   "enter_f": 10,
+   "hold_s": 3.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 11.53,
+   "until": 12.55,
+   "enter_f": 10,
+   "hold_s": 1.02,
+   "exit": "8f slide+blur+fade (engine)"
+  }
+ ],
+ "words": [
+  {
+   "word": "63%",
+   "caption_t": 0.22,
+   "kind": "key"
+  },
+  {
+   "word": "of",
+   "caption_t": 0.45,
+   "kind": "-"
+  },
+  {
+   "word": "men",
+   "caption_t": 0.62,
+   "kind": "-"
+  },
+  {
+   "word": "under",
+   "caption_t": 0.79,
+   "kind": "-"
+  },
+  {
+   "word": "30",
+   "caption_t": 1.08,
+   "kind": "-"
+  },
+  {
+   "word": "are",
+   "caption_t": 1.19,
+   "kind": "-"
+  },
+  {
+   "word": "single.",
+   "caption_t": 1.34,
+   "kind": "-"
+  },
+  {
+   "word": "On",
+   "caption_t": 1.61,
+   "kind": "-"
+  },
+  {
+   "word": "dating",
+   "caption_t": 1.76,
+   "kind": "-"
+  },
+  {
+   "word": "apps,",
+   "caption_t": 2.09,
+   "kind": "-"
+  },
+  {
+   "word": "women",
+   "caption_t": 2.37,
+   "kind": "-"
+  },
+  {
+   "word": "get",
+   "caption_t": 2.94,
+   "kind": "-"
+  },
+  {
+   "word": "as",
+   "caption_t": 6.72,
+   "kind": "-"
+  },
+  {
+   "word": "many",
+   "caption_t": 6.83,
+   "kind": "-"
+  },
+  {
+   "word": "MATCHES",
+   "caption_t": 7.03,
+   "kind": "key"
+  },
+  {
+   "word": "as",
+   "caption_t": 7.4,
+   "kind": "-"
+  },
+  {
+   "word": "men",
+   "caption_t": 7.65,
+   "kind": "-"
+  },
+  {
+   "word": "do.",
+   "caption_t": 8.07,
+   "kind": "-"
+  },
+  {
+   "word": "On",
+   "caption_t": 8.28,
+   "kind": "-"
+  },
+  {
+   "word": "Tinder,",
+   "caption_t": 8.39,
+   "kind": "-"
+  },
+  {
+   "word": "NINE",
+   "caption_t": 9.4,
+   "kind": "key"
+  },
+  {
+   "word": "TIMES",
+   "caption_t": 9.55,
+   "kind": "key"
+  },
+  {
+   "word": "as",
+   "caption_t": 9.93,
+   "kind": "-"
+  },
+  {
+   "word": "many",
+   "caption_t": 10.06,
+   "kind": "-"
+  },
+  {
+   "word": "men",
+   "caption_t": 10.28,
+   "kind": "-"
+  },
+  {
+   "word": "as",
+   "caption_t": 10.42,
+   "kind": "-"
+  },
+  {
+   "word": "women.",
+   "caption_t": 10.68,
+   "kind": "-"
+  },
+  {
+   "word": "Yeah,",
+   "caption_t": 11.53,
+   "kind": "-"
+  },
+  {
+   "word": "there's",
+   "caption_t": 11.93,
+   "kind": "-"
+  },
+  {
+   "word": "NINE",
+   "caption_t": 12.21,
+   "kind": "key"
+  },
+  {
+   "word": "TIMES.",
+   "caption_t": 12.34,
+   "kind": "key"
+  }
+ ],
+ "inserts": [],
+ "transitions": [],
+ "sound": {
+  "events": 24,
+  "events_per_sec": 1.96,
+  "accent_events_per_sec": 0.82,
+  "loudness": {
+   "lufs": -14.12,
+   "true_peak": -1.81
+  },
+  "impacts_on_cut_frame": true
+ },
+ "longest_no_visual_change_s": 1.82
+}

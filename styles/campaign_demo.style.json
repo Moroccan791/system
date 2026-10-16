@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "campaign": "campaign_demo",
+  "source": {
+    "references": [
+      "reference_01.mp4"
+    ],
+    "notes": "font family cannot be identified from pixels - keeping the default; set captions.font_family by hand if the campaign uses a specific font; font size carries about +/-32% uncertainty: the font face cannot be identified from pixels, so the size is right for the rendering default (Montserrat) and off if the campaign uses a much wider/taller face",
+    "extracted_at": "2026-10-13T17:48:37",
+    "sample": {
+      "fps": 6.0,
+      "width": 480
+    }
+  },
+  "pacing": {
+    "avg_shot_len": 2.0,
+    "cuts_per_minute": 20.0,
+    "confidence": 0.5,
+    "median_shot_len": 2.0
+  },
+  "zoom": {
+    "dominant": "punch_in",
+    "punch_in_scale": 1.12,
+    "punch_in_duration": 0.333,
+    "confidence": 0.88
+  },
+  "captions": {
+    "present": true,
+    "font_family": null,
+    "font_weight": "bold",
+    "italic": false,
+    "casing": "upper",
+    "font_size_ass": 104,
+    "cap_height_ratio": 0.0252,
+    "primary_color": "#FDFBFC",
+    "outline_color": "#0A0101",
+    "outline_width": 6,
+    "shadow": 0,
+    "position": {
+      "anchor": "bottom_center",
+      "cx": 0.5021,
+      "cy": 0.7244,
+      "margin_v": 420
+    },
+    "karaoke": {
+      "enabled": true,
+      "highlight_color": "#FBDF55",
+      "scale_pop": 1.06
+    },
+    "animation": {
+      "in": "none",
+      "duration": 0.12
+    },
+    "max_lines": 1,
+    "max_words_per_cue": 3,
+    "max_chars_per_line": 12,
+    "confidence": 0.862,
+    "evidence": {
+      "cue_count": 4,
+      "frames": [
+        "/home/user/system/work/campaign_demo/style/evidence/reference_01_caption_0.png",
+        "/home/user/system/work/campaign_demo/style/evidence/reference_01_caption_1.png",
+        "/home/user/system/work/campaign_demo/style/evidence/reference_01_caption_2.png"
+      ]
+    },
+    "font_size_uncertainty": 0.32
+  },
+  "audio": {
+    "music_bed": null,
+    "target_lufs": -22.0,
+    "speech_ratio": 0.0,
+    "confidence": 0.1,
+    "ducking": null
+  },
+  "confidence": 0.586
+}

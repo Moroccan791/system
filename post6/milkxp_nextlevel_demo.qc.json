@@ -1,0 +1,46 @@
+{
+  "video": "output/milk_nextlevel_demo.mp4",
+  "ok": true,
+  "checks": [
+    {
+      "name": "first_caption",
+      "status": "pass",
+      "detail": "first caption at 0.30 s (limit 1.00 s)"
+    },
+    {
+      "name": "caption_face",
+      "status": "pass",
+      "detail": "no overlap in 41 sampled caption moments"
+    },
+    {
+      "name": "static_shot",
+      "status": "pass",
+      "detail": "longest frozen background 1.4 s (limit 4 s)"
+    },
+    {
+      "name": "visual_pacing",
+      "status": "pass",
+      "detail": "longest stretch without a visual event 3.0 s at 3.6 s (limit 3.5 s)"
+    },
+    {
+      "name": "loudness",
+      "status": "pass",
+      "detail": "-13.9 LUFS integrated (window -23..-11)"
+    },
+    {
+      "name": "hook_match",
+      "status": "pass",
+      "detail": "headline/first-2 s word overlap 100%"
+    },
+    {
+      "name": "duration",
+      "status": "warn",
+      "detail": "16.2 s (default window 25-40 s; story may overrule)"
+    },
+    {
+      "name": "logo_scan",
+      "status": "pass",
+      "detail": "no persistent corner graphic detected"
+    }
+  ]
+}

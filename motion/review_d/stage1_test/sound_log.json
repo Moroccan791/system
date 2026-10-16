@@ -1,0 +1,184 @@
+{
+ "video": "/home/user/system/work/stage1_test/final_s.mp4",
+ "seed": 341,
+ "typing_sound": true,
+ "events": 20,
+ "events_per_sec": 2.02,
+ "accent_events_per_sec": 1.11,
+ "by_kind": {
+  "whoosh": 1,
+  "pop": 5,
+  "key": 9,
+  "riser": 1,
+  "impact": 2,
+  "snap": 2
+ },
+ "cuts_covered": 4,
+ "impacts_on_cut_frame": true,
+ "loudness": {
+  "lufs": -14.1,
+  "true_peak": -2.78
+ },
+ "events_detail": [
+  {
+   "t": 0.0,
+   "kind": "whoosh",
+   "gain_db": -14.0,
+   "note": "opening",
+   "variant": 1,
+   "frame": 0
+  },
+  {
+   "t": 0.14,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 1,
+   "frame": 4
+  },
+  {
+   "t": 0.14,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 1,
+   "frame": 4
+  },
+  {
+   "t": 1.228,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 2,
+   "frame": 37
+  },
+  {
+   "t": 1.912,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 2,
+   "frame": 57
+  },
+  {
+   "t": 1.912,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 3,
+   "frame": 57
+  },
+  {
+   "t": 2.583,
+   "kind": "riser",
+   "gain_db": -12.0,
+   "note": "riser to cut",
+   "variant": 1,
+   "frame": 77
+  },
+  {
+   "t": 3.033,
+   "kind": "impact",
+   "gain_db": -5.0,
+   "note": "cut flare",
+   "variant": 1,
+   "frame": 91
+  },
+  {
+   "t": 3.088,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 4,
+   "frame": 93
+  },
+  {
+   "t": 3.423,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 5,
+   "frame": 103
+  },
+  {
+   "t": 5.55,
+   "kind": "pop",
+   "gain_db": -6.0,
+   "note": "chip enter",
+   "variant": 3,
+   "frame": 166
+  },
+  {
+   "t": 5.633,
+   "kind": "snap",
+   "gain_db": -9.0,
+   "note": "cut flash",
+   "variant": 1,
+   "frame": 169
+  },
+  {
+   "t": 6.352,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "poster enter",
+   "variant": 4,
+   "frame": 191
+  },
+  {
+   "t": 6.352,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 6,
+   "frame": 191
+  },
+  {
+   "t": 7.024,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 7,
+   "frame": 211
+  },
+  {
+   "t": 7.817,
+   "kind": "pop",
+   "gain_db": -3.0,
+   "note": "card enter",
+   "variant": 5,
+   "frame": 235
+  },
+  {
+   "t": 7.817,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 8,
+   "frame": 235
+  },
+  {
+   "t": 8.3,
+   "kind": "snap",
+   "gain_db": -9.0,
+   "note": "cut flash",
+   "variant": 2,
+   "frame": 249
+  },
+  {
+   "t": 8.945,
+   "kind": "key",
+   "gain_db": -16.0,
+   "note": "word",
+   "variant": 9,
+   "frame": 268
+  },
+  {
+   "t": 9.467,
+   "kind": "impact",
+   "gain_db": -5.0,
+   "note": "cut leak",
+   "variant": 2,
+   "frame": 284
+  }
+ ]
+}

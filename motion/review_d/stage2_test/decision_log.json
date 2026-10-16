@@ -1,0 +1,21 @@
+{
+ "seed": 7,
+ "timeline": "/home/user/system/motion/timelines/milk_budget_stage2.json",
+ "base": "/home/user/system/work/stage2_test/base.mp4",
+ "choices": {
+  "transition_rotation": 3,
+  "sound_seed": 753,
+  "typing_sound": "on"
+ },
+ "levels": [
+  {
+   "level": 0,
+   "qc_pass": true,
+   "qc_tail": "MOTION QC v2 final.mp4: PASS"
+  }
+ ],
+ "theme": "high-energy",
+ "sound_pass": true,
+ "sound_tail": "SOUND QC final_s.mp4: PASS  62 events (2.20/s total, 1.56/s accents), cuts covered 19/19, impacts on cut frame: True, -14.1 LUFS, TP -3.2 dBTP",
+ "verdict": "PASS at level 0"
+}

@@ -1,0 +1,29 @@
+POST 5 — NEW-EDITOR DEMO (NOT A NEW POST)
+=========================================
+This is the post3 grading clip re-rendered with the upgraded editor so you
+can hear/see the changes. Same footage, new system:
+
+WHAT'S NEW IN THIS VIDEO
+- The headline "THE GRADE YOU'RE / GOING TO GET" TYPES ON word by word,
+  with a soft keystroke click per word and an "enter" click at the end
+  (very low under the voice). Every caption block also lands with a much
+  lighter tick.
+- Captions are now 2-4 words at a time, max two lines, key word in lime.
+- The headline now matches the actual first words spoken (the old one,
+  "THE STUDENTS GRADED THE TEACHER", failed the new automated check).
+- Automated QC ran on this render: ALL CHECKS PASS (report in this
+  folder: milkxp_grade_new_editor_demo.qc.json - first caption 0.3s,
+  no caption over a face, no static shot, loudness normal).
+
+NOT POSTING-READY: the MILK XP watermark PNG did not survive a sandbox
+reset, so this demo has no watermark. The shipped post3 videos are
+unchanged and still carry it. Send the watermark file again in the next
+raw drop and every future MILK render gets it automatically.
+
+VIDEO IN THIS FOLDER: milkxp_grade_new_editor_demo.mp4 (TikTok spec)
+
+If you want this as a real replacement post, same pack as post3:
+Title: Students Grade Their Teacher... He Was NOT Ready
+Caption: the way he said "next time I'm getting an A+" with his whole
+chest 😭 @milkxpofficial
+#milkxp #funny #teacher #school #students #comedy #viral #fyp

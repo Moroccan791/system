@@ -1,0 +1,501 @@
+{
+ "video": "/home/user/system/work/stage2_test/final_s.mp4",
+ "items": [
+  {
+   "type": "fx",
+   "at": 0.0,
+   "until": 0.0,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 0.01,
+   "until": 0.5,
+   "enter_f": 10,
+   "hold_s": 0.49,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "counter",
+   "at": 0.45,
+   "until": 3.3,
+   "enter_f": 10,
+   "hold_s": 2.85,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 0.688,
+   "until": 0.688,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 1.821,
+   "until": 1.821,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 2.938,
+   "until": 2.938,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "list",
+   "at": 3.3,
+   "until": 5.53,
+   "enter_f": 10,
+   "hold_s": 2.23,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 4.554,
+   "until": 4.554,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 5.688,
+   "until": 5.688,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 5.84,
+   "until": 7.02,
+   "enter_f": 10,
+   "hold_s": 1.18,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 6.954,
+   "until": 6.954,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "vector",
+   "at": 7.1,
+   "until": 9.35,
+   "enter_f": 10,
+   "hold_s": 2.25,
+   "exit": "8f slide+blur+fade (engine)",
+   "width_pct": 58,
+   "source": "vector:hoop",
+   "illustrative": false
+  },
+  {
+   "type": "fx",
+   "at": 8.371,
+   "until": 8.371,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "chip",
+   "at": 9.7,
+   "until": 11.3,
+   "enter_f": 10,
+   "hold_s": 1.6,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 10.721,
+   "until": 10.721,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 11.954,
+   "until": 11.954,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 12.17,
+   "until": 13.8,
+   "enter_f": 10,
+   "hold_s": 1.63,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 12.888,
+   "until": 12.888,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 14.313,
+   "until": 14.313,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 14.5,
+   "until": 15.95,
+   "enter_f": 10,
+   "hold_s": 1.45,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 15.83,
+   "until": 15.83,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "vector",
+   "at": 15.95,
+   "until": 17.65,
+   "enter_f": 10,
+   "hold_s": 1.7,
+   "exit": "8f slide+blur+fade (engine)",
+   "width_pct": 58,
+   "source": "vector:led",
+   "illustrative": false
+  },
+  {
+   "type": "fx",
+   "at": 16.63,
+   "until": 16.63,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 17.596,
+   "until": 17.596,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 18.25,
+   "until": 19.3,
+   "enter_f": 10,
+   "hold_s": 1.05,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 19.313,
+   "until": 19.313,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 19.36,
+   "until": 21.45,
+   "enter_f": 10,
+   "hold_s": 2.09,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 20.363,
+   "until": 20.363,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 22.296,
+   "until": 22.296,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "process",
+   "at": 23.17,
+   "until": 26.13,
+   "enter_f": 10,
+   "hold_s": 2.96,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 23.863,
+   "until": 23.863,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 25.18,
+   "until": 25.18,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "poster",
+   "at": 26.54,
+   "until": 28.75,
+   "enter_f": 10,
+   "hold_s": 2.21,
+   "exit": "8f slide+blur+fade (engine)"
+  },
+  {
+   "type": "fx",
+   "at": 28.346,
+   "until": 28.346,
+   "enter_f": 10,
+   "hold_s": 0.0,
+   "exit": "8f slide+blur+fade (engine)"
+  }
+ ],
+ "words": [
+  {
+   "word": "We",
+   "caption_t": 0.01,
+   "kind": "-"
+  },
+  {
+   "word": "have",
+   "caption_t": 0.3,
+   "kind": "-"
+  },
+  {
+   "word": "We",
+   "caption_t": 5.84,
+   "kind": "-"
+  },
+  {
+   "word": "need",
+   "caption_t": 5.94,
+   "kind": "-"
+  },
+  {
+   "word": "a",
+   "caption_t": 6.18,
+   "kind": "-"
+  },
+  {
+   "word": "BASKETBALL",
+   "caption_t": 6.3,
+   "kind": "key"
+  },
+  {
+   "word": "HOOP",
+   "caption_t": 6.81,
+   "kind": "-"
+  },
+  {
+   "word": "Okay,",
+   "caption_t": 12.17,
+   "kind": "-"
+  },
+  {
+   "word": "let's",
+   "caption_t": 12.46,
+   "kind": "-"
+  },
+  {
+   "word": "talk",
+   "caption_t": 12.77,
+   "kind": "-"
+  },
+  {
+   "word": "more",
+   "caption_t": 13.09,
+   "kind": "-"
+  },
+  {
+   "word": "about",
+   "caption_t": 13.42,
+   "kind": "-"
+  },
+  {
+   "word": "CRAZY",
+   "caption_t": 14.5,
+   "kind": "neon"
+  },
+  {
+   "word": "LED",
+   "caption_t": 15.14,
+   "kind": "-"
+  },
+  {
+   "word": "lights.",
+   "caption_t": 15.4,
+   "kind": "-"
+  },
+  {
+   "word": "some",
+   "caption_t": 18.25,
+   "kind": "-"
+  },
+  {
+   "word": "of",
+   "caption_t": 18.4,
+   "kind": "-"
+  },
+  {
+   "word": "those",
+   "caption_t": 18.5,
+   "kind": "-"
+  },
+  {
+   "word": "in",
+   "caption_t": 18.79,
+   "kind": "-"
+  },
+  {
+   "word": "the",
+   "caption_t": 18.95,
+   "kind": "-"
+  },
+  {
+   "word": "WANTS",
+   "caption_t": 19.08,
+   "kind": "key"
+  },
+  {
+   "word": "Maybe",
+   "caption_t": 19.36,
+   "kind": "-"
+  },
+  {
+   "word": "we",
+   "caption_t": 19.61,
+   "kind": "-"
+  },
+  {
+   "word": "can",
+   "caption_t": 19.71,
+   "kind": "-"
+  },
+  {
+   "word": "even",
+   "caption_t": 19.91,
+   "kind": "-"
+  },
+  {
+   "word": "have",
+   "caption_t": 20.06,
+   "kind": "-"
+  },
+  {
+   "word": "some",
+   "caption_t": 20.24,
+   "kind": "-"
+  },
+  {
+   "word": "POSTERS",
+   "caption_t": 20.43,
+   "kind": "key"
+  },
+  {
+   "word": "without",
+   "caption_t": 20.79,
+   "kind": "-"
+  },
+  {
+   "word": "budgeting.",
+   "caption_t": 21.06,
+   "kind": "-"
+  },
+  {
+   "word": "that's",
+   "caption_t": 26.54,
+   "kind": "-"
+  },
+  {
+   "word": "20%",
+   "caption_t": 26.85,
+   "kind": "key"
+  },
+  {
+   "word": "of",
+   "caption_t": 27.1,
+   "kind": "-"
+  },
+  {
+   "word": "that",
+   "caption_t": 27.21,
+   "kind": "-"
+  },
+  {
+   "word": "total",
+   "caption_t": 27.71,
+   "kind": "-"
+  },
+  {
+   "word": "BUDGET",
+   "caption_t": 28.05,
+   "kind": "key"
+  }
+ ],
+ "inserts": [
+  {
+   "type": "vector",
+   "at": 7.1,
+   "until": 9.35,
+   "enter_f": 10,
+   "hold_s": 2.25,
+   "exit": "8f slide+blur+fade (engine)",
+   "width_pct": 58,
+   "source": "vector:hoop",
+   "illustrative": false
+  },
+  {
+   "type": "vector",
+   "at": 15.95,
+   "until": 17.65,
+   "enter_f": 10,
+   "hold_s": 1.7,
+   "exit": "8f slide+blur+fade (engine)",
+   "width_pct": 58,
+   "source": "vector:led",
+   "illustrative": false
+  }
+ ],
+ "transitions": [],
+ "sound": {
+  "events": 62,
+  "events_per_sec": 2.2,
+  "accent_events_per_sec": 1.56,
+  "loudness": {
+   "lufs": -14.08,
+   "true_peak": -3.19
+  },
+  "impacts_on_cut_frame": true
+ },
+ "longest_no_visual_change_s": 1.36
+}

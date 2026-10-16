@@ -1,0 +1,4 @@
+{"name": "neon-dark", "accent": "#C6FF4D", "ink": "#0D0F12", "paper": "#FFFFFF",
+ "radius": "pill", "glow": 1.6, "speed": 1.0, "easing": "pop",
+ "fontMode": "sans", "transitionOrder": ["flare", "leak", "flash", "bwflash"],
+ "soundSeedSalt": 23}

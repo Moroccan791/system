@@ -1,3 +1,44 @@
-﻿# System ignore rules
-*.tmp
+# ---- python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# ---- generated / large ----
+work/
+output/
+models/
+.deps/
+build/
+dist/
+
+# real (user supplied) footage never gets committed
+samples/local/
+campaigns/
+!campaigns/.gitkeep
+
+# media
+*.mp4
+*.mov
+*.mkv
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.webm
+
+# ...but motion-graphics deliverable packs ARE the product - track them
+!motion/demo/*.mp4
+!motion/demo2/*.mp4
+!motion/review_a/*.mp4
+!motion/review_b/*.mp4
+!motion/review_c/*.mp4
+!motion/review_d/*.mp4
+
+# debug / scratch
+.arena/
 *.log
+motion/node_modules/

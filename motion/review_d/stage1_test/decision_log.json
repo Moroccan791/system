@@ -1,0 +1,21 @@
+{
+ "seed": 3,
+ "timeline": "/home/user/system/motion/timelines/milk_grade_10s.json",
+ "base": "/home/user/system/work/stage1_test/base.mp4",
+ "choices": {
+  "transition_rotation": 3,
+  "sound_seed": 341,
+  "typing_sound": "on"
+ },
+ "levels": [
+  {
+   "level": 0,
+   "qc_pass": true,
+   "qc_tail": "MOTION QC v2 final.mp4: PASS"
+  }
+ ],
+ "theme": "warm-minimal",
+ "sound_pass": true,
+ "sound_tail": "SOUND QC final_s.mp4: PASS  20 events (2.02/s total, 1.11/s accents), cuts covered 4/4, impacts on cut frame: True, -14.1 LUFS, TP -2.8 dBTP",
+ "verdict": "PASS at level 0"
+}

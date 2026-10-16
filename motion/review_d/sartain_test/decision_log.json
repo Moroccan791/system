@@ -1,0 +1,21 @@
+{
+ "seed": 21,
+ "timeline": "/home/user/system/motion/timelines/sartain_stage_a.json",
+ "base": "/home/user/system/work/sartain_test/base.mp4",
+ "choices": {
+  "transition_rotation": 1,
+  "sound_seed": 2111,
+  "typing_sound": "on"
+ },
+ "levels": [
+  {
+   "level": 0,
+   "qc_pass": true,
+   "qc_tail": "MOTION QC v2 final.mp4: PASS"
+  }
+ ],
+ "theme": "bold-red",
+ "sound_pass": true,
+ "sound_tail": "SOUND QC final_s.mp4: PASS  24 events (1.96/s total, 0.82/s accents), cuts covered 2/2, impacts on cut frame: True, -14.1 LUFS, TP -1.8 dBTP",
+ "verdict": "PASS at level 0"
+}

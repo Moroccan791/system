@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "fps": 30,
+  "width": 1080,
+  "height": 1920,
+  "duration": 12.6,
+  "brand": {
+    "accent": "#FF3355",
+    "ink": "#0D0F12",
+    "paper": "#FFFFFF"
+  },
+  "items": [
+    {
+      "type": "fx",
+      "kind": "opening",
+      "at": 0.0,
+      "dur": 0.27
+    },
+    {
+      "type": "poster",
+      "at": 0.22,
+      "until": 1.62,
+      "zone": [0.30, 0.52],
+      "rows": [
+        [
+          {
+            "w": "63%",
+            "at": 0.22,
+            "kind": "key"
+          },
+          {
+            "w": "of",
+            "at": 0.45
+          },
+          {
+            "w": "men",
+            "at": 0.62
+          }
+        ],
+        [
+          {
+            "w": "under",
+            "at": 0.79
+          },
+          {
+            "w": "30",
+            "at": 1.08
+          },
+          {
+            "w": "are",
+            "at": 1.19
+          },
+          {
+            "w": "single.",
+            "at": 1.34
+          }
+        ]
+      ]
+    },
+    {
+      "type": "poster",
+      "at": 1.61,
+      "until": 3.32,
+      "zone": [0.60, 0.82],
+      "rows": [
+        [
+          {
+            "w": "On",
+            "at": 1.61
+          },
+          {
+            "w": "dating",
+            "at": 1.76
+          },
+          {
+            "w": "apps,",
+            "at": 2.09
+          }
+        ],
+        [
+          {
+            "w": "women",
+            "at": 2.37
+          },
+          {
+            "w": "get",
+            "at": 2.94
+          }
+        ]
+      ]
+    },
+    {
+      "type": "counter",
+      "at": 3.16,
+      "zone": [0.55, 0.78],
+      "value": 16,
+      "suffix": "x",
+      "label": "TIMES AS MANY MATCHES",
+      "countDur": 0.9,
+      "until": 5.95
+    },
+    {
+      "type": "fx",
+      "kind": "leak",
+      "at": 4.9,
+      "dur": 0.267
+    },
+    {
+      "type": "poster",
+      "at": 6.72,
+      "until": 8.3,
+      "rows": [
+        [
+          {
+            "w": "as",
+            "at": 6.72
+          },
+          {
+            "w": "many",
+            "at": 6.83
+          },
+          {
+            "w": "MATCHES",
+            "at": 7.03,
+            "kind": "key"
+          }
+        ],
+        [
+          {
+            "w": "as",
+            "at": 7.4
+          },
+          {
+            "w": "men",
+            "at": 7.65
+          },
+          {
+            "w": "do.",
+            "at": 8.07
+          }
+        ]
+      ]
+    },
+    {
+      "type": "card",
+      "at": 8.28,
+      "until": 11.28,
+      "bg": "dark",
+      "lines": [
+        [
+          {
+            "w": "On",
+            "at": 8.28
+          },
+          {
+            "w": "Tinder,",
+            "at": 8.39
+          }
+        ],
+        [
+          {
+            "w": "NINE",
+            "at": 9.4,
+            "kind": "key"
+          },
+          {
+            "w": "TIMES",
+            "at": 9.55,
+            "kind": "key"
+          }
+        ],
+        [
+          {
+            "w": "as",
+            "at": 9.93
+          },
+          {
+            "w": "many",
+            "at": 10.06
+          },
+          {
+            "w": "men",
+            "at": 10.28
+          },
+          {
+            "w": "as",
+            "at": 10.42
+          },
+          {
+            "w": "women.",
+            "at": 10.68
+          }
+        ]
+      ]
+    },
+    {
+      "type": "poster",
+      "at": 11.53,
+      "until": 12.55,
+      "rows": [
+        [
+          {
+            "w": "Yeah,",
+            "at": 11.53
+          },
+          {
+            "w": "there's",
+            "at": 11.93
+          }
+        ],
+        [
+          {
+            "w": "NINE",
+            "at": 12.21,
+            "kind": "key"
+          },
+          {
+            "w": "TIMES.",
+            "at": 12.34,
+            "kind": "key"
+          }
+        ]
+      ]
+    }
+  ]
+}

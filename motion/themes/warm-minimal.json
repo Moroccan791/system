@@ -1,0 +1,4 @@
+{"name": "warm-minimal", "accent": "#FFB454", "ink": "#171310", "paper": "#FFF8EE",
+ "radius": "round", "glow": 0.5, "speed": 0.9, "easing": "soft",
+ "fontMode": "serif", "transitionOrder": ["leak", "flare", "bwflash", "flash"],
+ "soundSeedSalt": 41}

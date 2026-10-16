@@ -1,0 +1,627 @@
+{
+  "text": "so anyway that is kind of how the week went nobody tells you this but i lost ninety thousand dollars in three months i was telling him about the usual stuff we do there are three reasons your ads fail and the first one is brutal and then we sort of moved on to the next thing why do people ignore the best offer they will ever see ? which is pretty much what i expected honestly",
+  "language": "en",
+  "provider": "fixture",
+  "duration": 44.0,
+  "meta": {
+    "note": "scripted transcript for the synthetic sample episode"
+  },
+  "words": [
+    {
+      "text": "so",
+      "start": 0.35,
+      "end": 0.666,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "anyway",
+      "start": 0.735,
+      "end": 1.051,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "that",
+      "start": 1.12,
+      "end": 1.436,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "is",
+      "start": 1.505,
+      "end": 1.821,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "kind",
+      "start": 1.89,
+      "end": 2.206,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "of",
+      "start": 2.275,
+      "end": 2.591,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "how",
+      "start": 2.66,
+      "end": 2.976,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "the",
+      "start": 3.045,
+      "end": 3.361,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "week",
+      "start": 3.43,
+      "end": 3.746,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "went",
+      "start": 3.815,
+      "end": 4.131,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "nobody",
+      "start": 7.35,
+      "end": 7.541,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "tells",
+      "start": 7.583,
+      "end": 7.773,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "you",
+      "start": 7.815,
+      "end": 8.006,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "this",
+      "start": 8.048,
+      "end": 8.239,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "but",
+      "start": 8.281,
+      "end": 8.472,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "i",
+      "start": 8.513,
+      "end": 8.704,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "lost",
+      "start": 8.746,
+      "end": 8.937,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "ninety",
+      "start": 8.979,
+      "end": 9.17,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "thousand",
+      "start": 9.212,
+      "end": 9.402,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "dollars",
+      "start": 9.444,
+      "end": 9.635,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "in",
+      "start": 9.677,
+      "end": 9.868,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "three",
+      "start": 9.91,
+      "end": 10.1,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "months",
+      "start": 10.142,
+      "end": 10.333,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "i",
+      "start": 12.85,
+      "end": 13.194,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "was",
+      "start": 13.27,
+      "end": 13.614,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "telling",
+      "start": 13.69,
+      "end": 14.034,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "him",
+      "start": 14.11,
+      "end": 14.454,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "about",
+      "start": 14.53,
+      "end": 14.874,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "the",
+      "start": 14.95,
+      "end": 15.294,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "usual",
+      "start": 15.37,
+      "end": 15.714,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "stuff",
+      "start": 15.79,
+      "end": 16.134,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "we",
+      "start": 16.21,
+      "end": 16.554,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "do",
+      "start": 16.63,
+      "end": 16.974,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "there",
+      "start": 20.85,
+      "end": 21.058,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "are",
+      "start": 21.104,
+      "end": 21.312,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "three",
+      "start": 21.358,
+      "end": 21.566,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "reasons",
+      "start": 21.612,
+      "end": 21.82,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "your",
+      "start": 21.865,
+      "end": 22.074,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "ads",
+      "start": 22.119,
+      "end": 22.327,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "fail",
+      "start": 22.373,
+      "end": 22.581,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "and",
+      "start": 22.627,
+      "end": 22.835,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "the",
+      "start": 22.881,
+      "end": 23.089,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "first",
+      "start": 23.135,
+      "end": 23.343,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "one",
+      "start": 23.388,
+      "end": 23.597,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "is",
+      "start": 23.642,
+      "end": 23.85,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "brutal",
+      "start": 23.896,
+      "end": 24.104,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "and",
+      "start": 26.85,
+      "end": 27.117,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "then",
+      "start": 27.175,
+      "end": 27.442,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "we",
+      "start": 27.5,
+      "end": 27.767,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "sort",
+      "start": 27.825,
+      "end": 28.091,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "of",
+      "start": 28.15,
+      "end": 28.416,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "moved",
+      "start": 28.475,
+      "end": 28.741,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "on",
+      "start": 28.8,
+      "end": 29.066,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "to",
+      "start": 29.125,
+      "end": 29.391,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "the",
+      "start": 29.45,
+      "end": 29.716,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "next",
+      "start": 29.775,
+      "end": 30.041,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "thing",
+      "start": 30.1,
+      "end": 30.366,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "why",
+      "start": 33.35,
+      "end": 33.538,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "do",
+      "start": 33.579,
+      "end": 33.767,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "people",
+      "start": 33.808,
+      "end": 33.996,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "ignore",
+      "start": 34.037,
+      "end": 34.225,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "the",
+      "start": 34.267,
+      "end": 34.455,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "best",
+      "start": 34.496,
+      "end": 34.684,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "offer",
+      "start": 34.725,
+      "end": 34.913,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "they",
+      "start": 34.954,
+      "end": 35.142,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "will",
+      "start": 35.183,
+      "end": 35.371,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "ever",
+      "start": 35.412,
+      "end": 35.6,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "see",
+      "start": 35.642,
+      "end": 35.83,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "?",
+      "start": 35.871,
+      "end": 36.059,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "which",
+      "start": 38.35,
+      "end": 38.688,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "is",
+      "start": 38.763,
+      "end": 39.101,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "pretty",
+      "start": 39.175,
+      "end": 39.513,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "much",
+      "start": 39.588,
+      "end": 39.926,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "what",
+      "start": 40.0,
+      "end": 40.338,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "i",
+      "start": 40.413,
+      "end": 40.751,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "expected",
+      "start": 40.825,
+      "end": 41.163,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    },
+    {
+      "text": "honestly",
+      "start": 41.238,
+      "end": 41.576,
+      "prob": 1.0,
+      "kind": "word",
+      "source": "fixture"
+    }
+  ]
+}

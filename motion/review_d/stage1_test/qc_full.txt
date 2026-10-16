@@ -1,0 +1,41 @@
+FULL QC REPORT final_s.mp4
+items: 11  words: 18  inserts: 0  transitions: 0
+longest no-visual-change: 2.04s
+sound: 20 events (2.02/s, accents 1.11/s), -14.1 LUFS / -2.78 dBTP, impacts on cut frame: True
+
+WORDS (caption time / kind):
+    0.14s  The              -
+    0.34s  grade            -
+    0.70s  that             -
+    0.86s  you're           -
+    1.23s  GOING            key
+    1.58s  to               -
+    1.69s  get              -
+    1.91s  is               -
+    3.09s  an A             -
+    3.42s  MINUS            key
+    6.35s  Thank            -
+    6.74s  you.             -
+    7.02s  CONGRATULATIONS  key
+    7.82s  Even             serif
+    8.14s  the              -
+    8.28s  teacher          -
+    8.73s  CAN              -
+    8.95s  IMPROVE          key
+
+ITEMS (enter / hold / exit):
+    0.00-  0.00s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    0.14-  1.90s  poster   hold 1.76s  8f slide+blur+fade (engine)
+    1.91-  4.16s  poster   hold 2.25s  8f slide+blur+fade (engine)
+    2.90-  2.90s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    5.47-  5.47s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    5.55-  6.55s  chip     hold 1.0s  8f slide+blur+fade (engine)
+    6.35-  8.42s  poster   hold 2.07s  8f slide+blur+fade (engine)
+    6.61-  6.61s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    7.82- 10.00s  card     hold 2.18s  8f slide+blur+fade (engine)
+    8.30-  8.30s  fx       hold 0.0s  8f slide+blur+fade (engine)
+    9.32-  9.32s  fx       hold 0.0s  8f slide+blur+fade (engine)
+
+INSERTS:
+
+TRANSITIONS:

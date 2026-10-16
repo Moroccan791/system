@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "MontserratX"; src: url("file:///home/user/system/assets/fonts/Montserrat-ExtraBold.ttf"); font-weight: 800; }
+  @font-face { font-family: "MontserratX"; src: url("file:///home/user/system/assets/fonts/Montserrat-SemiBold.ttf"); font-weight: 600; }
+  @font-face { font-family: "SerifX"; src: url("file:///home/user/system/assets/fonts/DejaVuSerif-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "SerifX"; src: url("file:///home/user/system/assets/fonts/DejaVuSerif.ttf"); font-weight: 400; }
+  /* font packs (theme fontPack / produce --font): OFL-1.1 faces,
+     chosen per video - see motion/fonts.py. MontserratX stays the
+     default workhorse. */
+  @font-face { font-family: "PackAnton"; src: url("file:///home/user/system/assets/fonts/Anton.woff2"); font-weight: 400; }
+  /* the caption-tool classics, from their official free releases
+     (OFL/Apache) - the same public families the paid tools build
+     their presets on; never copied from any tool's files */
+  @font-face { font-family: "PackArchivo"; src: url("file:///home/user/system/assets/fonts/ArchivoBlack.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackPoppins"; src: url("file:///home/user/system/assets/fonts/Poppins-ExtraBold.woff2"); font-weight: 800; }
+  @font-face { font-family: "PackLuckiest"; src: url("file:///home/user/system/assets/fonts/LuckiestGuy.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackBebas"; src: url("file:///home/user/system/assets/fonts/BebasNeue.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackGrotesk"; src: url("file:///home/user/system/assets/fonts/SpaceGrotesk-Bold.woff2"); font-weight: 700; }
+  @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Bold.woff2"); font-weight: 700; }
+  @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Italic.woff2"); font-weight: 700; font-style: italic; }
+  html, body { margin: 0; padding: 0; width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+  #stage { position: absolute; inset: 0; }
+  .item { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+
+  /* ---- poster captions ---- */
+  .poster { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+  .poster .stack { display: flex; flex-direction: column; align-items: center; position: relative; }
+  /* soft dark plate under the stack (spec 1.6): an invisible-feeling
+     radial falloff that guarantees the 4.5:1 ground on bright footage */
+  .poster .stack::before { content: ""; position: absolute; inset: -30px -56px; z-index: -1;
+    border-radius: 999px;
+    background: radial-gradient(ellipse at center, rgba(4,7,10,.55) 55%, rgba(4,7,10,0) 88%); }
+  .poster .row { display: flex; align-items: baseline; justify-content: center; white-space: nowrap; }
+  .poster .w { display: inline-block; color: #fff; font-family: "MontserratX"; font-weight: 800;
+               -webkit-text-stroke: 3px rgba(0,0,0,.6); paint-order: stroke fill;
+               text-shadow: 0 6px 22px rgba(0,0,0,.45); will-change: transform, filter, opacity; }
+  .poster .w.conn { font-weight: 800; letter-spacing: .02em; }
+  .poster .w.serif { font-family: "SerifX"; font-style: italic; font-weight: 700; -webkit-text-stroke: 3px rgba(0,0,0,.55); }
+  .poster .w.key { font-weight: 800; letter-spacing: .015em; transform-origin: 50% 60%; }
+  .poster .w.hero { font-weight: 800; letter-spacing: .01em; transform-origin: 50% 60%; }
+
+  /* ---- hook slate + end card (full-frame title slates) ---- */
+  .hook, .endcard { position: absolute; inset: 0; }
+  .slate { position: absolute; inset: 0; background: #0A0D11; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; }
+  .slate .hk-kicker { font-family: "MontserratX"; font-weight: 800; color: #fff;
+    opacity: .55; letter-spacing: .35em; font-size: 40px; margin-bottom: 38px; }
+  .slate .hk-line { font-family: "MontserratX"; font-weight: 800; color: #fff;
+    text-align: center; line-height: 1.05; letter-spacing: .01em; padding: 0 56px;
+    -webkit-text-stroke: 2px rgba(0,0,0,.4); }
+  .slate .hk-bar { width: 190px; height: 14px; border-radius: 99px; margin-top: 46px; }
+  .slate .hk-sub { font-family: "MontserratX"; font-weight: 700; color: #fff;
+    opacity: .75; font-size: 54px; margin-top: 40px; letter-spacing: .04em; }
+
+  /* ---- speaker lower-third (name + role, bottom-left) ---- */
+  .lowerthird { position: absolute; inset: 0; pointer-events: none; }
+  .lowerthird .ltplate { position: absolute; left: 56px; display: flex; align-items: stretch;
+    background: rgba(9,12,16,.88); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 22px 54px rgba(0,0,0,.5); will-change: transform, opacity; }
+  .lowerthird .ltspine { flex: 0 0 14px; }
+  .lowerthird .lttx { display: flex; flex-direction: column; padding: 24px 38px 24px 30px; }
+  .lowerthird .ltname { font-family: "MontserratX"; font-weight: 800; color: #fff;
+    letter-spacing: .015em; line-height: 1.05; white-space: nowrap;
+    -webkit-text-stroke: 2px rgba(0,0,0,.5); paint-order: stroke fill; }
+  .lowerthird .ltrole { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.72);
+    letter-spacing: .06em; line-height: 1.15; white-space: nowrap; margin-top: 8px; }
+
+  /* ---- label chip ---- */
+  .chip { display: flex; align-items: center; justify-content: center; }
+  .chip .bar { position: relative; display: flex; align-items: center; gap: 22px;
+               border-radius: 999px; padding: 27px 40px 27px 28px; overflow: hidden;
+               box-shadow: 0 18px 50px rgba(0,0,0,.45); will-change: clip-path, filter, opacity, transform; }
+  .chip .ic { flex: 0 0 auto; width: 62px; height: 62px; display: flex; align-items: center; justify-content: center; }
+  .chip .ic svg { width: 62px; height: 62px; }
+  .chip .tx { display: flex; flex-direction: column; }
+  .chip .t1 { font-family: "MontserratX"; font-weight: 800; color: #0d0f12; letter-spacing: .01em; line-height: 1.04; white-space: nowrap; }
+  .chip .t2 { font-family: "MontserratX"; font-weight: 600; color: rgba(13,15,18,.72); line-height: 1.1; white-space: nowrap; }
+  .chip .streak { position: absolute; top: -20%; bottom: -20%; width: 120px; transform: skewX(-18deg);
+                  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); }
+
+  /* ---- full-screen text card ---- */
+  .card { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .card .cw { display: inline-block; font-family: "MontserratX"; font-weight: 800; color: #fff;
+              -webkit-text-stroke: 3px rgba(0,0,0,.55); paint-order: stroke fill;
+              text-shadow: 0 6px 22px rgba(0,0,0,.4);
+              letter-spacing: .01em; will-change: transform, filter, opacity; }
+  .card .cw.serif { font-family: "SerifX"; font-style: italic; font-weight: 700; }
+  .card .cline { display: flex; justify-content: center; align-items: baseline; white-space: nowrap; }
+
+  .poster .w.neon, .card .cw.neon { font-weight: 800; letter-spacing: .015em; }
+
+  /* ---- PiP / proof card ---- */
+  .pip { display: flex; align-items: flex-start; justify-content: center; }
+  .pip .pcard { position: relative; background: #fff; border-radius: 34px; padding: 14px;
+                box-shadow: 0 26px 64px rgba(0,0,0,.5); will-change: transform, filter, opacity; }
+  .pip .pimg { border-radius: 22px; overflow: hidden; position: relative; }
+  .pip .pimg img { display: block; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+  .pip .plab { position: absolute; left: 24px; bottom: 24px; display: flex; flex-direction: column;
+               background: rgba(8,10,13,.85); border-radius: 20px; padding: 16px 26px; max-width: 400px; }
+  .pip .plab .l1 { font-family: "MontserratX"; font-weight: 800; color: #fff; line-height: 1.05; }
+  .pip .plab .l2 { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.72); line-height: 1.15; white-space: nowrap; }
+  .tagill { position: absolute; top: -20px; right: 28px; z-index: 3; font-family: "MontserratX"; font-weight: 800;
+            letter-spacing: .14em; padding: 10px 20px; border-radius: 999px; box-shadow: 0 10px 26px rgba(0,0,0,.35); }
+
+  /* ---- B-roll window ---- */
+  .broll .win { position: absolute; overflow: hidden; border-radius: 40px;
+                box-shadow: 0 30px 80px rgba(0,0,0,.55); will-change: clip-path, filter, opacity; }
+  .broll .win img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+  .broll .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 42%;
+                  background: linear-gradient(180deg, transparent, rgba(0,0,0,.66)); }
+  .broll .blab { position: absolute; left: 42px; bottom: 36px; display: flex; flex-direction: column; max-width: 760px; }
+  .broll .blab .l1 { font-family: "MontserratX"; font-weight: 800; color: #fff; line-height: 1.04;
+                     text-shadow: 0 4px 18px rgba(0,0,0,.5); }
+  .broll .blab .l2 { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.8);
+                     line-height: 1.15; white-space: nowrap; }
+  .broll .tagill { top: 24px; right: 24px; }
+
+  /* ---- number counter ---- */
+  .counter { position: absolute; inset: 0; }
+  .counter .cwrap { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; }
+  .counter .cwrap::before { content: ""; position: absolute; inset: -34px 90px; z-index: -1;
+    border-radius: 999px;
+    background: radial-gradient(ellipse at center, rgba(4,7,10,.52) 55%, rgba(4,7,10,0) 88%); }
+  .counter .num { font-family: "MontserratX"; font-weight: 800; letter-spacing: .005em;
+                  text-shadow: 0 10px 34px rgba(0,0,0,.45); will-change: transform, opacity, filter; white-space: nowrap; }
+  .counter .num .affix { font-size: .44em; }
+  .counter .clab { font-family: "MontserratX"; font-weight: 800; color: #fff; letter-spacing: .14em;
+                   font-size: 58px; -webkit-text-stroke: 2px rgba(0,0,0,.5); paint-order: stroke fill;
+                   text-shadow: 0 4px 16px rgba(0,0,0,.55); margin-top: 14px; white-space: nowrap; }
+
+  /* ---- list plates ---- */
+  .listp { position: absolute; inset: 0; }
+  .listp .lwrap { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .listp .lhead { font-family: "MontserratX"; font-weight: 800; letter-spacing: .08em; color: #0d0f12;
+                  padding: 18px 38px; border-radius: 999px; box-shadow: 0 14px 36px rgba(0,0,0,.4); white-space: nowrap; }
+  .listp .plate { display: flex; align-items: center; gap: 26px; background: rgba(9,11,15,.88); border-radius: 26px;
+                  padding: 26px 38px 26px 28px; box-shadow: 0 16px 44px rgba(0,0,0,.42); will-change: transform, opacity, filter; }
+  .listp .badge { flex: 0 0 auto; width: 92px; height: 92px; border-radius: 50%; display: flex; align-items: center;
+                  justify-content: center; font-family: "MontserratX"; font-weight: 800; }
+  .listp .ptx { display: flex; flex-direction: column; }
+  .listp .pt1 { color: #fff; font-family: "MontserratX"; font-weight: 800; line-height: 1.05; white-space: nowrap; }
+  .listp .pt2 { color: rgba(255,255,255,.66); font-family: "MontserratX"; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+
+  /* ---- process / step stack ---- */
+  .proc { position: absolute; inset: 0; }
+  .proc .pwrap { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; }
+  .proc .ptitle { font-family: "MontserratX"; font-weight: 800; letter-spacing: .08em; color: #0d0f12;
+                  padding: 18px 38px; border-radius: 999px; box-shadow: 0 14px 36px rgba(0,0,0,.4);
+                  margin-bottom: 34px; white-space: nowrap; }
+  .proc .srow { display: flex; align-items: flex-start; gap: 28px; will-change: transform, opacity, filter;
+                background: rgba(9,11,15,.82); border-radius: 26px; padding: 22px 34px 22px 26px; }
+  .proc .scol { display: flex; flex-direction: column; align-items: center; }
+  .proc .scirc { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                 font-family: "MontserratX"; font-weight: 800; flex: 0 0 auto; }
+  .proc .sline { width: 6px; height: 40px; border-radius: 3px; margin: 8px 0; }
+  .proc .stx { display: flex; flex-direction: column; padding-top: 6px; min-width: 430px; }
+  .proc .st1 { color: #fff; font-family: "MontserratX"; font-weight: 800; line-height: 1.05; white-space: nowrap;
+               text-shadow: 0 4px 16px rgba(0,0,0,.4); }
+  .proc .st2 { color: rgba(255,255,255,.7); font-family: "MontserratX"; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+
+  /* ---- light fx ---- */
+  .fxlayer { position: absolute; inset: 0; overflow: hidden; }
+  .fx-flash { position: absolute; inset: 0; }
+  /* full-frame diagonal light leak (screen-style wash), never a blob */
+  .fx-flare { position: absolute; inset: -12%; will-change: opacity, transform; }
+  .fx-leak { position: absolute; top: -30%; bottom: -30%; width: 46%; transform: rotate(16deg); filter: blur(30px); }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+"use strict";
+const FPS = 30, W = 1080, H = 1920;
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeOutBack = t => { const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const easeIn = t => t * t;
+const easeInOut = t => t * t * (3 - 2 * t);
+const fmt = v => fmtVal(v, 0);
+const F = s => Math.round(s * FPS); // seconds -> frames
+
+let TL = null, builtItems = [], ACCENT = "#FFC531", stats = null;
+let THEME = { radius: "round", glow: 1, speed: 1, easing: "pop", fontMode: "sans" };
+function themeEase(p) {
+  if (THEME.easing === "snap") { const q = clamp01(p * 1.15); return 1 - Math.pow(1 - q, 4); }
+  if (THEME.easing === "soft") return p * p * (3 - 2 * p);
+  return easeOut(p);
+}
+
+function hexA(hex, a) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* ---------------- item builders (DOM exists for the whole timeline) ------- */
+function el(cls, parent) { const d = document.createElement("div"); d.className = cls; parent.appendChild(d); return d; }
+
+const layoutJobs = [];
+function buildPoster(item) {
+  const root = el("item poster", stage);
+  const zone = item.zone || [0.615, 0.845];
+  const wrap = el("stackwrap", root);
+  const topFrac = (item.place3d && item.place3d.y) || ((zone[0] + zone[1]) / 2);
+  wrap.style.cssText = `position:absolute;left:0;right:0;top:${(topFrac * H).toFixed(0)}px;transform:translateY(-50%);display:flex;justify-content:center;`;
+  const stack = el("stack", wrap);
+  const words = [];
+  const style = item.captionStyle || THEME.captionStyle || "pop";
+  const kara = style === "karaoke";
+  (item.rows || []).forEach(row => {
+    const r = el("row", stack);
+    row.forEach(wd => {
+      const s = document.createElement("span");
+      const kind = wd.kind || "conn";
+      s.className = "w " + (kind === "key" ? "key" : kind === "hero" ? "hero"
+        : kind === "serif" ? "serif" : kind === "neon" ? "neon" : "conn");
+      s.textContent = wd.w;
+      s.style.fontSize = (kind === "hero" ? (item.heroSize || 250)
+        : kind === "key" || kind === "neon" ? (item.keySize || 118)
+        : (item.connSize || 58)) + "px";
+      if (kind === "key") {
+        // keyword = ink on an accent PLATE (the format's highlight
+        // word): the pair is 4.5:1+ by construction on any footage,
+        // where accent-coloured glyphs on a bright wall cannot be
+        const ac = item.accent || ACCENT;
+        s.style.background = ac;
+        s.style.color = "#0D0F12";
+        s.style.webkitTextStroke = "0px";
+        s.style.padding = "0px 20px";
+        s.style.borderRadius = "16px";
+        s.dataset.glowc = ac;
+      }
+      if (kind === "hero") {
+        // hero word: the one giant word of a lockup - accent ink, no
+        // plate (at 250px the glyphs themselves carry the contrast)
+        const ac = item.accent || ACCENT;
+        s.style.color = wd.color || ac;
+        s.dataset.glowc = ac;
+      }
+      if (kind === "neon") s.style.color = wd.color || "#FF3355";
+      if (style === "neon" && kind !== "key" && kind !== "hero" && kind !== "neon")
+        s.style.color = item.accent || ACCENT;   // neon finish: accent ink + glow
+      if (wd.glow) s.dataset.glow = "1";
+      r.appendChild(s);
+      const sp = document.createElement("span");
+      sp.style.display = "inline-block"; sp.style.width = (kind === "key" ? 26 : 16) + "px";
+      r.appendChild(sp);
+      words.push({ el: s, at: wd.at, kind, kara,
+                   entry: ["stretch", "wiggle", "glide", "bounce"].includes(style)
+                     ? style : "pop",
+                   finish: style === "neon" ? "neon" : null,
+                   ac: item.accent || ACCENT });
+    });
+  });
+  if (kara) {
+    // karaoke: each word is "live" from its onset until the next word
+    // starts (the last word stays live until the stack exits)
+    for (let i = 0; i < words.length; i++)
+      words[i].end = i + 1 < words.length ? words[i + 1].at : (item.until ?? item.at + 2);
+  }
+  // spatial placement (place3d): the stack stands IN the room -
+  // perspective-tilted, optionally zoom-locked to the camera move
+  const sp3d = item.place3d || null;
+  layoutJobs.push(() => {
+    // hero words must NEVER bleed off-frame: shrink the hero itself
+    // (floor 110px) until it leaves room for its row-mates. The old
+    // behaviour leaned on autofit's 0.62 scale floor, which silently
+    // let a 2200px row render at 1360px in a 1080 frame.
+    for (const wd of words) {
+      if (wd.kind !== "hero") continue;
+      let fs = parseFloat(wd.el.style.fontSize);
+      while (wd.el.offsetWidth > 0.78 * W && fs > 110) {
+        fs *= 0.94;
+        wd.el.style.fontSize = fs.toFixed(0) + "px";
+      }
+    }
+    // behind-the-person stacks fit wider: the words must flank the
+    // silhouette, so they are allowed 94% of the frame
+    autofit(stack, item.behind ? 0.94 : 0.88);
+  });
+  return { item, root, words, stack, sp3d };
+}
+
+function buildChip(item) {
+  const root = el("item chip", stage);
+  const zone = item.zone || [0.615, 0.845];
+  root.style.justifyContent = "flex-start";
+  root.style.flexDirection = "column";
+  root.style.alignItems = "center";
+  const bar = el("bar", root);
+  bar.style.background = item.accent || ACCENT;
+  // fixed 67%-of-frame bar (spec 65-70% wide, 6-7% high), icon left,
+  // single text line: a second line would push the bar past 7% high
+  // OR the text under the 3% floor - the schema rejects `sub` on chips
+  bar.style.width = Math.round(0.67 * W) + "px";
+  const ic = el("ic", bar);
+  ic.innerHTML = item.iconSvg || "";
+  const tx = el("tx", bar);
+  const t1 = el("t1", tx); t1.textContent = item.title || "";
+  t1.style.fontSize = (item.titleSize || 64) + "px";
+  const streak = el("streak", bar);
+  root.style.paddingTop = Math.round(((zone[0] + zone[1]) / 2) * H - 62) + "px";
+  layoutJobs.push(() => {
+    let fs = item.titleSize || 64;
+    while (t1.scrollWidth > 560 && fs > 58) { fs -= 2; t1.style.fontSize = fs + "px"; }
+  });
+  return { item, root, bar, streak };
+}
+
+function buildCard(item) {
+  const root = el("item card", stage);
+  root.style.background = item.bg === "accent" ? (item.accent || ACCENT)
+    : item.bg === "white" ? "#ffffff" : (item.bgColor || "#0c1015");
+  const words = [];
+  const lineEls = [];
+  (item.lines || []).forEach(line => {
+    const ln = el("cline", root);
+    lineEls.push(ln);
+    line.forEach(wd => {
+      const s = document.createElement("span");
+      s.className = "cw" + (wd.kind === "serif" ? " serif" : "") + (wd.kind === "neon" ? " neon" : "");
+      s.textContent = wd.w;
+      s.style.fontSize = (wd.size || item.wordSize || 120) + "px";
+      if (wd.kind === "key" && item.bg !== "accent") {
+        const ac = item.accent || ACCENT;
+        s.style.background = ac;
+        s.style.color = "#0D0F12";
+        s.style.webkitTextStroke = "0px";
+        s.style.padding = "0px 20px";
+        s.style.borderRadius = "16px";
+        s.dataset.glowc = ac;
+      }
+      if (wd.kind === "neon") s.style.color = wd.color || "#FF3355";
+      if (item.bg === "accent" && wd.kind === "key") s.style.color = "#ffffff";
+      ln.appendChild(s);
+      const sp = document.createElement("span");
+      sp.style.display = "inline-block"; sp.style.width = "30px";
+      ln.appendChild(sp);
+      words.push({ el: s, at: wd.at, kind: wd.kind || "word" });
+    });
+  });
+  layoutJobs.push(() => {
+    // card lines must never bleed off the frame: one uniform scale
+    // for all lines (type hierarchy survives), floored so the
+    // smallest word stays readable; _fitScale is unused here (the
+    // drift lives on the card root), the scale is baked per line
+    let sc = 1;
+    for (const ln of lineEls) sc = Math.min(sc, (0.88 * W) / Math.max(1, ln.scrollWidth));
+    sc = Math.max(sc, 0.52);
+    for (const ln of lineEls) {
+      ln.style.transform = `scale(${sc.toFixed(3)})`;
+      ln.style.transformOrigin = "50% 50%";
+    }
+  });
+  return { item, root, words };
+}
+
+function buildFx(item) {
+  const root = el("item fxlayer", stage);
+  let node = null;
+  if (item.kind === "flash") {
+    node = el("fx-flash", root);
+    const c = item.color || item.accent || ACCENT;
+    node.style.background = `radial-gradient(ellipse at 50% 42%, ${hexA(c, .85)} 0%, ${hexA(c, .25)} 45%, transparent 72%)`;
+  } else if (item.kind === "flare") {
+    node = el("fx-flare", root);
+    const c = item.color || item.accent || ACCENT;
+    node.style.background =
+      `linear-gradient(115deg, transparent 30%, ${hexA("#ffffff", .75)} 46%, ` +
+      `${hexA(c, .8)} 58%, transparent 78%)`;
+  } else if (item.kind === "leak") {
+    node = el("fx-leak", root);
+    const c = item.color || item.accent || ACCENT;
+    node.style.background = `linear-gradient(90deg, transparent, ${hexA(c, .5)}, transparent)`;
+  }
+  return { item, root, node };
+}
+
+function buildLower(item) {
+  // speaker lower-third: name + role on a dark plate, bottom-LEFT
+  // (captions own the centre; this owns the introduction moment)
+  const root = el("item lowerthird", stage);
+  const zone = item.zone || [0.80, 0.93];
+  const plate = el("ltplate", root);
+  plate.style.top = Math.round(zone[0] * H) + "px";
+  const spine = el("ltspine", plate);
+  spine.style.background = item.accent || ACCENT;
+  const tx = el("lttx", plate);
+  const nm = el("ltname", tx);
+  nm.textContent = item.title || "";
+  nm.style.fontSize = (item.titleSize || 66) + "px";
+  let role = null;
+  if (item.sub) {
+    role = el("ltrole", tx);
+    role.textContent = item.sub.toUpperCase();
+    role.style.fontSize = (item.subSize || 58) + "px";
+  }
+  const streak = el("streak", plate);
+  streak.style.cssText = "position:absolute;top:-20%;bottom:-20%;width:110px;" +
+    "transform:skewX(-18deg);pointer-events:none;" +
+    "background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);";
+  return { item, root, lower: plate, ltStreak: streak };
+}
+
+function zoneCentre(item, def) {
+  const zone = item.zone || def || [0.615, 0.845];
+  return { zone, cy: ((zone[0] + zone[1]) / 2) * H };
+}
+
+function mediaSrc(item) {
+  return item.src && item.src.startsWith("/") ? "file://" + item.src : item.src;
+}
+
+function illTag(parent, item, size) {
+  if (!item.illustrative) return null;
+  const tag = el("tagill", parent);
+  tag.textContent = "ILLUSTRATIVE";
+  tag.style.background = item.accent || ACCENT;
+  tag.style.color = "#0d0f12";
+  tag.style.fontSize = (size || 58) + "px";
+  return tag;
+}
+
+function buildHook(item) {
+  // hook slate: the first-second promise, full-frame (a title
+  // cutaway, never text over the face). Lines stagger in fast,
+  // the whole slate drifts 100->103% and dissolves AT until.
+  const root = el("item hook", stage);
+  const slate = el("slate", root);
+  const kick = el("hk-kicker", slate);
+  kick.textContent = (item.sub || "WATCH THIS").toUpperCase();
+  const lines = [];
+  (item.hookLines || []).forEach(txt => {
+    const ln = el("hk-line", slate);
+    ln.textContent = txt;
+    ln.style.fontSize = (item.wordSize || 148) + "px";
+    lines.push(ln);
+  });
+  const bar = el("hk-bar", slate);
+  bar.style.background = item.accent || ACCENT;
+  layoutJobs.push(() => {
+    let fs = item.wordSize || 148;
+    const widest = () => Math.max(1, ...lines.map(l => l.scrollWidth));
+    while (widest() > 0.90 * W && fs > 62) {
+      fs -= 4;
+      lines.forEach(l => l.style.fontSize = fs + "px");
+    }
+  });
+  return { item, root, slate, hkLines: lines };
+}
+
+function buildEndcard(item) {
+  // end card: 1s branded outro slate (name + handle + follow
+  // kicker). Tail-anchored by the validator; dissolves at until.
+  const root = el("item endcard", stage);
+  const slate = el("slate", root);
+  const kick = el("hk-kicker", slate);
+  kick.textContent = "FOLLOW FOR MORE";
+  const nm = el("hk-line", slate);
+  nm.textContent = item.title || "";
+  nm.style.fontSize = (item.wordSize || 120) + "px";
+  nm.style.color = item.accent || ACCENT;
+  const lines = [nm];
+  if (item.sub) {
+    const hd = el("hk-sub", slate);
+    hd.textContent = item.sub;
+    lines.push(hd);
+  }
+  const bar = el("hk-bar", slate);
+  bar.style.background = item.accent || ACCENT;
+  layoutJobs.push(() => {
+    let fs = item.wordSize || 120;
+    while (nm.scrollWidth > 0.90 * W && fs > 58) {
+      fs -= 4;
+      nm.style.fontSize = fs + "px";
+    }
+  });
+  return { item, root, slate, hkLines: lines };
+}
+
+function buildPip(item) {
+  const root = el("item pip", stage);
+  const { cy } = zoneCentre(item);
+  const cardW = Math.round((item.w || 0.58) * W);
+  const imgH = Math.round(cardW * 0.66);
+  root.style.paddingTop = Math.max(0, Math.round(cy - (imgH + 28) / 2)) + "px";
+  const card = el("pcard", root);
+  card.style.width = cardW + "px";
+  const pimg = el("pimg", card);
+  pimg.style.height = imgH + "px";
+  const img = document.createElement("img");
+  img.src = mediaSrc(item);
+  pimg.appendChild(img);
+  illTag(card, item);
+  if (item.label) {
+    const lab = el("plab", pimg);
+    const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
+    if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
+  }
+  return { item, root, pipCard: card, pipImg: img };
+}
+
+function buildBroll(item) {
+  const root = el("item broll", stage);
+  const win = el("win", root);
+  let full = false;
+  if ((item.mode || "fullbleed") === "fullbleed") {
+    // preferred form: replaces the speaker full-frame for 1.0-1.8 s,
+    // the running caption stack stays over it (authored as a poster)
+    full = true;
+    win.style.left = "0px"; win.style.top = "0px";
+    win.style.width = W + "px"; win.style.height = H + "px";
+    win.style.borderRadius = "0px";
+    win.style.boxShadow = "none";
+  } else {
+    // alternate card: 60-70% wide, centred (never a corner, never <55%)
+    const winW = Math.round((item.w || 0.65) * W);
+    const zone = item.zone || [0.30, 0.80];
+    const winH = Math.round((zone[1] - zone[0]) * H);
+    win.style.left = ((W - winW) / 2) + "px";
+    win.style.top = (zone[0] * H) + "px";
+    win.style.width = winW + "px";
+    win.style.height = winH + "px";
+    win.style.border = `4px solid ${hexA(item.accent || ACCENT, .9)}`;
+    win.style.boxShadow = `0 30px 80px rgba(0,0,0,.55), 0 0 44px ${hexA(item.accent || ACCENT, .35)}`;
+  }
+  const img = document.createElement("img");
+  img.src = mediaSrc(item);
+  win.appendChild(img);
+  el("scrim", win);
+  if (item.label) {
+    const lab = el("blab", win);
+    const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
+    if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
+  }
+  illTag(win, item);
+  return { item, root, win, bimg: img, bfull: full };
+}
+
+/* ---- animated vector scenes (Fiverr-style: drawn, not photographed).
+   Deterministic SVG: every property derives from the frame clock. */
+const VEC_NS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, parent) {
+  const n = document.createElementNS(VEC_NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+
+function buildVector(item) {
+  const ac = item.accent || ACCENT;
+  const full = (item.mode || "card") === "fullbleed";
+  const V = { name: item.name || "burst", n: {} };
+  let svg;
+  if (full) {
+    const root = el("item broll", stage);
+    const win = el("win", root);
+    win.style.left = "0px"; win.style.top = "0px";
+    win.style.width = W + "px"; win.style.height = H + "px";
+    win.style.borderRadius = "0px"; win.style.boxShadow = "none";
+    win.style.background = "#101319";
+    const wrap = el("pimg", win);
+    wrap.style.cssText = "position:absolute;inset:0;";
+    svg = svgEl("svg", { viewBox: "0 0 1080 1920", preserveAspectRatio: "xMidYMid slice" }, wrap);
+    svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;";
+    if (item.label) {
+      const lab = el("blab", win);
+      const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
+      if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
+    }
+    buildScene(svg, V, ac, item, 1080, 1920);
+    return { item, root, win, bimg: wrap, bfull: true, vec: V };
+  }
+  const root = el("item pip", stage);
+  const { cy } = zoneCentre(item);
+  const cardW = Math.round((item.w || 0.58) * W);
+  const imgH = Math.round(cardW * 0.66);
+  root.style.paddingTop = Math.max(0, Math.round(cy - (imgH + 28) / 2)) + "px";
+  const card = el("pcard", root);
+  card.style.width = cardW + "px";
+  const pimg = el("pimg", card);
+  pimg.style.height = imgH + "px";
+  pimg.style.background = "#14181f";
+  svg = svgEl("svg", { viewBox: "0 0 600 400", preserveAspectRatio: "xMidYMid slice" }, pimg);
+  svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;";
+  if (item.label) {
+    const lab = el("plab", pimg);
+    lab.style.bottom = "auto"; lab.style.top = "20px";  // scene action is low
+    const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
+    if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
+  }
+  buildScene(svg, V, ac, item, 600, 400);
+  return { item, root, pipCard: card, pipImg: pimg, vec: V };
+}
+
+function buildScene(svg, V, ac, item, vw, vh) {
+  // authored in unit space: W=600 wide, H follows the canvas aspect
+  const n = V.n, s = vw / 600, H = vh / s;
+  V.s = s; V.H = H;
+  if (V.name === "hoop") {
+    V.rimX = 450; V.rimY = 196; V.floorY = H - 54;
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    svgEl("line", { x1: 24, y1: V.floorY * s, x2: vw - 24, y2: V.floorY * s, stroke: "#2b3547", "stroke-width": 5 * s }, svg);
+    svgEl("rect", { x: 362 * s, y: 60 * s, width: 176 * s, height: 118 * s, rx: 8 * s, fill: "none", stroke: "#E8EDF4", "stroke-width": 7 * s }, svg);
+    svgEl("rect", { x: 410 * s, y: 94 * s, width: 80 * s, height: 58 * s, fill: "none", stroke: ac, "stroke-width": 6 * s }, svg);
+    n.net = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${406 * s} ${198 * s} L ${422 * s} ${262 * s} M ${450 * s} ${198 * s} L ${450 * s} ${266 * s} M ${494 * s} ${198 * s} L ${478 * s} ${262 * s} M ${410 * s} ${228 * s} L ${490 * s} ${228 * s} M ${418 * s} ${246 * s} L ${482 * s} ${246 * s}`, stroke: "#E8EDF4", "stroke-width": 4 * s, fill: "none" }, n.net);
+    svgEl("ellipse", { cx: V.rimX * s, cy: V.rimY * s, rx: 50 * s, ry: 11 * s, fill: "none", stroke: "#E8813A", "stroke-width": 8 * s }, svg);
+    n.flash = svgEl("circle", { cx: V.rimX * s, cy: V.rimY * s, r: 62 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
+    n.ball = svgEl("g", {}, svg);
+    svgEl("circle", { r: 25 * s, fill: "#E8813A", stroke: "#8a4b16", "stroke-width": 3 * s }, n.ball);
+    svgEl("path", { d: `M ${-25 * s} 0 H ${25 * s} M 0 ${-25 * s} V ${25 * s}`, stroke: "#8a4b16", "stroke-width": 3 * s, fill: "none" }, n.ball);
+  } else if (V.name === "led") {
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101319" }, svg);
+    n.wash = svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: ac, opacity: 0.08 }, svg);
+    svgEl("rect", { x: 54 * s, y: 300 * s, width: 205 * s, height: 290 * s, rx: 10 * s, fill: "#18202d" }, svg);
+    svgEl("line", { x1: 156 * s, y1: 300 * s, x2: 156 * s, y2: 590 * s, stroke: "#101319", "stroke-width": 6 * s }, svg);
+    svgEl("rect", { x: 330 * s, y: 288 * s, width: 92 * s, height: 124 * s, fill: "#1a2331" }, svg);
+    svgEl("rect", { x: 446 * s, y: 288 * s, width: 92 * s, height: 124 * s, fill: "#1a2331" }, svg);
+    svgEl("ellipse", { cx: 300 * s, cy: (H - 108) * s, rx: 238 * s, ry: 26 * s, fill: "#16202e" }, svg);
+    svgEl("line", { x1: 516 * s, y1: (H - 246) * s, x2: 516 * s, y2: (H - 430) * s, stroke: "#2b3a52", "stroke-width": 7 * s }, svg);
+    svgEl("path", { d: `M ${488 * s} ${(H - 430) * s} L ${544 * s} ${(H - 430) * s} L ${532 * s} ${(H - 486) * s} L ${500 * s} ${(H - 486) * s} Z`, fill: ac, opacity: 0.8 }, svg);
+    const couch = svgEl("g", {}, svg);
+    svgEl("rect", { x: 96 * s, y: (H - 196) * s, width: 408 * s, height: 82 * s, rx: 26 * s, fill: "#263448" }, couch);
+    svgEl("rect", { x: 74 * s, y: (H - 246) * s, width: 452 * s, height: 66 * s, rx: 24 * s, fill: "#1e2a3c" }, couch);
+    svgEl("line", { x1: 18 * s, y1: 82 * s, x2: 582 * s, y2: 82 * s, stroke: ac, "stroke-width": 17 * s, opacity: 0.25, "stroke-linecap": "round" }, svg);
+    svgEl("line", { x1: 18 * s, y1: 82 * s, x2: 582 * s, y2: 82 * s, stroke: ac, "stroke-width": 7 * s, "stroke-linecap": "round" }, svg);
+    n.strip = svgEl("line", { x1: 18 * s, y1: 82 * s, x2: 582 * s, y2: 82 * s, stroke: "#FFFFFF", "stroke-width": 7 * s, "stroke-dasharray": `${38 * s} ${112 * s}`, "stroke-linecap": "round" }, svg);
+  } else if (V.name === "donut") {
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const C = 2 * Math.PI * 118, cy = H / 2;
+    svgEl("circle", { cx: 300 * s, cy: cy * s, r: 118 * s, fill: "none", stroke: "#2a3342", "stroke-width": 30 * s }, svg);
+    n.arc = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 118 * s, fill: "none", stroke: ac, "stroke-width": 30 * s, "stroke-linecap": "round", "stroke-dasharray": C * s, transform: `rotate(-90 ${300 * s} ${cy * s})` }, svg);
+    n.txt = svgEl("text", { x: 300 * s, y: (cy + 26) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 92 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.C = C * s; n.value = item.value || 75;
+  } else if (V.name === "arrow") {
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const y0 = H - 90, y1 = 110;
+    const d = `M ${90 * s} ${y0 * s} C ${230 * s} ${(y0 - 190) * s}, ${360 * s} ${(y1 + 190) * s}, ${505 * s} ${y1 * s}`;
+    n.path = svgEl("path", { d, fill: "none", stroke: ac, "stroke-width": 13 * s, "stroke-linecap": "round" }, svg);
+    n.head = svgEl("path", { d: `M ${505 * s} ${y1 * s} l ${-40 * s} ${8 * s} M ${505 * s} ${y1 * s} l ${-9 * s} ${38 * s}`, stroke: ac, "stroke-width": 13 * s, fill: "none", "stroke-linecap": "round", opacity: 0 }, svg);
+    n.len = 680 * s;
+    n.path.setAttribute("stroke-dasharray", n.len);
+  } else if (V.name === "bars") {
+    // SHOW data: bars grow staggered, values count up with them
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const vals = item.values || [60, 85, 45], labs = item.labels || [];
+    // centred band: full-bleed is tall, a floor-to-ceiling chart would run
+    // into the kicker label at the bottom
+    const chartH = Math.min(Math.max(H - 240, 200), 560);
+    n.mx = Math.max(...vals, 1);
+    n.base = H / 2 + chartH / 2; n.top = n.base - chartH; n.bars = [];
+    svgEl("line", { x1: 26 * s, y1: n.base * s, x2: 574 * s, y2: n.base * s, stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const k = vals.length, slot = 488 / k, bw = Math.min(76, slot * 0.52);
+    vals.forEach((v, i) => {
+      const cx = 56 + slot * (i + 0.5);
+      const fill = i === (item.hot ?? -1) ? ac : "#455a7d";
+      const r = svgEl("rect", { x: (cx - bw / 2) * s, y: n.base * s, width: bw * s, height: 0, rx: 9 * s, fill }, svg);
+      const tv = svgEl("text", { x: cx * s, y: (n.base - 12) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 44 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      const tl = svgEl("text", { x: cx * s, y: (n.base + 42) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 27 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tl.textContent = (labs[i] || "").toUpperCase();
+      fitSvg(tl, slot * 0.94 * s);
+      n.bars.push({ r, tv, tl, v, cx, hMax: (n.base - n.top) * (v / n.mx) });
+    });
+  } else if (V.name === "line") {
+    // SHOW change: a data line draws itself, points pop as it passes
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const pts = (item.points || [12, 34, 28, 62, 92]).map(v => Math.max(0, Math.min(100, v)));
+    const chartH2 = Math.min(Math.max(H - 240, 200), 560);
+    n.base = H / 2 + chartH2 / 2; n.top = n.base - chartH2; n.dots = [];
+    for (let g = 0; g < 3; g++) {
+      const gy = n.top + (n.base - n.top) * g / 2;
+      svgEl("line", { x1: 40 * s, y1: gy * s, x2: 566 * s, y2: gy * s, stroke: "#232d40", "stroke-width": 3 * s, "stroke-dasharray": `${8 * s} ${8 * s}` }, svg);
+    }
+    svgEl("line", { x1: 40 * s, y1: n.base * s, x2: 566 * s, y2: n.base * s, stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const P = pts.map((v, i) => [70 + i * (452 / Math.max(1, pts.length - 1)), n.base - (v / 100) * (n.base - n.top)]);
+    let d = `M ${P[0][0] * s} ${P[0][1] * s}`, len = 0;
+    for (let i = 1; i < P.length; i++) {
+      d += ` L ${P[i][0] * s} ${P[i][1] * s}`;
+      len += Math.hypot((P[i][0] - P[i - 1][0]) * s, (P[i][1] - P[i - 1][1]) * s);
+    }
+    n.path = svgEl("path", { d, fill: "none", stroke: ac, "stroke-width": 9 * s, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-dasharray": len }, svg);
+    n.len = len;
+    P.forEach(([px, py]) => {
+      n.dots.push(svgEl("circle", { cx: px * s, cy: py * s, r: 0, fill: "#14181f", stroke: ac, "stroke-width": 6 * s }, svg));
+    });
+    const [ex, ey] = P[P.length - 1];
+    n.end = svgEl("text", { x: Math.min(520, ex) * s, y: (ey - 30) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 56 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+    n.endVal = pts[pts.length - 1];
+  } else if (V.name === "versus") {
+    // COMPARE: two sides slide in, numbers count, winner gets the accent
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const L = item.left || { label: "A", value: 50 }, R = item.right || { label: "B", value: 50 };
+    const py = H * 0.20, ph = H * 0.56;
+    const mk = (x, side, win) => {
+      const g = svgEl("g", {}, svg);
+      svgEl("rect", { x: x * s, y: py * s, width: 232 * s, height: ph * s, rx: 18 * s, fill: win ? "#26314a" : "#1b2434", stroke: win ? ac : "#2b3547", "stroke-width": win ? 5 * s : 3 * s }, g);
+      const tv = svgEl("text", { x: (x + 116) * s, y: (py + ph * 0.52) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 96 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      const tl = svgEl("text", { x: (x + 116) * s, y: (py + ph * 0.52 + 52) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 29 * s, "font-weight": 700, "font-family": "MontserratX" }, g);
+      tl.textContent = (side.label || "").toUpperCase();
+      fitSvg(tl, 208 * s);
+      return { g, tv, val: side.value || 0 };
+    };
+    n.vsL = mk(34, L, item.win === "left");
+    n.vsR = mk(334, R, item.win === "right");
+    n.badge = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 300 * s, cy: (py + ph / 2) * s, r: 34 * s, fill: ac }, n.badge);
+    const bt = svgEl("text", { x: 300 * s, y: (py + ph / 2 + 12) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, n.badge);
+    bt.textContent = "VS";
+    n.vsCy = py + ph / 2;
+  } else if (V.name === "people") {
+    // SHOW quantity of people: a pictogram grid fills to the count
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const total = Math.max(1, Math.min(100, item.total || item.count || 57));
+    n.count = Math.min(total, item.count || total); n.total = total;
+    n.num = svgEl("text", { x: 300 * s, y: 92 * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 88 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    const cols = item.cols || 10, rows = Math.ceil(total / cols);
+    const cw = 488 / cols, chh = (H - 190) / rows, r = Math.min(cw, chh) * 0.30;
+    n.icons = [];
+    for (let i = 0; i < total; i++) {
+      const cx = 56 + cw * (i % cols + 0.5), cy = 128 + chh * (Math.floor(i / cols) + 0.5);
+      const g = svgEl("g", { opacity: 0 }, svg);
+      const col = i < n.count ? ac : "#2A3342";
+      svgEl("circle", { cx: cx * s, cy: (cy - r * 0.62) * s, r: r * 0.52 * s, fill: col }, g);
+      svgEl("path", { d: `M ${(cx - r) * s} ${(cy + r * 0.95) * s} A ${r * s} ${r * s} 0 0 1 ${(cx + r) * s} ${(cy + r * 0.95) * s} Z`, fill: col }, g);
+      n.icons.push({ g, cx, cy });
+    }
+  } else if (V.name === "stack") {
+    // SHOW composition: a 100% bar fills segment by segment
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const parts = item.parts || [70, 30], labs = item.labels || [];
+    const cols = [ac, "#5B729E", "#33456A", "#7E93BC"];
+    const bx = 50, bw2 = 500, by = H / 2 - 36, bh = 72, tot = parts.reduce((a, b) => a + b, 0) || 1;
+    const cid = "stk" + Math.round(item.at * 100);
+    const cp = svgEl("clipPath", { id: cid }, svg);
+    svgEl("rect", { x: bx * s, y: by * s, width: bw2 * s, height: bh * s, rx: 16 * s }, cp);
+    const gAll = svgEl("g", { "clip-path": `url(#${cid})` }, svg);
+    svgEl("rect", { x: bx * s, y: by * s, width: bw2 * s, height: bh * s, fill: "#232d40" }, gAll);
+    n.segs = []; let acc = 0;
+    parts.forEach((p, i) => {
+      const w = bw2 * p / tot, x = bx + acc; acc += w;
+      const r = svgEl("rect", { x: x * s, y: by * s, width: w * s, height: bh * s, fill: cols[i % 4] }, gAll);
+      const tv = svgEl("text", { x: (x + w / 2) * s, y: (by + bh + 44) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 36 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      const tl = svgEl("text", { x: (x + w / 2) * s, y: (by - 18) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 26 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tl.textContent = (labs[i] || "").toUpperCase();
+      fitSvg(tl, Math.min(190, w + 70) * s);
+      n.segs.push({ r, tv, tl, x, w, p });
+    });
+  } else if (V.name === "timeline") {
+    // ORIENT in time: a line draws, events land as it reaches them
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const evs = item.events || [{ x: 0.05, label: "START" }, { x: 0.95, label: "NOW" }];
+    n.midY = H / 2; n.evs = [];
+    n.tline = svgEl("line", { x1: 50 * s, y1: n.midY * s, x2: 550 * s, y2: n.midY * s, stroke: ac, "stroke-width": 7 * s, "stroke-linecap": "round", "stroke-dasharray": 500 * s }, svg);
+    evs.forEach((e, i) => {
+      const x = 50 + 500 * Math.max(0, Math.min(1, e.x ?? i / Math.max(1, evs.length - 1)));
+      const up = i % 2 === 0;
+      const dot = svgEl("circle", { cx: x * s, cy: n.midY * s, r: 0, fill: "#14181f", stroke: "#FFFFFF", "stroke-width": 6 * s }, svg);
+      // edge events anchor inward so labels never leave the frame
+      const anchor = x < 150 ? "start" : (x > 450 ? "end" : "middle");
+      const tx = anchor === "start" ? Math.max(36, x - 14)
+        : (anchor === "end" ? Math.min(564, x + 14) : x);
+      const tl = svgEl("text", { x: tx * s, y: (n.midY + (up ? -44 : 62)) * s, "text-anchor": anchor, fill: "#FFFFFF", "font-size": 36 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      tl.textContent = (e.label || "").toUpperCase();
+      fitSvg(tl, 210 * s);
+      const ts = svgEl("text", { x: tx * s, y: (n.midY + (up ? -76 : 94)) * s, "text-anchor": anchor, fill: ac, "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      ts.textContent = (e.sub || "").toUpperCase();
+      fitSvg(ts, 210 * s);
+      n.evs.push({ dot, tl, ts, x: e.x ?? i / Math.max(1, evs.length - 1) });
+    });
+  } else if (V.name === "quote") {
+    // PROVE: the actual words, big, with attribution
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const dy = Math.max(0, (H - 460) / 2);  // centre the block when tall
+    const mark = svgEl("text", { x: 82 * s, y: (170 + dy) * s, fill: ac, "font-size": 190 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    mark.textContent = "“";
+    n.qlines = [];
+    (item.quoteLines || []).slice(0, 3).forEach((ln, i) => {
+      const tx = svgEl("text", { x: 300 * s, y: (215 + dy + i * 68) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 47 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = ln;
+      fitSvg(tx, 536 * s);
+      n.qlines.push(tx);
+    });
+    if (item.by) {
+      n.qby = svgEl("text", { x: 300 * s, y: (235 + dy + (item.quoteLines || []).length * 68) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 28 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      fitSvg(n.qby, 500 * s);
+      n.qby.textContent = "— " + item.by.toUpperCase();
+    }
+  } else if (V.name === "chat") {
+    // SHOW a conversation: a phone fills with message bubbles as spoken
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const msgs = (item.messages || [{ text: "1", me: false }]).slice(0, 6);
+    const pw = 272, ph = Math.min(600, H - 170), px = (600 - pw) / 2, py = (H - ph) / 2;
+    svgEl("rect", { x: px * s, y: py * s, width: pw * s, height: ph * s, rx: 36 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const hd = svgEl("text", { x: 300 * s, y: (py + 52) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    hd.textContent = (item.title || "GROUP CHAT").toUpperCase();
+    fitSvg(hd, (pw - 40) * s);
+    svgEl("line", { x1: (px + 20) * s, y1: (py + 74) * s, x2: (px + pw - 20) * s, y2: (py + 74) * s, stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+    n.bubbles = [];
+    let by = py + 100;
+    msgs.forEach((m) => {
+      const g = svgEl("g", { opacity: 0 }, svg);
+      const bw = Math.min(pw - 90, 62 + (m.text || "").length * 17);
+      const bx = m.me ? px + pw - 18 - bw : px + 18;
+      svgEl("rect", { x: bx * s, y: by * s, width: bw * s, height: 54 * s, rx: 16 * s, fill: m.me ? ac : "#232d40" }, g);
+      const tx = svgEl("text", { x: (bx + bw / 2) * s, y: (by + 37) * s, "text-anchor": "middle", fill: m.me ? "#0D0F12" : "#FFFFFF", "font-size": 29 * s, "font-weight": 700, "font-family": "MontserratX" }, g);
+      tx.textContent = m.text || "";
+      fitSvg(tx, (bw - 22) * s);
+      n.bubbles.push(g);
+      by += 72;
+    });
+  } else if (V.name === "network") {
+    // SHOW a circle: one centre node, satellites link in one by one
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2, cnt = Math.max(3, Math.min(14, item.count || 7));
+    const R = Math.min(195, H / 2 - 80);
+    n.links = []; n.sats = [];
+    for (let i = 0; i < cnt; i++) {
+      const a = (i / cnt) * Math.PI * 2 - Math.PI / 2;
+      const rr = R * (i % 2 ? 0.8 : 1.0);
+      const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * 0.92;
+      const ln = svgEl("line", { x1: cx * s, y1: cy * s, x2: x * s, y2: y * s, stroke: "#3D4E6E", "stroke-width": 4 * s, "stroke-dasharray": Math.hypot((x - cx) * s, (y - cy) * s) }, svg);
+      ln.style.strokeDashoffset = Math.hypot((x - cx) * s, (y - cy) * s);
+      const c = svgEl("circle", { cx: x * s, cy: y * s, r: 0, fill: i === 0 ? ac : "#232d40", stroke: i === 0 ? ac : "#46587A", "stroke-width": 4 * s }, svg);
+      n.links.push(ln); n.sats.push(c);
+    }
+    n.hub = svgEl("circle", { cx: cx * s, cy: cy * s, r: 34 * s, fill: ac }, svg);
+    n.hubT = svgEl("text", { x: cx * s, y: (cy + 11) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 32 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.hubT.textContent = (item.title || "YOU").toUpperCase().slice(0, 6);
+    fitSvg(n.hubT, 58 * s);
+  } else if (V.name === "gauge") {
+    // SHOW intensity: a semicircular gauge sweeps to the value
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2 + 70, r = 185;
+    const arc = (rr) => `M ${(cx - rr) * s} ${cy * s} A ${rr * s} ${rr * s} 0 0 1 ${(cx + rr) * s} ${cy * s}`;
+    svgEl("path", { d: arc(r), fill: "none", stroke: "#232d40", "stroke-width": 26 * s, "stroke-linecap": "round" }, svg);
+    n.arcLen = Math.PI * r * s;
+    n.arc = svgEl("path", { d: arc(r), fill: "none", stroke: ac, "stroke-width": 26 * s, "stroke-linecap": "round", "stroke-dasharray": n.arcLen }, svg);
+    n.arc.style.strokeDashoffset = n.arcLen;
+    n.needle = svgEl("line", { x1: cx * s, y1: cy * s, x2: cx * s, y2: (cy - (r - 34)) * s, stroke: "#FFFFFF", "stroke-width": 9 * s, "stroke-linecap": "round" }, svg);
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: 17 * s, fill: "#FFFFFF" }, svg);
+    n.gnum = svgEl("text", { x: cx * s, y: (cy + 92) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 84 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.gval = Math.max(0, Math.min(100, item.value || 0));
+    n.gcx = cx; n.gcy = cy;
+  } else if (V.name === "map") {
+    // SHOW a place: street grid, a pin drops, rings pulse out
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const mx = 66, my = H / 2 - 235, mw = 468, mh = 470;
+    svgEl("rect", { x: mx * s, y: my * s, width: mw * s, height: mh * s, rx: 22 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const cl = svgEl("clipPath", { id: "mapc" + Math.round(item.at * 100) }, svg);
+    svgEl("rect", { x: mx * s, y: my * s, width: mw * s, height: mh * s, rx: 22 * s }, cl);
+    const gmap = svgEl("g", { "clip-path": `url(#mapc${Math.round(item.at * 100)})` }, svg);
+    const streets = [[0, 120, 468, 60], [0, 300, 468, 380], [120, 0, 60, 470], [300, 0, 380, 470], [0, 430, 468, 210], [430, 0, 210, 470]];
+    streets.forEach(([x1, y1, x2, y2]) => {
+      svgEl("line", { x1: (mx + x1) * s, y1: (my + y1) * s, x2: (mx + x2) * s, y2: (my + y2) * s, stroke: "#232d40", "stroke-width": 13 * s }, gmap);
+    });
+    const pinX = mx + mw * (item.x ?? 0.52), pinY = my + mh * (item.y ?? 0.44);
+    n.rings = [0, 1].map(() => svgEl("circle", { cx: pinX * s, cy: pinY * s, r: 10 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg));
+    n.pin = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${pinX * s} ${(pinY + 34) * s} C ${(pinX - 24) * s} ${(pinY - 6) * s}, ${(pinX - 20) * s} ${(pinY - 34) * s}, ${pinX * s} ${(pinY - 34) * s} C ${(pinX + 20) * s} ${(pinY - 34) * s}, ${(pinX + 24) * s} ${(pinY - 6) * s}, ${pinX * s} ${(pinY + 34) * s} Z`, fill: ac }, n.pin);
+    svgEl("circle", { cx: pinX * s, cy: (pinY - 16) * s, r: 10 * s, fill: "#14181f" }, n.pin);
+    const pt = svgEl("text", { x: pinX * s, y: (pinY + 78) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 36 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    pt.textContent = (item.place || "").toUpperCase();
+    fitSvg(pt, 400 * s);
+    n.pinY = pinY;
+  } else if (V.name === "calendar") {
+    // ORIENT in the week: seven day cells, the spoken day lights up
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const days = (item.labels && item.labels.length === 7) ? item.labels
+      : ["M", "T", "W", "T", "F", "S", "S"];
+    n.day = Math.max(0, Math.min(6, item.day || 0));
+    n.cells = [];
+    const cw = 62, gap = 10, x0 = 300 - (7 * cw + 6 * gap) / 2, y0 = H / 2 - 60;
+    days.forEach((d, i) => {
+      const hot = i === n.day;
+      const r = svgEl("rect", { x: (x0 + i * (cw + gap)) * s, y: y0 * s, width: cw * s, height: 84 * s, rx: 14 * s, fill: hot ? ac : "#1A2230", stroke: hot ? ac : "#2b3547", "stroke-width": 3 * s }, svg);
+      const tx = svgEl("text", { x: (x0 + i * (cw + gap) + cw / 2) * s, y: (y0 + 56) * s, "text-anchor": "middle", fill: hot ? "#0D0F12" : "#93A5C4", "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+      tx.textContent = d;
+      n.cells.push({ r, tx, hot, cx: x0 + i * (cw + gap) + cw / 2, cy: y0 + 42 });
+    });
+    n.ring = svgEl("rect", { x: (x0 + n.day * (cw + gap) - 7) * s, y: (y0 - 7) * s, width: (cw + 14) * s, height: 98 * s, rx: 18 * s, fill: "none", stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg);
+  } else if (V.name === "clock") {
+    // ORIENT in the day: clock hands sweep to the spoken time
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2 - 30, r = 128;
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: r * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 6 * s }, svg);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2, big = i % 3 === 0;
+      svgEl("line", { x1: (cx + Math.cos(a) * (r - (big ? 26 : 16))) * s, y1: (cy + Math.sin(a) * (r - (big ? 26 : 16))) * s, x2: (cx + Math.cos(a) * (r - 6)) * s, y2: (cy + Math.sin(a) * (r - 6)) * s, stroke: big ? "#E8EDF4" : "#41506B", "stroke-width": (big ? 7 : 4) * s, "stroke-linecap": "round" }, svg);
+    }
+    n.hr = svgEl("line", { x1: cx * s, y1: cy * s, x2: cx * s, y2: (cy - 62) * s, stroke: "#FFFFFF", "stroke-width": 13 * s, "stroke-linecap": "round" }, svg);
+    n.min = svgEl("line", { x1: cx * s, y1: cy * s, x2: cx * s, y2: (cy - 96) * s, stroke: ac, "stroke-width": 9 * s, "stroke-linecap": "round" }, svg);
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: 12 * s, fill: "#FFFFFF" }, svg);
+    n.cx = cx; n.cy = cy; n.sweep = item.sweep || 1;
+    const tt = svgEl("text", { x: cx * s, y: (cy + r + 78) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 62 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    tt.textContent = (item.title || "").toUpperCase();
+    fitSvg(tt, 460 * s);
+  } else if (V.name === "price") {
+    // SHOW a cost: a price tag swings in, value counts up on it
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    n.tagG = svgEl("g", {}, svg);
+    svgEl("line", { x1: 168 * s, y1: (H / 2 - 190) * s, x2: 218 * s, y2: (H / 2 - 66) * s, stroke: "#41506B", "stroke-width": 5 * s }, n.tagG);
+    const tag = svgEl("path", { d: `M ${190 * s} ${(H / 2 - 80) * s} H ${428 * s} L ${512 * s} ${(H / 2 + 4) * s} L ${428 * s} ${(H / 2 + 88) * s} H ${190 * s} Z`, fill: ac }, n.tagG);
+    tag.setAttribute("rx", 18 * s);
+    svgEl("circle", { cx: 222 * s, cy: (H / 2 + 4) * s, r: 13 * s, fill: "#14181f" }, n.tagG);
+    n.pval = svgEl("text", { x: 336 * s, y: (H / 2 + 30) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 76 * s, "font-weight": 800, "font-family": "MontserratX" }, n.tagG);
+    n.tagX = 218; n.tagY = H / 2 - 66;
+  } else if (V.name === "checklist") {
+    // SHOW steps/rules: boxes tick themselves off one by one
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const ents = (item.entries || []).slice(0, 5);
+    const rh = 74, y0 = H / 2 - (ents.length * rh) / 2;
+    svgEl("rect", { x: 58 * s, y: (y0 - 34) * s, width: 484 * s, height: (ents.length * rh + 56) * s, rx: 22 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+    n.rows = ents.map((txt, i) => {
+      const y = y0 + i * rh;
+      const box = svgEl("rect", { x: 88 * s, y: (y + 4) * s, width: 38 * s, height: 38 * s, rx: 10 * s, fill: "none", stroke: "#41506B", "stroke-width": 4 * s }, svg);
+      const tick = svgEl("path", { d: `M ${96 * s} ${(y + 23) * s} L ${106 * s} ${(y + 33) * s} L ${120 * s} ${(y + 12) * s}`, fill: "none", stroke: ac, "stroke-width": 6 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+      const tl = Math.hypot(14, 11) + Math.hypot(14, 21);
+      tick.setAttribute("stroke-dasharray", tl * s); tick.style.strokeDashoffset = tl * s;
+      const tx = svgEl("text", { x: 146 * s, y: (y + 34) * s, fill: "#FFFFFF", "font-size": 33 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = txt;
+      fitSvg(tx, 380 * s);
+      return { box, tick, tx, tl: tl * s };
+    });
+  } else if (V.name === "magnet") {
+    // SHOW attraction: filings fly to the magnet and stick
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const mx = 128, my = H / 2;
+    const mg = svgEl("path", { d: `M ${(mx - 52) * s} ${(my - 120) * s} V ${my * s} A 52 ${52} 0 0 0 ${(mx + 52) * s} ${my * s} V ${(my - 120) * s} L ${(mx + 20) * s} ${(my - 120) * s} V ${my * s} A 20 20 0 0 1 ${(mx - 20) * s} ${my * s} V ${(my - 120) * s} Z`, fill: ac }, svg);
+    svgEl("rect", { x: (mx - 52) * s, y: (my - 120) * s, width: 32 * s, height: 44 * s, fill: "#E8EDF4" }, svg);
+    svgEl("rect", { x: (mx + 20) * s, y: (my - 120) * s, width: 32 * s, height: 44 * s, fill: "#E8EDF4" }, svg);
+    n.dots = [];
+    const cnt = Math.max(4, Math.min(14, item.count || 9));
+    for (let i = 0; i < cnt; i++) {
+      const x0 = 330 + ((i * 53) % 210), y0 = my - 130 + ((i * 71) % 260);
+      const pole = i % 2 ? mx + 36 : mx - 36;
+      const c = svgEl("circle", { cx: x0 * s, cy: y0 * s, r: 9 * s, fill: i % 3 ? "#93A5C4" : ac }, svg);
+      n.dots.push({ el: c, x0, y0, x1: pole + (i % 3 - 1) * 10, y1: my - 118 + (i % 4) * 8 });
+    }
+  } else if (V.name === "funnel") {
+    // PROVE drop-off: many enter the top, few leave the bottom
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("path", { d: `M ${110 * s} ${(cy - 140) * s} H ${490 * s} L ${338 * s} ${(cy + 40) * s} V ${(cy + 130) * s} H ${262 * s} V ${(cy + 40) * s} Z`, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    n.fromTx = svgEl("text", { x: 300 * s, y: (cy - 168) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 58 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.fromTx.textContent = fmtVal(item.from || 100, 0);
+    n.toTx = svgEl("text", { x: 300 * s, y: (cy + 208) * s, "text-anchor": "middle", fill: ac, "font-size": 58 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.toTx.textContent = fmtVal(item.to || 0, 0);
+    n.fdots = [];
+    for (let i = 0; i < 10; i++) {
+      const c = svgEl("circle", { cx: (150 + (i * 41) % 300) * s, cy: (cy - 118) * s, r: 8 * s, fill: i < 3 ? ac : "#5B729E", opacity: 0 }, svg);
+      n.fdots.push({ el: c, x: 150 + (i * 41) % 300, d: i * 0.09 });
+    }
+    n.fcy = cy;
+  } else if (V.name === "pyramid") {
+    // SHOW hierarchy: levels stack up, the top is the accent
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const labs = (item.labels || []).slice(0, 3);
+    while (labs.length < 3) labs.push("");
+    const widths = [168, 292, 416], lh = 78, yb = H / 2 + 128;
+    const shades = [ac, "#33456A", "#232d40"];   // top level is the accent
+    n.levels = labs.map((txt, i) => {
+      const y = yb - (labs.length - i) * (lh + 8);
+      const r = svgEl("rect", { x: (300 - widths[i] / 2) * s, y: y * s, width: widths[i] * s, height: lh * s, rx: 14 * s, fill: shades[i], opacity: 0 }, svg);
+      const tx = svgEl("text", { x: 300 * s, y: (y + lh / 2 + 13) * s, "text-anchor": "middle", fill: i === 0 ? "#0D0F12" : "#E8EDF4", "font-size": 32 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = (txt || "").toUpperCase();
+      fitSvg(tx, (widths[i] - 30) * s);
+      return { r, tx };
+    });
+  } else if (V.name === "target") {
+    // EMPHASISE aim: rings, then the arrow strikes the centre
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2;
+    [130, 88, 46].forEach((r, i) => {
+      svgEl("circle", { cx: cx * s, cy: cy * s, r: r * s, fill: i === 2 ? ac : "none", stroke: i === 2 ? ac : "#41506B", "stroke-width": 7 * s }, svg);
+    });
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: 10 * s, fill: "#0D0F12" }, svg);
+    n.pulse = svgEl("circle", { cx: cx * s, cy: cy * s, r: 46 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
+    n.arrowG = svgEl("g", { opacity: 0 }, svg);
+    svgEl("line", { x1: 428 * s, y1: (cy - 128) * s, x2: 306 * s, y2: (cy - 6) * s, stroke: "#FFFFFF", "stroke-width": 10 * s, "stroke-linecap": "round" }, n.arrowG);
+    svgEl("path", { d: `M ${300 * s} ${cy * s} L ${330 * s} ${(cy - 4) * s} L ${304 * s} ${(cy + 22) * s} Z`, fill: "#FFFFFF" }, n.arrowG);
+    svgEl("path", { d: `M ${428 * s} ${(cy - 128) * s} L ${452 * s} ${(cy - 152) * s} L ${446 * s} ${(cy - 118) * s} M ${428 * s} ${(cy - 128) * s} L ${462 * s} ${(cy - 122) * s} L ${434 * s} ${(cy - 104) * s}`, stroke: ac, "stroke-width": 8 * s, fill: "none", "stroke-linecap": "round" }, n.arrowG);
+    n.cx = cx; n.cy = cy;
+  } else if (V.name === "podium") {
+    // PROVE rank: 2nd and 3rd rise, then 1st takes the centre
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const labs = (item.labels || []).slice(0, 3);
+    while (labs.length < 3) labs.push("");
+    const yb = H / 2 + 130, bw = 128;
+    const spec = [
+      { x: 300 - bw - 22, h: 118, ord: 0, num: "2", win: false },
+      { x: 300, h: 178, ord: 1, num: "1", win: true },
+      { x: 300 + bw + 22, h: 88, ord: 0, num: "3", win: false }];
+    n.blocks = spec.map((sp, i) => {
+      const r = svgEl("rect", { x: (sp.x - bw / 2) * s, y: yb * s, width: bw * s, height: 2 * s, rx: 10 * s, fill: sp.win ? ac : "#232d40" }, svg);
+      const num = svgEl("text", { x: sp.x * s, y: (yb - sp.h + 62) * s, "text-anchor": "middle", fill: sp.win ? "#0D0F12" : "#E8EDF4", "font-size": 54 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      num.textContent = sp.num;
+      const tx = svgEl("text", { x: sp.x * s, y: (yb + 44) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 27 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = (labs[i] || "").toUpperCase();
+      fitSvg(tx, 150 * s);
+      return { r, num, tx, h: sp.h, yb, x: sp.x, ord: sp.ord };
+    });
+  } else if (V.name === "beforeafter") {
+    // COMPARE transformation: muted BEFORE, accent AFTER
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2, pw = 238, ph = 300;
+    const mk = (x, head, word, hot) => {
+      const g = svgEl("g", { opacity: 0 }, svg);
+      svgEl("rect", { x: x * s, y: (cy - ph / 2) * s, width: pw * s, height: ph * s, rx: 20 * s, fill: hot ? "#1d1420" : "#10141c", stroke: hot ? ac : "#2b3547", "stroke-width": hot ? 5 : 3 }, g);
+      const h = svgEl("text", { x: (x + pw / 2) * s, y: (cy - ph / 2 + 52) * s, "text-anchor": "middle", fill: hot ? ac : "#7E93BC", "font-size": 28 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      h.textContent = head;
+      const w = svgEl("text", { x: (x + pw / 2) * s, y: (cy + 26) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 54 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      w.textContent = (word || "").toUpperCase();
+      fitSvg(w, (pw - 28) * s);
+      return g;
+    };
+    n.baL = mk(52, "BEFORE", item.before, false);
+    n.baR = mk(310, "AFTER", item.after, true);
+    n.baDiv = svgEl("line", { x1: 300 * s, y1: (cy - ph / 2 - 16) * s, x2: 300 * s, y2: (cy + ph / 2 + 16) * s, stroke: "#41506B", "stroke-width": 4 * s, "stroke-dasharray": 8 * s }, svg);
+    n.baDiv.setAttribute("opacity", 0);
+  } else if (V.name === "battery") {
+    // FEEL energy: the charge fills (or drains) to the spoken level
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2, bw = 396, bh = 148, x0 = 90;
+    svgEl("rect", { x: x0 * s, y: (cy - bh / 2) * s, width: bw * s, height: bh * s, rx: 26 * s, fill: "#10141c", stroke: "#41506B", "stroke-width": 6 * s }, svg);
+    svgEl("rect", { x: (x0 + bw + 8) * s, y: (cy - 34) * s, width: 22 * s, height: 68 * s, rx: 8 * s, fill: "#41506B" }, svg);
+    n.fill = svgEl("rect", { x: (x0 + 10) * s, y: (cy - bh / 2 + 10) * s, width: 2 * s, height: (bh - 20) * s, rx: 18 * s, fill: ac }, svg);
+    n.pct = svgEl("text", { x: 300 * s, y: (cy + bh / 2 + 84) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 66 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.bw = bw - 20; n.val = Math.max(1, Math.min(100, item.value || 50));
+  } else if (V.name === "proscons") {
+    // COMPARE sides: points land alternately, ticks vs crosses
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const heads = (item.labels && item.labels.length >= 2) ? item.labels : ["PROS", "CONS"];
+    const mkCol = (x, head, rows, hot) => {
+      const h = svgEl("text", { x: (x + 100) * s, y: (cy - 158) * s, "text-anchor": "middle", fill: hot ? ac : "#7E93BC", "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+      h.textContent = (head || "").toUpperCase();
+      return rows.slice(0, 4).map((txt, i) => {
+        const y = cy - 108 + i * 66;
+        const mk2 = svgEl("text", { x: x * s, y: (y + 10) * s, fill: hot ? ac : "#7E93BC", "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+        mk2.textContent = hot ? "✓" : "✕";
+        const tx = svgEl("text", { x: (x + 40) * s, y: (y + 10) * s, fill: "#FFFFFF", "font-size": 29 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+        tx.textContent = txt;
+        fitSvg(tx, 168 * s);
+        return { mk: mk2, tx };
+      });
+    };
+    n.proRows = mkCol(56, heads[0], item.pros || [], true);
+    n.conRows = mkCol(316, heads[1], item.cons || [], false);
+    svgEl("line", { x1: 300 * s, y1: (cy - 190) * s, x2: 300 * s, y2: (cy + 190) * s, stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+  } else if (V.name === "chapter") {
+    // ORIENT structure: PART 01 - a marker the series can reuse
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const kick = svgEl("text", { x: 300 * s, y: (cy - 96) * s, "text-anchor": "middle", fill: ac, "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    kick.textContent = "P A R T";
+    n.bigTx = svgEl("text", { x: 300 * s, y: (cy + 42) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 150 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.bigTx.textContent = String(item.index || 1).padStart(2, "0");
+    const ti = svgEl("text", { x: 300 * s, y: (cy + 108) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 36 * s, "font-weight": 700, "font-family": "MontserratX" }, svg);
+    ti.textContent = (item.title || "").toUpperCase();
+    fitSvg(ti, 460 * s);
+    const tot = Math.max(1, Math.min(8, item.total || 3)), idx = Math.max(1, Math.min(tot, item.index || 1));
+    n.dots = [];
+    for (let i = 0; i < tot; i++) {
+      const c = svgEl("circle", { cx: (300 + (i - (tot - 1) / 2) * 44) * s, cy: (cy + 168) * s, r: 11 * s, fill: i < idx ? ac : "#2A3342" }, svg);
+      n.dots.push(c);
+    }
+  } else if (V.name === "bigword") {
+    // EMPHASISE one word: the payoff word takes the whole frame
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101319" }, svg);
+    n.wordG = svgEl("g", {}, svg);
+    n.wordTx = svgEl("text", { x: 300 * s, y: (H / 2 + 38) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 118 * s, "font-weight": 800, "font-family": "MontserratX" }, n.wordG);
+    n.wordTx.textContent = (item.word || item.title || "").toUpperCase();
+    fitSvg(n.wordTx, 520 * s);
+    n.under = svgEl("rect", { x: 300 * s, y: (H / 2 + 66) * s, width: 2 * s, height: 12 * s, rx: 6 * s, fill: ac }, svg);
+  } else if (V.name === "heart") {
+    // FEEL: a heart that beats with the line
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    n.rings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: (H / 2) * s, r: 60 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg));
+    n.heartG = svgEl("g", {}, svg);
+    const hp = svgEl("path", { d: "M 0 62 C -78 12 -104 -58 -52 -84 C -22 -98 0 -76 0 -48 C 0 -76 22 -98 52 -84 C 104 -58 78 12 0 62 Z", fill: ac }, n.heartG);
+    hp.setAttribute("transform", `translate(${300 * s} ${(H / 2) * s}) scale(${1.15 * s})`);
+    n.hcx = 300; n.hcy = H / 2;
+  } else if (V.name === "alert") {
+    // EMPHASISE a warning: the triangle lands with a shake
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    n.alertG = svgEl("g", {}, svg);
+    const cy = H / 2;
+    svgEl("path", { d: `M ${300 * s} ${(cy - 130) * s} L ${428 * s} ${(cy + 96) * s} H ${172 * s} Z`, fill: "none", stroke: ac, "stroke-width": 12 * s, "stroke-linejoin": "round" }, n.alertG);
+    svgEl("rect", { x: 291 * s, y: (cy - 62) * s, width: 18 * s, height: 84 * s, rx: 9 * s, fill: "#FFFFFF" }, n.alertG);
+    svgEl("circle", { cx: 300 * s, cy: (cy + 52) * s, r: 11 * s, fill: "#FFFFFF" }, n.alertG);
+    n.acy = cy;
+  } else if (V.name === "phone") {
+    // SHOW a call: the phone rings - picks up, or doesn't
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.phRings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: cy * s, r: 178 * s, fill: "none", stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg));
+    n.phG = svgEl("g", {}, svg);
+    svgEl("rect", { x: 215 * s, y: (cy - 160) * s, width: 170 * s, height: 320 * s, rx: 26 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, n.phG);
+    svgEl("rect", { x: 229 * s, y: (cy - 132) * s, width: 142 * s, height: 264 * s, rx: 14 * s, fill: "#171e29" }, n.phG);
+    svgEl("rect", { x: 282 * s, y: (cy - 146) * s, width: 36 * s, height: 8 * s, rx: 4 * s, fill: "#2b3547" }, n.phG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 56) * s, r: 34 * s, fill: "#232d40" }, n.phG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 66) * s, r: 12 * s, fill: "#93A5C4" }, n.phG);
+    svgEl("ellipse", { cx: 300 * s, cy: (cy - 34) * s, rx: 20 * s, ry: 12 * s, fill: "#93A5C4" }, n.phG);
+    const nm = svgEl("text", { x: 300 * s, y: (cy + 12) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, n.phG);
+    nm.textContent = (item.title || "HER").toUpperCase();
+    fitSvg(nm, 130 * s);
+    const st = svgEl("text", { x: 300 * s, y: (cy + 40) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 19 * s, "font-weight": 600, "font-family": "MontserratX" }, n.phG);
+    st.textContent = "INCOMING CALL";
+    svgEl("circle", { cx: 254 * s, cy: (cy + 94) * s, r: 24 * s, fill: "#2b3547" }, n.phG);
+    svgEl("path", { d: `M ${245 * s} ${(cy + 85) * s} L ${263 * s} ${(cy + 103) * s} M ${263 * s} ${(cy + 85) * s} L ${245 * s} ${(cy + 103) * s}`, stroke: "#E8EDF4", "stroke-width": 5 * s, "stroke-linecap": "round" }, n.phG);
+    n.phOk = svgEl("circle", { cx: 346 * s, cy: (cy + 94) * s, r: 24 * s, fill: ac }, n.phG);
+    svgEl("path", { d: `M ${335 * s} ${(cy + 94) * s} L ${343 * s} ${(cy + 102) * s} L ${358 * s} ${(cy + 85) * s}`, fill: "none", stroke: "#0D0F12", "stroke-width": 6 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, n.phG);
+    n.phcy = cy;
+  } else if (V.name === "scale") {
+    // COMPARE by weight: the beam tips toward the heavier claim
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const L = item.left || { label: "THIS", value: 1 }, R = item.right || { label: "THAT", value: 1 };
+    svgEl("path", { d: `M ${258 * s} ${(cy + 152) * s} H ${342 * s} L ${322 * s} ${(cy + 112) * s} H ${278 * s} Z`, fill: "#232d40" }, svg);
+    svgEl("rect", { x: 292 * s, y: (cy - 96) * s, width: 16 * s, height: 212 * s, rx: 8 * s, fill: "#41506B" }, svg);
+    n.scBeam = svgEl("g", {}, svg);
+    svgEl("rect", { x: 96 * s, y: (cy - 104) * s, width: 408 * s, height: 14 * s, rx: 7 * s, fill: "#E8EDF4" }, n.scBeam);
+    [150, 450].forEach(x => {
+      svgEl("line", { x1: x * s, y1: (cy - 90) * s, x2: (x - 38) * s, y2: (cy - 28) * s, stroke: "#93A5C4", "stroke-width": 4 * s }, n.scBeam);
+      svgEl("line", { x1: x * s, y1: (cy - 90) * s, x2: (x + 38) * s, y2: (cy - 28) * s, stroke: "#93A5C4", "stroke-width": 4 * s }, n.scBeam);
+      svgEl("path", { d: `M ${(x - 52) * s} ${(cy - 28) * s} A 56 20 0 0 0 ${(x + 52) * s} ${(cy - 28) * s} Z`, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, n.scBeam);
+    });
+    svgEl("circle", { cx: 300 * s, cy: (cy - 97) * s, r: 12 * s, fill: ac }, n.scBeam);
+    const mk = (side, x) => {
+      const g = svgEl("g", {}, n.scBeam);
+      const v = svgEl("text", { x: x * s, y: (cy + 62) * s, "text-anchor": "middle", fill: side.value >= (side === L ? R.value : L.value) ? ac : "#FFFFFF", "font-size": 46 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      v.textContent = fmt(side.value);
+      const l = svgEl("text", { x: x * s, y: (cy + 94) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 22 * s, "font-weight": 700, "font-family": "MontserratX" }, g);
+      l.textContent = (side.label || "").toUpperCase();
+      fitSvg(l, 150 * s);
+      return g;
+    };
+    n.scLabL = mk(L, 150); n.scLabR = mk(R, 450);
+    n.scAng = ((R.value - L.value) / Math.max(1, L.value + R.value)) * 16;
+    n.sccy = cy;
+  } else if (V.name === "brain") {
+    // FEEL mindset: the brain draws itself in, then thinks (pulse)
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.brG = svgEl("g", {}, svg);
+    const d = `M ${300 * s} ${(cy - 120) * s} C ${252 * s} ${(cy - 132) * s} ${204 * s} ${(cy - 104) * s} ${200 * s} ${(cy - 58) * s} C ${172 * s} ${(cy - 44) * s} ${176 * s} ${(cy - 2) * s} ${196 * s} ${(cy + 10) * s} C ${182 * s} ${(cy + 44) * s} ${204 * s} ${(cy + 76) * s} ${232 * s} ${(cy + 76) * s} C ${240 * s} ${(cy + 104) * s} ${276 * s} ${(cy + 116) * s} ${300 * s} ${(cy + 104) * s} C ${324 * s} ${(cy + 116) * s} ${360 * s} ${(cy + 104) * s} ${368 * s} ${(cy + 76) * s} C ${396 * s} ${(cy + 76) * s} ${418 * s} ${(cy + 44) * s} ${404 * s} ${(cy + 10) * s} C ${424 * s} ${(cy - 2) * s} ${428 * s} ${(cy - 44) * s} ${400 * s} ${(cy - 58) * s} C ${396 * s} ${(cy - 104) * s} ${348 * s} ${(cy - 132) * s} ${300 * s} ${(cy - 120) * s} Z`;
+    svgEl("path", { d, fill: "#1A2230", stroke: "#41506B", "stroke-width": 5 * s }, n.brG);
+    svgEl("line", { x1: 300 * s, y1: (cy - 104) * s, x2: 300 * s, y2: (cy + 96) * s, stroke: "#2b3547", "stroke-width": 4 * s }, n.brG);
+    n.brW = [
+      `M ${236 * s} ${(cy - 58) * s} q ${26 * s} ${-14 * s} ${44 * s} ${2 * s}`,
+      `M ${228 * s} ${(cy + 6) * s} q ${30 * s} ${10 * s} ${22 * s} ${34 * s}`,
+      `M ${364 * s} ${(cy - 58) * s} q ${-26 * s} ${-14 * s} ${-44 * s} ${2 * s}`,
+      `M ${372 * s} ${(cy + 6) * s} q ${-30 * s} ${10 * s} ${-22 * s} ${34 * s}`,
+    ].map(dd => {
+      const p = svgEl("path", { d: dd, fill: "none", stroke: ac, "stroke-width": 5 * s, "stroke-linecap": "round" }, n.brG);
+      const tl = 62 * s;
+      p.setAttribute("stroke-dasharray", tl); p.style.strokeDashoffset = tl;
+      return { p, tl };
+    });
+    n.brcy = cy;
+  } else if (V.name === "bell") {
+    // SHOW notifications: the bell swings, pings stack up
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.blRings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: (cy - 10) * s, r: 120 * s, fill: "none", stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg));
+    n.blG = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${300 * s} ${(cy - 100) * s} C ${348 * s} ${(cy - 100) * s} ${372 * s} ${(cy - 64) * s} ${372 * s} ${(cy - 8) * s} L ${372 * s} ${(cy + 30) * s} L ${398 * s} ${(cy + 64) * s} H ${202 * s} L ${228 * s} ${(cy + 30) * s} L ${228 * s} ${(cy - 8) * s} C ${228 * s} ${(cy - 64) * s} ${252 * s} ${(cy - 100) * s} ${300 * s} ${(cy - 100) * s} Z`, fill: ac }, n.blG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 112) * s, r: 13 * s, fill: "#E8EDF4" }, n.blG);
+    n.blClap = svgEl("circle", { cx: 300 * s, cy: (cy + 86) * s, r: 16 * s, fill: "#E8EDF4" }, n.blG);
+    svgEl("circle", { cx: 372 * s, cy: (cy - 88) * s, r: 27 * s, fill: "#FFFFFF" }, svg);
+    const bd = svgEl("text", { x: 372 * s, y: (cy - 78) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    bd.textContent = String(Math.max(1, Math.min(99, item.count || 3)));
+    n.blcy = cy;
+  } else if (V.name === "key") {
+    // SHOW access: the key slides in and unlocks
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("rect", { x: 238 * s, y: (cy - 130) * s, width: 124 * s, height: 260 * s, rx: 26 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 34) * s, r: 30 * s, fill: "#05070a" }, svg);
+    svgEl("path", { d: `M ${282 * s} ${(cy - 22) * s} H ${318 * s} L ${308 * s} ${(cy + 62) * s} H ${292 * s} Z`, fill: "#05070a" }, svg);
+    n.keyG = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 148 * s, cy: (cy - 34) * s, r: 30 * s, fill: "none", stroke: ac, "stroke-width": 11 * s }, n.keyG);
+    svgEl("line", { x1: 176 * s, y1: (cy - 34) * s, x2: 272 * s, y2: (cy - 34) * s, stroke: ac, "stroke-width": 12 * s, "stroke-linecap": "round" }, n.keyG);
+    svgEl("line", { x1: 238 * s, y1: (cy - 34) * s, x2: 238 * s, y2: (cy - 8) * s, stroke: ac, "stroke-width": 11 * s, "stroke-linecap": "round" }, n.keyG);
+    svgEl("line", { x1: 260 * s, y1: (cy - 34) * s, x2: 260 * s, y2: (cy - 14) * s, stroke: ac, "stroke-width": 11 * s, "stroke-linecap": "round" }, n.keyG);
+    n.keySparks = [0, 1, 2, 3].map(i => {
+      const a = -0.9 + i * 0.6;
+      return svgEl("line", { x1: (300 + Math.cos(a) * 44) * s, y1: (cy - 34 + Math.sin(a) * 44) * s, x2: (300 + Math.cos(a) * 78) * s, y2: (cy - 34 + Math.sin(a) * 78) * s, stroke: "#FFFFFF", "stroke-width": 6 * s, "stroke-linecap": "round", opacity: 0 }, svg);
+    });
+    n.keycy = cy;
+  } else if (V.name === "door") {
+    // SHOW opportunity: the door swings open, light spills out
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("rect", { x: 226 * s, y: (cy - 170) * s, width: 148 * s, height: 340 * s, fill: hexA(ac, .34) }, svg);
+    n.doorLight = svgEl("path", { d: `M ${374 * s} ${(cy - 170) * s} L ${492 * s} ${(cy + 92) * s} L ${492 * s} ${(cy + 170) * s} L ${374 * s} ${(cy + 170) * s} Z`, fill: hexA(ac, .5), opacity: 0 }, svg);
+    n.doorG = svgEl("g", {}, svg);
+    svgEl("rect", { x: 226 * s, y: (cy - 170) * s, width: 148 * s, height: 340 * s, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
+    svgEl("rect", { x: 246 * s, y: (cy - 146) * s, width: 108 * s, height: 128 * s, fill: "none", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
+    svgEl("rect", { x: 246 * s, y: (cy + 8) * s, width: 108 * s, height: 128 * s, fill: "none", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
+    svgEl("circle", { cx: 352 * s, cy: cy * s, r: 9 * s, fill: ac }, n.doorG);
+    svgEl("rect", { x: 214 * s, y: (cy - 182) * s, width: 172 * s, height: 364 * s, rx: 10 * s, fill: "none", stroke: "#41506B", "stroke-width": 8 * s }, svg);
+    n.doorcy = cy;
+  } else if (V.name === "dice") {
+    // FEEL chance: two dice tumble in and settle (from/to are the faces)
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] };
+    const face = v => Math.max(1, Math.min(6, Math.round(v == null ? 3 : v)));
+    n.dice = [[216, face(item.from == null ? 3 : item.from), -1, "#E8EDF4"],
+              [384, face(item.to == null ? 5 : item.to), 1, ac]].map(([cx, f, dir, fill]) => {
+      const g = svgEl("g", {}, svg);
+      svgEl("rect", { x: (cx - 58) * s, y: (cy - 58) * s, width: 116 * s, height: 116 * s, rx: 24 * s, fill }, g);
+      PIPS[f].forEach(([px, py]) => svgEl("circle", { cx: (cx + px * 30) * s, cy: (cy + py * 30) * s, r: 11 * s, fill: "#0D0F12" }, g));
+      return { g, cx, dir };
+    });
+    n.dicy = cy;
+  } else if (V.name === "venn") {
+    // COMPARE overlap: two worlds slide together, common ground lights
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.vnL = svgEl("circle", { cx: 232 * s, cy: cy * s, r: 118 * s, fill: hexA("#FFFFFF", .07), stroke: "#E8EDF4", "stroke-width": 5 * s }, svg);
+    n.vnR = svgEl("circle", { cx: 368 * s, cy: cy * s, r: 118 * s, fill: hexA(ac, .28), stroke: ac, "stroke-width": 5 * s }, svg);
+    const labs = item.labels || [];
+    const mkT = (x, y, txt, fill, fs) => {
+      const t = svgEl("text", { x: x * s, y: y * s, "text-anchor": "middle", fill, "font-size": fs * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      t.textContent = (txt || "").toUpperCase();
+      fitSvg(t, 120 * s);
+      return t;
+    };
+    n.vnTxL = mkT(196, cy + 8, labs[0], "#FFFFFF", 24);
+    n.vnTxR = mkT(404, cy + 8, labs[1], "#FFFFFF", 24);
+    n.vnTxC = mkT(300, cy + 9, labs[2], "#FFFFFF", 26);
+    n.vncy = cy;
+  } else if (V.name === "rocket") {
+    // SHOW takeoff: it launches, stars streak past
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.rkStars = [];
+    for (let i = 0; i < 10; i++) {
+      const x = 60 + ((i * 173) % 480), y = 80 + ((i * 211) % Math.max(120, H - 160));
+      const c = svgEl("circle", { cx: x * s, cy: y * s, r: (i % 3 === 0 ? 5 : 3.4) * s, fill: "#93A5C4", opacity: .8 }, svg);
+      n.rkStars.push({ c, x, y0: y });
+    }
+    n.rkG = svgEl("g", {}, svg);
+    n.rkFlame = svgEl("path", { d: `M ${278 * s} ${(cy + 44) * s} L ${300 * s} ${(cy + 122) * s} L ${322 * s} ${(cy + 44) * s} Z`, fill: ac }, n.rkG);
+    svgEl("path", { d: `M ${256 * s} ${(cy + 2) * s} L ${212 * s} ${(cy + 94) * s} L ${256 * s} ${(cy + 76) * s} Z`, fill: ac }, n.rkG);
+    svgEl("path", { d: `M ${344 * s} ${(cy + 2) * s} L ${388 * s} ${(cy + 94) * s} L ${344 * s} ${(cy + 76) * s} Z`, fill: ac }, n.rkG);
+    svgEl("path", { d: `M ${300 * s} ${(cy - 150) * s} C ${336 * s} ${(cy - 96) * s} ${344 * s} ${(cy - 30) * s} ${344 * s} ${(cy + 44) * s} L ${256 * s} ${(cy + 44) * s} C ${256 * s} ${(cy - 30) * s} ${264 * s} ${(cy - 96) * s} ${300 * s} ${(cy - 150) * s} Z`, fill: "#E8EDF4" }, n.rkG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 52) * s, r: 22 * s, fill: ac, stroke: "#0D0F12", "stroke-width": 5 * s }, n.rkG);
+    n.rkcy = cy;
+  } else if (V.name === "shield") {
+    // SHOW protection: the shield draws, the check lands
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.shRing = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 148 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
+    const sd = `M ${300 * s} ${(cy - 138) * s} L ${396 * s} ${(cy - 100) * s} V ${(cy + 16) * s} C ${396 * s} ${(cy + 86) * s} ${348 * s} ${(cy + 118) * s} ${300 * s} ${(cy + 140) * s} C ${252 * s} ${(cy + 118) * s} ${204 * s} ${(cy + 86) * s} ${204 * s} ${(cy + 16) * s} V ${(cy - 100) * s} Z`;
+    n.shPath = svgEl("path", { d: sd, fill: "#1A2230", stroke: ac, "stroke-width": 6 * s, "stroke-linejoin": "round" }, svg);
+    n.shLen = 960 * s;
+    n.shPath.setAttribute("stroke-dasharray", n.shLen);
+    n.shPath.style.strokeDashoffset = n.shLen;
+    n.shCheck = svgEl("path", { d: `M ${258 * s} ${(cy + 2) * s} L ${288 * s} ${(cy + 34) * s} L ${344 * s} ${(cy - 30) * s}`, fill: "none", stroke: "#FFFFFF", "stroke-width": 13 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+    n.shChkLen = 140 * s;
+    n.shCheck.setAttribute("stroke-dasharray", n.shChkLen);
+    n.shCheck.style.strokeDashoffset = n.shChkLen;
+  } else if (V.name === "hourglass") {
+    // ORIENT time: the sand runs out while you watch
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("rect", { x: 216 * s, y: (cy - 160) * s, width: 168 * s, height: 14 * s, rx: 7 * s, fill: "#41506B" }, svg);
+    svgEl("rect", { x: 216 * s, y: (cy + 146) * s, width: 168 * s, height: 14 * s, rx: 7 * s, fill: "#41506B" }, svg);
+    svgEl("path", { d: `M ${226 * s} ${(cy - 144) * s} H ${374 * s} L ${308 * s} ${(cy - 6) * s} H ${292 * s} Z`, fill: hexA("#FFFFFF", .05), stroke: "#93A5C4", "stroke-width": 4 * s, "stroke-linejoin": "round" }, svg);
+    svgEl("path", { d: `M ${292 * s} ${(cy + 6) * s} H ${308 * s} L ${374 * s} ${(cy + 144) * s} H ${226 * s} Z`, fill: hexA("#FFFFFF", .05), stroke: "#93A5C4", "stroke-width": 4 * s, "stroke-linejoin": "round" }, svg);
+    n.hgTop = svgEl("path", { d: `M ${242 * s} ${(cy - 130) * s} H ${358 * s} L ${306 * s} ${(cy - 16) * s} H ${294 * s} Z`, fill: ac }, svg);
+    n.hgBot = svgEl("path", { d: `M ${252 * s} ${(cy + 132) * s} L ${300 * s} ${(cy + 56) * s} L ${348 * s} ${(cy + 132) * s} Z`, fill: ac }, svg);
+    n.hgStream = svgEl("line", { x1: 300 * s, y1: (cy - 8) * s, x2: 300 * s, y2: (cy + 98) * s, stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg);
+    n.hgcy = cy;
+  } else if (V.name === "wave") {
+    // SHOW a voice: waveform bars, accent sweeps as it "plays"
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const count = Math.max(12, Math.min(44, item.count || 36));
+    n.wvBars = [];
+    const bw = 480 / count;
+    for (let i = 0; i < count; i++) {
+      const hBase = 30 + 118 * Math.abs(Math.sin(i * 1.93) * 0.6 + Math.sin(i * 0.71) * 0.4);
+      const r = svgEl("rect", { x: (60 + i * bw + bw * 0.22) * s, y: (cy - hBase / 2) * s, width: (bw * 0.56) * s, height: hBase * s, rx: (bw * 0.28) * s, fill: "#41506B" }, svg);
+      n.wvBars.push({ r, hBase });
+    }
+    n.wvcy = cy; n.wvN = count;
+  } else if (V.name === "spotlight") {
+    // FEEL attention: a cone of light sweeps the stage
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.spG = svgEl("g", {}, svg);
+    svgEl("polygon", { points: `${286 * s},${(cy - 264) * s} ${314 * s},${(cy - 264) * s} ${436 * s},${(cy + 182) * s} ${164 * s},${(cy + 182) * s}`, fill: hexA(ac, .16) }, n.spG);
+    svgEl("polygon", { points: `${292 * s},${(cy - 264) * s} ${308 * s},${(cy - 264) * s} ${388 * s},${(cy + 182) * s} ${212 * s},${(cy + 182) * s}`, fill: hexA(ac, .14) }, n.spG);
+    svgEl("ellipse", { cx: 300 * s, cy: (cy + 184) * s, rx: 138 * s, ry: 25 * s, fill: hexA(ac, .3) }, n.spG);
+    svgEl("rect", { x: 282 * s, y: (cy - 282) * s, width: 36 * s, height: 24 * s, rx: 6 * s, fill: "#E8EDF4" }, n.spG);
+    n.spcy = cy;
+  } else if (V.name === "trophy") {
+    // PROVE the win: the cup lands, sparks fly
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.trG = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${236 * s} ${(cy - 78) * s} C ${198 * s} ${(cy - 78) * s} ${194 * s} ${(cy - 26) * s} ${242 * s} ${(cy - 18) * s}`, fill: "none", stroke: "#E8EDF4", "stroke-width": 11 * s }, n.trG);
+    svgEl("path", { d: `M ${364 * s} ${(cy - 78) * s} C ${402 * s} ${(cy - 78) * s} ${406 * s} ${(cy - 26) * s} ${358 * s} ${(cy - 18) * s}`, fill: "none", stroke: "#E8EDF4", "stroke-width": 11 * s }, n.trG);
+    svgEl("path", { d: `M ${234 * s} ${(cy - 98) * s} H ${366 * s} V ${(cy - 30) * s} C ${366 * s} ${cy * s} ${334 * s} ${(cy + 40) * s} ${300 * s} ${(cy + 40) * s} C ${266 * s} ${(cy + 40) * s} ${234 * s} ${cy * s} ${234 * s} ${(cy - 30) * s} Z`, fill: ac }, n.trG);
+    svgEl("rect", { x: 288 * s, y: (cy + 40) * s, width: 24 * s, height: 34 * s, fill: "#E8EDF4" }, n.trG);
+    svgEl("rect", { x: 252 * s, y: (cy + 74) * s, width: 96 * s, height: 20 * s, rx: 8 * s, fill: ac }, n.trG);
+    n.trSparks = [[206, -116], [394, -116], [188, -34], [412, -34]].map(([x, dy]) => {
+      const p = svgEl("path", { d: `M ${x * s} ${(cy + dy - 13) * s} V ${(cy + dy + 13) * s} M ${(x - 13) * s} ${(cy + dy) * s} H ${(x + 13) * s}`, stroke: "#FFFFFF", "stroke-width": 6 * s, "stroke-linecap": "round", opacity: 0 }, svg);
+      return p;
+    });
+    n.trcy = cy;
+  } else if (V.name === "ladder") {
+    // ORIENT progress: climb the rungs one by one
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const cnt = Math.max(3, Math.min(6, item.count || 4));
+    svgEl("line", { x1: 262 * s, y1: (cy - 150) * s, x2: 262 * s, y2: (cy + 150) * s, stroke: "#41506B", "stroke-width": 9 * s, "stroke-linecap": "round" }, svg);
+    svgEl("line", { x1: 338 * s, y1: (cy - 150) * s, x2: 338 * s, y2: (cy + 150) * s, stroke: "#41506B", "stroke-width": 9 * s, "stroke-linecap": "round" }, svg);
+    n.ldRungs = [];
+    for (let i = 0; i < cnt; i++) {
+      const y = cy + 108 - i * (216 / (cnt - 1));
+      const r = svgEl("line", { x1: 262 * s, y1: y * s, x2: 338 * s, y2: y * s, stroke: "#41506B", "stroke-width": 8 * s, "stroke-linecap": "round" }, svg);
+      n.ldRungs.push({ r, y });
+    }
+    svgEl("line", { x1: 338 * s, y1: (cy - 150) * s, x2: 338 * s, y2: (cy - 182) * s, stroke: "#E8EDF4", "stroke-width": 6 * s }, svg);
+    svgEl("polygon", { points: `${338 * s},${(cy - 182) * s} ${374 * s},${(cy - 172) * s} ${338 * s},${(cy - 162) * s}`, fill: ac }, svg);
+    n.ldDot = svgEl("circle", { cx: 300 * s, cy: (cy + 108) * s, r: 15 * s, fill: ac, stroke: "#0D0F12", "stroke-width": 4 * s }, svg);
+    n.ldcy = cy;
+  } else if (V.name === "stars") {
+    // PROVE a rating: five stars fill to the spoken score
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const val = Math.max(1, Math.min(5, Math.round(item.value || 5)));
+    const star = (cx) => {
+      let d = "";
+      for (let k = 0; k < 10; k++) {
+        const r = k % 2 === 0 ? 36 : 15.5, a = -Math.PI / 2 + (k / 10) * Math.PI * 2;
+        d += (k === 0 ? "M " : "L ") + ((cx + Math.cos(a) * r) * s).toFixed(1) + " " + ((cy + Math.sin(a) * r) * s).toFixed(1);
+      }
+      return d + " Z";
+    };
+    n.stStars = [];
+    for (let i = 0; i < 5; i++) {
+      const cx = 300 + (i - 2) * 88, hot = i < val;
+      const p = svgEl("path", { d: star(cx), fill: hot ? ac : "#232d40", stroke: hot ? ac : "#41506B", "stroke-width": 3 * s, "stroke-linejoin": "round" }, svg);
+      n.stStars.push({ p, cx, hot });
+    }
+    n.stcy = cy;
+  } else if (V.name === "countdown") {
+    // ORIENT/EMPHASISE a deadline: digits burn down, ring closes
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.cdN = Math.max(2, Math.min(10, Math.round(item.value || 3)));
+    const C = 2 * Math.PI * 122;
+    n.cdC = C * s;
+    const ring = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 122 * s, fill: "none", stroke: ac, "stroke-width": 10 * s, "stroke-linecap": "round", transform: `rotate(-90 ${300 * s} ${cy * s})` }, svg);
+    ring.setAttribute("stroke-dasharray", n.cdC);
+    n.cdRing = ring;
+    n.cdTx = svgEl("text", { x: 300 * s, y: (cy + 62) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 176 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.cdTx.textContent = String(n.cdN);
+    n.cdcy = cy;
+  } else if (V.name === "search") {
+    // SHOW looking: the glass scans the field, finds the one
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    for (let rI = 0; rI < 3; rI++)
+      for (let cI = 0; cI < 9; cI++)
+        svgEl("circle", { cx: (132 + cI * 42) * s, cy: (cy - 74 + rI * 74) * s, r: 5 * s, fill: "#2b3547" }, svg);
+    n.srRing = svgEl("circle", { cx: 396 * s, cy: (cy + 66) * s, r: 16 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
+    svgEl("circle", { cx: 396 * s, cy: (cy + 66) * s, r: 11 * s, fill: ac }, svg);
+    n.srG = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 0, cy: 0, r: 62 * s, fill: hexA("#FFFFFF", .05), stroke: "#E8EDF4", "stroke-width": 13 * s }, n.srG);
+    svgEl("line", { x1: 44 * s, y1: 44 * s, x2: 92 * s, y2: 92 * s, stroke: "#E8EDF4", "stroke-width": 16 * s, "stroke-linecap": "round" }, n.srG);
+    n.srcy = cy;
+  } else if (V.name === "cash") {
+    // SHOW money made: bills fan out, the $ lands
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.caBills = [-2, -1, 0, 1, 2].map(k => {
+      const g = svgEl("g", {}, svg);
+      svgEl("rect", { x: 202 * s, y: (cy - 52) * s, width: 196 * s, height: 104 * s, rx: 12 * s, fill: k === 0 ? ac : "#232d40", stroke: k === 0 ? ac : "#41506B", "stroke-width": 3 * s }, g);
+      if (k === 0) {
+        const d = svgEl("text", { x: 300 * s, y: (cy + 30) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 84 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+        d.textContent = "$";
+      } else {
+        svgEl("circle", { cx: 300 * s, cy: cy * s, r: 24 * s, fill: "none", stroke: "#41506B", "stroke-width": 3 * s }, g);
+      }
+      return { g, rot: k * 13 };
+    });
+    n.caVal = null;
+    if (item.value) {
+      n.caVal = svgEl("text", { x: 300 * s, y: (cy + 128) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 56 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+    }
+    n.cacy = cy;
+  } else if (V.name === "crown") {
+    // EMPHASISE the top dog: the crown drops on
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.crG = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${230 * s} ${(cy + 42) * s} L ${220 * s} ${(cy - 54) * s} L ${272 * s} ${cy * s} L ${300 * s} ${(cy - 62) * s} L ${328 * s} ${cy * s} L ${380 * s} ${(cy - 54) * s} L ${370 * s} ${(cy + 42) * s} Z`, fill: ac, "stroke-linejoin": "round" }, n.crG);
+    [[220, -54], [300, -62], [380, -54]].forEach(([x, dy]) =>
+      svgEl("circle", { cx: x * s, cy: (cy + dy - 12) * s, r: 10 * s, fill: "#E8EDF4" }, n.crG));
+    svgEl("rect", { x: 228 * s, y: (cy + 48) * s, width: 144 * s, height: 20 * s, rx: 9 * s, fill: hexA(ac, .7) }, n.crG);
+    n.crGems = [252, 300, 348].map(x =>
+      svgEl("circle", { cx: x * s, cy: (cy + 8) * s, r: 8 * s, fill: "#FFFFFF" }, n.crG));
+    n.crcy = cy;
+  } else if (V.name === "bridge") {
+    // SHOW connection: the span draws across the gap, someone crosses
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("path", { d: `M ${36 * s} ${(cy + 160) * s} V ${(cy + 18) * s} H ${192 * s} V ${(cy + 160) * s} Z`, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+    svgEl("path", { d: `M ${408 * s} ${(cy + 160) * s} V ${(cy + 18) * s} H ${564 * s} V ${(cy + 160) * s} Z`, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+    svgEl("line", { x1: 60 * s, y1: (cy + 118) * s, x2: 540 * s, y2: (cy + 118) * s, stroke: "#232d40", "stroke-width": 5 * s, "stroke-dasharray": `${10 * s} ${14 * s}` }, svg);
+    n.brArc = svgEl("path", { d: `M ${192 * s} ${(cy + 18) * s} Q ${300 * s} ${(cy - 96) * s} ${408 * s} ${(cy + 18) * s}`, fill: "none", stroke: "#E8EDF4", "stroke-width": 10 * s, "stroke-linecap": "round" }, svg);
+    n.brLen = 380 * s;
+    n.brArc.setAttribute("stroke-dasharray", n.brLen);
+    n.brArc.style.strokeDashoffset = n.brLen;
+    n.brDot = svgEl("circle", { cx: 192 * s, cy: (cy + 18) * s, r: 12 * s, fill: ac, opacity: 0 }, svg);
+    n.brcy = cy;
+  } else if (V.name === "puzzle") {
+    // COMPARE fit: two pieces slide in and click together
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const labs = item.labels || [];
+    n.pzL = svgEl("g", {}, svg);
+    svgEl("rect", { x: 186 * s, y: (cy - 62) * s, width: 124 * s, height: 124 * s, rx: 14 * s, fill: "#232d40", stroke: "#41506B", "stroke-width": 3 * s }, n.pzL);
+    svgEl("circle", { cx: 310 * s, cy: cy * s, r: 20 * s, fill: "#232d40", stroke: "#41506B", "stroke-width": 3 * s }, n.pzL);
+    n.pzR = svgEl("g", {}, svg);
+    svgEl("rect", { x: 330 * s, y: (cy - 62) * s, width: 124 * s, height: 124 * s, rx: 14 * s, fill: ac }, n.pzR);
+    svgEl("circle", { cx: 330 * s, cy: cy * s, r: 21 * s, fill: "#14181f" }, n.pzR);
+    const mkP = (x, txt, fill) => {
+      const t = svgEl("text", { x: x * s, y: (cy + 9) * s, "text-anchor": "middle", fill, "font-size": 25 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+      t.textContent = (txt || "").toUpperCase();
+      fitSvg(t, 104 * s);
+      return t;
+    };
+    n.pzTxL = mkP(242, labs[0], "#FFFFFF");
+    n.pzTxR = mkP(398, labs[1], "#0D0F12");
+    n.pzcy = cy;
+  } else if (V.name === "cycle") {
+    // ORIENT a loop: two chase arrows circle forever
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const C = 2 * Math.PI * 116;
+    n.cyG = svgEl("g", {}, svg);
+    const arc = (stroke, rot) => {
+      const c = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 116 * s, fill: "none", stroke, "stroke-width": 11 * s, "stroke-linecap": "round", transform: `rotate(${rot} ${300 * s} ${cy * s})` }, n.cyG);
+      c.setAttribute("stroke-dasharray", `${(C * 0.36) * s} ${(C * 0.64) * s}`);
+      return c;
+    };
+    arc("#E8EDF4", -90); arc(ac, 90);
+    svgEl("polygon", { points: `${404 * s},${(cy - 4) * s} ${428 * s},${(cy - 4) * s} ${416 * s},${(cy - 28) * s}`, fill: "#E8EDF4" }, n.cyG);
+    svgEl("polygon", { points: `${196 * s},${(cy + 4) * s} ${172 * s},${(cy + 4) * s} ${184 * s},${(cy + 28) * s}`, fill: ac }, n.cyG);
+    svgEl("circle", { cx: 300 * s, cy: cy * s, r: 13 * s, fill: "#41506B" }, svg);
+    n.cycy = cy;
+  } else if (V.name === "thermo") {
+    // SHOW a level rising: the mercury climbs to the spoken heat
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.thVal = Math.max(0, Math.min(100, item.value == null ? 75 : item.value));
+    svgEl("rect", { x: 283 * s, y: (cy - 152) * s, width: 34 * s, height: 216 * s, rx: 17 * s, fill: "#10141c", stroke: "#41506B", "stroke-width": 4 * s }, svg);
+    n.thMerc = svgEl("rect", { x: 292 * s, y: (cy + 56) * s, width: 16 * s, height: 8 * s, rx: 8 * s, fill: ac }, svg);
+    svgEl("circle", { cx: 300 * s, cy: (cy + 98) * s, r: 42 * s, fill: "#10141c", stroke: "#41506B", "stroke-width": 4 * s }, svg);
+    svgEl("circle", { cx: 300 * s, cy: (cy + 98) * s, r: 27 * s, fill: ac }, svg);
+    for (let i = 0; i < 4; i++)
+      svgEl("line", { x1: 330 * s, y1: (cy - 128 + i * 52) * s, x2: 352 * s, y2: (cy - 128 + i * 52) * s, stroke: "#41506B", "stroke-width": 5 * s, "stroke-linecap": "round" }, svg);
+    n.thTx = svgEl("text", { x: 300 * s, y: (cy + 196) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 56 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.thTx.textContent = "0%";
+    n.thcy = cy;
+  } else {  // burst
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.rays = svgEl("g", {}, svg);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      svgEl("line", { x1: (300 + Math.cos(a) * 62) * s, y1: (cy + Math.sin(a) * 62) * s, x2: (300 + Math.cos(a) * 122) * s, y2: (cy + Math.sin(a) * 122) * s, stroke: i % 2 ? ac : "#E8EDF4", "stroke-width": 10 * s, "stroke-linecap": "round" }, n.rays);
+    }
+    n.ring = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 40 * s, fill: "none", stroke: ac, "stroke-width": 6 * s }, svg);
+    n.dot = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 26 * s, fill: ac }, svg);
+    V.cy = cy;
+  }
+}
+
+function animateVector(b, t, lifeP) {
+  const V = b.vec, n = V.n, s = V.s, p = lifeP;
+  const dur = Math.max(0.001, (b.item.until ?? b.item.at + 2) - b.item.at);
+  const lt = t - b.item.at;
+  if (V.name === "hoop") {
+    const rimX = V.rimX, rimY = V.rimY, fl = V.floorY - 25;
+    let bx, by;
+    if (p < 0.45) {
+      const q = easeOut(p / 0.45);
+      bx = 150 + (rimX - 150) * q;
+      by = fl + (rimY - 14 - fl) * q - Math.sin((p / 0.45) * Math.PI) * 96;
+    } else if (p < 0.62) {
+      const q = (p - 0.45) / 0.17;
+      bx = rimX; by = rimY - 14 + (fl - rimY + 14) * q * q;
+    } else {
+      const q = (p - 0.62) / 0.38;
+      bx = rimX + q * 96;
+      by = fl - Math.abs(Math.sin(q * Math.PI * 2.2)) * 44 * (1 - q);
+    }
+    n.ball.setAttribute("transform", `translate(${(bx * s).toFixed(1)} ${(by * s).toFixed(1)}) rotate(${((lt * 190) % 360).toFixed(0)})`);
+    const sw = p > 0.45 ? Math.sin((p - 0.45) * 26) * 7 * Math.max(0, 1 - (p - 0.45) * 2.4) : 0;
+    n.net.setAttribute("transform", `rotate(${sw.toFixed(2)} ${rimX * s} ${198 * s})`);
+    n.flash.setAttribute("opacity", (p > 0.45 && p < 0.7 ? (1 - (p - 0.45) / 0.25) * 0.9 : 0).toFixed(2));
+    if (p > 0.45) n.flash.setAttribute("r", ((62 + (p - 0.45) * 170) * s).toFixed(1));
+  } else if (V.name === "led") {
+    n.strip.setAttribute("stroke-dashoffset", (-lt * 140 * s).toFixed(1));
+    n.wash.setAttribute("opacity", (0.07 + 0.035 * Math.sin(lt * 2.4)).toFixed(3));
+  } else if (V.name === "donut") {
+    const q = clamp01(lt / Math.min(1.4, dur * 0.7));
+    n.arc.setAttribute("stroke-dashoffset", (n.C * (1 - (n.value / 100) * easeOut(q))).toFixed(1));
+    n.txt.textContent = Math.round(n.value * easeOut(q)) + "%";
+  } else if (V.name === "arrow") {
+    const q = clamp01(lt / Math.min(1.1, dur * 0.6));
+    n.path.setAttribute("stroke-dashoffset", (n.len * (1 - easeOut(q))).toFixed(1));
+    n.head.setAttribute("opacity", q > 0.85 ? ((q - 0.85) / 0.15).toFixed(2) : 0);
+    n.head.setAttribute("transform", `translate(0 ${(Math.sin(lt * 3) * 5 * s).toFixed(1)})`);
+  } else if (V.name === "bars") {
+    n.bars.forEach((b, i) => {
+      const q = easeOut(clamp01((lt - 0.12 - i * 0.13) / 0.6));
+      // a zero value still draws a stub: no bar at all reads as broken
+      const hh = b.v === 0 ? 7 * q : b.hMax * q;
+      b.r.setAttribute("height", (hh * s).toFixed(1));
+      b.r.setAttribute("y", ((n.base - hh) * s).toFixed(1));
+      b.tv.textContent = fmt(Math.round(b.v * q));
+      b.tv.setAttribute("y", ((n.base - hh - 14) * s).toFixed(1));
+      b.tv.setAttribute("opacity", q > 0.06 ? 1 : 0);
+      b.tl.setAttribute("opacity", clamp01((lt - 0.5 - i * 0.13) / 0.3).toFixed(2));
+    });
+  } else if (V.name === "line") {
+    const q = easeInOut(clamp01(lt / Math.min(1.4, dur * 0.62)));
+    n.path.style.strokeDashoffset = n.len * (1 - q);
+    const cnt = n.dots.length;
+    n.dots.forEach((d, i) => {
+      const frac = cnt <= 1 ? 1 : i / (cnt - 1);
+      const pq = easeOutBack(clamp01((q - frac) / 0.12));
+      d.setAttribute("r", (11 * Math.max(0, pq) * s).toFixed(1));
+    });
+    // the end value arrives WITH the line tip, not ahead of it
+    const eq = easeOut(clamp01((q - 0.78) / 0.22));
+    n.end.textContent = fmt(Math.round(n.endVal * eq)) + (b.item.unit || "");
+    n.end.setAttribute("opacity", clamp01((q - 0.8) / 0.15).toFixed(2));
+  } else if (V.name === "versus") {
+    const qL = easeOut(clamp01(lt / 0.45)), qR = easeOut(clamp01((lt - 0.12) / 0.45));
+    n.vsL.g.style.transform = `translateX(${(-52 * (1 - qL) * s).toFixed(1)}px)`;
+    n.vsL.g.style.opacity = qL.toFixed(2);
+    n.vsR.g.style.transform = `translateX(${(52 * (1 - qR) * s).toFixed(1)}px)`;
+    n.vsR.g.style.opacity = qR.toFixed(2);
+    const qc = easeOut(clamp01((lt - 0.3) / 0.75));
+    n.vsL.tv.textContent = fmt(Math.round(n.vsL.val * qc)) + (b.item.unit || "");
+    n.vsR.tv.textContent = fmt(Math.round(n.vsR.val * qc)) + (b.item.unit || "");
+    const qb = easeOutBack(clamp01((lt - 0.35) / 0.3));
+    n.badge.style.transformOrigin = `${300 * s}px ${n.vsCy * s}px`;
+    n.badge.style.transform = `scale(${Math.max(0.001, qb).toFixed(3)})`;
+  } else if (V.name === "people") {
+    const total = n.total, span = Math.min(1.6, dur * 0.6);
+    let shown = 0;
+    n.icons.forEach((ic, i) => {
+      const q = easeOutBack(clamp01((lt - 0.12 - (span * i) / total) / 0.22));
+      ic.g.style.transformOrigin = `${ic.cx * s}px ${ic.cy * s}px`;
+      ic.g.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+      ic.g.style.opacity = clamp01(q * 1.6).toFixed(2);
+      if (q > 0.5 && i < n.count) shown = i + 1;
+    });
+    n.num.textContent = fmt(shown);
+  } else if (V.name === "stack") {
+    n.segs.forEach((sg, i) => {
+      const q = easeOut(clamp01((lt - 0.15 - i * 0.2) / 0.55));
+      sg.r.style.transformOrigin = `${sg.x * s}px 0px`;
+      sg.r.style.transform = `scaleX(${Math.max(0.001, q).toFixed(3)})`;
+      sg.tv.textContent = fmt(Math.round(sg.p * q)) + "%";
+      // a sliver segment (<26 units) cannot carry text: it still fills,
+      // but its label/% stay hidden instead of floating over neighbours
+      const o = sg.w < 26 ? 0 : clamp01((q - 0.5) / 0.35).toFixed(2);
+      sg.tv.setAttribute("opacity", o);
+      sg.tl.setAttribute("opacity", o);
+    });
+  } else if (V.name === "timeline") {
+    const q = easeInOut(clamp01(lt / Math.min(1.3, dur * 0.6)));
+    n.tline.style.strokeDashoffset = (500 * s * (1 - q)).toFixed(1);
+    n.evs.forEach((e) => {
+      // normalise per-event progress so the LAST event also completes:
+      // un-normalised, a dot at x=0.94 would freeze mid-overshoot and its
+      // label would cap at ~75% opacity
+      const prog = e.x >= 1 ? 1 : clamp01((q - e.x) / (1 - e.x));
+      const pq = easeOutBack(clamp01(prog / 0.35));
+      e.dot.setAttribute("r", (12 * Math.max(0, pq) * s).toFixed(1));
+      const o = clamp01(prog / 0.3).toFixed(2);
+      e.tl.setAttribute("opacity", o); e.ts.setAttribute("opacity", o);
+    });
+  } else if (V.name === "quote") {
+    n.qlines.forEach((tx, i) => {
+      const q = easeOut(clamp01((lt - 0.25 - i * 0.16) / 0.4));
+      tx.setAttribute("opacity", q.toFixed(2));
+      tx.style.transform = `translateY(${((1 - q) * 16 * s).toFixed(1)}px)`;
+    });
+    if (n.qby) n.qby.setAttribute("opacity", clamp01((lt - 0.25 - (n.qlines.length) * 0.16) / 0.4).toFixed(2));
+  } else if (V.name === "chat") {
+    // cascade adapts to the window: a scene bound to a short spoken
+    // phrase (~1.2s) must still land every bubble before it exits
+    const st = Math.min(0.24, dur * 0.17), sp = Math.min(0.32, dur * 0.32);
+    n.bubbles.forEach((g, i) => {
+      const q = easeOutBack(clamp01((lt - 0.14 - i * st) / sp));
+      g.style.opacity = clamp01(q * 1.7).toFixed(2);
+      g.style.transform = `translateY(${((1 - clamp01(q)) * 20 * s).toFixed(1)}px)`;
+    });
+  } else if (V.name === "network") {
+    n.links.forEach((ln, i) => {
+      const q = easeOut(clamp01((lt - 0.15 - i * 0.09) / 0.4));
+      const L = parseFloat(ln.getAttribute("stroke-dasharray"));
+      ln.style.strokeDashoffset = (L * (1 - q)).toFixed(1);
+      const pq = easeOutBack(clamp01((lt - 0.4 - i * 0.09) / 0.3));
+      n.sats[i].setAttribute("r", ((i === 0 ? 19 : 15) * Math.max(0, pq) * s).toFixed(1));
+    });
+    const hp = 1 + Math.sin(lt * 2.6) * 0.05;
+    n.hub.setAttribute("r", (34 * hp * s).toFixed(1));
+  } else if (V.name === "gauge") {
+    const q = easeInOut(clamp01(lt / Math.min(1.25, dur * 0.55)));
+    n.arc.style.strokeDashoffset = (n.arcLen * (1 - q)).toFixed(1);
+    const ang = -90 + 180 * q * (n.gval / 100);
+    n.needle.setAttribute("transform", `rotate(${ang.toFixed(1)} ${n.gcx * s} ${n.gcy * s})`);
+    n.gnum.textContent = fmt(Math.round(n.gval * q)) + "%";
+  } else if (V.name === "map") {
+    const q = easeOutBack(clamp01((lt - 0.1) / 0.45));
+    n.pin.style.transform = `translateY(${((1 - clamp01(q)) * -130 * s).toFixed(1)}px)`;
+    n.pin.style.opacity = clamp01(q * 2).toFixed(2);
+    n.rings.forEach((r, i) => {
+      const rq = ((lt - 0.5 - i * 0.45) % 1.3 + 1.3) % 1.3 / 1.3;
+      r.setAttribute("r", ((12 + rq * 62) * s).toFixed(1));
+      r.setAttribute("opacity", (0.75 * (1 - rq) * clamp01((lt - 0.4) * 3)).toFixed(2));
+    });
+  } else if (V.name === "calendar") {
+    n.cells.forEach((c, i) => {
+      const q = easeOutBack(clamp01((lt - 0.08 - i * 0.06) / 0.3));
+      c.r.style.transformOrigin = `${c.cx * s}px ${c.cy * s}px`;
+      c.r.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+      c.tx.style.transformOrigin = `${c.cx * s}px ${c.cy * s}px`;
+      c.tx.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+    });
+    n.ring.setAttribute("opacity", (clamp01((lt - 0.55) / 0.3) * (0.6 + 0.4 * Math.sin(lt * 4))).toFixed(2));
+  } else if (V.name === "clock") {
+    const q = easeInOut(clamp01(lt / Math.min(1.5, dur * 0.62)));
+    n.min.setAttribute("transform", `rotate(${(-90 + 360 * n.sweep * q).toFixed(1)} ${n.cx * s} ${n.cy * s})`);
+    n.hr.setAttribute("transform", `rotate(${(-90 + 30 * n.sweep * q + 40).toFixed(1)} ${n.cx * s} ${n.cy * s})`);
+  } else if (V.name === "price") {
+    const q = easeOutBack(clamp01(lt / 0.55));
+    const ang = -16 + 16 * q + Math.sin(lt * 7) * 3 * Math.exp(-lt * 2);
+    n.tagG.setAttribute("transform", `rotate(${ang.toFixed(2)} ${n.tagX * s} ${n.tagY * s})`);
+    const q2 = easeOut(clamp01(lt / 0.85));
+    n.pval.textContent = (b.item.prefix || "") + fmtVal((b.item.value || 0) * q2, b.item.decimals || 0) + (b.item.suffix || "");
+  } else if (V.name === "checklist") {
+    n.rows.forEach((r, i) => {
+      const q = clamp01((lt - 0.15 - i * 0.26) / 0.2);
+      r.tick.style.strokeDashoffset = (r.tl * (1 - easeOut(q))).toFixed(1);
+      r.tx.setAttribute("opacity", clamp01((lt - 0.2 - i * 0.26) / 0.25).toFixed(2));
+      const qb = easeOutBack(clamp01((lt - 0.1 - i * 0.26) / 0.25));
+      r.box.style.transformOrigin = `${107 * s}px ${r.box.getAttribute("y") * 1 + 19 * s}px`;
+      r.box.style.transform = `scale(${Math.max(0.001, qb).toFixed(3)})`;
+    });
+  } else if (V.name === "magnet") {
+    n.dots.forEach((d, i) => {
+      const q = clamp01((lt - 0.25 - i * 0.07) / 0.55), e = q * q;
+      d.el.setAttribute("cx", ((d.x0 + (d.x1 - d.x0) * e) * s).toFixed(1));
+      d.el.setAttribute("cy", ((d.y0 + (d.y1 - d.y0) * e) * s).toFixed(1));
+    });
+  } else if (V.name === "funnel") {
+    n.fdots.forEach((d) => {
+      const q = clamp01((lt - 0.3 - d.d) / 0.8);
+      const y = n.fcy - 118 + q * 238, x = d.x + (300 - d.x) * q * 0.82;
+      d.el.setAttribute("cx", (x * s).toFixed(1));
+      d.el.setAttribute("cy", (y * s).toFixed(1));
+      d.el.setAttribute("opacity", (Math.sin(Math.min(1, q) * Math.PI) * 0.95).toFixed(2));
+    });
+    const q = easeOut(clamp01(lt / Math.min(1.1, dur * 0.55)));
+    n.toTx.textContent = fmtVal((b.item.from || 100) + ((b.item.to || 0) - (b.item.from || 100)) * q, 0);
+  } else if (V.name === "pyramid") {
+    n.levels.forEach((l, i) => {
+      const q = easeOutBack(clamp01((lt - 0.12 - (2 - i) * 0.17) / 0.35));
+      l.r.setAttribute("opacity", clamp01(q * 1.6).toFixed(2));
+      l.r.style.transform = `translateY(${((1 - clamp01(q)) * 26 * s).toFixed(1)}px)`;
+      l.tx.setAttribute("opacity", clamp01((lt - 0.3 - (2 - i) * 0.17) / 0.3).toFixed(2));
+    });
+  } else if (V.name === "target") {
+    const q = clamp01((lt - 0.3) / 0.28), e = q * q;
+    n.arrowG.setAttribute("opacity", clamp01(q * 2).toFixed(2));
+    n.arrowG.setAttribute("transform", `translate(${((1 - e) * 90 * s).toFixed(1)} ${(-(1 - e) * 90 * s).toFixed(1)})`);
+    const pq = ((lt - 0.58) % 0.9 + 0.9) % 0.9 / 0.9;
+    n.pulse.setAttribute("r", ((46 + pq * 90) * s).toFixed(1));
+    n.pulse.setAttribute("opacity", (lt > 0.58 ? (1 - pq) * 0.8 : 0).toFixed(2));
+  } else if (V.name === "podium") {
+    n.blocks.forEach((bl) => {
+      const q = easeOut(clamp01((lt - 0.15 - bl.ord * 0.3) / 0.5));
+      bl.r.setAttribute("y", ((bl.yb - bl.h * q) * s).toFixed(1));
+      bl.r.setAttribute("height", Math.max(2, bl.h * q * s).toFixed(1));
+      bl.num.setAttribute("opacity", clamp01((lt - 0.45 - bl.ord * 0.3) / 0.3).toFixed(2));
+      bl.tx.setAttribute("opacity", clamp01((lt - 0.55 - bl.ord * 0.3) / 0.3).toFixed(2));
+    });
+  } else if (V.name === "beforeafter") {
+    const qL = easeOut(clamp01((lt - 0.1) / 0.4)), qR = easeOut(clamp01((lt - 0.45) / 0.4));
+    n.baL.setAttribute("opacity", qL.toFixed(2));
+    n.baL.setAttribute("transform", `translate(${(-24 * (1 - qL) * s).toFixed(1)} 0)`);
+    n.baR.setAttribute("opacity", qR.toFixed(2));
+    n.baR.setAttribute("transform", `translate(${(24 * (1 - qR) * s).toFixed(1)} 0)`);
+    n.baDiv.setAttribute("opacity", clamp01((lt - 0.3) / 0.3).toFixed(2));
+  } else if (V.name === "battery") {
+    const q = easeInOut(clamp01(lt / Math.min(1.2, dur * 0.55)));
+    n.fill.setAttribute("width", Math.max(2, n.bw * (n.val / 100) * q * s).toFixed(1));
+    n.pct.textContent = Math.round(n.val * q) + "%";
+  } else if (V.name === "proscons") {
+    n.proRows.forEach((r, i) => {
+      const q = clamp01((lt - 0.15 - i * 0.28) / 0.3);
+      r.mk.setAttribute("opacity", q.toFixed(2)); r.tx.setAttribute("opacity", q.toFixed(2));
+    });
+    n.conRows.forEach((r, i) => {
+      const q = clamp01((lt - 0.29 - i * 0.28) / 0.3);
+      r.mk.setAttribute("opacity", q.toFixed(2)); r.tx.setAttribute("opacity", q.toFixed(2));
+    });
+  } else if (V.name === "chapter") {
+    const q = easeOutBack(clamp01((lt - 0.05) / 0.45));
+    n.bigTx.style.transformOrigin = `${300 * s}px ${(V.H / 2) * s}px`;
+    n.bigTx.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+    n.dots.forEach((c, i) => c.setAttribute("opacity", clamp01((lt - 0.3 - i * 0.09) / 0.2).toFixed(2)));
+  } else if (V.name === "bigword") {
+    const q = easeOutBack(clamp01((lt - 0.05) / 0.5));
+    n.wordG.style.transformOrigin = `${300 * s}px ${(V.H / 2) * s}px`;
+    n.wordG.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+    const fs = parseFloat(n.wordTx.getAttribute("font-size")) / s;
+    const w = Math.min(500, n.wordTx.textContent.length * fs * 0.58) * easeOut(clamp01((lt - 0.35) / 0.45));
+    n.under.setAttribute("width", Math.max(2, w * s).toFixed(1));
+    n.under.setAttribute("x", ((300 - w / 2) * s).toFixed(1));
+  } else if (V.name === "heart") {
+    const beat = 1 + Math.pow(Math.abs(Math.sin(lt * 3.1)), 3) * 0.20;
+    n.heartG.setAttribute("transform", `translate(${n.hcx * s} ${n.hcy * s}) scale(${beat.toFixed(3)}) translate(${-n.hcx * s} ${-n.hcy * s})`);
+    n.rings.forEach((r, i) => {
+      const pq = ((lt * 0.55 + i * 0.5) % 1 + 1) % 1;
+      r.setAttribute("r", ((60 + pq * 150) * s).toFixed(1));
+      r.setAttribute("opacity", (lt > 0.2 ? (1 - pq) * 0.65 : 0).toFixed(2));
+    });
+  } else if (V.name === "alert") {
+    const dx = Math.sin(lt * 38) * 7 * Math.exp(-lt * 2.6);
+    n.alertG.setAttribute("transform", `translate(${(dx * s).toFixed(1)} 0)`);
+    n.alertG.setAttribute("opacity", clamp01(lt / 0.15).toFixed(2));
+  } else if (V.name === "phone") {
+    // buzz bursts: hard shake for 0.35s, rest, repeat - it keeps ringing
+    const cyc = lt % 1.3, buzz = Math.exp(-cyc * 7) * (cyc < 0.45 ? 1 : 0);
+    const ang = Math.sin(lt * 46) * 5 * buzz;
+    n.phG.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${(n.phcy + 120) * s})`);
+    n.phRings.forEach((r, i) => {
+      const pq = ((lt * 0.8 + i * 0.5) % 1 + 1) % 1;
+      r.setAttribute("r", ((178 + pq * 90) * s).toFixed(1));
+      r.setAttribute("opacity", ((1 - pq) * 0.55).toFixed(2));
+    });
+    const pl = 1 + Math.sin(lt * 5.2) * 0.1;
+    n.phOk.setAttribute("r", (24 * pl * s).toFixed(1));
+  } else if (V.name === "scale") {
+    // tips to the heavier side, overshoots, settles like real weight
+    const q = easeOutBack(clamp01((lt - 0.15) / 0.9));
+    const ang = n.scAng * q;
+    n.scBeam.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${(n.sccy - 97) * s})`);
+    // pan labels stay upright: counter-rotate around their own centres
+    n.scLabL.setAttribute("transform", `rotate(${(-ang).toFixed(2)} ${150 * s} ${(n.sccy - 60) * s})`);
+    n.scLabR.setAttribute("transform", `rotate(${(-ang).toFixed(2)} ${450 * s} ${(n.sccy - 60) * s})`);
+  } else if (V.name === "brain") {
+    n.brW.forEach((w, i) => {
+      const q = easeOut(clamp01((lt - 0.2 - i * 0.16) / 0.4));
+      w.p.style.strokeDashoffset = (w.tl * (1 - q)).toFixed(1);
+    });
+    const pl = 1 + Math.sin(lt * 2.4) * 0.022;
+    n.brG.setAttribute("transform", `translate(${300 * s} ${n.brcy * s}) scale(${pl.toFixed(3)}) translate(${-300 * s} ${-n.brcy * s})`);
+  } else if (V.name === "bell") {
+    const amp = 3 + 8 * Math.exp(-lt * 1.1);
+    n.blG.setAttribute("transform", `rotate(${(Math.sin(lt * 7) * amp).toFixed(2)} ${300 * s} ${(n.blcy - 104) * s})`);
+    n.blRings.forEach((r, i) => {
+      const pq = ((lt * 0.65 + i * 0.5) % 1 + 1) % 1;
+      r.setAttribute("r", ((118 + pq * 92) * s).toFixed(1));
+      r.setAttribute("opacity", ((1 - pq) * 0.5).toFixed(2));
+    });
+  } else if (V.name === "key") {
+    const q = easeInOut(clamp01((lt - 0.12) / 0.5));
+    n.keyG.setAttribute("transform", `translate(${(q * 66 * s).toFixed(1)} 0)`);
+    const sq = clamp01((lt - 0.68) / 0.25);
+    n.keySparks.forEach(sp => sp.setAttribute("opacity", (sq * (1 - sq * 0.6)).toFixed(2)));
+  } else if (V.name === "door") {
+    const q = easeInOut(clamp01((lt - 0.15) / 0.85));
+    n.doorG.style.transformOrigin = `${226 * s}px ${n.doorcy * s}px`;
+    n.doorG.style.transform = `scaleX(${Math.max(0.14, 1 - q * 0.86).toFixed(3)}) skewY(${(-3.5 * q).toFixed(2)}deg)`;
+    n.doorLight.setAttribute("opacity", (q * 0.85).toFixed(2));
+  } else if (V.name === "dice") {
+    n.dice.forEach((d, i) => {
+      const q = easeOutBack(clamp01((lt - 0.08 - i * 0.15) / 0.55));
+      d.g.style.transformOrigin = `${d.cx * s}px ${n.dicy * s}px`;
+      d.g.style.transform = `translateY(${((1 - clamp01(q)) * -84 * s).toFixed(1)}px) rotate(${((1 - clamp01(q)) * d.dir * 46).toFixed(1)}deg)`;
+    });
+  } else if (V.name === "venn") {
+    const q = easeOut(clamp01((lt - 0.1) / 0.6));
+    n.vnL.setAttribute("cx", ((196 + 36 * q) * s).toFixed(1));
+    n.vnR.setAttribute("cx", ((404 - 36 * q) * s).toFixed(1));
+    const oq = clamp01((lt - 0.5) / 0.35);
+    n.vnTxL.setAttribute("opacity", oq.toFixed(2));
+    n.vnTxR.setAttribute("opacity", oq.toFixed(2));
+    n.vnTxC.setAttribute("opacity", clamp01((lt - 0.75) / 0.35).toFixed(2));
+  } else if (V.name === "rocket") {
+    const q = easeInOut(clamp01(lt / 1.05));
+    const ty = (1 - q) * 96 - q * 30 + Math.sin(lt * 2.3) * 6 * q;
+    n.rkG.setAttribute("transform", `translate(0 ${(-ty * s).toFixed(1)})`);
+    const fl = 0.75 + 0.35 * Math.abs(Math.sin(lt * 27));
+    n.rkFlame.style.transformOrigin = `${300 * s}px ${(n.rkcy + 44) * s}px`;
+    n.rkFlame.style.transform = `scaleY(${fl.toFixed(2)})`;
+    n.rkStars.forEach((st, i) => {
+      const yy = ((st.y0 + lt * (60 + q * 220) + i * 37) % Math.max(140, V.H - 60));
+      st.c.setAttribute("cy", (yy * s).toFixed(1));
+    });
+  } else if (V.name === "shield") {
+    const q = easeOut(clamp01((lt - 0.1) / 0.7));
+    n.shPath.style.strokeDashoffset = (n.shLen * (1 - q)).toFixed(1);
+    const cq = easeOutBack(clamp01((lt - 0.55) / 0.35));
+    n.shCheck.style.strokeDashoffset = (n.shChkLen * (1 - clamp01(cq))).toFixed(1);
+    const pq = clamp01((lt - 0.9) / 0.7);
+    n.shRing.setAttribute("r", ((148 + pq * 44) * s).toFixed(1));
+    n.shRing.setAttribute("opacity", ((1 - pq) * 0.6 * clamp01((lt - 0.9) * 4)).toFixed(2));
+  } else if (V.name === "hourglass") {
+    const q = clamp01(lt / Math.min(1.7, dur * 0.75));
+    n.hgTop.style.transformOrigin = `${300 * s}px ${(n.hgcy - 16) * s}px`;
+    n.hgTop.style.transform = `scaleY(${Math.max(0.06, 1 - q * 0.94).toFixed(3)})`;
+    n.hgBot.style.transformOrigin = `${300 * s}px ${(n.hgcy + 132) * s}px`;
+    n.hgBot.style.transform = `scaleY(${Math.max(0.08, q).toFixed(3)})`;
+    n.hgStream.setAttribute("opacity", (q > 0.03 && q < 0.97 ? 0.9 : 0).toFixed(2));
+  } else if (V.name === "wave") {
+    const p = clamp01(lt / dur);
+    n.wvBars.forEach((bar, i) => {
+      const h = bar.hBase * (0.72 + 0.28 * Math.sin(lt * 3.4 + i * 0.65));
+      bar.r.setAttribute("height", Math.max(6, h * s).toFixed(1));
+      bar.r.setAttribute("y", ((n.wvcy - h / 2) * s).toFixed(1));
+      bar.r.setAttribute("fill", i / n.wvN < p ? (b.item.accent || ACCENT) : "#41506B");
+    });
+  } else if (V.name === "spotlight") {
+    const q = easeOut(clamp01(lt / 0.7));
+    const ang = -13 * (1 - q) + Math.sin(lt * 0.85) * 8 * q;
+    n.spG.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${(n.spcy - 264) * s})`);
+  } else if (V.name === "trophy") {
+    const q = easeOutBack(clamp01((lt - 0.08) / 0.55));
+    n.trG.style.transformOrigin = `${300 * s}px ${n.trcy * s}px`;
+    n.trG.style.transform = `translateY(${((1 - clamp01(q)) * -46 * s).toFixed(1)}px) scale(${Math.max(0.01, q).toFixed(3)})`;
+    n.trSparks.forEach((sp, i) => {
+      const pq = clamp01((lt - 0.5 - i * 0.18) / 0.4);
+      sp.setAttribute("opacity", (Math.sin(pq * Math.PI) * (0.5 + 0.5 * Math.sin(lt * 3 + i))).toFixed(2));
+    });
+  } else if (V.name === "ladder") {
+    const cnt = n.ldRungs.length;
+    const pos = easeInOut(clamp01(lt / Math.min(1.5, dur * 0.72))) * (cnt - 1);
+    const y = n.ldcy + 108 - pos * (216 / (cnt - 1));
+    n.ldDot.setAttribute("cy", (y * s).toFixed(1));
+    n.ldRungs.forEach((r, i) => r.r.setAttribute("stroke", pos >= i - 0.15 ? (b.item.accent || ACCENT) : "#41506B"));
+  } else if (V.name === "stars") {
+    n.stStars.forEach((st, i) => {
+      const q = easeOutBack(clamp01((lt - 0.1 - i * 0.13) / 0.4));
+      st.p.style.transformOrigin = `${st.cx * s}px ${n.stcy * s}px`;
+      st.p.style.transform = `scale(${Math.max(0.01, q).toFixed(3)})`;
+      st.p.setAttribute("opacity", st.hot ? 1 : (0.35 + 0.65 * clamp01(q)).toFixed(2));
+    });
+  } else if (V.name === "countdown") {
+    const step = dur / n.cdN;
+    const k = Math.min(n.cdN - 1, Math.floor(lt / step));
+    const local = clamp01((lt - k * step) / step);
+    n.cdTx.textContent = String(n.cdN - k);
+    const sc = 1.28 - 0.28 * easeOut(local);
+    n.cdTx.style.transformOrigin = `${300 * s}px ${n.cdcy * s}px`;
+    n.cdTx.style.transform = `scale(${sc.toFixed(3)})`;
+    n.cdTx.setAttribute("fill", k === n.cdN - 1 ? (b.item.accent || ACCENT) : "#FFFFFF");
+    n.cdRing.setAttribute("stroke-dashoffset", (n.cdC * clamp01(lt / dur)).toFixed(1));
+  } else if (V.name === "search") {
+    const x = 300 + Math.sin(lt * 1.35) * 118, y = n.srcy + Math.sin(lt * 2.05) * 38;
+    n.srG.setAttribute("transform", `translate(${x * s} ${y * s})`);
+    const pq = ((lt * 0.7) % 1 + 1) % 1;
+    n.srRing.setAttribute("r", ((16 + pq * 42) * s).toFixed(1));
+    n.srRing.setAttribute("opacity", (lt > 0.5 ? (1 - pq) * 0.8 : 0).toFixed(2));
+  } else if (V.name === "cash") {
+    n.caBills.forEach((bl, i) => {
+      const q = easeOutBack(clamp01((lt - 0.08 - Math.abs(bl.rot) * 0.012) / 0.5));
+      bl.g.style.transformOrigin = `${300 * s}px ${(n.cacy + 52) * s}px`;
+      bl.g.style.transform = `rotate(${(bl.rot * clamp01(q)).toFixed(2)}deg) translateY(${((1 - clamp01(q)) * 30 * s).toFixed(1)}px)`;
+    });
+    if (n.caVal) {
+      const q = easeOut(clamp01(lt / Math.min(1.1, dur * 0.55)));
+      n.caVal.textContent = (b.item.prefix || "$") + fmtVal((b.item.value || 0) * q, b.item.decimals || 0);
+      n.caVal.setAttribute("opacity", clamp01((lt - 0.35) / 0.3).toFixed(2));
+    }
+  } else if (V.name === "crown") {
+    const q = easeOutBack(clamp01((lt - 0.06) / 0.6));
+    n.crG.style.transformOrigin = `${300 * s}px ${n.crcy * s}px`;
+    n.crG.style.transform = `translateY(${((1 - clamp01(q)) * -52 * s).toFixed(1)}px) rotate(${(-11 * (1 - clamp01(q))).toFixed(2)}deg)`;
+    n.crGems.forEach((g, i) => g.setAttribute("opacity", (0.55 + 0.45 * Math.sin(lt * 4 + i * 1.7)).toFixed(2)));
+  } else if (V.name === "bridge") {
+    const q = easeOut(clamp01((lt - 0.1) / 0.6));
+    n.brArc.style.strokeDashoffset = (n.brLen * (1 - q)).toFixed(1);
+    const tq = clamp01((lt - 0.55) / Math.max(0.3, dur - 0.85));
+    const bx = (1 - tq) * (1 - tq) * 192 + 2 * (1 - tq) * tq * 300 + tq * tq * 408;
+    const by = (1 - tq) * (1 - tq) * 18 + 2 * (1 - tq) * tq * -96 + tq * tq * 18;
+    n.brDot.setAttribute("cx", (bx * s).toFixed(1));
+    n.brDot.setAttribute("cy", ((n.brcy + by) * s).toFixed(1));
+    n.brDot.setAttribute("opacity", clamp01((lt - 0.5) / 0.2).toFixed(2));
+  } else if (V.name === "puzzle") {
+    const q = easeOut(clamp01((lt - 0.08) / 0.5));
+    const snap = lt > 0.58 && lt < 0.72 ? 1 + Math.sin((lt - 0.58) / 0.14 * Math.PI) * 0.03 : 1;
+    n.pzR.setAttribute("transform", `translate(${(64 * (1 - q) * s).toFixed(1)} 0)`);
+    n.pzTxL.setAttribute("transform", `translate(${(-64 * (1 - q) * s).toFixed(1)} 0)`);
+    n.pzTxR.setAttribute("transform", `translate(${(64 * (1 - q) * s).toFixed(1)} 0)`);
+    n.pzL.style.transformOrigin = `${310 * s}px ${n.pzcy * s}px`;
+    n.pzL.style.transform = `translateX(${(-64 * (1 - q) * s).toFixed(1)}px) scale(${snap.toFixed(3)})`;
+  } else if (V.name === "cycle") {
+    n.cyG.setAttribute("transform", `rotate(${((lt * 42) % 360).toFixed(1)} ${300 * s} ${n.cycy * s})`);
+  } else if (V.name === "thermo") {
+    const q = easeInOut(clamp01(lt / Math.min(1.3, dur * 0.6)));
+    const hMax = 196, h = Math.max(8, hMax * (n.thVal / 100) * q);
+    n.thMerc.setAttribute("height", (h * s).toFixed(1));
+    n.thMerc.setAttribute("y", ((n.thcy + 56 - h + 8) * s).toFixed(1));
+    n.thTx.textContent = Math.round(n.thVal * q) + "%";
+  } else {
+    n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
+    const rq = (lt % 1.6) / 1.6;
+    n.ring.setAttribute("r", ((40 + rq * 130) * s).toFixed(1));
+    n.ring.setAttribute("opacity", (0.85 * (1 - rq)).toFixed(2));
+    n.dot.setAttribute("r", ((26 + Math.sin(lt * 4) * 3) * s).toFixed(1));
+  }
+}
+
+function buildCounter(item) {
+  const root = el("item counter", stage);
+  const { cy } = zoneCentre(item);
+  const wrap = el("cwrap", root);
+  wrap.style.top = Math.round(cy - 135) + "px";
+  const num = el("num", wrap);
+  num.style.color = item.accent || ACCENT;
+  num.style.fontSize = "200px";
+  if (item.prefix) { const s = document.createElement("span"); s.className = "affix"; s.textContent = item.prefix; num.appendChild(s); }
+  const val = document.createElement("span");
+  val.textContent = "0";
+  num.appendChild(val);
+  if (item.suffix) { const s = document.createElement("span"); s.className = "affix"; s.textContent = item.suffix; num.appendChild(s); }
+  if (item.label) { const lab = el("clab", wrap); lab.textContent = item.label; }
+  layoutJobs.push(() => {
+    let fs = 200;
+    while (num.scrollWidth > 950 && fs > 90) { fs -= 10; num.style.fontSize = fs + "px"; }
+  });
+  return { item, root, num, numVal: val, cwrap: wrap };
+}
+
+function buildList(item) {
+  const root = el("item listp", stage);
+  const zone = item.zone || [0.50, 0.95];
+  const wrap = el("lwrap", root);
+  wrap.style.top = (zone[0] * H) + "px";
+  let head = null;
+  if (item.title) {
+    head = el("lhead", wrap);
+    head.textContent = item.title;
+    head.style.background = item.accent || ACCENT;
+    head.style.fontSize = "58px";
+  }
+  const plates = (item.items || []).map((pl, i) => {
+    const pel = el("plate", wrap);
+    const badge = el("badge", pel);
+    badge.textContent = String(i + 1);
+    badge.style.fontSize = "58px";
+    const tx = el("ptx", pel);
+    const t1 = el("pt1", tx); t1.textContent = pl.text; t1.style.fontSize = "64px";
+    let t2 = null;
+    if (pl.sub) { t2 = el("pt2", tx); t2.textContent = pl.sub; t2.style.fontSize = "58px"; }
+    layoutJobs.push(() => {
+      // shrink floor is the 3% rule (58px): plates grow, type doesn't sink
+      let fs = 64;
+      while (t1.scrollWidth > 700 && fs > 58) { fs -= 2; t1.style.fontSize = fs + "px"; }
+    });
+    return { el: pel, badge, at: pl.at };
+  });
+  return { item, root, plates, lhead: head, lwrap: wrap };
+}
+
+function buildProcess(item) {
+  const root = el("item proc", stage);
+  const { cy } = zoneCentre(item, [0.52, 0.92]);
+  const wrap = el("pwrap", root);
+  wrap.style.top = Math.round(cy) + "px";
+  wrap.style.transform = "translateY(-50%)";
+  if (item.title) {
+    const t = el("ptitle", wrap);
+    t.textContent = item.title;
+    t.style.background = item.accent || ACCENT;
+    t.style.fontSize = "58px";
+  }
+  const steps = (item.steps || []).map((st, i, arr) => {
+    const row = el("srow", wrap);
+    const col = el("scol", row);
+    const circ = el("scirc", col);
+    circ.textContent = String(i + 1);
+    circ.style.fontSize = "58px";
+    let line = null;
+    if (i < arr.length - 1) line = el("sline", col);
+    const tx = el("stx", row);
+    const t1 = el("st1", tx); t1.textContent = st.text; t1.style.fontSize = "64px";
+    if (st.sub) { const t2 = el("st2", tx); t2.textContent = st.sub; t2.style.fontSize = "58px"; }
+    layoutJobs.push(() => {
+      let fs = 64;
+      while (t1.scrollWidth > 700 && fs > 58) { fs -= 2; t1.style.fontSize = fs + "px"; }
+    });
+    return { row, circ, line, at: st.at };
+  });
+  return { item, root, steps, pwrap: wrap };
+}
+
+function lifeFx(t, at, until, enterFrames) {
+  // opacity resolves within 2 frames either side (semi-transparent QC);
+  // the exit is the 8-frame slide+blur profile, opacity last 2 frames
+  const opIn = clamp01((t - at) / (2 / FPS));
+  const x = exitFade(until, t);
+  return { op: Math.min(opIn, x.op), blur: x.blur, slide: x.slide,
+           pIn: clamp01((t - at) / ((enterFrames || 10) / FPS)) };
+}
+
+function fmtVal(v, dec) {
+  const parts = v.toFixed(dec).split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
+function fitSvg(tx, maxW) {
+  // SVG text cannot wrap: shrink its font-size (measured once fonts are
+  // in, via layoutJobs) until it fits maxW px. Floor 40% of authored size.
+  layoutJobs.push(() => {
+    let fs = parseFloat(tx.getAttribute("font-size"));
+    const floor = fs * 0.4;
+    for (let i = 0; i < 24; i++) {
+      if (tx.getComputedTextLength() <= maxW || fs <= floor) break;
+      fs *= 0.94;
+      tx.setAttribute("font-size", fs.toFixed(1));
+    }
+  });
+}
+
+function autofit(node, maxFrac, singleLine) {
+  // shrink until the content fits the frame width (never touch the
+  // edges); the shrink is capped so effective type never falls under
+  // the 3% floor - a stack still overflowing at the cap is a QC
+  // finding (author shorter words), never a silent shrink
+  const maxW = maxFrac * W;
+  let scale = 1;
+  for (let i = 0; i < 24; i++) {
+    const w = node.scrollWidth;
+    if (w <= maxW || scale <= 0.62) break;
+    scale *= 0.94;
+    node.style.transform = `scale(${scale})`;
+    node.style.transformOrigin = "50% 0";
+    if (singleLine) node.style.transformOrigin = "50% 50%";
+  }
+  node._fitScale = scale;
+}
+
+/* ---------------- per-frame application --------------------------------- */
+function wordEnter(wd, t) {
+  // style for a word at time t (seconds); enters over 7f starting
+  // WORD_LEAD (2 frames) before the authored speech onset. The entry
+  // motion is the caption style (wd.entry): pop is the house default;
+  // stretch/wiggle/glide/bounce are the dynamic set. All are pure
+  // functions of the frame clock and none touches the opacity curve,
+  // so the semi-transparent discipline is style-independent.
+  const dt = t - (wd.at - WORD_LEAD);
+  const enterF = 7 / FPS, p = clamp01(dt / enterF);
+  const entry = wd.entry || "pop";
+  let blur = 6 * (1 - easeOut(p));
+  let y = 34 * (1 - easeOut(p));
+  let x = 0;
+  let rot = 1.6 * (1 - easeOut(p));
+  const op = clamp01(dt / (2 / FPS));
+  let scale = 1, sx = null, sy = null;
+  if (entry === "glide") {           // slides in from the left, sharp
+    x = -54 * (1 - easeOut(p)); y = 0; blur = 0; rot = 0;
+  } else if (entry === "stretch") {  // rubber-band: wide -> true width
+    sx = 0.45 + 0.55 * easeOutBack(p); sy = 1;
+    blur = 3 * (1 - p); y = 10 * (1 - easeOut(p)); rot = 0;
+  } else if (entry === "bounce") {   // drops in big, settles
+    scale = 0.55 + 0.45 * easeOutBack(p);
+    blur = 4 * (1 - p); y = 16 * (1 - easeOut(p));
+  }
+  if (entry === "wiggle" && dt > enterF)   // lands, then wiggles off
+    rot += Math.sin((dt - enterF) * 22) * 2.6 * Math.exp(-(dt - enterF) * 5);
+  if (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero") {
+    const pk = clamp01(dt / ((10 / THEME.speed) / FPS));
+    scale = pk < 0.62 ? 0.85 + (1.08 - 0.85) * themeEase(pk / 0.62)
+                     : 1.08 - 0.08 * themeEase((pk - 0.62) / 0.38);
+    sx = sy = null;
+  }
+  return { blur, y, x, rot, op, scale, sx, sy };
+}
+
+function exitFade(endT, t) {
+  // spec exit: 8 frames - 12 px slide + blur across all 8, opacity only
+  // in the last 2 (a graphic is never semi-transparent >2 frames);
+  // endT is the exit START; the element is fully gone at endT + 8f
+  const dt = t - endT;
+  const p = clamp01(dt / (8 / FPS));
+  const op = dt <= 6 / FPS ? 1 : clamp01(1 - (dt - 6 / FPS) / (2 / FPS));
+  return { blur: 6 * easeIn(p), slide: 12 * easeIn(p), op };
+}
+
+const WORD_LEAD = 2 / FPS;   // words appear 2 frames BEFORE the onset
+function applyWord(wd, t, until) {
+  const e = wordEnter(wd, t);
+  // karaoke captions: the word being spoken right now lights up in the
+  // accent and leans in 13%; it settles back to white when the next
+  // word starts. Colour/scale only - opacity keeps its 2-frame entry/
+  // exit discipline, so the semi-transparent QC is untouched. Key
+  // words keep their plate (already the highlight of the stack).
+  let karaNow = false;
+  if (wd.kara && wd.kind !== "key" && wd.kind !== "hero") {
+    // heroes never swell: a hero already fills its row, so the
+    // karaoke 13% lean-in pushed MILLIONAIRE off-frame (user-
+    // reported on test edit #1). Heroes keep colour + glow only.
+    karaNow = t >= wd.at - WORD_LEAD && t < (wd.end ?? until);
+    if (karaNow) {
+      e.scale *= 1.13;
+      if (e.sx != null) { e.sx *= 1.13; e.sy *= 1.13; }
+    }
+  }
+  // a word always completes its entry first: its exit cannot start
+  // until its (lead-shifted) pop has finished (blur cross-swap)
+  const x = exitFade(Math.max(until, wd.at + 8 / FPS), t);
+  const elx = wd.el;
+  if (wd.kara && wd.kind !== "key" && wd.kind !== "neon" && wd.kind !== "hero")
+    elx.style.color = karaNow ? (wd.ac || "#FF3355") : "";
+  const glow = wd.el.dataset.glow === "1" || wd.kind === "key";
+  let shadow = "0 6px 22px rgba(0,0,0,.45)";
+  if (karaNow && wd.kind !== "neon")
+    shadow = `0 0 34px ${hexA(wd.ac || "#FF3355", .85)}, 0 6px 22px rgba(0,0,0,.45)`;
+  if (wd.kind === "key" || wd.kind === "hero") {
+    const dt = t - (wd.at - WORD_LEAD);
+    const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
+    const c = wd.el.dataset.glowc || wd.el.style.color;
+    shadow = `0 0 ${26 * pulse + 10}px ${c}, 0 6px 22px rgba(0,0,0,.4)`;
+  }
+  if (wd.kind === "neon" || wd.finish === "neon") {
+    // electric glow with a 4-frame flicker at entry (glow only - the
+    // word's opacity curve stays clean for the semi-transparent QC)
+    const f = Math.round((t - (wd.at - WORD_LEAD)) * FPS);
+    const flick = f >= 3 && f <= 6 ? [0.45, 1, 0.6, 1][f - 3] : 1;
+    const c = wd.el.style.color || wd.ac || "#FF3355";
+    shadow = `0 0 ${Math.round(17 * flick)}px ${c}, 0 0 ${Math.round(46 * flick)}px ${c}, 0 6px 22px rgba(0,0,0,.45)`;
+  }
+  elx.style.opacity = Math.min(e.op, x.op).toFixed(3);
+  elx.style.filter = `blur(${Math.max(e.blur, x.blur).toFixed(2)}px)`;
+  elx.style.transform = `translate(${((e.x || 0)).toFixed(1)}px, ${(e.y + x.slide).toFixed(1)}px) ` +
+    `rotate(${e.rot.toFixed(2)}deg) ` +
+    `scale(${(e.sx != null ? e.sx : e.scale).toFixed(3)}, ${(e.sy != null ? e.sy : e.scale).toFixed(3)})`;
+  elx.style.textShadow = shadow;
+  trackSemi(elx, Math.min(e.op, x.op));
+}
+
+const stage = document.getElementById("stage");
+function trackSemi(elx, op) {
+  // per-element accounting: a single word may not linger semi-transparent
+  // for more than 2 consecutive frames (spec QC); different words
+  // crossfading through each other is the designed transition
+  const semi = op > 0.04 && op < 0.96;
+  elx._semiRun = semi ? (elx._semiRun || 0) + 1 : 0;
+  elx._semiMax = Math.max(elx._semiMax || 0, elx._semiRun);
+  if (stats && semi) stats.semiFrames++;
+  if (stats) stats.semiMaxRun = Math.max(stats.semiMaxRun || 0, elx._semiMax);
+}
+
+function renderAt(tMs) {
+  const t = tMs / 1000;
+  stats = { semiFrames: 0, semiMaxRun: 0 };
+  for (const b of builtItems) {
+    const it = b.item;
+    const active = t >= it.at - 0.001 - (b.words ? WORD_LEAD : 0) &&
+                   t < (it.until ?? it.at + 2) + 10 / FPS;
+    b.root.style.display = active ? "" : "none";
+    if (!active) continue;
+    if (b.words) b.words.forEach(wd => applyWord(wd, t, it.until ?? it.at + 2));
+    const dwell = Math.max(0.001, (it.until ?? it.at + 2) - it.at);
+    const lifeP = clamp01((t - it.at) / dwell);
+    // idle motion (spec: nothing fully static beyond 0.8 s): text
+    // stacks breathe 100 -> 103% across their whole lifetime
+    if (b.stack) {
+      const drift = 1 + 0.03 * lifeP;
+      if (b.sp3d) {
+        // standing in the room: perspective tilt (rotY/rotX around the
+        // authored anchor) + optional zoom-lock - when the camera
+        // pushes 1.00 -> 1.05, author zoom [1, 1.05] and the word
+        // scales with the room instead of floating over it
+        const p3 = b.sp3d;
+        const z = p3.zoom ? p3.zoom[0] + (p3.zoom[1] - p3.zoom[0]) * lifeP : 1;
+        b.stack.style.transform =
+          `perspective(${(p3.persp || 950).toFixed(0)}px) ` +
+          `rotateY(${(p3.rotY || 0).toFixed(2)}deg) ` +
+          `rotateX(${(p3.rotX || 0).toFixed(2)}deg) ` +
+          `scale(${(((b.stack._fitScale || 1) * drift) * z).toFixed(4)})`;
+      } else {
+        b.stack.style.transform = `scale(${((b.stack._fitScale || 1) * drift).toFixed(4)})`;
+      }
+      b.stack.style.transformOrigin = "50% 50%";
+    }
+    if (b.bar) {
+      const dt = t - it.at, until = it.until ?? it.at + 2;
+      const wipe = clamp01(dt / (8 / FPS));          // mask wipe 8f
+      const L = lifeFx(t, it.at, until, 8);
+      b.bar.style.clipPath = `inset(-30% ${(1 - easeOut(wipe)) * 100}% -30% 0 round 999px)`;
+      b.bar.style.filter = `blur(${(L.blur * 1.3).toFixed(2)}px)`;
+      b.bar.style.opacity = L.op.toFixed(3);
+      b.bar.style.transform = `translateY(${L.slide.toFixed(1)}px) scale(${(1 + 0.02 * lifeP).toFixed(4)})`;
+      // entry streak rides the wipe; afterwards a shine sweep ~1.2 s
+      let sweep = wipe, shine = wipe > 0 && wipe < 1;
+      if (wipe >= 1) { const c = ((t - it.at) / 1.2) % 1; sweep = c; shine = c < 0.45; }
+      b.streak.style.left = `${-30 + sweep * 150}%`;
+      b.streak.style.opacity = shine ? 0.9 : 0;
+      trackSemi(b.bar, L.op);
+    }
+    if (b.node) {
+      const dt = t - it.at, dur = it.dur || 0.45;
+      const p = clamp01(dt / dur);
+      let op = 0, scale = 1;
+      if (it.kind === "flash") op = p < 0.3 ? easeOut(p / 0.3) : 1 - easeIn((p - 0.3) / 0.7);
+      else if (it.kind === "flare") { op = Math.sin(p * Math.PI); }   // leak peak sits on the cut
+      else if (it.kind === "leak") { op = Math.sin(p * Math.PI) * 0.85; b.node.style.left = `${-20 + p * 120}%`; }
+      b.node.style.opacity = (op * (it.strength || 1)).toFixed(3);
+      if (it.kind === "flare") b.node.style.transform =
+        `translate(${(-2 + p * 4).toFixed(2)}%, ${(-1 + p * 2).toFixed(2)}%) scale(1.06)`;
+    }
+    if (b.lower) {
+      const until = it.until ?? it.at + 2;
+      const pin = easeOut(clamp01((t - it.at) / (10 / FPS)));
+      // dissolve exactly AT until, gone in 2 frames (the vector law -
+      // no exit overhang over whatever comes next)
+      const xq = clamp01((t - until) / (2 / FPS));
+      const op = Math.min(clamp01((t - it.at) / (2 / FPS)), 1 - xq);
+      b.lower.style.opacity = op.toFixed(3);
+      // idle life (QC law: nothing fully static >0.8s): a slow drift
+      // plus a shine sweep across the plate every 1.2s, chip-style
+      b.lower.style.transform =
+        `translateX(${(-112 * (1 - pin) - 10 * xq).toFixed(1)}%) ` +
+        `scale(${(1 + 0.012 * lifeP).toFixed(4)})`;
+      if (b.ltStreak) {
+        const c = ((t - it.at) / 1.2) % 1;
+        b.ltStreak.style.left = `${-30 + c * 150}%`;
+        b.ltStreak.style.opacity = pin >= 1 && c < 0.45 ? 0.9 : 0;
+      }
+      trackSemi(b.lower, op);
+    }
+    if (b.slate) {
+      // hook slate / end card: lines stagger in over ~6f each,
+      // slate drifts (idle law), dissolves exactly AT until in 2f
+      const until = it.until ?? it.at + 1.2;
+      const op = Math.min(clamp01((t - it.at) / (2 / FPS)),
+                          clamp01(1 - (t - until) / (2 / FPS)));
+      b.slate.style.opacity = op.toFixed(3);
+      b.slate.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;
+      (b.hkLines || []).forEach((ln, i) => {
+        const p = easeOut(clamp01((t - it.at - i * 0.09) / (6 / FPS)));
+        ln.style.opacity = clamp01((t - it.at - i * 0.09) / (2 / FPS)).toFixed(3);
+        ln.style.transform = `translateY(${((1 - p) * 34).toFixed(1)}px)`;
+      });
+      trackSemi(b.slate, op);
+    }
+    if (b.item.type === "card") {
+      const until = it.until ?? it.at + 2;
+      const inP = clamp01((t - it.at) / (2 / FPS));   // bg snaps in 2f (no ghosting)
+      const L = lifeFx(t, it.at, until, 8);
+      b.root.style.opacity = Math.min(inP, L.op).toFixed(3);
+      b.root.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;
+    }
+    if (b.pipCard) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 10);
+      b.pipCard.style.opacity = L.op.toFixed(3);
+      b.pipCard.style.filter = `blur(${(L.blur * 1.4).toFixed(2)}px)`;
+      b.pipCard.style.transform = `translateY(${((1 - easeOut(L.pIn)) * 46 + L.slide).toFixed(1)}px) ` +
+        `rotate(${(-1.4 * (1 - easeOut(L.pIn))).toFixed(2)}deg) ` +
+        `scale(${((0.88 + 0.12 * easeOut(L.pIn)) * (1 + 0.02 * lifeP)).toFixed(3)})`;
+      b.pipImg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)})`;  // 100->108 push-in
+      trackSemi(b.pipCard, L.op);
+    }
+    if (b.win) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 10);
+      if (b.bfull) {
+        if (b.vec) {
+          // Vector vehicles: clean 2f dissolve in/out, nothing else. The
+          // shared exit profile (6px blur + 12px slide while opacity holds,
+          // then a 2f plunge) smears a full-screen SVG into a ghost flash
+          // on exit - viewers read it as the scene "glitching back" for a
+          // microsecond. NO fractional scales either: a scaled SVG layer
+          // makes headless Chromium mis-sample raster tiles (ghost copies
+          // of the scene stamped into wrong tiles, seen on `network`).
+          // The scene animates internally; it needs no photo push-in.
+          // Exit timing matters as much as the profile: the shared
+          // exitFade holds opacity at 1 for 6f PAST until and only then
+          // dissolves, so the scene melts over the NEXT item's first
+          // frames - a full-screen ghost hanging over the new caption
+          // (seen on chat: beat ended 23.04, ghost dissolved at 23.27
+          // over the incoming poster). A vector scene instead dissolves
+          // AT until and is gone within 2f; the beat boundary is exact.
+          b._vecOp = Math.min(clamp01((t - it.at) / (2 / FPS)),
+                              clamp01(1 - (t - until) / (2 / FPS)));
+          b.win.style.opacity = b._vecOp.toFixed(3);
+          b.win.style.filter = "none";
+          b.win.style.transform = "none";
+          b.bimg.style.transform = "none";
+        } else {
+          b.win.style.opacity = L.op.toFixed(3);
+          b.win.style.filter = `blur(${(L.blur).toFixed(2)}px)`;
+          b.win.style.transform = `translateY(${L.slide.toFixed(1)}px) scale(${(1 + 0.015 * lifeP).toFixed(4)})`;
+          b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)})`;  // 100->108 push-in
+        }
+      } else {
+        const p = easeOut(L.pIn);
+        b.win.style.clipPath = `inset(${((1 - p) * 44).toFixed(2)}% ${((1 - p) * 10).toFixed(2)}% ` +
+          `${((1 - p) * 44).toFixed(2)}% ${((1 - p) * 10).toFixed(2)}% round 40px)`;
+        b.win.style.opacity = L.op.toFixed(3);
+        b.win.style.filter = `blur(${(L.blur * 1.4).toFixed(2)}px)`;
+        b.win.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
+        b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)}) translateX(${(-1.6 + 3.2 * lifeP).toFixed(2)}%)`;
+      }
+      trackSemi(b.win, b._vecOp !== undefined ? b._vecOp : L.op);
+    }
+    if (b.vec) animateVector(b, t, lifeP);
+    if (b.num) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 6);
+      const cd = it.countDur || 0.9;
+      const p = clamp01((t - it.at) / cd);
+      b.numVal.textContent = fmtVal((it.value || 0) * easeOut(p), it.decimals || 0);
+      let sc = 0.92 + 0.08 * easeOut(clamp01((t - it.at) / (6 / FPS)));
+      if (p >= 1) {   // landing pulse 100 -> 106 -> 100 over 6 frames
+        const q = clamp01((t - it.at - cd) / (6 / FPS));
+        sc *= 1 + 0.06 * Math.sin(q * Math.PI);
+        // then a slow glow pulse keeps the landed number alive
+        const gp = 0.5 + 0.5 * Math.sin(((t - it.at - cd) / 1.2) * Math.PI * 2);
+        b.num.style.textShadow = `0 0 ${(18 + 22 * gp).toFixed(0)}px ${hexA(it.accent || ACCENT, .55)}, ` +
+          `0 10px 34px rgba(0,0,0,.45)`;
+      }
+      b.num.style.opacity = L.op.toFixed(3);
+      b.num.style.filter = `blur(${(L.blur * 1.4).toFixed(2)}px)`;
+      b.num.style.transform = `scale(${sc.toFixed(3)})`;
+      if (b.cwrap) {   // the label exits with the number (slide + same profile)
+        b.cwrap.style.opacity = L.op.toFixed(3);
+        b.cwrap.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
+      }
+      trackSemi(b.num, L.op);
+    }
+    if (b.plates) {
+      const until = it.until ?? it.at + 2;
+      const x = exitFade(until, t);
+      b.root.style.opacity = x.op.toFixed(3);
+      b.root.style.filter = `blur(${(x.blur * 1.2).toFixed(2)}px)`;
+      b.root.style.transform = `translateY(${x.slide.toFixed(1)}px)`;
+      if (b.lwrap) b.lwrap.style.transform = `scale(${(1 + 0.02 * lifeP).toFixed(4)})`;
+      if (b.lhead) b.lhead.style.opacity = clamp01((t - it.at) / (2 / FPS)).toFixed(3);
+      let lastStarted = -1;
+      b.plates.forEach((pl, i) => { if (t >= pl.at) lastStarted = i; });
+      b.plates.forEach((pl, i) => {
+        const dt = t - pl.at;
+        const p = easeOut(clamp01(dt / (7 / FPS)));
+        const op = clamp01(dt / (2 / FPS));
+        pl.el.style.opacity = op.toFixed(3);
+        pl.el.style.transform = `translateX(${(-70 * (1 - p)).toFixed(1)}px)`;
+        pl.el.style.filter = `blur(${(5 * (1 - p)).toFixed(2)}px)`;
+        const active = i === lastStarted;
+        pl.badge.style.background = active ? (it.accent || ACCENT) : "rgba(255,255,255,.16)";
+        pl.badge.style.color = active ? "#0d0f12" : "#ffffff";
+        trackSemi(pl.el, op);
+      });
+    }
+    if (b.steps) {
+      const until = it.until ?? it.at + 2;
+      const x = exitFade(until, t);
+      b.root.style.opacity = x.op.toFixed(3);
+      b.root.style.filter = `blur(${(x.blur * 1.2).toFixed(2)}px)`;
+      b.root.style.transform = `translateY(${x.slide.toFixed(1)}px)`;
+      if (b.pwrap) b.pwrap.style.transform =
+        `translateY(-50%) scale(${(1 + 0.02 * lifeP).toFixed(4)})`;
+      let lastStarted = -1;
+      b.steps.forEach((s, i) => { if (t >= s.at) lastStarted = i; });
+      b.steps.forEach((s, i) => {
+        const dt = t - s.at;
+        const p = easeOut(clamp01(dt / (7 / FPS)));
+        const op = clamp01(dt / (2 / FPS));
+        s.row.style.opacity = op.toFixed(3);
+        s.row.style.transform = `translateY(${(26 * (1 - p)).toFixed(1)}px)`;
+        if (i < lastStarted) {
+          s.circ.textContent = "✓";
+          s.circ.style.background = "rgba(255,255,255,.14)";
+          s.circ.style.color = "#ffffff";
+          s.circ.style.border = `3px solid ${hexA(it.accent || ACCENT, .85)}`;
+          s.circ.style.boxShadow = "none";
+        } else if (i === lastStarted) {
+          s.circ.textContent = String(i + 1);
+          s.circ.style.background = it.accent || ACCENT;
+          s.circ.style.color = "#0d0f12";
+          s.circ.style.border = "3px solid transparent";
+          s.circ.style.boxShadow = `0 0 30px ${hexA(it.accent || ACCENT, .55)}`;
+        } else {
+          s.circ.textContent = String(i + 1);
+          s.circ.style.background = "transparent";
+          s.circ.style.color = "rgba(255,255,255,.55)";
+          s.circ.style.border = "3px solid rgba(255,255,255,.3)";
+          s.circ.style.boxShadow = "none";
+        }
+        if (s.line) s.line.style.background = i < lastStarted ? (it.accent || ACCENT) : "rgba(255,255,255,.18)";
+        trackSemi(s.row, op);
+      });
+    }
+  }
+  return stats;
+}
+
+window.setTimeline = function (tl) {
+  TL = tl;
+  ACCENT = (tl.brand && tl.brand.accent) || ACCENT;
+  if (tl.theme) THEME = Object.assign({}, THEME, tl.theme);
+  const rad = { sharp: "6px", round: "26px", pill: "999px" }[THEME.radius] || "26px";
+  let st = document.getElementById("themeStyle");
+  if (!st) { st = document.createElement("style"); st.id = "themeStyle"; document.head.appendChild(st); }
+  st.textContent =
+    `.chip .bar, .listp .plate, .proc .srow, .card, .pip .pcard { border-radius: ${rad} !important; }` +
+    (THEME.fontMode === "serif"
+      ? `.poster .w, .card .cw { font-family: "SerifX"; font-style: italic; }` : "") +
+    // adaptive caption shade (produce.py measures the caption-zone
+    // luminance and raises this on bright footage): deepens the
+    // stack's ground plate so words hold 4.5:1 anywhere
+    (THEME.captionShade > 0
+      ? `.poster .stack::before { background: radial-gradient(ellipse at center, rgba(4,7,10,${Math.min(0.92, 0.55 + THEME.captionShade).toFixed(2)}) 55%, rgba(4,7,10,0) 88%) !important; }` : "") +
+    // font pack (theme fontPack / produce --font): one display face
+    // across posters, cards, slates, chips, lower-thirds, counters.
+    // Serif-italic WORDS keep SerifX - that contrast is a meaning
+    // cue (reflective), not a style accident.
+    ({ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk",
+       serif: "PackSerif", archivo: "PackArchivo",
+       poppins: "PackPoppins", luckiest: "PackLuckiest" }[THEME.fontPack]
+      ? `.poster .w, .card .cw, .slate .hk-line, .slate .hk-kicker, .slate .hk-sub, .chip .t1, .lowerthird .ltname, .counter .num { font-family: "${{ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk", serif: "PackSerif", archivo: "PackArchivo", poppins: "PackPoppins", luckiest: "PackLuckiest" }[THEME.fontPack]}" !important; }` : "");
+  stage.innerHTML = "";
+  builtItems = [];
+  layoutJobs.length = 0;
+  const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx,
+                     pip: buildPip, broll: buildBroll, counter: buildCounter,
+                     list: buildList, process: buildProcess, vector: buildVector,
+                     lowerthird: buildLower, hook: buildHook, endcard: buildEndcard };
+  for (const item of tl.items || []) {
+    if (item.type === "fx" && item.until == null) item.until = item.at + (item.dur || 0.45);
+    const b = builders[item.type];
+    if (b) builtItems.push(b(item));
+  }
+  return builtItems.length;
+};
+window.renderAt = renderAt;
+window.layoutStage = function () {
+  // run once fonts are in: autofit must measure with real metrics
+  for (const job of layoutJobs) job();
+  return layoutJobs.length;
+};
+</script>
+</body>
+</html>

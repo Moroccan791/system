@@ -1,0 +1,176 @@
+{
+  "video_profile": {
+    "lab": [
+      127.95290343915346,
+      133.67760251322753,
+      139.77110229276894
+    ],
+    "lab_std": [
+      58.099413264350765,
+      7.546419884865925,
+      7.242381229464777
+    ],
+    "luma": 137.55908840388005,
+    "sat": 75.37244929453263,
+    "grain_sigma": 4.534690168925694,
+    "lighting": "warm indoor light",
+    "palette_words": "muted earthy tones"
+  },
+  "clip": "unavailable - every generated image flagged needs_user_review",
+  "slots": [
+    {
+      "id": "hoop",
+      "type": "pip",
+      "sentence": "We need a basketball hoop for the lounge",
+      "prompts": [
+        "a basketball hoop mounted on the wall of a cozy student lounge, basketball resting on a couch below, close-up, shallow depth of field, 85mm lens, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos",
+        "a basketball hoop mounted on the wall of a cozy student lounge, basketball resting on a couch below, medium shot, 50mm lens, subject off-centre, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos",
+        "a basketball hoop mounted on the wall of a cozy student lounge, basketball resting on a couch below, wide environmental shot, 35mm lens, deep focus, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos",
+        "a basketball hoop mounted on the wall of a cozy student lounge, basketball resting on a couch below, low-angle detail shot, shallow depth of field, 85mm lens, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos"
+      ],
+      "negative_prompt": "text, watermark, logo, extra fingers, distorted faces, plastic skin, oversaturated, generic stock photo, staged smile, looking at camera, blurry, lowres",
+      "candidates": [
+        {
+          "file": "work/stage_b/hoop/cand1_closeup.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 389.3,
+          "clipped": 0.038,
+          "palette_dE": 11.4,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        },
+        {
+          "file": "work/stage_b/hoop/cand2_medium.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 657.0,
+          "clipped": 0.016,
+          "palette_dE": 8.3,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        },
+        {
+          "file": "work/stage_b/hoop/cand3_wide.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 1050.9,
+          "clipped": 0.041,
+          "palette_dE": 16.8,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        },
+        {
+          "file": "work/stage_b/hoop/cand4_lowangle.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 550.6,
+          "clipped": 0.057,
+          "palette_dE": 13.2,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        }
+      ],
+      "chosen": {
+        "file": "motion/review_b/images/hoop__chosen.jpg",
+        "from": "work/stage_b/hoop/cand3_wide.jpg",
+        "graded": true,
+        "cropped_to_subject": true,
+        "needs_user_review": true
+      }
+    },
+    {
+      "id": "led",
+      "type": "broll",
+      "sentence": "Crazy LED lights set the vibe",
+      "prompts": [
+        "a cozy student lounge at dusk glowing with colourful LED strip lights along the ceiling edge, couch and posters, close-up, shallow depth of field, 85mm lens, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos",
+        "a cozy student lounge at dusk glowing with colourful LED strip lights along the ceiling edge, couch and posters, medium shot, 50mm lens, subject off-centre, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos",
+        "a cozy student lounge at dusk glowing with colourful LED strip lights along the ceiling edge, couch and posters, wide environmental shot, 35mm lens, deep focus, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos",
+        "a cozy student lounge at dusk glowing with colourful LED strip lights along the ceiling edge, couch and posters, low-angle detail shot, shallow depth of field, 85mm lens, warm indoor light, muted earthy tones, photorealistic photograph, natural unposed moment, no staged smiles, no text, no logos"
+      ],
+      "negative_prompt": "text, watermark, logo, extra fingers, distorted faces, plastic skin, oversaturated, generic stock photo, staged smile, looking at camera, blurry, lowres",
+      "candidates": [
+        {
+          "file": "work/stage_b/led/cand1_closeup.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 216.0,
+          "clipped": 0.066,
+          "palette_dE": 17.2,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        },
+        {
+          "file": "work/stage_b/led/cand2_medium.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 1108.2,
+          "clipped": 0.07,
+          "palette_dE": 20.8,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        },
+        {
+          "file": "work/stage_b/led/cand3_wide.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 651.2,
+          "clipped": 0.087,
+          "palette_dE": 21.8,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        },
+        {
+          "file": "work/stage_b/led/cand4_detail.jpg",
+          "w": 768,
+          "h": 1376,
+          "needs_upscale": true,
+          "sharpness": 194.7,
+          "clipped": 0.084,
+          "palette_dE": 25.7,
+          "clip_relevance": null,
+          "clip_note": "CLIP UNAVAILABLE (weights unreachable) - flagged for user review",
+          "needs_user_review": true,
+          "failures": [],
+          "pass": true
+        }
+      ],
+      "chosen": {
+        "file": "motion/review_b/images/led__chosen.jpg",
+        "from": "work/stage_b/led/cand2_medium.jpg",
+        "graded": true,
+        "cropped_to_subject": true,
+        "needs_user_review": true
+      }
+    }
+  ]
+}

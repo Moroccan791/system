@@ -1,0 +1,23 @@
+{
+  "source": {
+    "file": "campaigns/michael_sartain/raw/YTDown.com_YouTube_Media_-c3nAjmpSD4_Women-Will-Only-Make-You-Wait-If-You-re-A-Beta_002_480p.mp4",
+    "name": "YTDown.com_YouTube_Media_-c3nAjmpSD4_Women-Will-Only-Make-You-Wait-If-You-re-A-Beta_002_480p.mp4"
+  },
+  "campaign": "michael_sartain",
+  "mode": "manual-semantic",
+  "candidates": [
+    {
+      "id": "#B1",
+      "start": 309.8,
+      "end": 350.2,
+      "duration": 40.4,
+      "score": 0.9,
+      "text": "No offense to you, no thanks to you or anyone else, I'm not waiting five months... The man in me going five months without sex...",
+      "reasons": [
+        "HOOK: 'I'm not waiting five months' defiance in the first seconds; story + studies payoff; Michael owns the stretch (guest reaction coverage inside)",
+        "40.4s: inside the campaign 20-180s window",
+        "the five-months flagship: best-performing Sartain moment found in the Beta episode"
+      ]
+    }
+  ]
+}
