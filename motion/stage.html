@@ -1148,7 +1148,16 @@ function renderAt(tMs) {
           // makes headless Chromium mis-sample raster tiles (ghost copies
           // of the scene stamped into wrong tiles, seen on `network`).
           // The scene animates internally; it needs no photo push-in.
-          b.win.style.opacity = L.op.toFixed(3);
+          // Exit timing matters as much as the profile: the shared
+          // exitFade holds opacity at 1 for 6f PAST until and only then
+          // dissolves, so the scene melts over the NEXT item's first
+          // frames - a full-screen ghost hanging over the new caption
+          // (seen on chat: beat ended 23.04, ghost dissolved at 23.27
+          // over the incoming poster). A vector scene instead dissolves
+          // AT until and is gone within 2f; the beat boundary is exact.
+          b._vecOp = Math.min(clamp01((t - it.at) / (2 / FPS)),
+                              clamp01(1 - (t - until) / (2 / FPS)));
+          b.win.style.opacity = b._vecOp.toFixed(3);
           b.win.style.filter = "none";
           b.win.style.transform = "none";
           b.bimg.style.transform = "none";
@@ -1167,7 +1176,7 @@ function renderAt(tMs) {
         b.win.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
         b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)}) translateX(${(-1.6 + 3.2 * lifeP).toFixed(2)}%)`;
       }
-      trackSemi(b.win, L.op);
+      trackSemi(b.win, b._vecOp !== undefined ? b._vecOp : L.op);
     }
     if (b.vec) animateVector(b, t, lifeP);
     if (b.num) {
