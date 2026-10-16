@@ -50,9 +50,14 @@ def treat_base(base: Path, job: Path) -> Path:
     sys.path.insert(0, str(ROOT))
     from clipper.ffmpeg import ffmpeg_exe
     out = job / "base_treated.mp4"
+    # crf18/veryfast for the INTERMEDIATE (was crf16/medium: a 60s
+    # clip made a ~1GB treated file and every downstream stage -
+    # transitions, matte, composite - paid for decoding it; the
+    # treatment look lives in the filter chain, and the delivery
+    # encode is capped at 10M anyway)
     r = run([ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),
-             "-vf", TREAT_VF, "-c:v", "libx264", "-crf", "16",
-             "-preset", "medium", "-c:a", "copy", str(out)])
+             "-vf", TREAT_VF, "-c:v", "libx264", "-crf", "18",
+             "-preset", "veryfast", "-c:a", "copy", str(out)])
     if r.returncode != 0:
         raise RuntimeError(f"base treatment failed: {r.stderr[-300:]}")
     return out
@@ -147,7 +152,7 @@ def main() -> int:
 
     if opt("--treat", "on") != "off":
         base = treat_base(base, job)
-        log["treatment"] = "B (hqdn3d+unsharp+grain, crf16); base_treated.mp4"
+        log["treatment"] = "B (hqdn3d+unsharp+grain, crf18); base_treated.mp4"
         log["base_treated"] = str(base)
 
     theme = load_theme(opt("--theme"), base, tl_src, log)
