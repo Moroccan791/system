@@ -53,6 +53,16 @@ def propose(words: list[dict], duration: float) -> list[dict]:
         out.append(item)
         used.append((item["at"], item["until"]))
 
+    def metaphor(name: str, label: str, reason: str, word: dict) -> bool:
+        # a literal-metaphor scene: 1.0-1.8s, at most once per clip each
+        s = round(max(0.0, float(word["start"]) - 0.1), 2)
+        u = round(float(word["start"]) + 1.6, 2)
+        if free(s, u) and not any(o.get("name") == name for o in out):
+            add({"type": "vector", "name": name, "mode": "fullbleed",
+                 "label": label, "at": s, "until": u}, reason, word["text"])
+            return True
+        return False
+
     texts = [w["text"].strip(".,!?\"'()").lower() for w in words]
     for i, w in enumerate(words):
         t = texts[i]
@@ -263,6 +273,36 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                     "driving is the analogy - a car crosses the frame",
                     w["text"])
                 continue
+        # --- literal metaphors, batch 2: say it, show it ----------------------
+        mt = None
+        if t.startswith("ghost"):
+            mt = ("ghost", "GHOSTED", "vanished mid-conversation - a ghost drifts off")
+        elif t in ("domino", "dominoes"):
+            mt = ("dominoes", "THE DOMINO EFFECT", "one thing leads to another - the row goes down")
+        elif t == "iceberg":
+            mt = ("iceberg", "TIP OF THE ICEBERG", "the hidden bulk is the point - show it under the line")
+        elif t in ("idea", "ideas", "lightbulb", "brainwave"):
+            mt = ("bulb", "THE IDEA", "the lightbulb moment - it flickers on")
+        elif t in ("fire", "flame", "flames", "burning", "burnout"):
+            mt = ("flame", "ON FIRE", "heat and momentum - flames carry it")
+        elif t in ("seed", "seeds", "planted", "sprout", "roots", "blossom"):
+            mt = ("sprout", "WATCH IT GROW", "planted now, grows later - stem and leaves")
+        elif t in ("chess", "checkers"):
+            mt = ("chess", "CHESS, NOT CHECKERS", "strategy over impulse - the pawn advances")
+        elif t in ("strategy", "strategic"):
+            mt = ("chess", "THE LONG GAME", "strategy over impulse - the pawn advances")
+        elif t in ("anchor", "anchored"):
+            mt = ("anchor", "THE ANCHOR", "what drags and holds - the anchor drops")
+        elif t in ("balloon", "balloons"):
+            mt = ("balloon", "RISE ABOVE IT", "lift above the noise - the balloon climbs")
+        elif t in ("flag", "red") and "red" in ctx and "flag" in ctx:
+            mt = ("redflag", "RED FLAG", "a warning sign in plain words - fly it")
+        elif t in ("wall", "walls") or (t == "guard" and "up" in ctx):
+            mt = ("wall", "THE WALL IS UP", "guard up, brick by brick - then it cracks")
+        elif t == "compass" or (t == "north" and "true" in ctx):
+            mt = ("compass", "TRUE NORTH", "direction after noise - the needle settles")
+        if mt and metaphor(mt[0], mt[1], mt[2], w):
+            continue
         # --- a win -> trophy -----------------------------------------------------------
         if t in ("trophy", "won", "winner", "champion", "championship"):
             s, u = round(at - 0.2, 2), round(at + 2.1, 2)

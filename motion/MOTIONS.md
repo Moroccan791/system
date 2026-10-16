@@ -275,6 +275,32 @@ A car drives a dashed road across the frame while the line is spoken.
 `assign.py` fires it on road/drive speech. Same 1.0–1.8s metaphor
 dwell. If the speech carries real distance/time, use timeline instead.
 
+#### The metaphor shelf (batch 2) — say it, show it
+Twelve more literal pictures, same rules as cowfield/roadcar:
+`assign.py` trigger word → scene for 1.0–1.8s, at most once each per
+clip. When a speaker reaches for an analogy, the shelf should have it:
+
+| Scene | Trigger speech | The picture |
+|---|---|---|
+| `dominoes` | domino/dominoes | first (accent) domino falls, the row follows |
+| `iceberg` | iceberg | white tip, the real mass glowing under the waterline |
+| `bulb` | idea/lightbulb/brainwave | the bulb flickers, then ON with rays |
+| `flame` | fire/flame/burning/burnout | three-layer flame, sparks rising |
+| `sprout` | seed/planted/roots/blossom | stem grows, leaves pop, roots show |
+| `chess` | chess/checkers/strategy | a pawn advances up the board with intent |
+| `anchor` | anchor/anchored | the anchor drops, splashes, holds |
+| `balloon` | balloon(s) | hot-air balloon rises above drifting clouds |
+| `redflag` | "red flag" | the flag itself, waving on its pole |
+| `ghost` | ghosted/ghosting/ghost | a ghost bobs, blinks, and drifts off sideways |
+| `wall` | wall / "guard up" | bricks stack up — then a crack runs down it |
+| `compass` | compass / "true north" | the needle swings and settles on N |
+
+New metaphors get added the same way these were: one build + one
+animate branch in `stage.html`, a validator allowlist line, a trigger
+row in `assign.py`, a row in this table, a test. A scene that needs
+authored data (counts, prices) is not a metaphor — it belongs to the
+data scenes above.
+
 #### calendar — ORIENT in the week
 Seven day cells pop in; the spoken day (`day` 0=Mon) lights accent and
 rings. Use when a day/date carries the point ("by Friday…").
@@ -619,6 +645,11 @@ long talking stretch every 4–6s when the speech names something visible.
 render.mjs), and `messages[]` pops chat bubbles over it one by one,
 each on its spoken beat — the stock-desk-with-texts device. Bubbles
 stack above the caption label; the label wraps inside the card.
+A starter shelf of generic rolls lives in `assets/broll/rolls/`
+(desk, texting, gym, cafe — slow zoom/pan, 4s, 9:16) for beats no
+campaign footage covers; they are generated, so QC requires the
+ILLUSTRATIVE tag on anything that uses them. Real campaign footage
+always outranks the shelf.
 
 #### phone — SHOW the screen itself (device insert)
 A phone-frame mock (notch, bezel, handle) carrying a profile/screen

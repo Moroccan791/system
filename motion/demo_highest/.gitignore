@@ -1,6 +1,7 @@
 # render intermediates: 960 PNG frames + scratch checks (the sheet,
 # strips, transcript and timeline are the committed evidence)
 frames/
+gallery_frames/
 chk_*.jpg
 base_raw.mp4
 broll_clip.mp4

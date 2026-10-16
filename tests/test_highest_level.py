@@ -208,6 +208,54 @@ def test_stage_renders_the_new_kinds():
         assert token in html, f"stage missing {token}"
 
 
+# ------------------------------------------- metaphor batch 2 (12 scenes)
+NEW_SCENES = ["dominoes", "iceberg", "bulb", "flame", "sprout", "chess",
+              "anchor", "balloon", "redflag", "ghost", "wall", "compass"]
+
+
+def test_metaphor_batch_registered_in_stage_and_validator():
+    html = (ROOT / "motion/stage.html").read_text()
+    for name in NEW_SCENES:
+        assert html.count(f'V.name === "{name}"') >= 2, \
+            f"{name}: build + animate branches required"
+    import importlib.util as iu
+    spec = iu.spec_from_file_location("validate", ROOT / "motion/validate.py")
+    src = (ROOT / "motion/validate.py").read_text()
+    for name in NEW_SCENES:
+        assert f'"{name}"' in src, f"{name} missing from validator allowlist"
+
+
+def test_metaphor_batch_triggers_fire():
+    items = assign.propose(
+        words("she@1.0 ghosted@1.3 me@1.6 one@3.0 domino@3.3 falls@3.6 "
+              "a@5.0 red@5.3 flag@5.6 waves@5.9 playing@7.0 chess@7.4 "
+              "now@7.8 an@9.0 idea@9.3 strikes@9.7 the@11.0 wall@11.3 "
+              "is@11.6 up@11.8 an@13.0 iceberg@13.4 looms@13.8"), 16.0)
+    names = {i.get("name") for i in items if i["type"] == "vector"}
+    assert {"ghost", "dominoes", "redflag", "chess", "bulb", "wall",
+            "iceberg"} <= names, names
+    for i in items:
+        if i.get("name") in NEW_SCENES:
+            assert 1.0 <= i["until"] - i["at"] <= 1.8, i
+
+
+def test_each_new_scene_validates(tmp_path):
+    for name in NEW_SCENES:
+        tl = {"version": 1, "fps": 30, "width": 1080, "height": 1920,
+              "duration": 4.0,
+              "brand": {"accent": "#FF3355", "name": "T"},
+              "theme": {"radius": "round", "glow": 1.0, "speed": 1.0,
+                        "easing": "pop", "fontMode": "sans",
+                        "fontPack": "poppins", "captionStyle": "pop"},
+              "items": [{"type": "vector", "name": name, "mode": "fullbleed",
+                         "label": "TEST", "at": 1.0, "until": 2.7}]}
+        p = tmp_path / f"{name}.json"
+        p.write_text(json.dumps(tl))
+        r = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
+                            str(p)], capture_output=True, text=True)
+        assert r.returncode == 0, f"{name}: {r.stdout} {r.stderr}"
+
+
 # ------------------------------------------- fallback + qc event model
 produce = load("produce", "motion/produce.py")
 qc = load("motionqc", "motion/qc.py")

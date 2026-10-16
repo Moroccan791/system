@@ -1,0 +1,134 @@
+{
+ "version": 1,
+ "fps": 30,
+ "width": 1080,
+ "height": 1920,
+ "duration": 27.5,
+ "brand": {
+  "accent": "#FF3355",
+  "name": "Metaphor Gallery"
+ },
+ "theme": {
+  "radius": "round",
+  "glow": 1.0,
+  "speed": 1.1,
+  "easing": "pop",
+  "fontMode": "sans",
+  "fontPack": "poppins",
+  "captionStyle": "pop"
+ },
+ "items": [
+  {
+   "type": "vector",
+   "name": "cowfield",
+   "mode": "fullbleed",
+   "label": "ONE STANDS OUT",
+   "at": 0.4,
+   "until": 2.1
+  },
+  {
+   "type": "vector",
+   "name": "roadcar",
+   "mode": "fullbleed",
+   "label": "DOWN THE ROAD",
+   "at": 2.3,
+   "until": 4.0
+  },
+  {
+   "type": "vector",
+   "name": "dominoes",
+   "mode": "fullbleed",
+   "label": "THE DOMINO EFFECT",
+   "at": 4.2,
+   "until": 5.9
+  },
+  {
+   "type": "vector",
+   "name": "iceberg",
+   "mode": "fullbleed",
+   "label": "TIP OF THE ICEBERG",
+   "at": 6.1,
+   "until": 7.8
+  },
+  {
+   "type": "vector",
+   "name": "bulb",
+   "mode": "fullbleed",
+   "label": "THE IDEA",
+   "at": 8.0,
+   "until": 9.7
+  },
+  {
+   "type": "vector",
+   "name": "flame",
+   "mode": "fullbleed",
+   "label": "ON FIRE",
+   "at": 9.9,
+   "until": 11.6
+  },
+  {
+   "type": "vector",
+   "name": "sprout",
+   "mode": "fullbleed",
+   "label": "WATCH IT GROW",
+   "at": 11.8,
+   "until": 13.5
+  },
+  {
+   "type": "vector",
+   "name": "chess",
+   "mode": "fullbleed",
+   "label": "CHESS, NOT CHECKERS",
+   "at": 13.7,
+   "until": 15.4
+  },
+  {
+   "type": "vector",
+   "name": "anchor",
+   "mode": "fullbleed",
+   "label": "THE ANCHOR",
+   "at": 15.6,
+   "until": 17.3
+  },
+  {
+   "type": "vector",
+   "name": "balloon",
+   "mode": "fullbleed",
+   "label": "RISE ABOVE IT",
+   "at": 17.5,
+   "until": 19.2
+  },
+  {
+   "type": "vector",
+   "name": "redflag",
+   "mode": "fullbleed",
+   "label": "RED FLAG",
+   "at": 19.4,
+   "until": 21.1
+  },
+  {
+   "type": "vector",
+   "name": "ghost",
+   "mode": "fullbleed",
+   "label": "GHOSTED",
+   "at": 21.3,
+   "until": 23.0
+  },
+  {
+   "type": "vector",
+   "name": "wall",
+   "mode": "fullbleed",
+   "label": "THE WALL IS UP",
+   "at": 23.2,
+   "until": 24.9
+  },
+  {
+   "type": "vector",
+   "name": "compass",
+   "mode": "fullbleed",
+   "label": "TRUE NORTH",
+   "at": 25.1,
+   "until": 26.8
+  }
+ ]
+}

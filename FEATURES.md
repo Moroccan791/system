@@ -161,8 +161,10 @@ as spoken, number counting up inside the card; `motion/proof.py`
 matches phrases to the transcript and reports — never guesses — the
 rest), **phone** screen inserts (device mock, scrolling capture),
 **doodle** hand-drawn arrow annotations, literal-metaphor vector scenes
-(**cowfield** purple cow, **roadcar**) plus **video b-roll with chat
-bubbles**, the **`marker` captionStyle** (marker-bar keyword, semantic
+(**cowfield** purple cow, **roadcar**, plus a 12-scene metaphor shelf:
+dominoes, iceberg, bulb, flame, sprout, chess, anchor, balloon,
+redflag, ghost, wall, compass — each on speech triggers) plus **video
+b-roll with chat bubbles** (starter rolls in `assets/broll/rolls/`), the **`marker` captionStyle** (marker-bar keyword, semantic
 structure/payoff accent pair, gradient shout words, emoji glued to a
 word; theme `marker-bold`, `decide.py --caption-style marker`), and
 named **grades** (`teal`/`warm`/`punchy` + selective `subject_pop`

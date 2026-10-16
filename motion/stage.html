@@ -1646,6 +1646,200 @@ function buildScene(svg, V, ac, item, vw, vh) {
     n.wheel1 = svgEl("circle", { cx: -36 * s, cy: 10 * s, r: 13 * s, fill: "#0D0F12", stroke: "#8B98AC", "stroke-width": 4 * s }, car);
     n.wheel2 = svgEl("circle", { cx: 38 * s, cy: 10 * s, r: 13 * s, fill: "#0D0F12", stroke: "#8B98AC", "stroke-width": 4 * s }, car);
     n.car = car; n.roadY = ry;
+  } else if (V.name === "dominoes") {
+    // SHOW causality: the first one falls, the rest follow
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const fy = H * 0.62;
+    svgEl("line", { x1: 30 * s, y1: fy * s, x2: 570 * s, y2: fy * s, stroke: "#2b3547", "stroke-width": 5 * s, "stroke-linecap": "round" }, svg);
+    n.doms = [];
+    for (let i = 0; i < 7; i++) {
+      const x = 52 + i * 66, g = svgEl("g", {}, svg);
+      svgEl("rect", { x: x * s, y: (fy - 118) * s, width: 36 * s, height: 118 * s, rx: 8 * s, fill: i === 0 ? ac : "#E8EDF4" }, g);
+      svgEl("circle", { cx: (x + 18) * s, cy: (fy - 86) * s, r: 5 * s, fill: i === 0 ? "#14181f" : "#41506B" }, g);
+      svgEl("circle", { cx: (x + 18) * s, cy: (fy - 32) * s, r: 5 * s, fill: i === 0 ? "#14181f" : "#41506B" }, g);
+      n.doms.push({ g, px: (x + 36) * s, py: fy * s });
+    }
+  } else if (V.name === "iceberg") {
+    // SHOW the hidden bulk: most of it is under the surface
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#0B1622" }, svg);
+    const wy = H * 0.42;
+    const ice = svgEl("g", {}, svg);
+    n.mass = svgEl("path", { d: `M ${168 * s} ${wy * s} L ${432 * s} ${wy * s} L ${398 * s} ${(wy + 150) * s} L ${330 * s} ${(wy + 258) * s} L ${252 * s} ${(wy + 214) * s} L ${192 * s} ${(wy + 118) * s} Z`, fill: "#7FD4E8", opacity: 0.45 }, ice);
+    svgEl("rect", { x: 0, y: wy * s, width: vw, height: (H - wy) * s, fill: "#0E3A52", opacity: 0.72 }, svg);
+    const tip = svgEl("g", {}, ice);
+    svgEl("path", { d: `M ${212 * s} ${wy * s} L ${300 * s} ${(wy - 176) * s} L ${388 * s} ${wy * s} Z`, fill: "#F4F9FC" }, tip);
+    svgEl("path", { d: `M ${300 * s} ${(wy - 176) * s} L ${300 * s} ${wy * s} L ${212 * s} ${wy * s} Z`, fill: "#D7E8F4" }, tip);
+    svgEl("line", { x1: 60 * s, y1: wy * s, x2: 540 * s, y2: wy * s, stroke: ac, "stroke-width": 4 * s, "stroke-dasharray": `${16 * s} ${12 * s}`, "stroke-linecap": "round" }, svg);
+    n.ice = ice; n.wy = wy;
+  } else if (V.name === "bulb") {
+    // the idea lands: flicker, then ON
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.glow = svgEl("circle", { cx: 300 * s, cy: (cy - 30) * s, r: 128 * s, fill: "#FFC93C", opacity: 0 }, svg);
+    n.rays = svgEl("g", { opacity: 0 }, svg);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + 0.39;
+      svgEl("line", { x1: (300 + Math.cos(a) * 98) * s, y1: (cy - 30 + Math.sin(a) * 98) * s, x2: (300 + Math.cos(a) * 126) * s, y2: (cy - 30 + Math.sin(a) * 126) * s, stroke: "#FFC93C", "stroke-width": 8 * s, "stroke-linecap": "round" }, n.rays);
+    }
+    n.glass = svgEl("circle", { cx: 300 * s, cy: (cy - 30) * s, r: 74 * s, fill: "#232C3B", stroke: "#41506B", "stroke-width": 5 * s }, svg);
+    svgEl("path", { d: `M ${272 * s} ${(cy + 12) * s} L ${288 * s} ${(cy - 40) * s} L ${312 * s} ${(cy - 40) * s} L ${328 * s} ${(cy + 12) * s}`, stroke: "#FFC93C", "stroke-width": 5 * s, fill: "none", "stroke-linejoin": "round" }, svg);
+    svgEl("rect", { x: 272 * s, y: (cy + 52) * s, width: 56 * s, height: 15 * s, rx: 6 * s, fill: "#5A6B84" }, svg);
+    svgEl("rect", { x: 272 * s, y: (cy + 74) * s, width: 56 * s, height: 15 * s, rx: 6 * s, fill: "#5A6B84" }, svg);
+    svgEl("rect", { x: 288 * s, y: (cy + 96) * s, width: 24 * s, height: 14 * s, rx: 5 * s, fill: "#41506B" }, svg);
+  } else if (V.name === "flame") {
+    // FEEL heat: on fire, burning, a hot streak
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#160f0d" }, svg);
+    const cy = H / 2;
+    n.sparks = [];
+    for (let i = 0; i < 5; i++) {
+      n.sparks.push({ el: svgEl("circle", { cx: (258 + i * 22) * s, cy: (cy + 90) * s, r: (4 + (i % 3)) * s, fill: "#FFC93C", opacity: 0 }, svg), x: 258 + i * 22, ph: i * 47 });
+    }
+    const mkFlame = (d, fill) => { const g = svgEl("g", {}, svg); svgEl("path", { d, fill }, g); return g; };
+    n.flOuter = mkFlame(`M ${300 * s} ${(cy - 168) * s} C ${358 * s} ${(cy - 48) * s} ${376 * s} ${(cy + 34) * s} ${340 * s} ${(cy + 96) * s} C ${322 * s} ${(cy + 138) * s} ${278 * s} ${(cy + 138) * s} ${260 * s} ${(cy + 96) * s} C ${228 * s} ${(cy + 34) * s} ${242 * s} ${(cy - 48) * s} ${300 * s} ${(cy - 168) * s} Z`, "#FF7A29");
+    n.flMid = mkFlame(`M ${300 * s} ${(cy - 84) * s} C ${336 * s} ${(cy - 12) * s} ${346 * s} ${(cy + 52) * s} ${322 * s} ${(cy + 92) * s} C ${310 * s} ${(cy + 120) * s} ${290 * s} ${(cy + 120) * s} ${278 * s} ${(cy + 92) * s} C ${254 * s} ${(cy + 52) * s} ${264 * s} ${(cy - 12) * s} ${300 * s} ${(cy - 84) * s} Z`, "#FFA62B");
+    n.flInner = mkFlame(`M ${300 * s} ${(cy - 6) * s} C ${320 * s} ${(cy + 34) * s} ${326 * s} ${(cy + 66) * s} ${312 * s} ${(cy + 94) * s} C ${304 * s} ${(cy + 116) * s} ${296 * s} ${(cy + 116) * s} ${288 * s} ${(cy + 94) * s} C ${274 * s} ${(cy + 66) * s} ${280 * s} ${(cy + 34) * s} ${300 * s} ${(cy - 6) * s} Z`, "#FFE08A");
+    svgEl("rect", { x: 218 * s, y: (cy + 128) * s, width: 164 * s, height: 24 * s, rx: 12 * s, fill: "#6B4226" }, svg);
+    svgEl("rect", { x: 232 * s, y: (cy + 146) * s, width: 140 * s, height: 22 * s, rx: 11 * s, fill: "#54331D" }, svg);
+    n.flBase = (cy + 124) * s;
+  } else if (V.name === "sprout") {
+    // SHOW growth from a seed: stem, leaves, roots
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#10160f" }, svg);
+    const soil = H * 0.64;
+    n.sun = svgEl("g", { opacity: 0.9 }, svg);
+    svgEl("circle", { cx: 472 * s, cy: (H * 0.30) * s, r: 62 * s, fill: "#FFC93C", opacity: 0.22 }, n.sun);
+    svgEl("circle", { cx: 472 * s, cy: (H * 0.30) * s, r: 38 * s, fill: "#FFC93C" }, n.sun);
+    svgEl("ellipse", { cx: 300 * s, cy: soil * s, rx: 210 * s, ry: 24 * s, fill: "#23301F" }, svg);
+    svgEl("line", { x1: 70 * s, y1: soil * s, x2: 530 * s, y2: soil * s, stroke: "#3E5641", "stroke-width": 6 * s, "stroke-linecap": "round" }, svg);
+    n.roots = svgEl("g", { opacity: 0 }, svg);
+    svgEl("path", { d: `M ${300 * s} ${(soil + 8) * s} L ${282 * s} ${(soil + 52) * s} M ${300 * s} ${(soil + 8) * s} L ${300 * s} ${(soil + 62) * s} M ${300 * s} ${(soil + 8) * s} L ${320 * s} ${(soil + 50) * s}`, stroke: "#A98B5F", "stroke-width": 6 * s, "stroke-linecap": "round", fill: "none" }, n.roots);
+    n.stem = svgEl("rect", { x: 296 * s, y: soil * s, width: 8 * s, height: 0, rx: 4 * s, fill: "#58B368" }, svg);
+    const mkLeaf = (dir) => { const g = svgEl("g", {}, svg); svgEl("ellipse", { cx: 0, cy: 0, rx: 36 * s, ry: 15 * s, fill: "#58B368" }, g); return { g, dir }; };
+    n.leafL = mkLeaf(-1); n.leafR = mkLeaf(1);
+    n.soilY = soil;
+  } else if (V.name === "chess") {
+    // SHOW strategy: not checkers — chess. The pawn advances with intent
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2, cell = 78, x0 = 300 - cell * 2, y0 = cy - cell * 2;
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      svgEl("rect", { x: (x0 + c * cell) * s, y: (y0 + r * cell) * s, width: cell * s, height: cell * s, fill: (r + c) % 2 ? "#2A3342" : "#C9D4E4" }, svg);
+    }
+    svgEl("rect", { x: x0 * s, y: y0 * s, width: cell * 4 * s, height: cell * 4 * s, fill: "none", stroke: "#41506B", "stroke-width": 6 * s }, svg);
+    n.chessRing = svgEl("rect", { x: (x0 + 2 * cell) * s, y: y0 * s, width: cell * s, height: cell * s, fill: "none", stroke: ac, "stroke-width": 6 * s, opacity: 0 }, svg);
+    const pawn = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 0, cy: -30 * s, r: 17 * s, fill: ac }, pawn);
+    svgEl("path", { d: `M ${-20 * s} ${28 * s} L ${-11 * s} ${-12 * s} Q 0 ${-24 * s} ${11 * s} ${-12 * s} L ${20 * s} ${28 * s} Z`, fill: ac }, pawn);
+    svgEl("rect", { x: -27 * s, y: 28 * s, width: 54 * s, height: 13 * s, rx: 5 * s, fill: ac }, pawn);
+    n.pawn = pawn;
+    n.chessPath = [[0.5, 3.5], [0.5, 2.5], [1.5, 1.5], [2.5, 0.5]].map(([c, r]) => [x0 + c * cell, y0 + r * cell]);
+  } else if (V.name === "anchor") {
+    // FEEL weight: what drags you down and holds you in place
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#0B1622" }, svg);
+    const fy = H * 0.72;
+    svgEl("ellipse", { cx: 300 * s, cy: fy * s, rx: 230 * s, ry: 22 * s, fill: "#12293F" }, svg);
+    n.ring1 = svgEl("circle", { cx: 252 * s, cy: fy * s, r: 12 * s, fill: "none", stroke: "#7FD4E8", "stroke-width": 4 * s, opacity: 0 }, svg);
+    n.ring2 = svgEl("circle", { cx: 348 * s, cy: fy * s, r: 12 * s, fill: "none", stroke: "#7FD4E8", "stroke-width": 4 * s, opacity: 0 }, svg);
+    n.chain = svgEl("line", { x1: 300 * s, y1: -10 * s, x2: 300 * s, y2: 60 * s, stroke: "#7E93BC", "stroke-width": 7 * s, "stroke-dasharray": `${13 * s} ${10 * s}` }, svg);
+    const g = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 0, cy: -118 * s, r: 17 * s, fill: "none", stroke: "#C7D2E0", "stroke-width": 8 * s }, g);
+    svgEl("line", { x1: 0, y1: -100 * s, x2: 0, y2: 62 * s, stroke: "#C7D2E0", "stroke-width": 11 * s, "stroke-linecap": "round" }, g);
+    svgEl("line", { x1: -54 * s, y1: -56 * s, x2: 54 * s, y2: -56 * s, stroke: "#C7D2E0", "stroke-width": 10 * s, "stroke-linecap": "round" }, g);
+    svgEl("path", { d: `M ${-80 * s} ${16 * s} Q ${-72 * s} ${76 * s} 0 ${80 * s} Q ${72 * s} ${76 * s} ${80 * s} ${16 * s}`, stroke: "#C7D2E0", "stroke-width": 11 * s, fill: "none", "stroke-linecap": "round" }, g);
+    svgEl("path", { d: `M ${-80 * s} ${16 * s} L ${-97 * s} ${-8 * s} L ${-58 * s} ${-4 * s} Z`, fill: "#C7D2E0" }, g);
+    svgEl("path", { d: `M ${80 * s} ${16 * s} L ${97 * s} ${-8 * s} L ${58 * s} ${-4 * s} Z`, fill: "#C7D2E0" }, g);
+    n.anchorG = g; n.anchorFloor = fy;
+  } else if (V.name === "balloon") {
+    // FEEL rise: lift, level up, above it all
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101826" }, svg);
+    const mkCloud = (x, y, sc, op) => {
+      const g = svgEl("g", { opacity: op }, svg);
+      svgEl("ellipse", { cx: x * s, cy: y * s, rx: 62 * sc * s, ry: 20 * sc * s, fill: "#FFFFFF" }, g);
+      svgEl("ellipse", { cx: (x + 34 * sc) * s, cy: (y - 12 * sc) * s, rx: 38 * sc * s, ry: 16 * sc * s, fill: "#FFFFFF" }, g);
+      return g;
+    };
+    n.clouds = [mkCloud(120, H * 0.30, 1, 0.13), mkCloud(470, H * 0.44, 0.8, 0.10), mkCloud(180, H * 0.62, 1.2, 0.08)];
+    const bal = svgEl("g", {}, svg);
+    svgEl("path", { d: `M 0 ${-128 * s} C ${68 * s} ${-128 * s} ${98 * s} ${-74 * s} ${98 * s} ${-18 * s} C ${98 * s} ${30 * s} ${58 * s} ${54 * s} ${32 * s} ${68 * s} L ${-32 * s} ${68 * s} C ${-58 * s} ${54 * s} ${-98 * s} ${30 * s} ${-98 * s} ${-18 * s} C ${-98 * s} ${-74 * s} ${-68 * s} ${-128 * s} 0 ${-128 * s} Z`, fill: item.color || ac }, bal);
+    svgEl("path", { d: `M 0 ${-128 * s} C ${26 * s} ${-80 * s} ${26 * s} ${10 * s} ${32 * s} ${68 * s} L ${-32 * s} ${68 * s} C ${-26 * s} ${10 * s} ${-26 * s} ${-80 * s} 0 ${-128 * s} Z`, fill: "#FFFFFF", opacity: 0.14 }, bal);
+    svgEl("ellipse", { cx: -34 * s, cy: -74 * s, rx: 20 * s, ry: 34 * s, fill: "#FFFFFF", opacity: 0.30 }, bal);
+    svgEl("line", { x1: -30 * s, y1: 66 * s, x2: -17 * s, y2: 102 * s, stroke: "#C7D2E0", "stroke-width": 4 * s }, bal);
+    svgEl("line", { x1: 30 * s, y1: 66 * s, x2: 17 * s, y2: 102 * s, stroke: "#C7D2E0", "stroke-width": 4 * s }, bal);
+    n.burner = svgEl("circle", { cx: 0, cy: 100 * s, r: 9 * s, fill: "#FFC93C", opacity: 0.8 }, bal);
+    svgEl("rect", { x: -25 * s, y: 104 * s, width: 50 * s, height: 38 * s, rx: 7 * s, fill: "#8A6D4A" }, bal);
+    n.bal = bal;
+  } else if (V.name === "redflag") {
+    // the warning sign itself, waving (dating speech: a red flag)
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#171114" }, svg);
+    const cy = H / 2;
+    svgEl("line", { x1: 60 * s, y1: (cy + 196) * s, x2: 540 * s, y2: (cy + 196) * s, stroke: "#2b3547", "stroke-width": 5 * s, "stroke-linecap": "round" }, svg);
+    svgEl("rect", { x: 172 * s, y: (cy - 196) * s, width: 10 * s, height: 392 * s, rx: 5 * s, fill: "#5A6B84" }, svg);
+    svgEl("circle", { cx: 177 * s, cy: (cy - 204) * s, r: 11 * s, fill: "#C7D2E0" }, svg);
+    n.flag = svgEl("path", { d: "", fill: item.color || "#E5322D" }, svg);
+    n.flagTop = cy - 188; n.flagH = 100; n.flagW = 178; n.flagX = 184;
+  } else if (V.name === "ghost") {
+    // ghosted: there, then… not. A friendly ghost that drifts off
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#10131f" }, svg);
+    const bodyD = (fill) => `M ${-62 * s} ${58 * s} L ${-62 * s} ${-28 * s} Q ${-62 * s} ${-98 * s} 0 ${-98 * s} Q ${62 * s} ${-98 * s} ${62 * s} ${-28 * s} L ${62 * s} ${58 * s} Q ${47 * s} ${80 * s} ${31 * s} ${58 * s} Q ${16 * s} ${80 * s} 0 ${58 * s} Q ${-16 * s} ${80 * s} ${-31 * s} ${58 * s} Q ${-47 * s} ${80 * s} ${-62 * s} ${58 * s} Z`;
+    const mkGhost = (fill, withFace) => {
+      const g = svgEl("g", {}, svg);
+      svgEl("path", { d: bodyD(fill), fill }, g);
+      if (withFace) {
+        n.eyeL = svgEl("ellipse", { cx: -22 * s, cy: -30 * s, rx: 8 * s, ry: 12 * s, fill: "#14181f" }, g);
+        n.eyeR = svgEl("ellipse", { cx: 22 * s, cy: -30 * s, rx: 8 * s, ry: 12 * s, fill: "#14181f" }, g);
+        svgEl("ellipse", { cx: 0, cy: 2 * s, rx: 9 * s, ry: 13 * s, fill: "#14181f" }, g);
+        svgEl("circle", { cx: -40 * s, cy: -8 * s, r: 9 * s, fill: ac, opacity: 0.45 }, g);
+        svgEl("circle", { cx: 40 * s, cy: -8 * s, r: 9 * s, fill: ac, opacity: 0.45 }, g);
+      }
+      return g;
+    };
+    n.budL = mkGhost("#8496B5", false); n.budR = mkGhost("#8496B5", false);
+    n.budL.setAttribute("opacity", 0); n.budR.setAttribute("opacity", 0);
+    n.ghost = mkGhost("#F4F7EF", true);
+  } else if (V.name === "wall") {
+    // a wall goes up brick by brick — then it cracks
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2, bw = 118, bh = 52, gap = 9, rows = 5;
+    const x0 = 300 - (4 * bw + 3 * gap) / 2, y0 = cy - (rows * (bh + gap)) / 2;
+    svgEl("line", { x1: 40 * s, y1: (y0 + rows * (bh + gap) + 18) * s, x2: 560 * s, y2: (y0 + rows * (bh + gap) + 18) * s, stroke: "#2b3547", "stroke-width": 5 * s, "stroke-linecap": "round" }, svg);
+    n.bricks = []; n.loose = null;
+    let bi = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < 4; c++) {
+        const bx = x0 + c * (bw + gap) + (r % 2 ? -30 : 0), by = y0 + r * (bh + gap);
+        const g = svgEl("g", { opacity: 0 }, svg);
+        const isLoose = bi === 9;
+        svgEl("rect", { x: bx * s, y: by * s, width: bw * s, height: bh * s, rx: 9 * s, fill: isLoose ? ac : (bi % 2 ? "#46536E" : "#3C4A63") }, g);
+        const rec = { g, cx: (bx + bw / 2) * s, cy: (by + bh / 2) * s, i: bi };
+        n.bricks.push(rec);
+        if (isLoose) n.loose = rec;
+        bi++;
+      }
+    }
+    n.crack = svgEl("path", { d: `M ${306 * s} ${(y0 - 6) * s} L ${290 * s} ${(y0 + 62) * s} L ${314 * s} ${(y0 + 118) * s} L ${294 * s} ${(y0 + 176) * s} L ${310 * s} ${(y0 + 232) * s} L ${297 * s} ${(y0 + 292) * s}`, stroke: "#0D0F12", "stroke-width": 7 * s, fill: "none", "stroke-linecap": "round" }, svg);
+    n.crackLen = 400 * s;
+    n.crack.setAttribute("stroke-dasharray", n.crackLen);
+    n.crack.setAttribute("stroke-dashoffset", n.crackLen);
+  } else if (V.name === "compass") {
+    // SHOW direction: the needle settles on true north
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101820" }, svg);
+    const cy = H / 2;
+    svgEl("circle", { cx: 300 * s, cy: cy * s, r: 136 * s, fill: "#0D1420", stroke: "#41506B", "stroke-width": 6 * s }, svg);
+    n.compGlow = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 136 * s, fill: "none", stroke: ac, "stroke-width": 6 * s, opacity: 0 }, svg);
+    for (let i = 0; i < 12; i++) {
+      const a = i * 30;
+      const tick = svgEl("line", { x1: 300 * s, y1: (cy - 122) * s, x2: 300 * s, y2: (cy - (i % 3 === 0 ? 100 : 110)) * s, stroke: i === 0 ? ac : "#41506B", "stroke-width": (i % 3 === 0 ? 7 : 4) * s, "stroke-linecap": "round" }, svg);
+      tick.setAttribute("transform", `rotate(${a} ${300 * s} ${cy * s})`);
+    }
+    const letters = [["N", 0, ac, 40], ["E", 90, "#7E93BC", 30], ["S", 180, "#7E93BC", 30], ["W", 270, "#7E93BC", 30]];
+    letters.forEach(([ch, a, fill, fs]) => {
+      const t = svgEl("text", { x: 300 * s, y: (cy - 66) * s, "text-anchor": "middle", fill, "font-size": fs * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+      t.textContent = ch;
+      if (a) t.setAttribute("transform", `rotate(${a} ${300 * s} ${cy * s}) rotate(${-a} ${300 * s} ${(cy - 66) * s})`);
+    });
+    const needle = svgEl("g", {}, svg);
+    svgEl("polygon", { points: `${300 * s},${(cy - 92) * s} ${317 * s},${cy * s} ${283 * s},${cy * s}`, fill: ac }, needle);
+    svgEl("polygon", { points: `${300 * s},${(cy + 92) * s} ${317 * s},${cy * s} ${283 * s},${cy * s}`, fill: "#7E93BC" }, needle);
+    n.needle = needle; n.compCy = cy;
+    svgEl("circle", { cx: 300 * s, cy: cy * s, r: 13 * s, fill: "#E8EDF4" }, svg);
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -2119,6 +2313,111 @@ function animateVector(b, t, lifeP) {
     const wr = `rotate(${((lt * 560) % 360).toFixed(0)}`;
     n.wheel1.setAttribute("transform", `${wr} ${(-36 * s).toFixed(1)} ${(10 * s).toFixed(1)})`);
     n.wheel2.setAttribute("transform", `${wr} ${(38 * s).toFixed(1)} ${(10 * s).toFixed(1)})`);
+  } else if (V.name === "dominoes") {
+    n.doms.forEach((d, i) => {
+      const q = easeInOut(clamp01((p - 0.10 - i * 0.085) / 0.20));
+      d.g.setAttribute("transform", `rotate(${(q * 76).toFixed(1)} ${d.px} ${d.py})`);
+    });
+  } else if (V.name === "iceberg") {
+    n.ice.setAttribute("transform", `translate(0 ${(Math.sin(lt * 1.25) * 9 * s).toFixed(1)})`);
+    n.mass.setAttribute("opacity", (0.42 + 0.22 * Math.sin(lt * 2.4) * clamp01((p - 0.4) / 0.25)).toFixed(2));
+  } else if (V.name === "bulb") {
+    let lit;
+    if (p < 0.30) lit = 0;
+    else if (p < 0.48) lit = Math.sin(lt * 42) > -0.2 ? 1 : 0.08;
+    else lit = 1;
+    n.glass.setAttribute("fill", lit > 0.5 ? "#FFC93C" : "#232C3B");
+    n.glow.setAttribute("opacity", (0.42 * lit).toFixed(2));
+    n.rays.setAttribute("opacity", lit.toFixed(2));
+  } else if (V.name === "flame") {
+    const flick = (g, i) => {
+      const sy = 1 + 0.05 * Math.sin(lt * 11 + i * 1.9) + 0.02 * Math.sin(lt * 23 + i);
+      const rot = 1.6 * Math.sin(lt * 7 + i * 1.3);
+      g.setAttribute("transform", `translate(${300 * s} ${n.flBase}) rotate(${rot.toFixed(2)}) scale(1 ${sy.toFixed(3)}) translate(${-300 * s} ${-n.flBase})`);
+    };
+    flick(n.flOuter, 0); flick(n.flMid, 1); flick(n.flInner, 2);
+    n.sparks.forEach(sp => {
+      const cyc = (lt * 120 + sp.ph) % 210;
+      sp.el.setAttribute("cy", ((V.H / 2 + 84 - cyc) * s).toFixed(1));
+      sp.el.setAttribute("cx", ((sp.x + Math.sin(lt * 3 + sp.ph) * 9) * s).toFixed(1));
+      sp.el.setAttribute("opacity", (0.85 * Math.max(0, 1 - cyc / 210) * clamp01(lt / 0.4)).toFixed(2));
+    });
+  } else if (V.name === "sprout") {
+    const q = easeOut(clamp01(lt / 0.85));
+    const sh = 155 * q;
+    n.stem.setAttribute("height", (sh * s).toFixed(1));
+    n.stem.setAttribute("y", ((n.soilY - sh) * s).toFixed(1));
+    const topY = (n.soilY - 150) * s;
+    const kl = easeOutBack(clamp01((p - 0.42) / 0.22)), kr = easeOutBack(clamp01((p - 0.54) / 0.22));
+    n.leafL.g.setAttribute("transform", `translate(${284 * s} ${topY}) rotate(-32) scale(${Math.max(0.001, kl).toFixed(3)})`);
+    n.leafR.g.setAttribute("transform", `translate(${316 * s} ${topY}) rotate(32) scale(${Math.max(0.001, kr).toFixed(3)})`);
+    n.roots.setAttribute("opacity", clamp01((p - 0.5) / 0.3).toFixed(2));
+    n.sun.setAttribute("transform", `translate(0 ${(-26 * q * s).toFixed(1)})`);
+  } else if (V.name === "chess") {
+    const seg = clamp01(p / 0.78) * (n.chessPath.length - 1);
+    const i = Math.min(n.chessPath.length - 2, Math.floor(seg)), f = seg - i;
+    const A = n.chessPath[i], B = n.chessPath[i + 1];
+    const x = A[0] + (B[0] - A[0]) * f, y = A[1] + (B[1] - A[1]) * f - Math.sin(f * Math.PI) * 30;
+    n.pawn.setAttribute("transform", `translate(${(x * s).toFixed(1)} ${(y * s).toFixed(1)})`);
+    n.chessRing.setAttribute("opacity", clamp01((p - 0.8) / 0.15).toFixed(2));
+  } else if (V.name === "anchor") {
+    const q = easeIn(clamp01(lt / 0.85));
+    const yTop = V.H * 0.14, yBot = n.anchorFloor - 84;
+    const y = yTop + (yBot - yTop) * q;
+    const sway = Math.sin(lt * 1.8) * 4 * (1 - q * 0.55);
+    n.anchorG.setAttribute("transform", `translate(${300 * s} ${(y * s).toFixed(1)}) rotate(${sway.toFixed(2)})`);
+    n.chain.setAttribute("y2", ((y - 128) * s).toFixed(1));
+    n.chain.setAttribute("x2", ((300 + Math.sin(lt * 1.8) * 12 * (1 - q)) * s).toFixed(1));
+    const splash = clamp01((p - 0.52) / 0.2) * (1 - clamp01((p - 0.78) / 0.2));
+    [n.ring1, n.ring2].forEach((r, i) => {
+      r.setAttribute("opacity", (0.75 * splash).toFixed(2));
+      r.setAttribute("r", ((12 + splash * 34 + i * 10) * s).toFixed(1));
+    });
+  } else if (V.name === "balloon") {
+    const rise = easeOut(clamp01(p / 0.85)) * 300;
+    const sway = Math.sin(lt * 1.1) * 14;
+    n.bal.setAttribute("transform", `translate(${(300 + sway) * s} ${(V.H / 2 + 150 - rise) * s}) rotate(${(Math.sin(lt * 0.9) * 2.2).toFixed(2)})`);
+    n.burner.setAttribute("opacity", (0.45 + 0.4 * Math.abs(Math.sin(lt * 9))).toFixed(2));
+    n.clouds.forEach((c, i) => c.setAttribute("transform", `translate(${(-lt * (8 + i * 5) * s).toFixed(1)} 0)`));
+  } else if (V.name === "redflag") {
+    const grow = easeOutBack(clamp01(lt / 0.45));
+    const fx = n.flagX, ft = n.flagTop, fw = n.flagW * Math.max(0.05, grow), fh = n.flagH;
+    let d = `M ${fx * s} ${ft * s}`;
+    const steps = 7;
+    for (let i = 1; i <= steps; i++) {
+      d += ` L ${(fx + (fw / steps) * i) * s} ${(ft + Math.sin(lt * 6 + i * 0.95) * 8 * (i / steps)) * s}`;
+    }
+    for (let i = steps; i >= 0; i--) {
+      d += ` L ${(fx + (fw / steps) * i) * s} ${(ft + fh + Math.sin(lt * 6 + i * 0.95 + 0.7) * 8 * (i / steps)) * s}`;
+    }
+    n.flag.setAttribute("d", d + " Z");
+  } else if (V.name === "ghost") {
+    const cy = V.H / 2;
+    const drift = easeInOut(clamp01((p - 0.45) / 0.5)) * 120;
+    n.ghost.setAttribute("transform", `translate(${(300 + drift + Math.sin(lt * 1.4) * 10) * s} ${(cy + Math.sin(lt * 2.1) * 13) * s}) rotate(${(Math.sin(lt * 1.3) * 3).toFixed(2)})`);
+    const blink = Math.sin(lt * 0.85) > 0.965 ? 1.6 : 12;
+    n.eyeL.setAttribute("ry", (blink * s).toFixed(1));
+    n.eyeR.setAttribute("ry", (blink * s).toFixed(1));
+    const bo = clamp01((p - 0.35) / 0.25) * 0.75 * (1 - clamp01((p - 0.8) / 0.2) * 0.4);
+    n.budL.setAttribute("opacity", bo.toFixed(2));
+    n.budR.setAttribute("opacity", bo.toFixed(2));
+    n.budL.setAttribute("transform", `translate(${168 * s} ${(cy - 60 + Math.sin(lt * 1.8 + 2) * 11) * s}) scale(0.55)`);
+    n.budR.setAttribute("transform", `translate(${432 * s} ${(cy - 30 + Math.sin(lt * 1.9 + 4) * 11) * s}) scale(0.55)`);
+  } else if (V.name === "wall") {
+    n.bricks.forEach(b => {
+      const q = easeOutBack(clamp01((lt - 0.04 - b.i * 0.045) / 0.3));
+      b.g.setAttribute("opacity", clamp01(q * 1.5).toFixed(2));
+      b.g.setAttribute("transform", `translate(0 ${((1 - clamp01(q)) * -26 * s).toFixed(1)})`);
+    });
+    n.crack.setAttribute("stroke-dashoffset", (n.crackLen * (1 - clamp01((p - 0.55) / 0.3))).toFixed(1));
+    if (n.loose) {
+      const wig = p > 0.72 ? Math.sin(lt * 7) * 2.6 : 0;
+      n.loose.g.setAttribute("transform", `rotate(${wig.toFixed(2)} ${n.loose.cx} ${n.loose.cy})`);
+    }
+  } else if (V.name === "compass") {
+    const ang = 150 * Math.exp(-2.0 * lt) * Math.sin(lt * 4.6);
+    n.needle.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${n.compCy * s})`);
+    n.compGlow.setAttribute("opacity", (clamp01((p - 0.62) / 0.3) * (0.45 + 0.25 * Math.sin(lt * 4))).toFixed(2));
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;

@@ -244,6 +244,8 @@ def main(path: str) -> int:
                             f"merge it into title or drop it")
         if it["type"] == "vector" and it.get("name") not in (
                 "hoop", "led", "donut", "arrow", "burst", "cowfield", "roadcar",
+                "dominoes", "iceberg", "bulb", "flame", "sprout", "chess",
+                "anchor", "balloon", "redflag", "ghost", "wall", "compass",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
                 "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo"):
