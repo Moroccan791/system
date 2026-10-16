@@ -17,7 +17,9 @@
       "properties": {
         "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
         "ink": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
-        "paper": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+        "paper": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "name": { "type": "string", "maxLength": 40 },
+        "handle": { "type": "string", "maxLength": 40 }
       }
     },
     "theme": {
@@ -29,6 +31,7 @@
         "speed": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
         "easing": { "enum": ["pop", "snap", "soft"] },
         "fontMode": { "enum": ["sans", "serif"] },
+        "captionShade": { "type": "number", "minimum": 0, "maximum": 0.5 },
         "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon"] }
       }
     },
@@ -62,7 +65,7 @@
       "type": "object",
       "required": ["type", "at"],
       "properties": {
-        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process", "vector", "lowerthird"] },
+        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process", "vector", "lowerthird", "hook", "endcard"] },
         "at": { "type": "number", "minimum": 0 },
         "until": { "type": "number", "exclusiveMinimum": 0 },
         "rows": {
@@ -101,7 +104,10 @@
           "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
         },
         "wordSize": { "type": "number", "minimum": 58, "maximum": 220 },
-        "kind": { "enum": ["flash", "flare", "leak", "opening", "bwflash"] },
+        "kind": { "enum": ["flash", "flare", "leak", "opening", "bwflash", "punch", "freeze"] },
+        "zoom": { "type": "number", "minimum": 1.01, "maximum": 1.10 },
+        "hookLines": { "type": "array", "minItems": 1, "maxItems": 3,
+                       "items": { "type": "string", "minLength": 1, "maxLength": 26 } },
         "name": { "type": "string" },
         "mode": { "enum": ["fullbleed", "card"] },
         "dur": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 },
@@ -196,6 +202,10 @@
         { "if": { "properties": { "type": { "const": "process" } } },
           "then": { "required": ["steps", "until"] } },
         { "if": { "properties": { "type": { "const": "lowerthird" } } },
+          "then": { "required": ["title", "until"] } },
+        { "if": { "properties": { "type": { "const": "hook" } } },
+          "then": { "required": ["hookLines", "until"] } },
+        { "if": { "properties": { "type": { "const": "endcard" } } },
           "then": { "required": ["title", "until"] } }
       ]
     }

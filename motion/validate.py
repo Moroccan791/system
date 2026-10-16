@@ -87,6 +87,31 @@ def main(path: str) -> int:
         if it.get("place3d") and it["type"] != "poster":
             problems.append(f"{it['type']} at {it['at']}: place3d (spatial "
                             f"placement) only exists on posters")
+        if it["type"] == "hook":
+            if it["at"] > 0.05:
+                problems.append(f"hook at {it['at']}: a hook slate opens "
+                                f"the video (at must be ~0)")
+            if not 0.9 <= dwell <= 1.8:
+                problems.append(f"hook at {it['at']}: dwell {dwell:.2f}s "
+                                f"outside 0.9-1.8s (promise fast, then "
+                                f"get out of the way)")
+        if it["type"] == "endcard":
+            if not 1.0 <= dwell <= 1.6:
+                problems.append(f"endcard at {it['at']}: dwell {dwell:.2f}s "
+                                f"outside 1.0-1.6s (a sting, not a scene)")
+            if until < dur - 0.35:
+                problems.append(f"endcard at {it['at']}: must be tail-"
+                                f"anchored (end within the last 0.35s)")
+        if it["type"] == "fx" and it.get("kind") == "punch":
+            d = float(it.get("dur") or 0)
+            if not 0.25 <= d <= 0.6:
+                problems.append(f"punch at {it['at']}: dur {d}s outside "
+                                f"0.25-0.6s (a punch is a blink, not a zoom)")
+        if it["type"] == "fx" and it.get("kind") == "freeze":
+            d = float(it.get("dur") or 0)
+            if not 0.3 <= d <= 1.0:
+                problems.append(f"freeze at {it['at']}: dur {d}s outside "
+                                f"0.3-1.0s (hold the beat, then move)")
         if it["type"] == "lowerthird" and not 1.8 <= dwell <= 6.0:
             problems.append(f"lowerthird at {it['at']}: dwell {dwell:.2f}s "
                             f"outside 1.8-6.0s (name them, let it be read, "
@@ -202,6 +227,9 @@ def main(path: str) -> int:
             if subs and until < ats[-1] + 0.8:
                 problems.append(f"{it['type']} at {it['at']}: until {until} gives the "
                                 f"last entry no dwell time")
+    for tname in ("hook", "endcard"):
+        if sum(1 for i in items if i["type"] == tname) > 1:
+            problems.append(f"at most one {tname} per video")
     # image cadence: at most one PiP / B-roll / metaphor-vector insert per 6 s
     DATA_SCENES = ("bars", "line", "versus", "people", "stack", "timeline",
                    "quote", "chat", "network", "gauge", "map",

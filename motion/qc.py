@@ -299,6 +299,8 @@ IDLE = {"poster": "stack drift 100->103%", "card": "card drift 100->103%",
         "list": "wrap drift 100->102%", "process": "wrap drift 100->102%",
         "pip": "still push-in 100->108% + card drift",
         "lowerthird": "shine sweep every 1.2s + drift",
+        "hook": "slate drift 100->103% + line stagger",
+        "endcard": "slate drift 100->103% + line stagger",
         "broll": "still push-in 100->108%", "fx": "self-animating",
         "vector": "scene animates from the frame clock (ball/strip/draw-on)"}
 
@@ -412,7 +414,7 @@ def opening(tl: dict) -> tuple[str, str]:
     for it in tl["items"]:
         for row in (it.get("rows") or it.get("lines") or []):
             first_words += [float(w["at"]) for w in row]
-        if it["type"] in ("chip", "counter", "list", "process"):
+        if it["type"] in ("chip", "counter", "list", "process", "hook"):
             first_words.append(float(it["at"]))
     if not first_words:
         return "warn", "no captioned items"
@@ -484,6 +486,19 @@ def semi_text(frames: Path) -> tuple[str, str]:
             ("pass", f"max semi-transparent run {run} frames (cap 2)"))
 
 
+def duration(video: Path, tl: dict) -> tuple[str, str]:
+    # a filter graph that stalls (framesync EOF race) can silently
+    # ship a video seconds short while every visual check passes -
+    # the container must match the authored duration
+    from clipper.ffmpeg import probe
+    want = float(tl.get("duration") or 0)
+    got = probe(video).duration or 0
+    if want and abs(got - want) > 0.15:
+        return "fail", f"video is {got:.2f}s, timeline says {want:.2f}s " \
+                       f"(truncated stream?)"
+    return "pass", f"video {got:.2f}s matches timeline {want:.2f}s"
+
+
 def margins(tl: dict) -> tuple[str, str]:
     for it in tl["items"]:
         zone = it.get("zone")
@@ -496,7 +511,8 @@ def main() -> int:
     tl = json.loads(Path(sys.argv[1]).read_text())
     transcript = json.loads(Path(sys.argv[2]).read_text())
     video, frames = Path(sys.argv[3]), Path(sys.argv[4])
-    checks = [("word_sync", *word_sync(tl, transcript)),
+    checks = [("duration", *duration(video, tl)),
+              ("word_sync", *word_sync(tl, transcript)),
               ("text_sizes", *text_sizes(tl)),
               ("text_contrast", *text_contrast(video, tl)),
               ("pacing", *pacing(tl)),

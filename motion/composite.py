@@ -71,6 +71,47 @@ def composite(base: Path, frames: Path, tl: dict, out: Path,
             f"[o1][z2]overlay=0:0:enable='between(t,{f1:.4f},{f2:.4f})'[opened]",
         ]
         src = "[opened]"
+    # emphasis punch-ins: a hard cut to a <=1.05x tighter shot for a
+    # blink (0.25-0.6s) on a payoff word - the standard punch, done as
+    # stepped overlays on ONE stream (never split/trim/concat)
+    punches = [i for i in items if i.get("type") == "fx"
+               and i.get("kind") == "punch"][:3]
+    for j, it in enumerate(punches):
+        a = float(it["at"]); d = float(it.get("dur") or 0.35)
+        z = float(it.get("zoom") or 1.05)
+        sw, sh = int(1080 * z) // 2 * 2, int(1920 * z) // 2 * 2
+        chains += [
+            f"{src}split=2[pbase{j}][pzoom{j}]",
+            f"[pzoom{j}]scale={sw}:{sh},"
+            f"crop=1080:1920:(in_w-1080)/2:(in_h-1920)/2[pz{j}]",
+            f"[pbase{j}][pz{j}]overlay=0:0:"
+            f"enable='between(t,{a:.3f},{a + d:.3f})'[pout{j}]",
+        ]
+        src = f"[pout{j}]"
+    # freeze-frame holds: the exact frame at `at`, slightly pushed
+    # and saturated, held 0.3-1.0s while graphics land on it. Built
+    # as still-image inputs (watermark-style overlay) - an in-graph
+    # trim/loop clone stalls the overlay framesync and silently
+    # truncates the stream (measured: 380 of 420 frames out)
+    freezes = [i for i in items if i.get("type") == "fx"
+               and i.get("kind") == "freeze"][:2]
+    freeze_stills: list[Path] = []
+    still0 = 2 + (2 if (behind_frames is not None
+                        and mask is not None) else 0)
+    for j, it in enumerate(freezes):
+        a = float(it["at"]); d = float(it.get("dur") or 0.5)
+        still = out.parent / f".freeze{j}.png"
+        _run([ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),
+              "-ss", f"{a:.3f}", "-frames:v", "1", str(still)])
+        freeze_stills.append(still)
+        chains += [
+            f"[{still0 + j}:v]{_grade(accent)},scale=1148:2040,"
+            f"crop=1080:1920:(in_w-1080)/2:(in_h-1920)/2,"
+            f"eq=saturation=1.08,format=yuv420p[ff{j}]",
+            f"{src}[ff{j}]overlay=0:0:"
+            f"enable='between(t,{a:.3f},{a + d:.3f})'[fout{j}]",
+        ]
+        src = f"[fout{j}]"
     if behind_frames is not None and mask is not None:
         # behind-the-person stack: the same graded stream splits - one
         # copy takes the behind-graphics, the other is re-alpha'd with
@@ -117,6 +158,8 @@ def composite(base: Path, frames: Path, tl: dict, out: Path,
     if behind_frames is not None and mask is not None:
         args += ["-framerate", str(fps), "-i", str(behind_frames / "%05d.png"),
                  "-i", str(mask)]
+    for still in freeze_stills:
+        args += ["-loop", "1", "-framerate", str(fps), "-i", str(still)]
     args += ["-filter_complex", fc, "-map", "[vout]"]
     if tl.get("duration"):
         args += ["-t", f"{float(tl['duration']):.3f}"]
@@ -128,6 +171,8 @@ def composite(base: Path, frames: Path, tl: dict, out: Path,
              "-maxrate", "10M", "-bufsize", "20M",
              "-pix_fmt", "yuv420p", "-an", str(vid)]
     _run(args)
+    for still in freeze_stills:
+        still.unlink(missing_ok=True)
     # Pass 2: audio (base voice + transition SFX) muxed onto the video.
     args = [ffmpeg_exe(), "-y", "-v", "error", "-i", str(vid),
             "-i", str(base)]

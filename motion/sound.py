@@ -208,6 +208,11 @@ def build_events(tl: dict, cuts: list[dict], typing: bool,
             add(until, "swipe", -20, "scene exit")
         elif ty == "chip":
             add(at, "pop", -6, "chip enter")
+        elif ty == "hook":
+            add(at, "impact", -8, "hook slate lands")
+            add(until, "swipe", -18, "hook slate clears")
+        elif ty == "endcard":
+            add(at, "pop_low", -7, "end card sting")
         elif ty == "lowerthird":
             add(at, "pop_low", -9, "lower-third slides in")
             if until - at > 2.0:
@@ -299,13 +304,21 @@ def main() -> int:
         if sidecar.exists() else []
 
     voice = read_audio(video)
-    # broadcast voice levelling: tame the crest so loudness gain does
-    # not have to fight the peaks (voice stays loudest, just steadier)
+    # studio voice chain: strip rumble, add presence where speech
+    # intelligibility lives, de-ess if this ffmpeg build has the
+    # filter, then broadcast levelling (tame the crest so loudness
+    # gain does not have to fight the peaks; voice stays loudest)
+    filt = subprocess.run([ffmpeg_exe(), "-hide_banner", "-filters"],
+                          capture_output=True, text=True).stdout
+    chain = ("highpass=f=75,"
+             "equalizer=f=3400:width_type=o:width=1.1:g=2.5,"
+             + ("adeesser," if "adeesser" in filt else "")
+             + "acompressor=threshold=0.10:ratio=3:attack=2:release=180:"
+               "knee=6")
     proc = subprocess.run(
         [ffmpeg_exe(), "-y", "-v", "error", "-f", "f32le", "-ar", str(SR),
-         "-ac", "1", "-i", "-", "-af",
-         "acompressor=threshold=0.10:ratio=3:attack=2:release=180:"
-         "knee=6", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-"],
+         "-ac", "1", "-i", "-", "-af", chain,
+         "-f", "f32le", "-ar", str(SR), "-ac", "1", "-"],
         input=voice.tobytes(), capture_output=True, check=True)
     voice = np.frombuffer(proc.stdout, dtype=np.float32).copy()
     n = len(voice)
@@ -331,6 +344,31 @@ def main() -> int:
 
     bed = sub_bed(n, voice_rms, rng)
     pad = pad_loop(n, voice_rms, voice)
+    # external music bed (--music FILE): looped to length, ~20 dB
+    # under the voice, ducked a further 10 dB while he speaks (same
+    # envelope law as the generated pad). The pad stays - it is felt
+    # more than heard; a supplied track carries the actual tune.
+    music = None
+    if "--music" in sys.argv:
+        mpath = Path(sys.argv[sys.argv.index("--music") + 1])
+        raw = subprocess.run(
+            [ffmpeg_exe(), "-v", "error", "-i", str(mpath), "-vn",
+             "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+            capture_output=True, check=True).stdout
+        mtrack = np.frombuffer(raw, dtype=np.float32).copy()
+        if len(mtrack):
+            reps = int(np.ceil(n / len(mtrack)))
+            music = np.tile(mtrack, reps)[:n].astype(np.float32)
+            mrms = float(np.sqrt(np.mean(music ** 2))) + 1e-9
+            music *= voice_rms * 10 ** (-20 / 20) / mrms
+            win = int(0.05 * SR)
+            env = np.sqrt(np.convolve(voice ** 2,
+                                      np.ones(win, np.float32) / win,
+                                      "same") + 1e-12)
+            k = int(0.15 * SR)
+            env = np.convolve(env, np.ones(k, np.float32) / k, "same")
+            duck = np.where(env > voice_rms * 0.5, 10 ** (-10 / 20), 1.0)
+            music = (music * duck.astype(np.float32)).astype(np.float32)
     # 80-150 ms silence dips in bed+pad before the biggest impacts
     def ramp(bus, s0, s1, g0, g1):
         s0, s1 = max(0, s0), min(n, s1)
@@ -339,12 +377,14 @@ def main() -> int:
 
     for c in cuts:
         if c["kind"] in ("flare", "leak"):
-            for bus in (bed, pad):
+            for bus in (bed, pad) + ((music,) if music is not None else ()):
                 ramp(bus, int((c["t"] - 0.28) * SR),
                      int((c["t"] - 0.13) * SR), 1.0, 0.12)
                 ramp(bus, int(c["t"] * SR),
                      int((c["t"] + 0.10) * SR), 0.12, 1.0)
     mix = voice + sfx + bed + pad
+    if music is not None:
+        mix = (mix + music).astype(np.float32)
     # soft ceiling ~-2.4 dBFS: gain staging happens against a limiter,
     # not against re-encode trims (which used to eat the loudness)
     mix = (0.76 * np.tanh(mix / 0.76)).astype(np.float32)
@@ -398,6 +438,9 @@ def main() -> int:
     ok = aligned and -14.7 <= loud["lufs"] <= -13.3 \
         and loud["true_peak"] < -1.0 and 0.4 <= accent_sec <= 2.0
     report = {"video": str(out), "seed": seed, "typing_sound": typing,
+              "music_bed": str(sys.argv[sys.argv.index("--music") + 1])
+              if "--music" in sys.argv else None,
+              "voice_chain": chain,
               "events": len(events), "events_per_sec": round(per_sec, 2),
               "accent_events_per_sec": round(accent_sec, 2),
               "by_kind": variants, "cuts_covered": len(cut_frames),

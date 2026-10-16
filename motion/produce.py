@@ -111,8 +111,21 @@ def plain_captions(transcript: list[dict], duration: float) -> dict:
         if len(chunk) >= 6 or str(w["text"]).endswith((".", "?", "!")):
             flush()
     flush()
+    # dense speech: a chunk's +0.45 tail can run into the next chunk
+    # (validator: same-type overlap >0.25s is a defect) and the last
+    # tail can run past the duration - clamp, keeping every stack's
+    # last-word dwell floor
+    for prev, cur in zip(items, items[1:]):
+        last = max(w["at"] for r in prev["rows"] for w in r)
+        prev["until"] = round(max(last + 0.21,
+                                  min(prev["until"], cur["at"] + 0.24)), 2)
+    if items:
+        last = max(w["at"] for r in items[-1]["rows"] for w in r)
+        items[-1]["until"] = round(max(min(items[-1]["until"], duration),
+                                       min(last + 0.21, duration)), 2)
     return {"version": 1, "fps": FPS, "width": 1080, "height": 1920,
-            "duration": duration, "items": items}
+            "duration": duration, "brand": {"accent": "#FFC531"},
+            "items": items}
 
 
 def main() -> int:
@@ -121,6 +134,7 @@ def main() -> int:
     tl_path, base, tr_path, job = (Path(a).resolve() for a in args[:4])
     opt = lambda k, d=None: sys.argv[sys.argv.index(k) + 1] \
         if k in sys.argv else d
+    flag = lambda k: k in sys.argv  # noqa: E731 -- boolean switches
     seed = int(opt("--seed", 7))
     typing = opt("--typing-sound", "on")
     job.mkdir(parents=True, exist_ok=True)
@@ -137,6 +151,32 @@ def main() -> int:
         log["base_treated"] = str(base)
 
     theme = load_theme(opt("--theme"), base, tl_src, log)
+    # adaptive caption shade: measure what actually sits behind the
+    # caption zone; bright footage earns a deeper ground plate
+    try:
+        import cv2
+        cap = cv2.VideoCapture(str(base))
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 90
+        lum = []
+        for frac in (0.15, 0.4, 0.65, 0.9):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, int(total * frac))
+            ok, fr = cap.read()
+            if ok:
+                zone = fr[int(0.66 * fr.shape[0]):int(0.86 * fr.shape[0])]
+                lum.append(float(zone.mean()) / 255.0)
+        cap.release()
+        if lum and sum(lum) / len(lum) > 0.52:
+            theme["captionShade"] = 0.4
+            log["caption_shade"] = (f"zone luminance "
+                                    f"{sum(lum) / len(lum):.2f} -> shade 0.4")
+    except Exception as e:  # measurement must never block a render
+        log["caption_shade"] = f"skipped ({e})"
+    if flag("--face-report"):
+        fr = py("reframe.py", "--report", str(base))
+        try:
+            log["face_report"] = json.loads(fr.stdout)
+        except Exception:
+            log["face_report"] = "unavailable"
     import numpy as np
     rng = np.random.default_rng(seed)
     kinds = ["flare", "flash", "leak", "bwflash"]
@@ -152,11 +192,23 @@ def main() -> int:
         tl = json.loads(json.dumps(tl))
         tl["theme"] = {k: theme[k] for k in
                        ("radius", "glow", "speed", "easing", "fontMode",
-                        "captionStyle")
+                        "captionStyle", "captionShade")
                        if k in theme}
         tl.setdefault("brand", {})["accent"] = theme["accent"]
         if level == 1:
             tl = simplify(tl, 1)
+        # branded end card: auto-injected when the timeline's brand
+        # carries a name/handle and no endcard was authored
+        brand = tl_src.get("brand") or {}
+        if (brand.get("name") or brand.get("handle")) and \
+                not any(i["type"] == "endcard" for i in tl["items"]):
+            dur = float(tl_src.get("duration") or 10)
+            tl["items"].append(
+                {"type": "endcard", "at": round(dur - 1.3, 2),
+                 "until": round(dur - 0.03, 2),
+                 "title": brand.get("name") or brand.get("handle"),
+                 **({"sub": brand["handle"]} if brand.get("handle")
+                    and brand.get("name") else {})})
         auth_path = job / f"timeline_l{level}.json"
         auth_path.write_text(json.dumps(tl, indent=1))
         fx_path = job / f"timeline_fx_l{level}.json"
@@ -236,8 +288,12 @@ def main() -> int:
         if not passed:
             continue
         snd = job / "final_s.mp4"
-        s = py("sound.py", str(fx_path), str(final), str(snd),
-               "--typing-sound", typing, "--seed", str(sound_seed))
+        sargs = [str(fx_path), str(final), str(snd),
+                 "--typing-sound", typing, "--seed", str(sound_seed)]
+        if opt("--music"):
+            sargs += ["--music", str(Path(opt("--music")).resolve())]
+            log["music_bed"] = opt("--music")
+        s = py("sound.py", *sargs)
         log["sound_pass"] = s.returncode == 0
         log["sound_tail"] = s.stdout.strip()
         # Part-5 pack
@@ -251,6 +307,34 @@ def main() -> int:
         if (job / "final_s.sound.json").exists():
             (pack / "sound_log.json").write_text(
                 (job / "final_s.sound.json").read_text())
+        # retention score (report-only) + posting pack: filed with
+        # every shipped render so the next authoring round improves
+        rt = py("retention.py", str(fx_path), str(tr_path))
+        try:
+            ret = json.loads(rt.stdout)
+            log["retention"] = {"score": ret["score"],
+                                "band": ret["band"],
+                                "notes": ret["notes"]}
+            (pack / "retention.json").write_text(
+                json.dumps(ret, indent=1))
+        except Exception:
+            pass
+        pk = py("postpack.py", str(fx_path), str(tr_path),
+                str(pack / "packaging"), str(snd))
+        log["packaging"] = pk.stdout.strip() or "skipped"
+        if flag("--fps60"):
+            # optional 60 fps delivery master (motion-interpolated);
+            # the QC'd 30 fps file stays the canonical render
+            from clipper.ffmpeg import ffmpeg_exe
+            out60 = job / "final_s60.mp4"
+            r60 = run([ffmpeg_exe(), "-y", "-v", "error", "-i",
+                       str(snd), "-vf",
+                       "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:"
+                       "me_mode=bidir", "-c:v", "libx264", "-crf", "17",
+                       "-maxrate", "12M", "-bufsize", "24M", "-c:a",
+                       "copy", str(out60)])
+            log["fps60"] = str(out60) if r60.returncode == 0 \
+                else "failed (30fps master unaffected)"
         log["verdict"] = f"PASS at level {level}"
         (job / "decision_log.json").write_text(json.dumps(log, indent=1))
         (pack / "decision_log.json").write_text(json.dumps(log, indent=1))

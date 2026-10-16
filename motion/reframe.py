@@ -170,7 +170,39 @@ def margins_report(samples, sample_frames, ema, crop_w, margin):
             "pct_face_inside_margin": round(100.0 * ok / max(seen, 1), 1)}
 
 
+def face_report(src: Path) -> dict:
+    """Vertical-native mode: where does the face actually live?
+    Returns the median face box (normalised) and the caption/poster
+    zones that clear it - the numbers an author (or produce.py)
+    needs to place text without a hand-check on every job."""
+    fps, total, w, h, samples = detect_track(src, 3, [])
+    boxes = [p for _, p, _ in samples if p is not None]
+    if not boxes:
+        return {"src": str(src), "faces_detected_pct": 0.0,
+                "note": "no face tracked - keep default zones"}
+    arr = np.array(boxes, dtype=np.float64)
+    fb = float(np.median((arr[:, 1] + arr[:, 3]) / h))
+    zone = [round(min(max(fb + 0.05, 0.58), 0.78), 3),
+            round(min(max(fb + 0.32, 0.82), 0.94), 3)]
+    return {"src": str(src), "frames": total,
+            "faces_detected_pct": round(100.0 * len(boxes)
+                                        / max(len(samples), 1), 1),
+            "face_centre": [round(float(np.median(arr[:, 0]
+                                                  + arr[:, 2] / 2) / w), 3),
+                            round(float(np.median(arr[:, 1]
+                                                  + arr[:, 3] / 2) / h), 3)],
+            "face_h_frac": round(float(np.median(arr[:, 3]) / h), 3),
+            "face_bottom": round(fb, 3),
+            "recommended_caption_zone": zone,
+            "recommended_poster_zone": [zone[0],
+                                        round(min(zone[0] + 0.20, 0.90), 3)]}
+
+
 def main() -> int:
+    if "--report" in sys.argv:
+        print(json.dumps(face_report(
+            Path(sys.argv[sys.argv.index("--report") + 1]))))
+        return 0
     src, out = Path(sys.argv[1]), Path(sys.argv[2])
     margin = float(sys.argv[sys.argv.index("--margin") + 1]) \
         if "--margin" in sys.argv else 26.0

@@ -28,6 +28,19 @@
   .poster .w.key { font-weight: 800; letter-spacing: .015em; transform-origin: 50% 60%; }
   .poster .w.hero { font-weight: 800; letter-spacing: .01em; transform-origin: 50% 60%; }
 
+  /* ---- hook slate + end card (full-frame title slates) ---- */
+  .hook, .endcard { position: absolute; inset: 0; }
+  .slate { position: absolute; inset: 0; background: #0A0D11; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; }
+  .slate .hk-kicker { font-family: "MontserratX"; font-weight: 800; color: #fff;
+    opacity: .55; letter-spacing: .35em; font-size: 40px; margin-bottom: 38px; }
+  .slate .hk-line { font-family: "MontserratX"; font-weight: 800; color: #fff;
+    text-align: center; line-height: 1.05; letter-spacing: .01em; padding: 0 56px;
+    -webkit-text-stroke: 2px rgba(0,0,0,.4); }
+  .slate .hk-bar { width: 190px; height: 14px; border-radius: 99px; margin-top: 46px; }
+  .slate .hk-sub { font-family: "MontserratX"; font-weight: 700; color: #fff;
+    opacity: .75; font-size: 54px; margin-top: 40px; letter-spacing: .04em; }
+
   /* ---- speaker lower-third (name + role, bottom-left) ---- */
   .lowerthird { position: absolute; inset: 0; pointer-events: none; }
   .lowerthird .ltplate { position: absolute; left: 56px; display: flex; align-items: stretch;
@@ -378,6 +391,63 @@ function illTag(parent, item, size) {
   tag.style.color = "#0d0f12";
   tag.style.fontSize = (size || 58) + "px";
   return tag;
+}
+
+function buildHook(item) {
+  // hook slate: the first-second promise, full-frame (a title
+  // cutaway, never text over the face). Lines stagger in fast,
+  // the whole slate drifts 100->103% and dissolves AT until.
+  const root = el("item hook", stage);
+  const slate = el("slate", root);
+  const kick = el("hk-kicker", slate);
+  kick.textContent = (item.sub || "WATCH THIS").toUpperCase();
+  const lines = [];
+  (item.hookLines || []).forEach(txt => {
+    const ln = el("hk-line", slate);
+    ln.textContent = txt;
+    ln.style.fontSize = (item.wordSize || 148) + "px";
+    lines.push(ln);
+  });
+  const bar = el("hk-bar", slate);
+  bar.style.background = item.accent || ACCENT;
+  layoutJobs.push(() => {
+    let fs = item.wordSize || 148;
+    const widest = () => Math.max(1, ...lines.map(l => l.scrollWidth));
+    while (widest() > 0.90 * W && fs > 62) {
+      fs -= 4;
+      lines.forEach(l => l.style.fontSize = fs + "px");
+    }
+  });
+  return { item, root, slate, hkLines: lines };
+}
+
+function buildEndcard(item) {
+  // end card: 1s branded outro slate (name + handle + follow
+  // kicker). Tail-anchored by the validator; dissolves at until.
+  const root = el("item endcard", stage);
+  const slate = el("slate", root);
+  const kick = el("hk-kicker", slate);
+  kick.textContent = "FOLLOW FOR MORE";
+  const nm = el("hk-line", slate);
+  nm.textContent = item.title || "";
+  nm.style.fontSize = (item.wordSize || 120) + "px";
+  nm.style.color = item.accent || ACCENT;
+  const lines = [nm];
+  if (item.sub) {
+    const hd = el("hk-sub", slate);
+    hd.textContent = item.sub;
+    lines.push(hd);
+  }
+  const bar = el("hk-bar", slate);
+  bar.style.background = item.accent || ACCENT;
+  layoutJobs.push(() => {
+    let fs = item.wordSize || 120;
+    while (nm.scrollWidth > 0.90 * W && fs > 58) {
+      fs -= 4;
+      nm.style.fontSize = fs + "px";
+    }
+  });
+  return { item, root, slate, hkLines: lines };
 }
 
 function buildPip(item) {
@@ -2151,6 +2221,21 @@ function renderAt(tMs) {
       }
       trackSemi(b.lower, op);
     }
+    if (b.slate) {
+      // hook slate / end card: lines stagger in over ~6f each,
+      // slate drifts (idle law), dissolves exactly AT until in 2f
+      const until = it.until ?? it.at + 1.2;
+      const op = Math.min(clamp01((t - it.at) / (2 / FPS)),
+                          clamp01(1 - (t - until) / (2 / FPS)));
+      b.slate.style.opacity = op.toFixed(3);
+      b.slate.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;
+      (b.hkLines || []).forEach((ln, i) => {
+        const p = easeOut(clamp01((t - it.at - i * 0.09) / (6 / FPS)));
+        ln.style.opacity = clamp01((t - it.at - i * 0.09) / (2 / FPS)).toFixed(3);
+        ln.style.transform = `translateY(${((1 - p) * 34).toFixed(1)}px)`;
+      });
+      trackSemi(b.slate, op);
+    }
     if (b.item.type === "card") {
       const until = it.until ?? it.at + 2;
       const inP = clamp01((t - it.at) / (2 / FPS));   // bg snaps in 2f (no ghosting)
@@ -2313,14 +2398,19 @@ window.setTimeline = function (tl) {
   st.textContent =
     `.chip .bar, .listp .plate, .proc .srow, .card, .pip .pcard { border-radius: ${rad} !important; }` +
     (THEME.fontMode === "serif"
-      ? `.poster .w, .card .cw { font-family: "SerifX"; font-style: italic; }` : "");
+      ? `.poster .w, .card .cw { font-family: "SerifX"; font-style: italic; }` : "") +
+    // adaptive caption shade (produce.py measures the caption-zone
+    // luminance and raises this on bright footage): deepens the
+    // stack's ground plate so words hold 4.5:1 anywhere
+    (THEME.captionShade > 0
+      ? `.poster .stack::before { background: radial-gradient(ellipse at center, rgba(4,7,10,${Math.min(0.92, 0.55 + THEME.captionShade).toFixed(2)}) 55%, rgba(4,7,10,0) 88%) !important; }` : "");
   stage.innerHTML = "";
   builtItems = [];
   layoutJobs.length = 0;
   const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx,
                      pip: buildPip, broll: buildBroll, counter: buildCounter,
                      list: buildList, process: buildProcess, vector: buildVector,
-                     lowerthird: buildLower };
+                     lowerthird: buildLower, hook: buildHook, endcard: buildEndcard };
   for (const item of tl.items || []) {
     if (item.type === "fx" && item.until == null) item.until = item.at + (item.dur || 0.45);
     const b = builders[item.type];

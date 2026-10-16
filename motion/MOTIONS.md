@@ -513,6 +513,36 @@ alone sells it. Keep tilts ≤ ~20°; beyond that it's a billboard
 falling over. Not for caption workhorse stacks: one placed
 statement per beat.
 
+#### hook slate — EMPHASISE the promise (first second)
+`{"type": "hook", "hookLines": [...]}`: a full-frame title slate at
+frame 0 (dwell 0.9–1.8s, validator-enforced) — the clip's promise in
+2–6 giant words while he starts saying them. A title cutaway, never
+text over the face. `decide.py --hook` builds one from the opening
+words and hands the first stack's early words to it. Retention
+scores it: a render without a hook or a first event ≤0.5s loses
+points in `retention.json`. One per video, at the start, obviously.
+
+#### end card — the branded sting (last second)
+`{"type": "endcard", "title": name, "sub": "@handle"}`: tail-
+anchored 1.0–1.6s slate (name in accent + FOLLOW FOR MORE). Set
+`brand.name`/`brand.handle` in the timeline and produce.py injects
+it automatically; it owns the final beat, so let the last poster's
+words finish ≥0.2s before it lands.
+
+#### punch — EMPHASISE a payoff word (camera)
+`{"type": "fx", "kind": "punch", "dur": 0.25–0.6, "zoom": ≤1.10}`:
+a hard cut to a tighter shot for a blink, composite-side on the
+base. `decide.py` auto-punches counter landings (≤3, ≥4s apart).
+Author extra ones only on THE payoff word — three per clip is a
+ceiling, not a quota. Never above the 1.05–1.10 cap (treatment-B
+law: no zoom pulsing).
+
+#### freeze — hold the reaction (camera)
+`{"type": "fx", "kind": "freeze", "dur": 0.3–1.0}`: the exact frame
+at `at`, pushed 1.06× and saturated, held while a graphic lands on
+it. For a reaction beat or a number reveal. Sparingly — a freeze
+stops the speaker, so the words under it must be worth the stop.
+
 #### card — EMPHASISE a thesis / PROVE a verbatim line
 Full statement card, ≤3 lines, ≤5 words/line, words pop on onsets. Use for
 the clip's thesis, the hook restated, or the payoff. Never paraphrase a
@@ -617,6 +647,33 @@ that pass obeys these rules:
 4. Author the timeline JSON → `validate.py` → render → QC. Eyeball one
    frame inside every new scene before shipping (a scene you haven't seen
    is a scene that isn't done).
+
+## Retention, audio, camera & packaging (the second stack)
+
+- **Retention score** (`retention.py`, run by produce.py into every
+  review pack): hook 25 + pacing 30 + open loop 20 + loop closure
+  15 + ending 10. Report-only — it never fails a render; it tells
+  the next authoring round what to fix. `decide.py` helps before
+  the fact: its pattern-interrupt scheduler drops a keyword chip
+  into any ≥2.5s event gap with no active graphic (≤3 per clip).
+- **Voice chain** (sound.py): high-pass 75Hz → +2.5dB presence at
+  3.4kHz → de-esser (when the ffmpeg build has it) → the broadcast
+  compressor. `--music FILE` adds a real music bed: looped, −20dB
+  under the voice, ducked −10dB more while he speaks (the generated
+  pad and sub-bed stay underneath). The repo's synthesized beds
+  (`assets/music/*.wav`, CC0) are ready-made inputs.
+- **Smart camera**: `reframe.py --report <vertical.mp4>` returns
+  the tracked face box + the caption/poster zones that clear it
+  (produce.py `--face-report` files it in the decision log).
+  Punch/freeze fx above are its emphasis half.
+- **Packaging** (`postpack.py`, auto-run into the review pack):
+  3 hook variants (as-authored / number-led / curiosity), 3 titles,
+  description, hashtags, 3 cover frames (hook, hero midpoint, late
+  face). A human picks — nothing posts itself.
+- **Adaptive caption shade**: produce.py measures the caption
+  zone's luminance; bright footage gets `captionShade` (a deeper
+  ground plate) automatically. `--fps60` masters an optional
+  motion-interpolated 60fps delivery file beside the QC'd 30fps.
 
 ## Demo
 

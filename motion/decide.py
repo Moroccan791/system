@@ -443,6 +443,9 @@ def main() -> int:
                     default="pop",
                     help="karaoke lights each word as spoken; stretch/wiggle/"
                          "glide/bounce change word entries; neon = glow finish")
+    ap.add_argument("--hook", action="store_true",
+                    help="open with a hook slate built from the first "
+                         "spoken words (first stack hands them over)")
     ap.add_argument("--duration", type=float, default=0)
     args = ap.parse_args()
 
@@ -474,6 +477,71 @@ def main() -> int:
                 suggestions[t] = w["start"]
     duration = args.duration or round(words[-1]["end"] + 0.8, 3)
     items = repair(items, duration)
+    # pattern-interrupt scheduler: no 2.5s+ stretch may pass with
+    # nothing landing. Where a gap has no active graphic, drop a
+    # keyword chip on the strongest word inside it (max 3 per clip)
+    evs = sorted({round(i["at"], 3) for i in items} |
+                 {round(w["at"], 3) for i in items
+                  for r in (i.get("rows") or i.get("lines") or [])
+                  for w in r})
+    busy = [(float(i["at"]), float(i.get("until") or i["at"]))
+            for i in items if i["type"] in ("poster", "card", "vector",
+                                            "counter", "list", "process")]
+    fills = 0
+    for a, b in zip(evs, evs[1:]):
+        if b - a <= 2.5 or fills >= 3:
+            continue
+        at = a + 0.4
+        if any(s < at + 1.6 and at < e for s, e in busy):
+            continue
+        cand = [w for w in words if at <= w["start"] <= at + 1.4]
+        if not cand:
+            continue
+        kw = max(cand, key=lambda w: len(w["text"]))
+        title = re.sub(r"[^A-Za-z0-9' ]", "", kw["text"]).upper()[:18]
+        if len(title) < 3:
+            continue
+        items.append({"type": "chip", "at": round(at, 3),
+                      "until": round(at + 1.6, 3), "title": title})
+        busy.append((at, at + 1.6))
+        fills += 1
+        log.append(f"  fill    @{at:6.2f}  chip {title!r} (pacing gap "
+                   f"{b - a:.1f}s)")
+    # emphasis punch-ins on counter landings (the payoff blink),
+    # at most 3, never closer than 4s
+    last_punch = -9.0
+    for i in sorted(items, key=lambda x: x["at"]):
+        if i["type"] == "counter" and i["at"] - last_punch >= 4.0:
+            at = round(i["at"] + float(i.get("countDur") or 0.9), 3)
+            items.append({"type": "fx", "kind": "punch", "at": at,
+                          "dur": 0.35, "zoom": 1.05})
+            last_punch = i["at"]
+    if getattr(args, "hook", False):
+        # hook slate from the opening words; the first stack hands
+        # its early words to the slate (same words, bigger stage)
+        first = [w for w in words if w["start"] < 2.2][:6]
+        if len(first) >= 3:
+            txt = [w["text"].upper() for w in first]
+            mid = (len(txt) + 1) // 2
+            items.append({"type": "hook", "at": 0.0, "until": 1.25,
+                          "hookLines": [" ".join(txt[:mid]),
+                                        " ".join(txt[mid:])]})
+            for i in items:
+                if i["type"] in ("poster", "card"):
+                    rows = [[w for w in r if w["at"] >= 1.2]
+                            for r in (i.get("rows") or i.get("lines")
+                                      or [])]
+                    rows = [r for r in rows if r]
+                    key = "rows" if i["type"] == "poster" else "lines"
+                    i[key] = rows
+                    if rows:
+                        i["at"] = round(min(w["at"] for r in rows
+                                            for w in r), 3)
+            items = [i for i in items
+                     if i["type"] not in ("poster", "card")
+                     or (i.get("rows") or i.get("lines"))]
+            items.sort(key=lambda x: x["at"])
+            log.append("  hook    @  0.00  slate from opening words")
     # if the requested duration clips a poster's minimum dwell, the
     # timeline grows to fit the speech (a warning, not a silent cut)
     needed = max((max(w["at"] for w in flat_words(i)) + 0.21
