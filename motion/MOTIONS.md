@@ -44,8 +44,11 @@ presented as proof.
    2.4–2.5s start-to-start: QC pacing also caps the gap from any item's
    start to the next visual change at 2.5s.
 6. **Honest data only.** Charts show real numbers from the speech or the
-   source. If numbers are illustrative, the graphic (or its label) must say
-   ILLUSTRATIVE. Never invent a statistic to make a prettier chart.
+   source. No on-screen ILLUSTRATIVE tags on data scenes (decided
+   2026-10-16) — instead, anchor every value to something actually said
+   ("57 in the chat, all of them awake, none stepped in"). A scene may
+   visualise the speaker's argument, but never present an invented
+   statistic as a measured fact to make a prettier chart.
 7. **Brand lock.** One accent colour + black/white (or the client's brand
    colours) per video. Data scenes use the accent for the ONE thing that
    matters (the hot bar, the winner, the counted people) and steel greys for
@@ -231,7 +234,7 @@ frames only; an fx is a comma, not a sentence.
 `motion/timelines/motions_demo.json` — the M2 "57 men" clip re-cut with the
 library attached: counter hook → people (the 57) → quote (his exact words) →
 versus → bars → line → stack → timeline, posters elsewhere; scenes that
-visualise his argument instead of spoken facts carry ILLUSTRATIVE. Produced
+visualise his argument use only numbers his argument actually states.
 with the standard `motion/produce.py` pipeline: **QC v2 PASS + SOUND QC
 PASS at level 0** (−14.1 LUFS), shipped as
 `motion/demo_library/motions_demo.mp4`. Speaker still holds ~55% of the

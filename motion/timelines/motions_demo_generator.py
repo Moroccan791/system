@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Library demo timeline: the M2 '57 men' clip re-cut with the MOTIONS.md
 data scenes attached. Real anchors only: people=the spoken 57, quote=the
-spoken words verbatim; versus/bars/line/stack visualise the speaker's
-argument and carry sub="ILLUSTRATIVE" per the honest-data rule.
+spoken words verbatim; versus/bars/line/stack visualise the speaker's argument.
 Run: python3 motion/timelines/motions_demo_generator.py
 """
 import json
@@ -33,22 +32,22 @@ def main():
          "by": "Michael Sartain", "at": 11.75, "until": 14.00},
         # COMPARE the argument (illustrative)
         {"type": "vector", "name": "versus", "mode": "fullbleed",
-         "label": "HIS POINT", "sub": "ILLUSTRATIVE",
+         "label": "HIS POINT",
          "left": {"label": "AWAKE", "value": 57},
          "right": {"label": "STEPPED IN", "value": 0}, "win": "left",
          "at": 15.90, "until": 18.10},
         {"type": "vector", "name": "bars", "mode": "fullbleed",
-         "label": "OF THE 57 IN THE CHAT", "sub": "ILLUSTRATIVE",
-         "values": [57, 21, 1], "labels": ["IN CHAT", "PUT A 1", "STEPPED IN"],
+         "label": "OF THE 57 IN THE CHAT",
+         "values": [57, 57, 0], "labels": ["IN CHAT", "AWAKE", "STEPPED IN"],
          "hot": 2, "at": 20.85, "until": 22.90},
         # SHOW change (illustrative)
         {"type": "vector", "name": "line", "mode": "fullbleed",
-         "label": "HOW FAST A CHAT SPIRALS", "sub": "ILLUSTRATIVE",
-         "points": [6, 18, 15, 42, 78], "at": 24.60, "until": 26.90},
+         "label": "HOW THE CHAT FILLED UP",
+         "points": [4, 14, 11, 33, 57], "at": 24.60, "until": 26.90},
         # SHOW the split (illustrative)
         {"type": "vector", "name": "stack", "mode": "fullbleed",
-         "label": "THE ROOM, BY HIS ACCOUNT", "sub": "ILLUSTRATIVE",
-         "parts": [30, 70], "labels": ["KNEW", "DIDN'T KNOW"],
+         "label": "EVERY SINGLE ONE OF THEM",
+         "parts": [99, 1], "labels": ["KNEW BETTER", "EXCUSED"],
          "at": 28.90, "until": 31.05},
         # ORIENT: the argument's beats
         {"type": "vector", "name": "timeline", "mode": "fullbleed",

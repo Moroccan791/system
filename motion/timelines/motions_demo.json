@@ -278,7 +278,6 @@
    "name": "versus",
    "mode": "fullbleed",
    "label": "HIS POINT",
-   "sub": "ILLUSTRATIVE",
    "left": {
     "label": "AWAKE",
     "value": 57
@@ -382,15 +381,14 @@
    "name": "bars",
    "mode": "fullbleed",
    "label": "OF THE 57 IN THE CHAT",
-   "sub": "ILLUSTRATIVE",
    "values": [
     57,
-    21,
-    1
+    57,
+    0
    ],
    "labels": [
     "IN CHAT",
-    "PUT A 1",
+    "AWAKE",
     "STEPPED IN"
    ],
    "hot": 2,
@@ -446,14 +444,13 @@
    "type": "vector",
    "name": "line",
    "mode": "fullbleed",
-   "label": "HOW FAST A CHAT SPIRALS",
-   "sub": "ILLUSTRATIVE",
+   "label": "HOW THE CHAT FILLED UP",
    "points": [
-    6,
-    18,
-    15,
-    42,
-    78
+    4,
+    14,
+    11,
+    33,
+    57
    ],
    "at": 24.6,
    "until": 26.9
@@ -525,15 +522,14 @@
    "type": "vector",
    "name": "stack",
    "mode": "fullbleed",
-   "label": "THE ROOM, BY HIS ACCOUNT",
-   "sub": "ILLUSTRATIVE",
+   "label": "EVERY SINGLE ONE OF THEM",
    "parts": [
-    30,
-    70
+    99,
+    1
    ],
    "labels": [
-    "KNEW",
-    "DIDN'T KNOW"
+    "KNEW BETTER",
+    "EXCUSED"
    ],
    "at": 28.9,
    "until": 31.05
