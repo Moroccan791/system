@@ -697,6 +697,233 @@ function buildScene(svg, V, ac, item, vw, vh) {
     pt.textContent = (item.place || "").toUpperCase();
     fitSvg(pt, 400 * s);
     n.pinY = pinY;
+  } else if (V.name === "calendar") {
+    // ORIENT in the week: seven day cells, the spoken day lights up
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const days = (item.labels && item.labels.length === 7) ? item.labels
+      : ["M", "T", "W", "T", "F", "S", "S"];
+    n.day = Math.max(0, Math.min(6, item.day || 0));
+    n.cells = [];
+    const cw = 62, gap = 10, x0 = 300 - (7 * cw + 6 * gap) / 2, y0 = H / 2 - 60;
+    days.forEach((d, i) => {
+      const hot = i === n.day;
+      const r = svgEl("rect", { x: (x0 + i * (cw + gap)) * s, y: y0 * s, width: cw * s, height: 84 * s, rx: 14 * s, fill: hot ? ac : "#1A2230", stroke: hot ? ac : "#2b3547", "stroke-width": 3 * s }, svg);
+      const tx = svgEl("text", { x: (x0 + i * (cw + gap) + cw / 2) * s, y: (y0 + 56) * s, "text-anchor": "middle", fill: hot ? "#0D0F12" : "#93A5C4", "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+      tx.textContent = d;
+      n.cells.push({ r, tx, hot, cx: x0 + i * (cw + gap) + cw / 2, cy: y0 + 42 });
+    });
+    n.ring = svgEl("rect", { x: (x0 + n.day * (cw + gap) - 7) * s, y: (y0 - 7) * s, width: (cw + 14) * s, height: 98 * s, rx: 18 * s, fill: "none", stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg);
+  } else if (V.name === "clock") {
+    // ORIENT in the day: clock hands sweep to the spoken time
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2 - 30, r = 128;
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: r * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 6 * s }, svg);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2, big = i % 3 === 0;
+      svgEl("line", { x1: (cx + Math.cos(a) * (r - (big ? 26 : 16))) * s, y1: (cy + Math.sin(a) * (r - (big ? 26 : 16))) * s, x2: (cx + Math.cos(a) * (r - 6)) * s, y2: (cy + Math.sin(a) * (r - 6)) * s, stroke: big ? "#E8EDF4" : "#41506B", "stroke-width": (big ? 7 : 4) * s, "stroke-linecap": "round" }, svg);
+    }
+    n.hr = svgEl("line", { x1: cx * s, y1: cy * s, x2: cx * s, y2: (cy - 62) * s, stroke: "#FFFFFF", "stroke-width": 13 * s, "stroke-linecap": "round" }, svg);
+    n.min = svgEl("line", { x1: cx * s, y1: cy * s, x2: cx * s, y2: (cy - 96) * s, stroke: ac, "stroke-width": 9 * s, "stroke-linecap": "round" }, svg);
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: 12 * s, fill: "#FFFFFF" }, svg);
+    n.cx = cx; n.cy = cy; n.sweep = item.sweep || 1;
+    const tt = svgEl("text", { x: cx * s, y: (cy + r + 78) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 62 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    tt.textContent = (item.title || "").toUpperCase();
+    fitSvg(tt, 460 * s);
+  } else if (V.name === "price") {
+    // SHOW a cost: a price tag swings in, value counts up on it
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    n.tagG = svgEl("g", {}, svg);
+    svgEl("line", { x1: 168 * s, y1: (H / 2 - 190) * s, x2: 218 * s, y2: (H / 2 - 66) * s, stroke: "#41506B", "stroke-width": 5 * s }, n.tagG);
+    const tag = svgEl("path", { d: `M ${190 * s} ${(H / 2 - 80) * s} H ${428 * s} L ${512 * s} ${(H / 2 + 4) * s} L ${428 * s} ${(H / 2 + 88) * s} H ${190 * s} Z`, fill: ac }, n.tagG);
+    tag.setAttribute("rx", 18 * s);
+    svgEl("circle", { cx: 222 * s, cy: (H / 2 + 4) * s, r: 13 * s, fill: "#14181f" }, n.tagG);
+    n.pval = svgEl("text", { x: 336 * s, y: (H / 2 + 30) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 76 * s, "font-weight": 800, "font-family": "MontserratX" }, n.tagG);
+    n.tagX = 218; n.tagY = H / 2 - 66;
+  } else if (V.name === "checklist") {
+    // SHOW steps/rules: boxes tick themselves off one by one
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const ents = (item.entries || []).slice(0, 5);
+    const rh = 74, y0 = H / 2 - (ents.length * rh) / 2;
+    svgEl("rect", { x: 58 * s, y: (y0 - 34) * s, width: 484 * s, height: (ents.length * rh + 56) * s, rx: 22 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+    n.rows = ents.map((txt, i) => {
+      const y = y0 + i * rh;
+      const box = svgEl("rect", { x: 88 * s, y: (y + 4) * s, width: 38 * s, height: 38 * s, rx: 10 * s, fill: "none", stroke: "#41506B", "stroke-width": 4 * s }, svg);
+      const tick = svgEl("path", { d: `M ${96 * s} ${(y + 23) * s} L ${106 * s} ${(y + 33) * s} L ${120 * s} ${(y + 12) * s}`, fill: "none", stroke: ac, "stroke-width": 6 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+      const tl = Math.hypot(14, 11) + Math.hypot(14, 21);
+      tick.setAttribute("stroke-dasharray", tl * s); tick.style.strokeDashoffset = tl * s;
+      const tx = svgEl("text", { x: 146 * s, y: (y + 34) * s, fill: "#FFFFFF", "font-size": 33 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = txt;
+      fitSvg(tx, 380 * s);
+      return { box, tick, tx, tl: tl * s };
+    });
+  } else if (V.name === "magnet") {
+    // SHOW attraction: filings fly to the magnet and stick
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const mx = 128, my = H / 2;
+    const mg = svgEl("path", { d: `M ${(mx - 52) * s} ${(my - 120) * s} V ${my * s} A 52 ${52} 0 0 0 ${(mx + 52) * s} ${my * s} V ${(my - 120) * s} L ${(mx + 20) * s} ${(my - 120) * s} V ${my * s} A 20 20 0 0 1 ${(mx - 20) * s} ${my * s} V ${(my - 120) * s} Z`, fill: ac }, svg);
+    svgEl("rect", { x: (mx - 52) * s, y: (my - 120) * s, width: 32 * s, height: 44 * s, fill: "#E8EDF4" }, svg);
+    svgEl("rect", { x: (mx + 20) * s, y: (my - 120) * s, width: 32 * s, height: 44 * s, fill: "#E8EDF4" }, svg);
+    n.dots = [];
+    const cnt = Math.max(4, Math.min(14, item.count || 9));
+    for (let i = 0; i < cnt; i++) {
+      const x0 = 330 + ((i * 53) % 210), y0 = my - 130 + ((i * 71) % 260);
+      const pole = i % 2 ? mx + 36 : mx - 36;
+      const c = svgEl("circle", { cx: x0 * s, cy: y0 * s, r: 9 * s, fill: i % 3 ? "#93A5C4" : ac }, svg);
+      n.dots.push({ el: c, x0, y0, x1: pole + (i % 3 - 1) * 10, y1: my - 118 + (i % 4) * 8 });
+    }
+  } else if (V.name === "funnel") {
+    // PROVE drop-off: many enter the top, few leave the bottom
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("path", { d: `M ${110 * s} ${(cy - 140) * s} H ${490 * s} L ${338 * s} ${(cy + 40) * s} V ${(cy + 130) * s} H ${262 * s} V ${(cy + 40) * s} Z`, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    n.fromTx = svgEl("text", { x: 300 * s, y: (cy - 168) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 58 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.fromTx.textContent = fmtVal(item.from || 100, 0);
+    n.toTx = svgEl("text", { x: 300 * s, y: (cy + 208) * s, "text-anchor": "middle", fill: ac, "font-size": 58 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.toTx.textContent = fmtVal(item.to || 0, 0);
+    n.fdots = [];
+    for (let i = 0; i < 10; i++) {
+      const c = svgEl("circle", { cx: (150 + (i * 41) % 300) * s, cy: (cy - 118) * s, r: 8 * s, fill: i < 3 ? ac : "#5B729E", opacity: 0 }, svg);
+      n.fdots.push({ el: c, x: 150 + (i * 41) % 300, d: i * 0.09 });
+    }
+    n.fcy = cy;
+  } else if (V.name === "pyramid") {
+    // SHOW hierarchy: levels stack up, the top is the accent
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const labs = (item.labels || []).slice(0, 3);
+    while (labs.length < 3) labs.push("");
+    const widths = [168, 292, 416], lh = 78, yb = H / 2 + 128;
+    const shades = [ac, "#33456A", "#232d40"];   // top level is the accent
+    n.levels = labs.map((txt, i) => {
+      const y = yb - (labs.length - i) * (lh + 8);
+      const r = svgEl("rect", { x: (300 - widths[i] / 2) * s, y: y * s, width: widths[i] * s, height: lh * s, rx: 14 * s, fill: shades[i], opacity: 0 }, svg);
+      const tx = svgEl("text", { x: 300 * s, y: (y + lh / 2 + 13) * s, "text-anchor": "middle", fill: i === 0 ? "#0D0F12" : "#E8EDF4", "font-size": 32 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = (txt || "").toUpperCase();
+      fitSvg(tx, (widths[i] - 30) * s);
+      return { r, tx };
+    });
+  } else if (V.name === "target") {
+    // EMPHASISE aim: rings, then the arrow strikes the centre
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2;
+    [130, 88, 46].forEach((r, i) => {
+      svgEl("circle", { cx: cx * s, cy: cy * s, r: r * s, fill: i === 2 ? ac : "none", stroke: i === 2 ? ac : "#41506B", "stroke-width": 7 * s }, svg);
+    });
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: 10 * s, fill: "#0D0F12" }, svg);
+    n.pulse = svgEl("circle", { cx: cx * s, cy: cy * s, r: 46 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
+    n.arrowG = svgEl("g", { opacity: 0 }, svg);
+    svgEl("line", { x1: 428 * s, y1: (cy - 128) * s, x2: 306 * s, y2: (cy - 6) * s, stroke: "#FFFFFF", "stroke-width": 10 * s, "stroke-linecap": "round" }, n.arrowG);
+    svgEl("path", { d: `M ${300 * s} ${cy * s} L ${330 * s} ${(cy - 4) * s} L ${304 * s} ${(cy + 22) * s} Z`, fill: "#FFFFFF" }, n.arrowG);
+    svgEl("path", { d: `M ${428 * s} ${(cy - 128) * s} L ${452 * s} ${(cy - 152) * s} L ${446 * s} ${(cy - 118) * s} M ${428 * s} ${(cy - 128) * s} L ${462 * s} ${(cy - 122) * s} L ${434 * s} ${(cy - 104) * s}`, stroke: ac, "stroke-width": 8 * s, fill: "none", "stroke-linecap": "round" }, n.arrowG);
+    n.cx = cx; n.cy = cy;
+  } else if (V.name === "podium") {
+    // PROVE rank: 2nd and 3rd rise, then 1st takes the centre
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const labs = (item.labels || []).slice(0, 3);
+    while (labs.length < 3) labs.push("");
+    const yb = H / 2 + 130, bw = 128;
+    const spec = [
+      { x: 300 - bw - 22, h: 118, ord: 0, num: "2", win: false },
+      { x: 300, h: 178, ord: 1, num: "1", win: true },
+      { x: 300 + bw + 22, h: 88, ord: 0, num: "3", win: false }];
+    n.blocks = spec.map((sp, i) => {
+      const r = svgEl("rect", { x: (sp.x - bw / 2) * s, y: yb * s, width: bw * s, height: 2 * s, rx: 10 * s, fill: sp.win ? ac : "#232d40" }, svg);
+      const num = svgEl("text", { x: sp.x * s, y: (yb - sp.h + 62) * s, "text-anchor": "middle", fill: sp.win ? "#0D0F12" : "#E8EDF4", "font-size": 54 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      num.textContent = sp.num;
+      const tx = svgEl("text", { x: sp.x * s, y: (yb + 44) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 27 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+      tx.textContent = (labs[i] || "").toUpperCase();
+      fitSvg(tx, 150 * s);
+      return { r, num, tx, h: sp.h, yb, x: sp.x, ord: sp.ord };
+    });
+  } else if (V.name === "beforeafter") {
+    // COMPARE transformation: muted BEFORE, accent AFTER
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2, pw = 238, ph = 300;
+    const mk = (x, head, word, hot) => {
+      const g = svgEl("g", { opacity: 0 }, svg);
+      svgEl("rect", { x: x * s, y: (cy - ph / 2) * s, width: pw * s, height: ph * s, rx: 20 * s, fill: hot ? "#1d1420" : "#10141c", stroke: hot ? ac : "#2b3547", "stroke-width": hot ? 5 : 3 }, g);
+      const h = svgEl("text", { x: (x + pw / 2) * s, y: (cy - ph / 2 + 52) * s, "text-anchor": "middle", fill: hot ? ac : "#7E93BC", "font-size": 28 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      h.textContent = head;
+      const w = svgEl("text", { x: (x + pw / 2) * s, y: (cy + 26) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 54 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      w.textContent = (word || "").toUpperCase();
+      fitSvg(w, (pw - 28) * s);
+      return g;
+    };
+    n.baL = mk(52, "BEFORE", item.before, false);
+    n.baR = mk(310, "AFTER", item.after, true);
+    n.baDiv = svgEl("line", { x1: 300 * s, y1: (cy - ph / 2 - 16) * s, x2: 300 * s, y2: (cy + ph / 2 + 16) * s, stroke: "#41506B", "stroke-width": 4 * s, "stroke-dasharray": 8 * s }, svg);
+    n.baDiv.setAttribute("opacity", 0);
+  } else if (V.name === "battery") {
+    // FEEL energy: the charge fills (or drains) to the spoken level
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2, bw = 396, bh = 148, x0 = 90;
+    svgEl("rect", { x: x0 * s, y: (cy - bh / 2) * s, width: bw * s, height: bh * s, rx: 26 * s, fill: "#10141c", stroke: "#41506B", "stroke-width": 6 * s }, svg);
+    svgEl("rect", { x: (x0 + bw + 8) * s, y: (cy - 34) * s, width: 22 * s, height: 68 * s, rx: 8 * s, fill: "#41506B" }, svg);
+    n.fill = svgEl("rect", { x: (x0 + 10) * s, y: (cy - bh / 2 + 10) * s, width: 2 * s, height: (bh - 20) * s, rx: 18 * s, fill: ac }, svg);
+    n.pct = svgEl("text", { x: 300 * s, y: (cy + bh / 2 + 84) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 66 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.bw = bw - 20; n.val = Math.max(1, Math.min(100, item.value || 50));
+  } else if (V.name === "proscons") {
+    // COMPARE sides: points land alternately, ticks vs crosses
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const heads = (item.labels && item.labels.length >= 2) ? item.labels : ["PROS", "CONS"];
+    const mkCol = (x, head, rows, hot) => {
+      const h = svgEl("text", { x: (x + 100) * s, y: (cy - 158) * s, "text-anchor": "middle", fill: hot ? ac : "#7E93BC", "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+      h.textContent = (head || "").toUpperCase();
+      return rows.slice(0, 4).map((txt, i) => {
+        const y = cy - 108 + i * 66;
+        const mk2 = svgEl("text", { x: x * s, y: (y + 10) * s, fill: hot ? ac : "#7E93BC", "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+        mk2.textContent = hot ? "✓" : "✕";
+        const tx = svgEl("text", { x: (x + 40) * s, y: (y + 10) * s, fill: "#FFFFFF", "font-size": 29 * s, "font-weight": 700, "font-family": "MontserratX", opacity: 0 }, svg);
+        tx.textContent = txt;
+        fitSvg(tx, 168 * s);
+        return { mk: mk2, tx };
+      });
+    };
+    n.proRows = mkCol(56, heads[0], item.pros || [], true);
+    n.conRows = mkCol(316, heads[1], item.cons || [], false);
+    svgEl("line", { x1: 300 * s, y1: (cy - 190) * s, x2: 300 * s, y2: (cy + 190) * s, stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+  } else if (V.name === "chapter") {
+    // ORIENT structure: PART 01 - a marker the series can reuse
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const kick = svgEl("text", { x: 300 * s, y: (cy - 96) * s, "text-anchor": "middle", fill: ac, "font-size": 34 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    kick.textContent = "P A R T";
+    n.bigTx = svgEl("text", { x: 300 * s, y: (cy + 42) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 150 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.bigTx.textContent = String(item.index || 1).padStart(2, "0");
+    const ti = svgEl("text", { x: 300 * s, y: (cy + 108) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 36 * s, "font-weight": 700, "font-family": "MontserratX" }, svg);
+    ti.textContent = (item.title || "").toUpperCase();
+    fitSvg(ti, 460 * s);
+    const tot = Math.max(1, Math.min(8, item.total || 3)), idx = Math.max(1, Math.min(tot, item.index || 1));
+    n.dots = [];
+    for (let i = 0; i < tot; i++) {
+      const c = svgEl("circle", { cx: (300 + (i - (tot - 1) / 2) * 44) * s, cy: (cy + 168) * s, r: 11 * s, fill: i < idx ? ac : "#2A3342" }, svg);
+      n.dots.push(c);
+    }
+  } else if (V.name === "bigword") {
+    // EMPHASISE one word: the payoff word takes the whole frame
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101319" }, svg);
+    n.wordG = svgEl("g", {}, svg);
+    n.wordTx = svgEl("text", { x: 300 * s, y: (H / 2 + 38) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 118 * s, "font-weight": 800, "font-family": "MontserratX" }, n.wordG);
+    n.wordTx.textContent = (item.word || item.title || "").toUpperCase();
+    fitSvg(n.wordTx, 520 * s);
+    n.under = svgEl("rect", { x: 300 * s, y: (H / 2 + 66) * s, width: 2 * s, height: 12 * s, rx: 6 * s, fill: ac }, svg);
+  } else if (V.name === "heart") {
+    // FEEL: a heart that beats with the line
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    n.rings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: (H / 2) * s, r: 60 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg));
+    n.heartG = svgEl("g", {}, svg);
+    const hp = svgEl("path", { d: "M 0 62 C -78 12 -104 -58 -52 -84 C -22 -98 0 -76 0 -48 C 0 -76 22 -98 52 -84 C 104 -58 78 12 0 62 Z", fill: ac }, n.heartG);
+    hp.setAttribute("transform", `translate(${300 * s} ${(H / 2) * s}) scale(${1.15 * s})`);
+    n.hcx = 300; n.hcy = H / 2;
+  } else if (V.name === "alert") {
+    // EMPHASISE a warning: the triangle lands with a shake
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    n.alertG = svgEl("g", {}, svg);
+    const cy = H / 2;
+    svgEl("path", { d: `M ${300 * s} ${(cy - 130) * s} L ${428 * s} ${(cy + 96) * s} H ${172 * s} Z`, fill: "none", stroke: ac, "stroke-width": 12 * s, "stroke-linejoin": "round" }, n.alertG);
+    svgEl("rect", { x: 291 * s, y: (cy - 62) * s, width: 18 * s, height: 84 * s, rx: 9 * s, fill: "#FFFFFF" }, n.alertG);
+    svgEl("circle", { cx: 300 * s, cy: (cy + 52) * s, r: 11 * s, fill: "#FFFFFF" }, n.alertG);
+    n.acy = cy;
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -861,6 +1088,117 @@ function animateVector(b, t, lifeP) {
       r.setAttribute("r", ((12 + rq * 62) * s).toFixed(1));
       r.setAttribute("opacity", (0.75 * (1 - rq) * clamp01((lt - 0.4) * 3)).toFixed(2));
     });
+  } else if (V.name === "calendar") {
+    n.cells.forEach((c, i) => {
+      const q = easeOutBack(clamp01((lt - 0.08 - i * 0.06) / 0.3));
+      c.r.style.transformOrigin = `${c.cx * s}px ${c.cy * s}px`;
+      c.r.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+      c.tx.style.transformOrigin = `${c.cx * s}px ${c.cy * s}px`;
+      c.tx.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+    });
+    n.ring.setAttribute("opacity", (clamp01((lt - 0.55) / 0.3) * (0.6 + 0.4 * Math.sin(lt * 4))).toFixed(2));
+  } else if (V.name === "clock") {
+    const q = easeInOut(clamp01(lt / Math.min(1.5, dur * 0.62)));
+    n.min.setAttribute("transform", `rotate(${(-90 + 360 * n.sweep * q).toFixed(1)} ${n.cx * s} ${n.cy * s})`);
+    n.hr.setAttribute("transform", `rotate(${(-90 + 30 * n.sweep * q + 40).toFixed(1)} ${n.cx * s} ${n.cy * s})`);
+  } else if (V.name === "price") {
+    const q = easeOutBack(clamp01(lt / 0.55));
+    const ang = -16 + 16 * q + Math.sin(lt * 7) * 3 * Math.exp(-lt * 2);
+    n.tagG.setAttribute("transform", `rotate(${ang.toFixed(2)} ${n.tagX * s} ${n.tagY * s})`);
+    const q2 = easeOut(clamp01(lt / 0.85));
+    n.pval.textContent = (b.item.prefix || "") + fmtVal((b.item.value || 0) * q2, b.item.decimals || 0) + (b.item.suffix || "");
+  } else if (V.name === "checklist") {
+    n.rows.forEach((r, i) => {
+      const q = clamp01((lt - 0.15 - i * 0.26) / 0.2);
+      r.tick.style.strokeDashoffset = (r.tl * (1 - easeOut(q))).toFixed(1);
+      r.tx.setAttribute("opacity", clamp01((lt - 0.2 - i * 0.26) / 0.25).toFixed(2));
+      const qb = easeOutBack(clamp01((lt - 0.1 - i * 0.26) / 0.25));
+      r.box.style.transformOrigin = `${107 * s}px ${r.box.getAttribute("y") * 1 + 19 * s}px`;
+      r.box.style.transform = `scale(${Math.max(0.001, qb).toFixed(3)})`;
+    });
+  } else if (V.name === "magnet") {
+    n.dots.forEach((d, i) => {
+      const q = clamp01((lt - 0.25 - i * 0.07) / 0.55), e = q * q;
+      d.el.setAttribute("cx", ((d.x0 + (d.x1 - d.x0) * e) * s).toFixed(1));
+      d.el.setAttribute("cy", ((d.y0 + (d.y1 - d.y0) * e) * s).toFixed(1));
+    });
+  } else if (V.name === "funnel") {
+    n.fdots.forEach((d) => {
+      const q = clamp01((lt - 0.3 - d.d) / 0.8);
+      const y = n.fcy - 118 + q * 238, x = d.x + (300 - d.x) * q * 0.82;
+      d.el.setAttribute("cx", (x * s).toFixed(1));
+      d.el.setAttribute("cy", (y * s).toFixed(1));
+      d.el.setAttribute("opacity", (Math.sin(Math.min(1, q) * Math.PI) * 0.95).toFixed(2));
+    });
+    const q = easeOut(clamp01(lt / Math.min(1.1, dur * 0.55)));
+    n.toTx.textContent = fmtVal((b.item.from || 100) + ((b.item.to || 0) - (b.item.from || 100)) * q, 0);
+  } else if (V.name === "pyramid") {
+    n.levels.forEach((l, i) => {
+      const q = easeOutBack(clamp01((lt - 0.12 - (2 - i) * 0.17) / 0.35));
+      l.r.setAttribute("opacity", clamp01(q * 1.6).toFixed(2));
+      l.r.style.transform = `translateY(${((1 - clamp01(q)) * 26 * s).toFixed(1)}px)`;
+      l.tx.setAttribute("opacity", clamp01((lt - 0.3 - (2 - i) * 0.17) / 0.3).toFixed(2));
+    });
+  } else if (V.name === "target") {
+    const q = clamp01((lt - 0.3) / 0.28), e = q * q;
+    n.arrowG.setAttribute("opacity", clamp01(q * 2).toFixed(2));
+    n.arrowG.setAttribute("transform", `translate(${((1 - e) * 90 * s).toFixed(1)} ${(-(1 - e) * 90 * s).toFixed(1)})`);
+    const pq = ((lt - 0.58) % 0.9 + 0.9) % 0.9 / 0.9;
+    n.pulse.setAttribute("r", ((46 + pq * 90) * s).toFixed(1));
+    n.pulse.setAttribute("opacity", (lt > 0.58 ? (1 - pq) * 0.8 : 0).toFixed(2));
+  } else if (V.name === "podium") {
+    n.blocks.forEach((bl) => {
+      const q = easeOut(clamp01((lt - 0.15 - bl.ord * 0.3) / 0.5));
+      bl.r.setAttribute("y", ((bl.yb - bl.h * q) * s).toFixed(1));
+      bl.r.setAttribute("height", Math.max(2, bl.h * q * s).toFixed(1));
+      bl.num.setAttribute("opacity", clamp01((lt - 0.45 - bl.ord * 0.3) / 0.3).toFixed(2));
+      bl.tx.setAttribute("opacity", clamp01((lt - 0.55 - bl.ord * 0.3) / 0.3).toFixed(2));
+    });
+  } else if (V.name === "beforeafter") {
+    const qL = easeOut(clamp01((lt - 0.1) / 0.4)), qR = easeOut(clamp01((lt - 0.45) / 0.4));
+    n.baL.setAttribute("opacity", qL.toFixed(2));
+    n.baL.setAttribute("transform", `translate(${(-24 * (1 - qL) * s).toFixed(1)} 0)`);
+    n.baR.setAttribute("opacity", qR.toFixed(2));
+    n.baR.setAttribute("transform", `translate(${(24 * (1 - qR) * s).toFixed(1)} 0)`);
+    n.baDiv.setAttribute("opacity", clamp01((lt - 0.3) / 0.3).toFixed(2));
+  } else if (V.name === "battery") {
+    const q = easeInOut(clamp01(lt / Math.min(1.2, dur * 0.55)));
+    n.fill.setAttribute("width", Math.max(2, n.bw * (n.val / 100) * q * s).toFixed(1));
+    n.pct.textContent = Math.round(n.val * q) + "%";
+  } else if (V.name === "proscons") {
+    n.proRows.forEach((r, i) => {
+      const q = clamp01((lt - 0.15 - i * 0.28) / 0.3);
+      r.mk.setAttribute("opacity", q.toFixed(2)); r.tx.setAttribute("opacity", q.toFixed(2));
+    });
+    n.conRows.forEach((r, i) => {
+      const q = clamp01((lt - 0.29 - i * 0.28) / 0.3);
+      r.mk.setAttribute("opacity", q.toFixed(2)); r.tx.setAttribute("opacity", q.toFixed(2));
+    });
+  } else if (V.name === "chapter") {
+    const q = easeOutBack(clamp01((lt - 0.05) / 0.45));
+    n.bigTx.style.transformOrigin = `${300 * s}px ${(V.H / 2) * s}px`;
+    n.bigTx.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+    n.dots.forEach((c, i) => c.setAttribute("opacity", clamp01((lt - 0.3 - i * 0.09) / 0.2).toFixed(2)));
+  } else if (V.name === "bigword") {
+    const q = easeOutBack(clamp01((lt - 0.05) / 0.5));
+    n.wordG.style.transformOrigin = `${300 * s}px ${(V.H / 2) * s}px`;
+    n.wordG.style.transform = `scale(${Math.max(0.001, q).toFixed(3)})`;
+    const fs = parseFloat(n.wordTx.getAttribute("font-size")) / s;
+    const w = Math.min(500, n.wordTx.textContent.length * fs * 0.58) * easeOut(clamp01((lt - 0.35) / 0.45));
+    n.under.setAttribute("width", Math.max(2, w * s).toFixed(1));
+    n.under.setAttribute("x", ((300 - w / 2) * s).toFixed(1));
+  } else if (V.name === "heart") {
+    const beat = 1 + Math.pow(Math.abs(Math.sin(lt * 3.1)), 3) * 0.20;
+    n.heartG.setAttribute("transform", `translate(${n.hcx * s} ${n.hcy * s}) scale(${beat.toFixed(3)}) translate(${-n.hcx * s} ${-n.hcy * s})`);
+    n.rings.forEach((r, i) => {
+      const pq = ((lt * 0.55 + i * 0.5) % 1 + 1) % 1;
+      r.setAttribute("r", ((60 + pq * 150) * s).toFixed(1));
+      r.setAttribute("opacity", (lt > 0.2 ? (1 - pq) * 0.65 : 0).toFixed(2));
+    });
+  } else if (V.name === "alert") {
+    const dx = Math.sin(lt * 38) * 7 * Math.exp(-lt * 2.6);
+    n.alertG.setAttribute("transform", `translate(${(dx * s).toFixed(1)} 0)`);
+    n.alertG.setAttribute("opacity", clamp01(lt / 0.15).toFixed(2));
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;

@@ -28,6 +28,8 @@ PEOPLE_NOUNS = {"men", "women", "people", "guys", "girls", "users",
                 "followers", "students", "members", "friends"}
 CHAT_WORDS = {"chat", "text", "texted", "texting", "message", "messages",
               "dm", "dms", "group"}
+WEEKDAYS = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+            "friday": 4, "saturday": 5, "sunday": 6}
 
 
 def _num(tok: str):
@@ -80,6 +82,18 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                          "at": s, "until": u},
                         f"crowd quantity: {int(val)} {noun}", w["text"])
                     continue
+            if any(x in ctx for x in ("$", "dollars", "dollar", "price",
+                                       "cost", "bucks", "paid", "pay")):
+                # a number in money context is a price, not a stat:
+                # the tag swings in and the amount counts onto it
+                u = round(at + 2.1, 2)
+                if free(s, u):
+                    add({"type": "vector", "name": "price", "mode": "fullbleed",
+                         "value": int(val) if val == int(val) else val,
+                         "prefix": "$", "label": "THE PRICE",
+                         "at": s, "until": u},
+                        "an amount of money - tag it", w["text"])
+                    continue
             u = round(at + 1.8, 2)
             if free(s, u):
                 add({"type": "counter", "value": int(val) if val == int(val) else val,
@@ -118,6 +132,111 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                      "label": "WHERE IT HAPPENED", "at": s, "until": u},
                     "a named place anchors the story", w["text"])
                 continue
+        # --- a weekday -> calendar ----------------------------------------------
+        if t in WEEKDAYS:
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u) and not any(o.get("name") == "calendar" for o in out):
+                add({"type": "vector", "name": "calendar", "mode": "fullbleed",
+                     "day": WEEKDAYS[t], "label": t.upper(),
+                     "at": s, "until": u},
+                    "a specific day is named - light it up", w["text"])
+                continue
+        # --- a time of day -> clock ----------------------------------------------
+        if t in ("o'clock", "midnight", "noon") or (
+                t in ("minutes", "hours") and _num(words[i - 1]["text"])[0]):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u) and not any(o.get("name") == "clock" for o in out):
+                add({"type": "vector", "name": "clock", "mode": "fullbleed",
+                     "title": "", "sweep": 1,
+                     "_note": "set title to the spoken time",
+                     "at": s, "until": u},
+                    "a time is stated - show the clock", w["text"])
+                continue
+        # --- money -> price tag ----------------------------------------------------
+        if t.startswith("$") or t in ("price", "cost", "costs", "dollars",
+                                      "bucks", "expensive"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "price", "mode": "fullbleed",
+                     "value": 0, "prefix": "$",
+                     "_note": "set value to the spoken amount",
+                     "at": s, "until": u},
+                    "money is the subject - tag it", w["text"])
+                continue
+        # --- attraction -> magnet ---------------------------------------------------
+        if t in ("attract", "attracts", "attracted", "attraction",
+                 "attractive", "magnetic", "magnet"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "magnet", "mode": "fullbleed",
+                     "count": 9, "label": "ATTRACTION",
+                     "at": s, "until": u},
+                    "attraction is the metaphor - filings fly in", w["text"])
+                continue
+        # --- aim -> target ------------------------------------------------------------
+        if t in ("target", "goal", "goals", "aim", "focus", "focused"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "target", "mode": "fullbleed",
+                     "label": t.upper(), "at": s, "until": u},
+                    "an aim is stated - strike the target", w["text"])
+                continue
+        # --- feeling -> heart ------------------------------------------------------------
+        if t in ("love", "loved", "heart", "hearts", "feelings"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "heart", "mode": "fullbleed",
+                     "label": t.upper(), "at": s, "until": u},
+                    "an emotional beat - let it beat", w["text"])
+                continue
+        # --- warning -> alert ---------------------------------------------------------------
+        if t in ("warning", "danger", "dangerous", "mistake", "mistakes"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "alert", "mode": "fullbleed",
+                     "label": t.upper(), "at": s, "until": u},
+                    "a warning lands - shake the sign", w["text"])
+                continue
+        # --- structure -> chapter marker -------------------------------------------------------
+        if t == "chapter" or (t == "part" and i + 1 < len(texts)
+                              and texts[i + 1] in ("one", "two", "three", "1", "2", "3")):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "chapter", "mode": "fullbleed",
+                     "index": 1, "total": 3, "title": "",
+                     "_note": "set index/total/title from the structure",
+                     "at": s, "until": u},
+                    "a structural break - mark the chapter", w["text"])
+                continue
+        # --- suggestions (creative params are prose; the author fills them) ----------------------
+        if t in ("rules", "steps", "checklist", "habits", "routine"):
+            out.append({"_suggest": "checklist", "_anchor": w["text"],
+                        "_reason": "a set of rules/steps - tick them off",
+                        "at": round(at, 2)})
+        if t in ("downside", "drawback", "pros", "cons", "advantage"):
+            out.append({"_suggest": "proscons", "_anchor": w["text"],
+                        "_reason": "two sides are weighed - split the screen",
+                        "at": round(at, 2)})
+        if t in ("funnel", "filter", "filters", "filtered", "screen"):
+            out.append({"_suggest": "funnel", "_anchor": w["text"],
+                        "_reason": "drop-off/filtering - many in, few out",
+                        "at": round(at, 2)})
+        if t in ("hierarchy", "pyramid", "elite", "levels"):
+            out.append({"_suggest": "pyramid", "_anchor": w["text"],
+                        "_reason": "a hierarchy is described - stack it",
+                        "at": round(at, 2)})
+        if t in ("energy", "tired", "exhausted", "drained", "battery"):
+            out.append({"_suggest": "battery", "_anchor": w["text"],
+                        "_reason": "an energy level is felt - show the charge",
+                        "at": round(at, 2)})
+        if t == "one" and i > 0 and texts[i - 1] == "number":
+            out.append({"_suggest": "podium", "_anchor": "number one",
+                        "_reason": "a ranking peaks - podium finish",
+                        "at": round(at, 2)})
+        if t == "before" and "after" in texts[i:i + 7]:
+            out.append({"_suggest": "beforeafter", "_anchor": w["text"],
+                        "_reason": "a before/after contrast - split panels",
+                        "at": round(at, 2)})
         # --- enumeration -> list (typography, no face cost) ----------------------
         if t in ("first", "second", "third") and i > 0 and texts[i - 1] in (
                 "the", "a", "is", "was"):

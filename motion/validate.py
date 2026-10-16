@@ -87,7 +87,8 @@ def main(path: str) -> int:
         if it["type"] == "vector" and it.get("name") not in (
                 "hoop", "led", "donut", "arrow", "burst",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
-                "chat", "network", "gauge", "map"):
+                "chat", "network", "gauge", "map",
+                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":
@@ -115,12 +116,26 @@ def main(path: str) -> int:
                 problems.append(f"gauge at {it['at']}: needs a value (0-100)")
             if nm == "map" and not it.get("place"):
                 problems.append(f"map at {it['at']}: needs a place")
+            if nm == "checklist" and not 2 <= len(it.get("entries") or []) <= 5:
+                problems.append(f"checklist at {it['at']}: needs 2-5 entries")
+            if nm == "proscons" and not (it.get("pros") or it.get("cons")):
+                problems.append(f"proscons at {it['at']}: needs pros and/or cons")
+            if nm == "bigword" and not (it.get("word") or it.get("title")):
+                problems.append(f"bigword at {it['at']}: needs a word")
+            if nm == "beforeafter" and not (it.get("before") and it.get("after")):
+                problems.append(f"beforeafter at {it['at']}: needs before and after")
+            if nm == "funnel" and (it.get("from") is None or it.get("to") is None):
+                problems.append(f"funnel at {it['at']}: needs from and to")
         if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed":
             # data scenes keep moving (fills/growth) so they may hold longer;
             # metaphor scenes must stay punchy
             lo, hi = (1.2, 2.5) if it.get("name") in (
                 "bars", "line", "versus", "people", "stack", "timeline",
-                "quote", "chat", "network", "gauge", "map") else (1.0, 1.8)
+                "quote", "chat", "network", "gauge", "map",
+                "calendar", "clock", "price", "checklist", "magnet",
+                "funnel", "pyramid", "target", "podium", "beforeafter",
+                "battery", "proscons", "chapter", "bigword", "heart",
+                "alert") else (1.0, 1.8)
             if not lo <= dwell <= hi:
                 problems.append(f"vector broll at {it['at']}: full-bleed dwell "
                                 f"{dwell:.2f}s outside {lo}-{hi}s")
@@ -164,7 +179,11 @@ def main(path: str) -> int:
                                 f"last entry no dwell time")
     # image cadence: at most one PiP / B-roll / metaphor-vector insert per 6 s
     DATA_SCENES = ("bars", "line", "versus", "people", "stack", "timeline",
-                   "quote", "chat", "network", "gauge", "map")
+                   "quote", "chat", "network", "gauge", "map",
+                   "calendar", "clock", "price", "checklist", "magnet",
+                   "funnel", "pyramid", "target", "podium", "beforeafter",
+                   "battery", "proscons", "chapter", "bigword", "heart",
+                   "alert")
     imgs = [i for i in items if i["type"] in ("pip", "broll")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     for a, b in zip(imgs, imgs[1:]):

@@ -145,7 +145,21 @@
                                  "properties": {
                                    "text": { "type": "string", "minLength": 1, "maxLength": 30 },
                                    "me": { "type": "boolean" } } } },
-        "place": { "type": "string", "minLength": 1, "maxLength": 24 }
+        "place": { "type": "string", "minLength": 1, "maxLength": 24 },
+        "entries": { "type": "array", "minItems": 2, "maxItems": 5,
+                     "items": { "type": "string", "minLength": 1, "maxLength": 30 } },
+        "pros": { "type": "array", "minItems": 1, "maxItems": 4,
+                  "items": { "type": "string", "minLength": 1, "maxLength": 24 } },
+        "cons": { "type": "array", "minItems": 1, "maxItems": 4,
+                  "items": { "type": "string", "minLength": 1, "maxLength": 24 } },
+        "word": { "type": "string", "minLength": 1, "maxLength": 16 },
+        "day": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "from": { "type": "number", "minimum": 0 },
+        "to": { "type": "number", "minimum": 0 },
+        "sweep": { "type": "number", "exclusiveMinimum": 0, "maximum": 3 },
+        "index": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "before": { "type": "string", "minLength": 1, "maxLength": 12 },
+        "after": { "type": "string", "minLength": 1, "maxLength": 12 }
       },
       "allOf": [
         { "if": { "properties": { "type": { "const": "poster" } } },

@@ -82,6 +82,22 @@ presented as proof.
 | A circle / network / team ("his circle", "connections") | **network** nodes linking to a hub | SHOW |
 | Intensity or certainty ("100%", "how serious", effort) | **gauge** needle sweep | SHOW / EMPHASISE |
 | A named place anchors the story ("at Cornell", "in Miami") | **map** pin drop | ORIENT / SHOW |
+| A day is named ("on Friday…", deadlines) | **calendar** (day lights up) | ORIENT |
+| A time is named ("by 7:30", "20 minutes") | **clock** (hands sweep) | ORIENT |
+| Money lands ("costs $500", "the price…") | **price** tag | SHOW |
+| Rules / habit steps ("text first, wait a day…") | **checklist** ticking off | SHOW |
+| Attraction, being drawn in ("she's drawn to…") | **magnet** | SHOW / FEEL |
+| Filter / drop-off ("out of 100, only 7…") | **funnel** | PROVE |
+| Hierarchy / tiers ("top 1%", "levels") | **pyramid** | SHOW |
+| An aim is stated ("the goal is…", "focus on…") | **target** | EMPHASISE |
+| Rank / best ("number one", "the best") | **podium** | PROVE |
+| Transformation ("I was shy, now I'm bold") | **beforeafter** | COMPARE |
+| Advantages weighed against downsides | **proscons** | COMPARE |
+| Energy level ("drained", "fully charged") | **battery** | FEEL |
+| A series part begins ("part two…") | **chapter** marker | ORIENT |
+| One word IS the clip ("…exactly.") | **bigword** | EMPHASISE |
+| Warning ("never do this", "big mistake") | **alert** | EMPHASISE |
+| Feelings land ("I actually loved her") | **heart** | FEEL |
 | A concrete picturable noun | pip / broll (client footage first) | SHOW |
 | Scene change, breath, mood | fx leak/flare, broll cutaway | FEEL |
 
@@ -218,6 +234,77 @@ shot" beats in dating content. Metaphor, never data.
 
 #### burst — FEEL impact (existing)
 Radial burst on a hit word; pairs with the sound hit. 1.0–1.8s full-bleed.
+
+#### calendar — ORIENT in the week
+Seven day cells pop in; the spoken day (`day` 0=Mon) lights accent and
+rings. Use when a day/date carries the point ("by Friday…").
+
+#### clock — ORIENT in the day
+Clock face; hands sweep (`sweep` turns of the minute hand) while
+`title` names the spoken time ("7:30 AM"). Use for stated times and
+deadlines.
+
+#### price — SHOW a cost
+A price tag swings in on its string; the amount counts onto it
+(`value`, `prefix` "$", `decimals`). Money context beats a bare
+counter — assign.py routes $ numbers here.
+
+#### checklist — SHOW rules/steps
+Rows (2–5 `entries`) tick themselves off one by one. For rules,
+habits, "do this, then this" — the ticks ARE the process.
+
+#### magnet — SHOW attraction
+A horseshoe magnet; filings fly in and stick (`count` dots). The
+dating-content metaphor for attraction/draw — abstract, never data.
+
+#### funnel — PROVE drop-off
+`from` count at the top, dots fall through, `to` counts out at the
+bottom. For filters, funnels, "out of 100, only 7…".
+
+#### pyramid — SHOW hierarchy
+Three levels stack (bottom first); the TOP level is the accent
+(`labels` = [top, mid, base]). Hierarchies, tiers, "top 1%".
+
+#### target — EMPHASISE an aim
+Concentric rings; an arrow strikes the centre and pulses. Goals,
+focus, "the whole point is…".
+
+#### podium — PROVE rank
+Blocks rise: sides first, the winner (centre, accent) last.
+`labels` are ordered [2nd, 1st, 3rd] to match the blocks. Rankings,
+"number one", best-of lists.
+
+#### beforeafter — COMPARE transformation
+Muted BEFORE panel slides in, accent AFTER answers it (`before`,
+`after` short words). Transformations, glow-ups, then-vs-now.
+
+#### battery — FEEL energy
+Charge bar fills to `value` % with a counting readout. Energy,
+motivation, "running on empty" — the level is the spoken claim;
+anchor it to the words (drained ≈ low, charged ≈ high).
+
+#### proscons — COMPARE sides
+Two columns land alternately: accent ✓ (`pros`) against muted ✕
+(`cons`), ≤4 each (column heads from `labels` [pros, cons]). For
+weighing, trade-offs, "good news / bad news".
+
+#### chapter — ORIENT structure
+PART `index` marker with progress dots (`total`) and a `title`.
+Reusable series furniture for multipart content — not a scene for
+mid-sentence beats.
+
+#### bigword — EMPHASISE one word
+A single payoff `word` takes the whole frame, accent underline
+sweeps under it. The heaviest typographic hit we have; one per clip
+is plenty (pair with the sound impact).
+
+#### heart — FEEL
+A heart beats (pulse-synced rings) for the emotional beat. Love,
+feelings, "it got real". Metaphor only.
+
+#### alert — EMPHASISE a warning
+Warning triangle lands with a shake and settles. Mistakes, dangers,
+"never do this". Use sparingly — it shouts.
 
 ### Typography (over the speaker; does not cost face time)
 

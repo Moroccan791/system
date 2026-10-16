@@ -318,7 +318,11 @@ def images(tl: dict) -> tuple[str, str]:
     # metaphor vectors) keep 6s spacing; full-bleed DATA scenes are
     # animated content and may chain at 2.4s (see motion/MOTIONS.md)
     DATA_SCENES = ("bars", "line", "versus", "people", "stack", "timeline",
-                   "quote", "chat", "network", "gauge", "map")
+                   "quote", "chat", "network", "gauge", "map",
+                   "calendar", "clock", "price", "checklist", "magnet",
+                   "funnel", "pyramid", "target", "podium", "beforeafter",
+                   "battery", "proscons", "chapter", "bigword", "heart",
+                   "alert")
     imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     data = [i for i in tl["items"] if i["type"] == "vector"
