@@ -31,7 +31,7 @@
         "speed": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
         "easing": { "enum": ["pop", "snap", "soft"] },
         "fontMode": { "enum": ["sans", "serif"] },
-        "fontPack": { "enum": ["montserrat", "anton", "bebas", "grotesk", "serif"] },
+        "fontPack": { "enum": ["montserrat", "anton", "bebas", "grotesk", "serif", "archivo", "poppins", "luckiest"] },
         "captionShade": { "type": "number", "minimum": 0, "maximum": 0.5 },
         "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon"] }
       }

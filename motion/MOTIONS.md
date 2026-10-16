@@ -684,9 +684,14 @@ applies one to a whole video (themes karaoke-bold/bounce-party/
 neon-nights carry anton/bebas/grotesk built in). montserrat =
 default workhorse; anton = tall condensed statement caps; bebas =
 clean editorial caps; grotesk = techy, keeps lowercase; serif =
-Playfair elegance. One pack per video — a font is a voice, and a
-video has one voice. All faces OFL-1.1, vendored in
-`assets/fonts/`.
+Playfair elegance; archivo = Archivo Black, the chunky classic
+behind most big-editor caption presets; poppins = rounded modern;
+luckiest = playful cartoon display. One pack per video — a font
+is a voice, and a video has one voice. All faces are OFL/Apache,
+vendored in `assets/fonts/` from their official free releases
+(fontsource) — the same public families the paid caption tools
+build presets on; font files are never copied out of another
+tool.
 
 ## Retention, audio, camera & packaging (the second stack)
 

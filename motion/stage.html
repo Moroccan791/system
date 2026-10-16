@@ -11,6 +11,12 @@
      chosen per video - see motion/fonts.py. MontserratX stays the
      default workhorse. */
   @font-face { font-family: "PackAnton"; src: url("file:///home/user/system/assets/fonts/Anton.woff2"); font-weight: 400; }
+  /* the caption-tool classics, from their official free releases
+     (OFL/Apache) - the same public families the paid tools build
+     their presets on; never copied from any tool's files */
+  @font-face { font-family: "PackArchivo"; src: url("file:///home/user/system/assets/fonts/ArchivoBlack.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackPoppins"; src: url("file:///home/user/system/assets/fonts/Poppins-ExtraBold.woff2"); font-weight: 800; }
+  @font-face { font-family: "PackLuckiest"; src: url("file:///home/user/system/assets/fonts/LuckiestGuy.woff2"); font-weight: 400; }
   @font-face { font-family: "PackBebas"; src: url("file:///home/user/system/assets/fonts/BebasNeue.woff2"); font-weight: 400; }
   @font-face { font-family: "PackGrotesk"; src: url("file:///home/user/system/assets/fonts/SpaceGrotesk-Bold.woff2"); font-weight: 700; }
   @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Bold.woff2"); font-weight: 700; }
@@ -2436,8 +2442,9 @@ window.setTimeline = function (tl) {
     // Serif-italic WORDS keep SerifX - that contrast is a meaning
     // cue (reflective), not a style accident.
     ({ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk",
-       serif: "PackSerif" }[THEME.fontPack]
-      ? `.poster .w, .card .cw, .slate .hk-line, .slate .hk-kicker, .slate .hk-sub, .chip .t1, .lowerthird .ltname, .counter .num { font-family: "${{ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk", serif: "PackSerif" }[THEME.fontPack]}" !important; }` : "");
+       serif: "PackSerif", archivo: "PackArchivo",
+       poppins: "PackPoppins", luckiest: "PackLuckiest" }[THEME.fontPack]
+      ? `.poster .w, .card .cw, .slate .hk-line, .slate .hk-kicker, .slate .hk-sub, .chip .t1, .lowerthird .ltname, .counter .num { font-family: "${{ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk", serif: "PackSerif", archivo: "PackArchivo", poppins: "PackPoppins", luckiest: "PackLuckiest" }[THEME.fontPack]}" !important; }` : "");
   stage.innerHTML = "";
   builtItems = [];
   layoutJobs.length = 0;

@@ -160,7 +160,8 @@ def main() -> int:
         # whole-video font pack choice (motion/fonts.py lists them);
         # overrides the theme's pack, never the brand accent
         if opt("--font") in ("montserrat", "anton", "bebas",
-                             "grotesk", "serif"):
+                             "grotesk", "serif", "archivo", "poppins",
+                             "luckiest"):
             theme["fontPack"] = opt("--font")
             log["font_pack"] = opt("--font")
         else:

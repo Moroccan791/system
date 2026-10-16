@@ -31,6 +31,17 @@ PACKS = [
     ("serif", "Playfair Display Bold (+italic)",
      "premium/elegant: finance, luxury, reflective stories. The "
      "italic is built in for the soft-word contrast"),
+    ("archivo", "Archivo Black (the caption-tool classic)",
+     "the chunky poster caps behind half the big-editor look: "
+     "karaoke stacks, hero words, hooks. Very wide - heroes earn "
+     "their shrink-to-fit. If you want 'that Moonshot-caption "
+     "feel', this is usually the one"),
+    ("poppins", "Poppins ExtraBold",
+     "rounded, friendly, modern: lifestyle, coaching, education. "
+     "Keeps lowercase, softer than the caps packs"),
+    ("luckiest", "Luckiest Guy",
+     "playful cartoon display: comedy, gaming, kids, high-energy "
+     "hooks only - use sparingly, it shouts"),
 ]
 
 
