@@ -58,13 +58,32 @@ def synth(kind: str, rng: np.random.Generator) -> np.ndarray:
 
 
 def _synth_raw(kind: str, rng: np.random.Generator) -> np.ndarray:
-    if kind == "key":                      # 40-120 ms mechanical key
-        dur = rng.uniform(0.04, 0.11)
-        n = int(dur * SR)
+    if kind == "key":                      # mechanical keyboard switch
+        # A real switch strike, modelled: broadband transient (keycap
+        # hit), a low "thock" knock from the case, a faint plate ring.
+        # Three switch profiles (deep linear / tactile / clicky) are
+        # picked per keystroke so typing never sounds like one sample
+        # looped. All synthesised - CC0 by construction.
+        n = int(0.12 * SR)
+        t = (np.arange(n) / SR).astype(np.float32)
+        profile = rng.choice(3, p=[0.5, 0.3, 0.2])
+        f0 = (rng.uniform(160, 230), rng.uniform(280, 380),
+              rng.uniform(220, 300))[profile]
         noise = rng.standard_normal(n).astype(np.float32)
-        tone = np.sin(2 * np.pi * rng.uniform(1400, 2400)
-                      * np.arange(n) / SR).astype(np.float32)
-        return (0.65 * noise + 0.35 * tone) * _env(n, 0.001, 3.0)
+        k = max(2, int(0.004 * SR))
+        hp = noise - np.convolve(noise, np.ones(k, np.float32) / k, "same")
+        trans = hp * np.exp(-t / 0.006)                    # ~6 ms hit
+        f = f0 * (1 - 0.25 * (1 - np.exp(-t / 0.01)))      # knock, pitch sag
+        knock = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.016)
+        ring = np.sin(2 * np.pi * rng.uniform(1100, 1600) * t) \
+            * np.exp(-t / 0.010)
+        out = 0.85 * trans + 0.55 * knock + 0.10 * ring
+        if profile == 2:                                   # clicky switch:
+            d = int(rng.uniform(0.008, 0.016) * SR)        # click-bar snap
+            snap = np.zeros(n, np.float32)
+            snap[d:] = hp[:n - d] * np.exp(-t[:n - d] / 0.004)
+            out = out + 0.6 * snap
+        return out.astype(np.float32) * _env(n, 0.0005, 2.0)
     if kind == "pop":                      # soft UI pop, pitch drop
         n = int(0.10 * SR)
         f = np.linspace(rng.uniform(540, 660), rng.uniform(150, 210), n)

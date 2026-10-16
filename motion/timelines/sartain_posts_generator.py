@@ -97,7 +97,14 @@ def poster(cur, zone=ZONE):
 def build(words, duration, specials, zone=ZONE):
     """specials: list of item dicts with at/until; posters fill the gaps."""
     items = [{"type": "fx", "kind": "opening", "at": 0.0, "dur": 0.27}]
-    covered = sorted((s["at"], s["until"]) for s in specials)
+    # a special blocks caption words inside its window (full-bleed scenes
+    # ARE the caption for their beat); card-mode scenes sit above the
+    # caption zone, so they opt out with "blocks": False and the words
+    # keep flowing underneath
+    covered = sorted((s["at"], s["until"]) for s in specials
+                     if s.get("blocks", True))
+    for s in specials:
+        s.pop("blocks", None)
     free = [w for w in words
             if not any(a - 0.05 <= w["start"] < u for a, u in covered)]
     posters = [poster(c, zone) for c in chunk_words(free)]

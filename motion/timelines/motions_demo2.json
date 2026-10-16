@@ -130,12 +130,12 @@
    "value": 57,
    "label": "MEN IN THE GROUP CHAT",
    "countDur": 0.9,
-   "until": 6.223
+   "until": 5.253
   },
   {
    "type": "poster",
-   "at": 6.683,
-   "until": 8.23,
+   "at": 5.393,
+   "until": 6.893,
    "zone": [
     0.68,
     0.86
@@ -143,9 +143,46 @@
    "rows": [
     [
      {
+      "w": "Okay,",
+      "at": 5.393
+     },
+     {
+      "w": "so",
+      "at": 5.566
+     },
+     {
+      "w": "that's",
+      "at": 5.69,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "the",
+      "at": 6.025
+     },
+     {
+      "w": "first",
+      "at": 6.211,
+      "kind": "key"
+     },
+     {
       "w": "one.",
       "at": 6.683
-     },
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 6.801,
+   "until": 8.398,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
      {
       "w": "Guys,",
       "at": 6.801
@@ -154,16 +191,20 @@
       "w": "remember,",
       "at": 6.986,
       "kind": "key"
+     },
+     {
+      "w": "they",
+      "at": 7.777
      }
     ],
     [
      {
-      "w": "they",
-      "at": 7.777
+      "w": "were",
+      "at": 8.02
      },
      {
-      "w": "were",
-      "at": 8.02,
+      "w": "57.",
+      "at": 8.188,
       "kind": "key"
      }
     ]
@@ -171,8 +212,8 @@
   },
   {
    "type": "poster",
-   "at": 8.188,
-   "until": 9.205,
+   "at": 8.326,
+   "until": 9.779,
    "zone": [
     0.68,
     0.86
@@ -180,32 +221,36 @@
    "rows": [
     [
      {
-      "w": "57.",
-      "at": 8.188,
-      "kind": "key"
-     },
-     {
       "w": "This",
       "at": 8.326
      },
      {
       "w": "is",
       "at": 8.471
-     }
-    ],
-    [
+     },
      {
       "w": "the",
       "at": 8.599
      },
      {
       "w": "first",
-      "at": 8.737
-     },
+      "at": 8.737,
+      "kind": "key"
+     }
+    ],
+    [
      {
       "w": "claim.",
       "at": 8.995,
       "kind": "key"
+     },
+     {
+      "w": "They",
+      "at": 9.437
+     },
+     {
+      "w": "were",
+      "at": 9.569
      }
     ]
    ]
@@ -213,12 +258,53 @@
   {
    "type": "vector",
    "name": "people",
-   "mode": "fullbleed",
-   "label": "MEN IN THE GROUP CHAT",
+   "mode": "card",
+   "zone": [
+    0.53,
+    0.66
+   ],
+   "w": 0.55,
    "count": 57,
    "total": 57,
-   "at": 9.4,
-   "until": 11.65
+   "at": 9.855,
+   "until": 11.095
+  },
+  {
+   "type": "poster",
+   "at": 9.885,
+   "until": 10.765,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "57",
+      "at": 9.885,
+      "kind": "key"
+     },
+     {
+      "w": "men",
+      "at": 10.012
+     },
+     {
+      "w": "in",
+      "at": 10.145
+     }
+    ],
+    [
+     {
+      "w": "the",
+      "at": 10.287
+     },
+     {
+      "w": "group",
+      "at": 10.465,
+      "kind": "key"
+     }
+    ]
+   ]
   },
   {
    "type": "vector",
@@ -229,12 +315,49 @@
     "should have known"
    ],
    "by": "Michael Sartain",
-   "at": 11.85,
-   "until": 14.1
+   "at": 11.126,
+   "until": 13.199
   },
   {
    "type": "poster",
-   "at": 14.326,
+   "at": 13.209,
+   "until": 14.536,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "exactly",
+      "at": 13.209,
+      "kind": "key"
+     },
+     {
+      "w": "what",
+      "at": 13.529
+     },
+     {
+      "w": "was",
+      "at": 13.794
+     }
+    ],
+    [
+     {
+      "w": "going",
+      "at": 13.911,
+      "kind": "key"
+     },
+     {
+      "w": "on.",
+      "at": 14.326
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 14.452,
    "until": 15.869,
    "zone": [
     0.68,
@@ -243,10 +366,6 @@
    "rows": [
     [
      {
-      "w": "on.",
-      "at": 14.326
-     },
-     {
       "w": "They",
       "at": 14.452
      },
@@ -254,13 +373,13 @@
       "w": "obviously",
       "at": 14.844,
       "kind": "key"
-     }
-    ],
-    [
+     },
      {
       "w": "were",
       "at": 15.362
-     },
+     }
+    ],
+    [
      {
       "w": "all",
       "at": 15.492
@@ -274,32 +393,80 @@
    ]
   },
   {
-   "type": "vector",
-   "name": "versus",
-   "mode": "fullbleed",
-   "label": "HIS POINT",
-   "left": {
-    "label": "AWAKE",
-    "value": 57
-   },
-   "right": {
-    "label": "STEPPED IN",
-    "value": 0
-   },
-   "win": "left",
-   "at": 16.0,
-   "until": 18.2
-  },
-  {
    "type": "poster",
-   "at": 18.266,
-   "until": 19.823,
+   "at": 16.019,
+   "until": 17.413,
    "zone": [
     0.68,
     0.86
    ],
    "rows": [
     [
+     {
+      "w": "They",
+      "at": 16.019
+     },
+     {
+      "w": "were",
+      "at": 16.212
+     },
+     {
+      "w": "all",
+      "at": 16.365,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "present.",
+      "at": 16.482,
+      "kind": "key"
+     },
+     {
+      "w": "We",
+      "at": 16.985
+     },
+     {
+      "w": "that",
+      "at": 17.203
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 17.464,
+   "until": 19.015,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "for",
+      "at": 17.464
+     },
+     {
+      "w": "a",
+      "at": 17.651
+     },
+     {
+      "w": "fact",
+      "at": 17.819,
+      "kind": "key"
+     },
+     {
+      "w": "oh",
+      "at": 17.943
+     }
+    ],
+    [
+     {
+      "w": "wait",
+      "at": 18.125,
+      "kind": "key"
+     },
      {
       "w": "we",
       "at": 18.266
@@ -310,15 +477,25 @@
      },
      {
       "w": "know",
-      "at": 18.805,
-      "kind": "key"
-     },
+      "at": 18.805
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 19.029,
+   "until": 20.4,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
      {
       "w": "any",
       "at": 19.029
-     }
-    ],
-    [
+     },
      {
       "w": "of",
       "at": 19.207
@@ -332,18 +509,7 @@
       "at": 19.613,
       "kind": "key"
      }
-    ]
-   ]
-  },
-  {
-   "type": "poster",
-   "at": 19.908,
-   "until": 21.049,
-   "zone": [
-    0.68,
-    0.86
-   ],
-   "rows": [
+    ],
     [
      {
       "w": "for",
@@ -358,7 +524,18 @@
       "at": 20.19,
       "kind": "key"
      }
-    ],
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 20.603,
+   "until": 21.932,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
     [
      {
       "w": "and",
@@ -370,8 +547,31 @@
      },
      {
       "w": "I",
-      "at": 20.839,
+      "at": 20.839
+     },
+     {
+      "w": "said",
+      "at": 20.928,
       "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "before",
+      "at": 21.101
+     },
+     {
+      "w": "several",
+      "at": 21.372,
+      "kind": "key"
+     },
+     {
+      "w": "of",
+      "at": 21.6
+     },
+     {
+      "w": "you",
+      "at": 21.722
      }
     ]
    ]
@@ -397,8 +597,8 @@
      "text": "1"
     }
    ],
-   "at": 20.95,
-   "until": 23.05
+   "at": 21.823,
+   "until": 23.043
   },
   {
    "type": "poster",
@@ -538,7 +738,7 @@
   {
    "type": "poster",
    "at": 27.652,
-   "until": 28.06,
+   "until": 28.984,
    "zone": [
     0.68,
     0.86
@@ -553,32 +753,20 @@
       "w": "something?",
       "at": 27.814,
       "kind": "key"
+     },
+     {
+      "w": "A",
+      "at": 28.353
      }
-    ]
-   ]
-  },
-  {
-   "type": "vector",
-   "name": "gauge",
-   "mode": "fullbleed",
-   "value": 100,
-   "label": "SHOULD SOMEONE HAVE ACTED?",
-   "at": 28.34,
-   "until": 30.54
-  },
-  {
-   "type": "poster",
-   "at": 30.794,
-   "until": 31.094,
-   "zone": [
-    0.68,
-    0.86
-   ],
-   "rows": [
+    ],
     [
      {
-      "w": "inappropriate.",
-      "at": 30.794,
+      "w": "hundred",
+      "at": 28.487
+     },
+     {
+      "w": "percent.",
+      "at": 28.774,
       "kind": "key"
      }
     ]
@@ -586,32 +774,155 @@
   },
   {
    "type": "vector",
-   "name": "timeline",
-   "mode": "fullbleed",
-   "label": "THE ARGUMENT",
-   "events": [
-    {
-     "x": 0.06,
-     "label": "57 MEN",
-     "sub": "IN THE CHAT"
-    },
-    {
-     "x": 0.5,
-     "label": "ALL AWAKE",
-     "sub": "EVERY ONE"
-    },
-    {
-     "x": 0.94,
-     "label": "NO ONE ACTED",
-     "sub": "HIS POINT"
-    }
+   "name": "gauge",
+   "mode": "card",
+   "zone": [
+    0.53,
+    0.66
    ],
-   "at": 31.48,
-   "until": 33.85
+   "w": 0.55,
+   "value": 100,
+   "at": 28.347,
+   "until": 29.597
   },
   {
    "type": "poster",
-   "at": 33.956,
+   "at": 28.974,
+   "until": 30.5,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "What",
+      "at": 28.974
+     },
+     {
+      "w": "I",
+      "at": 29.234
+     },
+     {
+      "w": "I",
+      "at": 29.357
+     },
+     {
+      "w": "think",
+      "at": 29.481,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "was",
+      "at": 29.812
+     },
+     {
+      "w": "going",
+      "at": 29.922,
+      "kind": "key"
+     },
+     {
+      "w": "on",
+      "at": 30.22
+     },
+     {
+      "w": "was",
+      "at": 30.29
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 30.36,
+   "until": 32.277,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "probably",
+      "at": 30.36
+     },
+     {
+      "w": "inappropriate.",
+      "at": 30.794,
+      "kind": "key"
+     },
+     {
+      "w": "The",
+      "at": 31.604
+     }
+    ],
+    [
+     {
+      "w": "thing",
+      "at": 31.802,
+      "kind": "key"
+     },
+     {
+      "w": "is,",
+      "at": 32.067
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 32.165,
+   "until": 33.699,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "we",
+      "at": 32.165
+     },
+     {
+      "w": "don't",
+      "at": 32.235
+     },
+     {
+      "w": "know",
+      "at": 32.428,
+      "kind": "key"
+     },
+     {
+      "w": "if",
+      "at": 32.6
+     }
+    ],
+    [
+     {
+      "w": "what",
+      "at": 32.711
+     },
+     {
+      "w": "they're",
+      "at": 32.911
+     },
+     {
+      "w": "saying",
+      "at": 33.217,
+      "kind": "key"
+     },
+     {
+      "w": "is",
+      "at": 33.489
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 33.586,
    "until": 35.027,
    "zone": [
     0.68,
@@ -620,20 +931,28 @@
    "rows": [
     [
      {
+      "w": "literal",
+      "at": 33.586
+     },
+     {
+      "w": "or",
+      "at": 33.821
+     },
+     {
       "w": "what",
       "at": 33.956
      },
      {
       "w": "they're",
-      "at": 34.145
-     },
-     {
-      "w": "saying",
-      "at": 34.356,
+      "at": 34.145,
       "kind": "key"
      }
     ],
     [
+     {
+      "w": "saying",
+      "at": 34.356
+     },
      {
       "w": "is",
       "at": 34.672

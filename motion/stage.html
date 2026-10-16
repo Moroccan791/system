@@ -828,8 +828,11 @@ function animateVector(b, t, lifeP) {
     });
     if (n.qby) n.qby.setAttribute("opacity", clamp01((lt - 0.25 - (n.qlines.length) * 0.16) / 0.4).toFixed(2));
   } else if (V.name === "chat") {
+    // cascade adapts to the window: a scene bound to a short spoken
+    // phrase (~1.2s) must still land every bubble before it exits
+    const st = Math.min(0.24, dur * 0.17), sp = Math.min(0.32, dur * 0.32);
     n.bubbles.forEach((g, i) => {
-      const q = easeOutBack(clamp01((lt - 0.18 - i * 0.24) / 0.32));
+      const q = easeOutBack(clamp01((lt - 0.14 - i * st) / sp));
       g.style.opacity = clamp01(q * 1.7).toFixed(2);
       g.style.transform = `translateY(${((1 - clamp01(q)) * 20 * s).toFixed(1)}px)`;
     });
@@ -1136,16 +1139,22 @@ function renderAt(tMs) {
       const until = it.until ?? it.at + 2;
       const L = lifeFx(t, it.at, until, 10);
       if (b.bfull) {
-        b.win.style.opacity = L.op.toFixed(3);
-        b.win.style.filter = `blur(${(L.blur).toFixed(2)}px)`;
         if (b.vec) {
-          // Vector vehicles: NO fractional scales. A scaled SVG layer makes
-          // headless Chromium mis-sample raster tiles (ghost copies of the
-          // scene stamped into wrong tiles, seen on `network`). The scene
-          // animates internally; it does not need the photo push-in.
-          b.win.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
+          // Vector vehicles: clean 2f dissolve in/out, nothing else. The
+          // shared exit profile (6px blur + 12px slide while opacity holds,
+          // then a 2f plunge) smears a full-screen SVG into a ghost flash
+          // on exit - viewers read it as the scene "glitching back" for a
+          // microsecond. NO fractional scales either: a scaled SVG layer
+          // makes headless Chromium mis-sample raster tiles (ghost copies
+          // of the scene stamped into wrong tiles, seen on `network`).
+          // The scene animates internally; it needs no photo push-in.
+          b.win.style.opacity = L.op.toFixed(3);
+          b.win.style.filter = "none";
+          b.win.style.transform = "none";
           b.bimg.style.transform = "none";
         } else {
+          b.win.style.opacity = L.op.toFixed(3);
+          b.win.style.filter = `blur(${(L.blur).toFixed(2)}px)`;
           b.win.style.transform = `translateY(${L.slide.toFixed(1)}px) scale(${(1 + 0.015 * lifeP).toFixed(4)})`;
           b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)})`;  // 100->108 push-in
         }

@@ -300,6 +300,20 @@ that pass obeys these rules:
    no reason. Scale, colour and motion language stay inside the
    video's one accent + brand lock, so a graphic feels shot *in* the
    video, not dropped on it.
+8. **The window IS the beat (timing law).** A scene starts on its
+   trigger word and is gone within ~0.3s of the spoken beat ending.
+   A scene that outlives its beat does double damage: viewers feel it
+   "hang", and the next sentence's words fall inside its window and
+   are never captioned. Audit after authoring: every transcript word
+   must appear in a poster, belong to a scene's own beat, or be
+   covered by a counter — nothing else may go missing.
+9. **Short beat → lighter form.** If the spoken phrase is shorter
+   than the full-bleed minimum dwell (1.2s), do not stretch the scene
+   to satisfy the dwell rule. Use the card form (scene rides above
+   the caption zone, captions keep flowing, face stays) or a counter.
+   The same applies when two beats land back-to-back: one takes the
+   full frame, the other takes the card — never leave the 2.4s
+   full-bleed spacing to chance.
 
 ## Applying the library (workflow)
 
