@@ -1,0 +1,650 @@
+{
+ "version": 1,
+ "fps": 30,
+ "width": 1080,
+ "height": 1920,
+ "duration": 35.29,
+ "brand": {
+  "accent": "#FF3355",
+  "ink": "#0D0F12",
+  "paper": "#FFFFFF"
+ },
+ "items": [
+  {
+   "type": "fx",
+   "kind": "opening",
+   "at": 0.0,
+   "dur": 0.27
+  },
+  {
+   "type": "poster",
+   "at": 0.078,
+   "until": 0.535,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "in",
+      "at": 0.078
+     },
+     {
+      "w": "the",
+      "at": 0.235
+     },
+     {
+      "w": "four-year.",
+      "at": 0.235,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 1.198,
+   "until": 2.64,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "It's",
+      "at": 1.198
+     },
+     {
+      "w": "something",
+      "at": 1.357
+     },
+     {
+      "w": "they",
+      "at": 1.701
+     },
+     {
+      "w": "could",
+      "at": 1.866,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "have",
+      "at": 2.119
+     },
+     {
+      "w": "called",
+      "at": 2.189,
+      "kind": "key"
+     },
+     {
+      "w": "the",
+      "at": 2.43
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 2.557,
+   "until": 3.243,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "cops,",
+      "at": 2.557,
+      "kind": "key"
+     },
+     {
+      "w": "but",
+      "at": 2.788
+     }
+    ],
+    [
+     {
+      "w": "they",
+      "at": 2.948
+     },
+     {
+      "w": "didn't.",
+      "at": 3.018,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "counter",
+   "at": 3.523,
+   "zone": [
+    0.6,
+    0.82
+   ],
+   "value": 57,
+   "label": "MEN IN THE GROUP CHAT",
+   "countDur": 0.9,
+   "until": 6.223
+  },
+  {
+   "type": "poster",
+   "at": 6.683,
+   "until": 8.23,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "one.",
+      "at": 6.683
+     },
+     {
+      "w": "Guys,",
+      "at": 6.801
+     },
+     {
+      "w": "remember,",
+      "at": 6.986,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "they",
+      "at": 7.777
+     },
+     {
+      "w": "were",
+      "at": 8.02,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 8.188,
+   "until": 9.205,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "57.",
+      "at": 8.188,
+      "kind": "key"
+     },
+     {
+      "w": "This",
+      "at": 8.326
+     },
+     {
+      "w": "is",
+      "at": 8.471
+     }
+    ],
+    [
+     {
+      "w": "the",
+      "at": 8.599
+     },
+     {
+      "w": "first",
+      "at": 8.737
+     },
+     {
+      "w": "claim.",
+      "at": 8.995,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "people",
+   "mode": "fullbleed",
+   "label": "MEN IN THE GROUP CHAT",
+   "count": 57,
+   "total": 57,
+   "at": 9.4,
+   "until": 11.65
+  },
+  {
+   "type": "vector",
+   "name": "quote",
+   "mode": "fullbleed",
+   "quoteLines": [
+    "Every single one of them",
+    "should have known"
+   ],
+   "by": "Michael Sartain",
+   "at": 11.85,
+   "until": 14.1
+  },
+  {
+   "type": "poster",
+   "at": 14.326,
+   "until": 15.869,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "on.",
+      "at": 14.326
+     },
+     {
+      "w": "They",
+      "at": 14.452
+     },
+     {
+      "w": "obviously",
+      "at": 14.844,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "were",
+      "at": 15.362
+     },
+     {
+      "w": "all",
+      "at": 15.492
+     },
+     {
+      "w": "awake.",
+      "at": 15.659,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "versus",
+   "mode": "fullbleed",
+   "label": "HIS POINT",
+   "left": {
+    "label": "AWAKE",
+    "value": 57
+   },
+   "right": {
+    "label": "STEPPED IN",
+    "value": 0
+   },
+   "win": "left",
+   "at": 16.0,
+   "until": 18.2
+  },
+  {
+   "type": "poster",
+   "at": 18.266,
+   "until": 19.823,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "we",
+      "at": 18.266
+     },
+     {
+      "w": "don't",
+      "at": 18.567
+     },
+     {
+      "w": "know",
+      "at": 18.805,
+      "kind": "key"
+     },
+     {
+      "w": "any",
+      "at": 19.029
+     }
+    ],
+    [
+     {
+      "w": "of",
+      "at": 19.207
+     },
+     {
+      "w": "those",
+      "at": 19.36
+     },
+     {
+      "w": "things",
+      "at": 19.613,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 19.908,
+   "until": 21.049,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "for",
+      "at": 19.908
+     },
+     {
+      "w": "a",
+      "at": 20.099
+     },
+     {
+      "w": "fact",
+      "at": 20.19,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "and",
+      "at": 20.603
+     },
+     {
+      "w": "like",
+      "at": 20.715
+     },
+     {
+      "w": "I",
+      "at": 20.839,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "chat",
+   "mode": "fullbleed",
+   "title": "THE GROUP CHAT",
+   "label": "PUT A '1' IN THE CHAT",
+   "messages": [
+    {
+     "text": "1"
+    },
+    {
+     "text": "1"
+    },
+    {
+     "text": "1",
+     "me": true
+    },
+    {
+     "text": "1"
+    }
+   ],
+   "at": 20.95,
+   "until": 23.05
+  },
+  {
+   "type": "poster",
+   "at": 23.28,
+   "until": 24.602,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "of",
+      "at": 23.28
+     },
+     {
+      "w": "us",
+      "at": 23.473
+     },
+     {
+      "w": "have",
+      "at": 23.661
+     },
+     {
+      "w": "been",
+      "at": 23.848,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "in",
+      "at": 23.918
+     },
+     {
+      "w": "group",
+      "at": 24.049
+     },
+     {
+      "w": "chats",
+      "at": 24.392,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 24.682,
+   "until": 25.996,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "and",
+      "at": 24.682
+     },
+     {
+      "w": "not",
+      "at": 24.752
+     },
+     {
+      "w": "aware",
+      "at": 24.917,
+      "kind": "key"
+     },
+     {
+      "w": "of",
+      "at": 25.169
+     }
+    ],
+    [
+     {
+      "w": "what's",
+      "at": 25.267
+     },
+     {
+      "w": "going",
+      "at": 25.581,
+      "kind": "key"
+     },
+     {
+      "w": "on.",
+      "at": 25.786
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 26.199,
+   "until": 27.74,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "Should",
+      "at": 26.199,
+      "kind": "key"
+     },
+     {
+      "w": "someone",
+      "at": 26.641
+     },
+     {
+      "w": "in",
+      "at": 26.893
+     },
+     {
+      "w": "the",
+      "at": 26.963
+     }
+    ],
+    [
+     {
+      "w": "group",
+      "at": 27.057,
+      "kind": "key"
+     },
+     {
+      "w": "chat",
+      "at": 27.359
+     },
+     {
+      "w": "have",
+      "at": 27.53
+     }
+    ]
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 27.652,
+   "until": 28.06,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "done",
+      "at": 27.652
+     },
+     {
+      "w": "something?",
+      "at": 27.814,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "gauge",
+   "mode": "fullbleed",
+   "value": 100,
+   "label": "SHOULD SOMEONE HAVE ACTED?",
+   "at": 28.34,
+   "until": 30.54
+  },
+  {
+   "type": "poster",
+   "at": 30.794,
+   "until": 31.094,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "inappropriate.",
+      "at": 30.794,
+      "kind": "key"
+     }
+    ]
+   ]
+  },
+  {
+   "type": "vector",
+   "name": "timeline",
+   "mode": "fullbleed",
+   "label": "THE ARGUMENT",
+   "events": [
+    {
+     "x": 0.06,
+     "label": "57 MEN",
+     "sub": "IN THE CHAT"
+    },
+    {
+     "x": 0.5,
+     "label": "ALL AWAKE",
+     "sub": "EVERY ONE"
+    },
+    {
+     "x": 0.94,
+     "label": "NO ONE ACTED",
+     "sub": "HIS POINT"
+    }
+   ],
+   "at": 31.48,
+   "until": 33.85
+  },
+  {
+   "type": "poster",
+   "at": 33.956,
+   "until": 35.027,
+   "zone": [
+    0.68,
+    0.86
+   ],
+   "rows": [
+    [
+     {
+      "w": "what",
+      "at": 33.956
+     },
+     {
+      "w": "they're",
+      "at": 34.145
+     },
+     {
+      "w": "saying",
+      "at": 34.356,
+      "kind": "key"
+     }
+    ],
+    [
+     {
+      "w": "is",
+      "at": 34.672
+     },
+     {
+      "w": "crazy.",
+      "at": 34.817,
+      "kind": "key"
+     }
+    ]
+   ]
+  }
+ ]
+}

@@ -86,7 +86,8 @@ def main(path: str) -> int:
                             f"merge it into title or drop it")
         if it["type"] == "vector" and it.get("name") not in (
                 "hoop", "led", "donut", "arrow", "burst",
-                "bars", "line", "versus", "people", "stack", "timeline", "quote"):
+                "bars", "line", "versus", "people", "stack", "timeline", "quote",
+                "chat", "network", "gauge", "map"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":
@@ -106,12 +107,20 @@ def main(path: str) -> int:
                 problems.append(f"timeline at {it['at']}: needs 2-5 events")
             if nm == "quote" and not 1 <= len(it.get("quoteLines") or []) <= 3:
                 problems.append(f"quote at {it['at']}: needs 1-3 quoteLines")
+            if nm == "chat" and not 2 <= len(it.get("messages") or []) <= 6:
+                problems.append(f"chat at {it['at']}: needs 2-6 messages")
+            if nm == "network" and not 3 <= (it.get("count") or 0) <= 14:
+                problems.append(f"network at {it['at']}: count must be 3-14")
+            if nm == "gauge" and it.get("value") is None:
+                problems.append(f"gauge at {it['at']}: needs a value (0-100)")
+            if nm == "map" and not it.get("place"):
+                problems.append(f"map at {it['at']}: needs a place")
         if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed":
             # data scenes keep moving (fills/growth) so they may hold longer;
             # metaphor scenes must stay punchy
             lo, hi = (1.2, 2.5) if it.get("name") in (
                 "bars", "line", "versus", "people", "stack", "timeline",
-                "quote") else (1.0, 1.8)
+                "quote", "chat", "network", "gauge", "map") else (1.0, 1.8)
             if not lo <= dwell <= hi:
                 problems.append(f"vector broll at {it['at']}: full-bleed dwell "
                                 f"{dwell:.2f}s outside {lo}-{hi}s")
@@ -155,7 +164,7 @@ def main(path: str) -> int:
                                 f"last entry no dwell time")
     # image cadence: at most one PiP / B-roll / metaphor-vector insert per 6 s
     DATA_SCENES = ("bars", "line", "versus", "people", "stack", "timeline",
-                   "quote")
+                   "quote", "chat", "network", "gauge", "map")
     imgs = [i for i in items if i["type"] in ("pip", "broll")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     for a, b in zip(imgs, imgs[1:]):

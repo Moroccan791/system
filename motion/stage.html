@@ -396,6 +396,7 @@ function buildVector(item) {
     const wrap = el("pimg", win);
     wrap.style.cssText = "position:absolute;inset:0;";
     svg = svgEl("svg", { viewBox: "0 0 1080 1920", preserveAspectRatio: "xMidYMid slice" }, wrap);
+    svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;";
     if (item.label) {
       const lab = el("blab", win);
       const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
@@ -619,6 +620,83 @@ function buildScene(svg, V, ac, item, vw, vh) {
       fitSvg(n.qby, 500 * s);
       n.qby.textContent = "— " + item.by.toUpperCase();
     }
+  } else if (V.name === "chat") {
+    // SHOW a conversation: a phone fills with message bubbles as spoken
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const msgs = (item.messages || [{ text: "1", me: false }]).slice(0, 6);
+    const pw = 272, ph = Math.min(600, H - 170), px = (600 - pw) / 2, py = (H - ph) / 2;
+    svgEl("rect", { x: px * s, y: py * s, width: pw * s, height: ph * s, rx: 36 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const hd = svgEl("text", { x: 300 * s, y: (py + 52) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    hd.textContent = (item.title || "GROUP CHAT").toUpperCase();
+    fitSvg(hd, (pw - 40) * s);
+    svgEl("line", { x1: (px + 20) * s, y1: (py + 74) * s, x2: (px + pw - 20) * s, y2: (py + 74) * s, stroke: "#2b3547", "stroke-width": 3 * s }, svg);
+    n.bubbles = [];
+    let by = py + 100;
+    msgs.forEach((m) => {
+      const g = svgEl("g", { opacity: 0 }, svg);
+      const bw = Math.min(pw - 90, 62 + (m.text || "").length * 17);
+      const bx = m.me ? px + pw - 18 - bw : px + 18;
+      svgEl("rect", { x: bx * s, y: by * s, width: bw * s, height: 54 * s, rx: 16 * s, fill: m.me ? ac : "#232d40" }, g);
+      const tx = svgEl("text", { x: (bx + bw / 2) * s, y: (by + 37) * s, "text-anchor": "middle", fill: m.me ? "#0D0F12" : "#FFFFFF", "font-size": 29 * s, "font-weight": 700, "font-family": "MontserratX" }, g);
+      tx.textContent = m.text || "";
+      fitSvg(tx, (bw - 22) * s);
+      n.bubbles.push(g);
+      by += 72;
+    });
+  } else if (V.name === "network") {
+    // SHOW a circle: one centre node, satellites link in one by one
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2, cnt = Math.max(3, Math.min(14, item.count || 7));
+    const R = Math.min(195, H / 2 - 80);
+    n.links = []; n.sats = [];
+    for (let i = 0; i < cnt; i++) {
+      const a = (i / cnt) * Math.PI * 2 - Math.PI / 2;
+      const rr = R * (i % 2 ? 0.8 : 1.0);
+      const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * 0.92;
+      const ln = svgEl("line", { x1: cx * s, y1: cy * s, x2: x * s, y2: y * s, stroke: "#3D4E6E", "stroke-width": 4 * s, "stroke-dasharray": Math.hypot((x - cx) * s, (y - cy) * s) }, svg);
+      ln.style.strokeDashoffset = Math.hypot((x - cx) * s, (y - cy) * s);
+      const c = svgEl("circle", { cx: x * s, cy: y * s, r: 0, fill: i === 0 ? ac : "#232d40", stroke: i === 0 ? ac : "#46587A", "stroke-width": 4 * s }, svg);
+      n.links.push(ln); n.sats.push(c);
+    }
+    n.hub = svgEl("circle", { cx: cx * s, cy: cy * s, r: 34 * s, fill: ac }, svg);
+    n.hubT = svgEl("text", { x: cx * s, y: (cy + 11) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 32 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.hubT.textContent = (item.title || "YOU").toUpperCase().slice(0, 6);
+    fitSvg(n.hubT, 58 * s);
+  } else if (V.name === "gauge") {
+    // SHOW intensity: a semicircular gauge sweeps to the value
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cx = 300, cy = H / 2 + 70, r = 185;
+    const arc = (rr) => `M ${(cx - rr) * s} ${cy * s} A ${rr * s} ${rr * s} 0 0 1 ${(cx + rr) * s} ${cy * s}`;
+    svgEl("path", { d: arc(r), fill: "none", stroke: "#232d40", "stroke-width": 26 * s, "stroke-linecap": "round" }, svg);
+    n.arcLen = Math.PI * r * s;
+    n.arc = svgEl("path", { d: arc(r), fill: "none", stroke: ac, "stroke-width": 26 * s, "stroke-linecap": "round", "stroke-dasharray": n.arcLen }, svg);
+    n.arc.style.strokeDashoffset = n.arcLen;
+    n.needle = svgEl("line", { x1: cx * s, y1: cy * s, x2: cx * s, y2: (cy - (r - 34)) * s, stroke: "#FFFFFF", "stroke-width": 9 * s, "stroke-linecap": "round" }, svg);
+    svgEl("circle", { cx: cx * s, cy: cy * s, r: 17 * s, fill: "#FFFFFF" }, svg);
+    n.gnum = svgEl("text", { x: cx * s, y: (cy + 92) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 84 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    n.gval = Math.max(0, Math.min(100, item.value || 0));
+    n.gcx = cx; n.gcy = cy;
+  } else if (V.name === "map") {
+    // SHOW a place: street grid, a pin drops, rings pulse out
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const mx = 66, my = H / 2 - 235, mw = 468, mh = 470;
+    svgEl("rect", { x: mx * s, y: my * s, width: mw * s, height: mh * s, rx: 22 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    const cl = svgEl("clipPath", { id: "mapc" + Math.round(item.at * 100) }, svg);
+    svgEl("rect", { x: mx * s, y: my * s, width: mw * s, height: mh * s, rx: 22 * s }, cl);
+    const gmap = svgEl("g", { "clip-path": `url(#mapc${Math.round(item.at * 100)})` }, svg);
+    const streets = [[0, 120, 468, 60], [0, 300, 468, 380], [120, 0, 60, 470], [300, 0, 380, 470], [0, 430, 468, 210], [430, 0, 210, 470]];
+    streets.forEach(([x1, y1, x2, y2]) => {
+      svgEl("line", { x1: (mx + x1) * s, y1: (my + y1) * s, x2: (mx + x2) * s, y2: (my + y2) * s, stroke: "#232d40", "stroke-width": 13 * s }, gmap);
+    });
+    const pinX = mx + mw * (item.x ?? 0.52), pinY = my + mh * (item.y ?? 0.44);
+    n.rings = [0, 1].map(() => svgEl("circle", { cx: pinX * s, cy: pinY * s, r: 10 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg));
+    n.pin = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${pinX * s} ${(pinY + 34) * s} C ${(pinX - 24) * s} ${(pinY - 6) * s}, ${(pinX - 20) * s} ${(pinY - 34) * s}, ${pinX * s} ${(pinY - 34) * s} C ${(pinX + 20) * s} ${(pinY - 34) * s}, ${(pinX + 24) * s} ${(pinY - 6) * s}, ${pinX * s} ${(pinY + 34) * s} Z`, fill: ac }, n.pin);
+    svgEl("circle", { cx: pinX * s, cy: (pinY - 16) * s, r: 10 * s, fill: "#14181f" }, n.pin);
+    const pt = svgEl("text", { x: pinX * s, y: (pinY + 78) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 36 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    pt.textContent = (item.place || "").toUpperCase();
+    fitSvg(pt, 400 * s);
+    n.pinY = pinY;
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -749,6 +827,37 @@ function animateVector(b, t, lifeP) {
       tx.style.transform = `translateY(${((1 - q) * 16 * s).toFixed(1)}px)`;
     });
     if (n.qby) n.qby.setAttribute("opacity", clamp01((lt - 0.25 - (n.qlines.length) * 0.16) / 0.4).toFixed(2));
+  } else if (V.name === "chat") {
+    n.bubbles.forEach((g, i) => {
+      const q = easeOutBack(clamp01((lt - 0.18 - i * 0.24) / 0.32));
+      g.style.opacity = clamp01(q * 1.7).toFixed(2);
+      g.style.transform = `translateY(${((1 - clamp01(q)) * 20 * s).toFixed(1)}px)`;
+    });
+  } else if (V.name === "network") {
+    n.links.forEach((ln, i) => {
+      const q = easeOut(clamp01((lt - 0.15 - i * 0.09) / 0.4));
+      const L = parseFloat(ln.getAttribute("stroke-dasharray"));
+      ln.style.strokeDashoffset = (L * (1 - q)).toFixed(1);
+      const pq = easeOutBack(clamp01((lt - 0.4 - i * 0.09) / 0.3));
+      n.sats[i].setAttribute("r", ((i === 0 ? 19 : 15) * Math.max(0, pq) * s).toFixed(1));
+    });
+    const hp = 1 + Math.sin(lt * 2.6) * 0.05;
+    n.hub.setAttribute("r", (34 * hp * s).toFixed(1));
+  } else if (V.name === "gauge") {
+    const q = easeInOut(clamp01(lt / Math.min(1.25, dur * 0.55)));
+    n.arc.style.strokeDashoffset = (n.arcLen * (1 - q)).toFixed(1);
+    const ang = -90 + 180 * q * (n.gval / 100);
+    n.needle.setAttribute("transform", `rotate(${ang.toFixed(1)} ${n.gcx * s} ${n.gcy * s})`);
+    n.gnum.textContent = fmt(Math.round(n.gval * q)) + "%";
+  } else if (V.name === "map") {
+    const q = easeOutBack(clamp01((lt - 0.1) / 0.45));
+    n.pin.style.transform = `translateY(${((1 - clamp01(q)) * -130 * s).toFixed(1)}px)`;
+    n.pin.style.opacity = clamp01(q * 2).toFixed(2);
+    n.rings.forEach((r, i) => {
+      const rq = ((lt - 0.5 - i * 0.45) % 1.3 + 1.3) % 1.3 / 1.3;
+      r.setAttribute("r", ((12 + rq * 62) * s).toFixed(1));
+      r.setAttribute("opacity", (0.75 * (1 - rq) * clamp01((lt - 0.4) * 3)).toFixed(2));
+    });
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;
@@ -1029,8 +1138,17 @@ function renderAt(tMs) {
       if (b.bfull) {
         b.win.style.opacity = L.op.toFixed(3);
         b.win.style.filter = `blur(${(L.blur).toFixed(2)}px)`;
-        b.win.style.transform = `translateY(${L.slide.toFixed(1)}px) scale(${(1 + 0.015 * lifeP).toFixed(4)})`;
-        b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)})`;  // 100->108 push-in
+        if (b.vec) {
+          // Vector vehicles: NO fractional scales. A scaled SVG layer makes
+          // headless Chromium mis-sample raster tiles (ghost copies of the
+          // scene stamped into wrong tiles, seen on `network`). The scene
+          // animates internally; it does not need the photo push-in.
+          b.win.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
+          b.bimg.style.transform = "none";
+        } else {
+          b.win.style.transform = `translateY(${L.slide.toFixed(1)}px) scale(${(1 + 0.015 * lifeP).toFixed(4)})`;
+          b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)})`;  // 100->108 push-in
+        }
       } else {
         const p = easeOut(L.pIn);
         b.win.style.clipPath = `inset(${((1 - p) * 44).toFixed(2)}% ${((1 - p) * 10).toFixed(2)}% ` +

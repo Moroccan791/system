@@ -78,6 +78,10 @@ presented as proof.
 | Exact words matter ("she literally said…") | **quote** (verbatim only) | PROVE |
 | A strong claim, the thesis of the clip | card (≤3 lines) or poster | EMPHASISE |
 | One emotional word | poster with neon/serif word, fx flare | EMPHASISE / FEEL |
+| It happened over text ("group chat", "she texted…") | **chat** bubbles filling a phone | SHOW |
+| A circle / network / team ("his circle", "connections") | **network** nodes linking to a hub | SHOW |
+| Intensity or certainty ("100%", "how serious", effort) | **gauge** needle sweep | SHOW / EMPHASISE |
+| A named place anchors the story ("at Cornell", "in Miami") | **map** pin drop | ORIENT / SHOW |
 | A concrete picturable noun | pip / broll (client footage first) | SHOW |
 | Scene change, breath, mood | fx leak/flare, broll cutaway | FEEL |
 
@@ -155,6 +159,48 @@ Verbatim quotes only — never paraphrase inside a quote graphic.
 ```
 Params: `quoteLines` 1–3 lines ≤30 chars, `by` attribution ≤40 chars.
 
+#### chat — SHOW the conversation itself
+A phone frame fills with message bubbles, staggered as if being sent.
+The motion for anything that happened over text: group chats, DMs, "she
+texted…", reply counts. Bubble texts must be what was actually sent (or
+clearly the words being quoted) — never invented dialogue presented as
+real messages.
+```json
+{"type":"vector","name":"chat","mode":"fullbleed","title":"GROUP CHAT",
+ "messages":[{"text":"did you see her story?","me":false},{"text":"1","me":false},{"text":"1","me":true}],
+ "label":"57 MEN IN THE GROUP CHAT","at":20.85,"until":23.05}
+```
+Params: `messages` 2–6 {text ≤30 chars, me = accent/right side}, `title`.
+
+#### network — SHOW a circle / web of people
+A centre node (the person) with satellites linking in one by one. For
+networking, circles, teams, "everyone he knows", org structures.
+```json
+{"type":"vector","name":"network","mode":"fullbleed","title":"YOU",
+ "count":8,"label":"HIS CIRCLE","at":12.0,"until":14.2}
+```
+Params: `count` 3–14 satellites, `title` = hub text (≤6 chars).
+
+#### gauge — SHOW intensity / certainty / a level
+A semicircular gauge sweeps its needle to the value while the % counts.
+For "a hundred percent", confidence, seriousness, effort — one number
+with weight, where a plain counter would feel flat.
+```json
+{"type":"vector","name":"gauge","mode":"fullbleed","value":100,
+ "label":"SHOULD SOMEONE HAVE ACTED?","at":28.2,"until":30.4}
+```
+Params: `value` 0–100.
+
+#### map — SHOW where it happened
+A street-grid card; a pin drops with pulsing rings on the named place.
+For named places that anchor the story (a campus, a city, a venue).
+Stylised map — it shows *where*, never fake geography detail.
+```json
+{"type":"vector","name":"map","mode":"fullbleed","place":"CORNELL",
+ "label":"WHERE IT HAPPENED","x":0.52,"y":0.44,"at":4.0,"until":6.2}
+```
+Params: `place` ≤24 chars, `x`/`y` = pin position 0–1 inside the card.
+
 #### donut — SHOW one share (existing)
 Ring sweeps to a %; centre number counts. `value` = percent.
 Use for a single dominant share; use stack when the split itself compares.
@@ -216,10 +262,53 @@ long talking stretch every 4–6s when the speech names something visible.
 `opening` (first-frame energy), `bwflash` (shock/reversal beat). 6–10
 frames only; an fx is a comma, not a sentence.
 
+## Blending rules — how motions join the video (never random)
+
+A motion graphic earns its place by being *called for* by the speech.
+`motion/assign.py` scans the timed transcript and proposes a motion for
+every spoken trigger, each with its anchor word and reason recorded;
+the author confirms, fills creative params, or rejects. What survives
+that pass obeys these rules:
+
+1. **Anchor to the trigger word.** A scene enters on (or just before)
+   the word that calls for it: counters start their roll ~0.9s early so
+   they *land* on the number; a chat scene opens as "group chat" is
+   said. A graphic that floats free of any spoken anchor is decoration
+   — cut it.
+2. **Internal sync.** The graphic's payoff lands with the phrase, not
+   after it: the people grid finishes filling as the count is spoken,
+   the gauge needle settles on "percent", the last chat bubble arrives
+   with the last quoted message.
+3. **One motion per beat, strongest beat wins.** If a sentence triggers
+   two candidates, the one matching its main clause takes the screen;
+   the other stays a poster. Hook and payoff beats outrank mid-clip
+   beats when the face budget forces a choice.
+4. **Rhythm is law.** A visual change every 1.5–2.5s (QC pacing cap).
+   Full-bleed data scenes chain 2.4–2.5s start-to-start in MG-led
+   stretches, or separate with poster beats between them. Never park a
+   finished graphic on screen — it changes or leaves.
+5. **Alternate families.** Data → typography → person → place:
+   consecutive graphics come from different families so the eye keeps
+   getting a new kind of picture (and never the same scene twice in a
+   row — the validator enforces it).
+6. **Face budget first.** Campaign minimum (e.g. Sartain ≥50%) caps
+   total full-bleed seconds before any scene is placed; typography,
+   counters and card-mode panels don't spend it. `assign.py` proposals
+   are trimmed to the budget, strongest beats first.
+7. **Blend, don't paste.** Entries land on word onsets and exits land
+   as the sentence resolves — never mid-word into a new face shot for
+   no reason. Scale, colour and motion language stay inside the
+   video's one accent + brand lock, so a graphic feels shot *in* the
+   video, not dropped on it.
+
 ## Applying the library (workflow)
 
-1. **Purpose pass.** Read the transcript once, marking each sentence with a
-   job (SHOW/PROVE/COMPARE/ORIENT/EMPHASISE/FEEL). No marks = poster only.
+1. **Purpose pass.** Run `motion/assign.py` on the timed transcript: it
+   proposes a motion per spoken trigger (number, crowd, chat, place,
+   certainty…) with the anchor word recorded. Read the transcript once,
+   marking each sentence with a job (SHOW/PROVE/COMPARE/ORIENT/
+   EMPHASISE/FEEL); confirm, fill, or reject each proposal. No trigger
+   and no mark = poster only.
 2. **Face-time budget.** Campaign minimum → cap full-bleed seconds
    (data scenes + broll + pip) at (100 − X)% of runtime; fill the rest
    with typography over the speaker.
