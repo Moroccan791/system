@@ -1,0 +1,69 @@
+{
+ "version": 1,
+ "fps": 30,
+ "width": 1080,
+ "height": 1920,
+ "duration": 6.0,
+ "brand": {
+  "accent": "#FF3355",
+  "name": "Pop Test"
+ },
+ "theme": {
+  "radius": "round",
+  "glow": 1.0,
+  "speed": 1.1,
+  "easing": "pop",
+  "fontMode": "sans",
+  "fontPack": "poppins",
+  "captionStyle": "marker"
+ },
+ "items": [
+  {
+   "type": "poster",
+   "at": 0.3,
+   "until": 3.0,
+   "captionStyle": "marker",
+   "accent2": "#2FD574",
+   "zone": [
+    0.68,
+    0.9
+   ],
+   "rows": [
+    [
+     {
+      "w": "watch",
+      "at": 0.5,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "the",
+      "at": 0.8,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "room",
+      "at": 1.1,
+      "kind": "mark",
+      "size": 126
+     }
+    ],
+    [
+     {
+      "w": "go",
+      "at": 1.5,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "quiet",
+      "at": 1.8,
+      "kind": "pay",
+      "size": 124
+     }
+    ]
+   ]
+  }
+ ]
+}

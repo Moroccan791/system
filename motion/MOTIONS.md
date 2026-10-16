@@ -14,7 +14,7 @@ presented as proof.
 | Job | What the viewer gains | Typical motions |
 |---|---|---|
 | **SHOW** | Sees something words alone can't carry — a quantity, a shape, a structure | people, bars, line, stack, donut, pip/broll, process |
-| **PROVE** | Evidence: the exact words, the real number, the source | quote, counter, card (verbatim lines) |
+| **PROVE** | Evidence: the exact words, the real number, the source | quote, counter, card (verbatim lines), proof (real receipt card) |
 | **COMPARE** | Two things side by side; the difference is the point | versus, bars (hot bar), stack |
 | **ORIENT** | Knows where we are: in a list, in a process, in time | list, process, timeline, chip |
 | **EMPHASISE** | Feels the weight of one word or claim | poster, card, counter (punch number), neon word, fx hit |
@@ -264,6 +264,17 @@ shot" beats in dating content. Metaphor, never data.
 #### burst — FEEL impact (existing)
 Radial burst on a hit word; pairs with the sound hit. 1.0–1.8s full-bleed.
 
+#### cowfield — SHOW a sameness metaphor
+A field of identical white cows; ONE turns purple (the odd one out)
+mid-scene and pulses. For "everyone does X / one stands out" lines.
+`assign.py` fires it on herd/stand-out speech. 1.0–1.8s, metaphor
+dwell — it is a picture of the sentence, never data.
+
+#### roadcar — SHOW a journey metaphor
+A car drives a dashed road across the frame while the line is spoken.
+`assign.py` fires it on road/drive speech. Same 1.0–1.8s metaphor
+dwell. If the speech carries real distance/time, use timeline instead.
+
 #### calendar — ORIENT in the week
 Seven day cells pop in; the spoken day (`day` 0=Mon) lights accent and
 rings. Use when a day/date carries the point ("by Friday…").
@@ -473,6 +484,19 @@ combinations: `karaoke-bold`, `bounce-party`, `neon-nights`
 (motion/themes/) — a theme sets the caption style for the whole
 clip unless a poster overrides it.
 
+**`marker` — the semantic marker-bar mode** (theme `marker-bold`):
+sentence-case rounded ExtraBold, clean white ink, NO plate. The key
+word gets a marker stroke behind its lower half instead: kind `mark`
+= structure word in the primary accent, kind `pay` = payoff word in
+the semantic second accent (`accent2`, e.g. red structure / green
+payoff), kind `grad` = gradient-ink shout word (poster `gradient`
+pair). Inline size hierarchy does the emphasis: connectives shrink
+(`conn`), keywords swell to the 115–154px band, one word per line
+can carry an emoji sticker (`emoji`, glued top-right of the word).
+`decide.py --caption-style marker` tags the roles from the speech
+itself (structure vs payoff vocabularies); a marker poster with no
+marked word is a validator error — the bar is the point.
+
 #### hero lockup — EMPHASISE with one giant word
 A poster whose middle row is a single `kind: "hero"` word at
 `heroSize` (150–340px, accent) between two normal rows: small setup,
@@ -548,6 +572,25 @@ Full statement card, ≤3 lines, ≤5 words/line, words pop on onsets. Use for
 the clip's thesis, the hook restated, or the payoff. Never paraphrase a
 quote into a card and call it a quote — that's `quote`'s job, verbatim.
 
+#### proof — PROVE with the receipt (real asset)
+A testimonial/screenshot card built from a REAL supplied asset: name,
+role, the verbatim text with each phrase highlighted in the accent
+the moment it is spoken (`phrases[].at`, word-synced), and an
+optional number counting up inside the card (`value`/`countDur` +
+`valueLabel`). `motion/proof.py` matches asset phrases to the
+transcript and reports anything it cannot place — unmatched phrases
+are never guessed. Counts as a picture insert for cadence (≥6s
+spacing). produce.py hands it the face-measured zone like a poster,
+so the receipt never sits on the speaker's eyes. At fallback level 1
+it downgrades to a poster instead of vanishing. Generated imagery is
+never a proof.
+
+#### doodle — EMPHASISE by pointing (annotation)
+A hand-drawn arrow that sketches itself onto a point (`x`, `y`) with
+an optional handwritten label. For "look HERE" moments — a detail in
+the frame, a number on a proof, the odd one out. Authored placement
+only; it annotates, it never decorates. 1.0–1.8s.
+
 #### counter — PROVE a number
 One number counts up 0→value fast (0.8–1.0s) with a label. For a lone
 statistic. If the number is a crowd or has company, prefer people/bars.
@@ -572,6 +615,32 @@ first; generated image only if nothing real exists, labelled ILLUSTRATIVE.
 #### broll — SHOW/FEEL at full frame
 Full-screen cutaway 1.0–1.8s. Real footage > generated. Use to break a
 long talking stretch every 4–6s when the speech names something visible.
+`video: true` plays a real .mp4 inside the frame (frame-synced by
+render.mjs), and `messages[]` pops chat bubbles over it one by one,
+each on its spoken beat — the stock-desk-with-texts device. Bubbles
+stack above the caption label; the label wraps inside the card.
+
+#### phone — SHOW the screen itself (device insert)
+A phone-frame mock (notch, bezel, handle) carrying a profile/screen
+capture that SCROLLS under the glass while it is up (`scroll`).
+Full-bleed cutaway class: costs face time, ≥6s insert cadence,
+ILLUSTRATIVE when the screen is generated. For "her profile says…",
+"the DM thread…", "the app shows…" beats where the screen IS the
+evidence-shaped object (real captures preferred; never fake a real
+person's actual profile).
+
+## Grades — FEEL (whole-frame colour)
+
+`composite.py --grade` (or theme `grade`, `produce.py --grade`):
+`teal` (cinematic teal-shadow), `warm`, `punchy` are named one-pass
+presets; `brand` tints toward the video's accent. `subject_pop` is
+the selective one: the room desaturates and darkens ~8% while the
+speaker's own pixels pass untouched, split by the person matte
+(`matte.py`, the same matte behind-the-person text uses) — the
+subject pops without a relight. It hard-fails without a mask rather
+than silently grading everything. One grade per video; the grade is
+cinema, not correction — exposure problems get fixed in clipper,
+not painted over here.
 
 ### fx — FEEL (transitions & hits)
 `flash` (cut punctuation), `flare`/`leak` (light, mood, scene change),

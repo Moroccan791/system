@@ -1,0 +1,134 @@
+{
+ "words": [
+  {
+   "text": "Step",
+   "start": 0.03,
+   "end": 0.35
+  },
+  {
+   "text": "one",
+   "start": 0.33,
+   "end": 0.65
+  },
+  {
+   "text": "is",
+   "start": 0.58,
+   "end": 0.9
+  },
+  {
+   "text": "never",
+   "start": 0.83,
+   "end": 1.15
+  },
+  {
+   "text": "trust",
+   "start": 1.18,
+   "end": 1.5
+  },
+  {
+   "text": "ideas",
+   "start": 1.53,
+   "end": 1.85
+  },
+  {
+   "text": "without",
+   "start": 1.93,
+   "end": 2.25
+  },
+  {
+   "text": "proof",
+   "start": 2.23,
+   "end": 2.55
+  },
+  {
+   "text": "then",
+   "start": 10.03,
+   "end": 10.35
+  },
+  {
+   "text": "the",
+   "start": 10.33,
+   "end": 10.65
+  },
+  {
+   "text": "messages",
+   "start": 10.63,
+   "end": 10.95
+  },
+  {
+   "text": "started",
+   "start": 11.13,
+   "end": 11.45
+  },
+  {
+   "text": "coming",
+   "start": 11.53,
+   "end": 11.85
+  },
+  {
+   "text": "in",
+   "start": 11.83,
+   "end": 12.15
+  },
+  {
+   "text": "it",
+   "start": 20.93,
+   "end": 21.25
+  },
+  {
+   "text": "can",
+   "start": 21.18,
+   "end": 21.5
+  },
+  {
+   "text": "BECOME",
+   "start": 21.53,
+   "end": 21.85
+  },
+  {
+   "text": "the",
+   "start": 22.43,
+   "end": 22.75
+  },
+  {
+   "text": "whole",
+   "start": 22.68,
+   "end": 23.0
+  },
+  {
+   "text": "story",
+   "start": 23.03,
+   "end": 23.35
+  },
+  {
+   "text": "the",
+   "start": 28.73,
+   "end": 29.05
+  },
+  {
+   "text": "whole",
+   "start": 29.08,
+   "end": 29.4
+  },
+  {
+   "text": "story",
+   "start": 29.53,
+   "end": 29.85
+  },
+  {
+   "text": "in",
+   "start": 30.03,
+   "end": 30.35
+  },
+  {
+   "text": "one",
+   "start": 30.28,
+   "end": 30.6
+  },
+  {
+   "text": "receipt",
+   "start": 30.63,
+   "end": 30.95
+  }
+ ]
+}

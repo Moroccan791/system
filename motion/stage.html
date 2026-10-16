@@ -115,8 +115,67 @@
   .broll .blab .l1 { font-family: "MontserratX"; font-weight: 800; color: #fff; line-height: 1.04;
                      text-shadow: 0 4px 18px rgba(0,0,0,.5); }
   .broll .blab .l2 { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.8);
-                     line-height: 1.15; white-space: nowrap; }
+                     line-height: 1.15; }
   .broll .tagill { top: 24px; right: 24px; }
+  .broll .win video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .broll .bubbles { position: absolute; right: 34px; bottom: 30px; display: flex; flex-direction: column;
+                    align-items: flex-end; gap: 14px; max-width: 62%; z-index: 4; }
+  .broll .bubble { font-family: "MontserratX"; font-weight: 700; color: #fff; font-size: 44px;
+                   line-height: 1.12; padding: 18px 26px; border-radius: 30px 30px 6px 30px;
+                   box-shadow: 0 12px 30px rgba(0,0,0,.4); will-change: transform, opacity; }
+
+  /* ---- marker captions (captionStyle "marker"): clean rounded ink,
+     a marker bar wiping behind the key word's lower half, a semantic
+     second accent, gradient heroes, sticker glued to a word ---- */
+  .poster .w.mark, .poster .w.pay, .poster .w.grad { position: relative; z-index: 0;
+    -webkit-text-stroke: 2px rgba(0,0,0,.45); }
+  .poster .w .mkbar { position: absolute; left: -8px; right: -8px; bottom: 4%; height: 46%;
+    z-index: -1; border-radius: 6px; transform-origin: 0 50%; will-change: transform, opacity; }
+  .poster .w .sticker { position: absolute; top: -0.62em; right: -0.85em; width: 0.95em; height: 0.95em;
+    z-index: 2; will-change: transform, opacity; pointer-events: none; }
+  .poster .w .sticker img { width: 100%; height: 100%; display: block; }
+
+  /* ---- proof card: the receipt (testimonial / screenshot / number) ---- */
+  .proof { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; }
+  .proof .pfcard { background: #FDFEFE; border-radius: 36px; padding: 34px 40px 38px; width: 84%;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55); will-change: transform, opacity, filter; }
+  .proof .pfhead { display: flex; align-items: center; gap: 24px; margin-bottom: 22px; }
+  .proof .pfav { flex: 0 0 auto; width: 88px; height: 88px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-family: "MontserratX"; font-weight: 800;
+    font-size: 40px; color: #0D0F12; }
+  .proof .pfname { font-family: "MontserratX"; font-weight: 800; color: #10151D; font-size: 56px; line-height: 1.05; }
+  .proof .pfrole { font-family: "MontserratX"; font-weight: 700; font-size: 36px; letter-spacing: .08em; margin-top: 4px; }
+  .proof .pfimg { position: relative; border-radius: 22px; overflow: hidden; margin-bottom: 24px; }
+  .proof .pfimg img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .proof .pfhotbox { position: absolute; border: 5px solid; border-radius: 12px; will-change: opacity, transform; }
+  .proof .pfline { font-family: "MontserratX"; font-weight: 700; color: #1B2534; font-size: 50px;
+    line-height: 1.22; margin-top: 6px; will-change: transform, opacity; }
+  .proof .pfline .hotwrap { position: relative; z-index: 0; white-space: nowrap; }
+  .proof .pfline .hotbar { position: absolute; left: -5px; right: -5px; bottom: 2%; height: 52%;
+    z-index: -1; border-radius: 5px; transform-origin: 0 50%; will-change: transform; }
+  .proof .pfval { display: flex; align-items: baseline; gap: 20px; margin-top: 24px; }
+  .proof .pfnum { font-family: "MontserratX"; font-weight: 800; font-size: 108px; line-height: 1; }
+  .proof .pflab { font-family: "MontserratX"; font-weight: 700; color: #5A6B84; font-size: 38px;
+    letter-spacing: .06em; text-transform: uppercase; }
+
+  /* ---- phone frame: a screen recording / profile, scrolled ---- */
+  .phone { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; }
+  .phone .phframe { background: #05070A; border-radius: 56px; padding: 18px;
+    box-shadow: 0 34px 90px rgba(0,0,0,.6), inset 0 0 0 4px #232A35; will-change: transform, opacity, filter; }
+  .phone .phscreen { position: relative; overflow: hidden; border-radius: 40px; background: #0B0E13; }
+  .phone .phscreen img { position: absolute; left: 0; top: 0; width: 100%; will-change: transform; }
+  .phone .phnotch { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 34%; height: 30px; border-radius: 99px; background: #05070A; z-index: 3; }
+  .phone .phhandle { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 44px 30px 20px;
+    background: linear-gradient(180deg, transparent, rgba(3,5,8,.82)); color: #fff;
+    font-family: "MontserratX"; font-weight: 800; font-size: 42px; }
+
+  /* ---- hand-drawn doodle arrow ---- */
+  .doodle { position: absolute; inset: 0; }
+  .doodle svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .doodle .ddlab { position: absolute; font-family: "MontserratX"; font-weight: 800; color: #fff;
+    -webkit-text-stroke: 2px rgba(0,0,0,.5); paint-order: stroke fill;
+    text-shadow: 0 4px 16px rgba(0,0,0,.5); will-change: opacity, transform; }
 
   /* ---- number counter ---- */
   .counter { position: absolute; inset: 0; }
@@ -209,17 +268,61 @@ function buildPoster(item) {
   const words = [];
   const style = item.captionStyle || THEME.captionStyle || "pop";
   const kara = style === "karaoke";
+  const markerStyle = style === "marker";
   (item.rows || []).forEach(row => {
     const r = el("row", stack);
     row.forEach(wd => {
       const s = document.createElement("span");
       const kind = wd.kind || "conn";
       s.className = "w " + (kind === "key" ? "key" : kind === "hero" ? "hero"
-        : kind === "serif" ? "serif" : kind === "neon" ? "neon" : "conn");
+        : kind === "serif" ? "serif" : kind === "neon" ? "neon"
+        : kind === "mark" ? "mark" : kind === "pay" ? "pay"
+        : kind === "grad" ? "grad" : "conn");
       s.textContent = wd.w;
-      s.style.fontSize = (kind === "hero" ? (item.heroSize || 250)
-        : kind === "key" || kind === "neon" ? (item.keySize || 118)
+      s.style.fontSize = ((wd.size && (markerStyle || ["mark", "pay", "grad"].includes(kind)))
+        ? wd.size
+        : kind === "hero" ? (item.heroSize || 250)
+        : ["key", "neon", "mark", "pay", "grad"].includes(kind) ? (item.keySize || 118)
+        : markerStyle ? (item.wordSize || 96)
         : (item.connSize || 58)) + "px";
+      if (markerStyle && !THEME.fontPack) s.style.fontFamily = "\"PackPoppins\"";
+      let mkbar = null, sticker = null;
+      if (kind === "mark") {
+        // marker bar: wipes in behind the word's lower half as the
+        // word lands (the R4 "3 Questions" swipe); white ink on top
+        mkbar = document.createElement("span");
+        mkbar.className = "mkbar";
+        mkbar.style.background = wd.color || item.accent || ACCENT;
+        s.appendChild(mkbar);
+        s.dataset.glowc = wd.color || item.accent || ACCENT;
+      }
+      if (kind === "pay") {
+        // semantic second accent: the payoff voice of the line
+        const c2 = wd.color || item.accent2 || "#2FD574";
+        s.style.color = c2;
+        s.dataset.glowc = c2;
+      }
+      if (kind === "grad") {
+        // gradient hero ink (R2's cyan->pink BECOME)
+        const g = item.gradient || [item.accent || ACCENT, item.accent2 || "#F472B6"];
+        s.style.background = `linear-gradient(92deg, ${g[0]}, ${g[1]})`;
+        s.style.webkitBackgroundClip = "text";
+        s.style.backgroundClip = "text";
+        s.style.color = "transparent";
+        s.style.webkitTextStroke = "2px rgba(0,0,0,.35)";
+        s.dataset.glowc = g[0];
+      }
+      if (wd.emoji) {
+        // sticker glued to the word (the 💡 on "ideas."): a Twemoji
+        // PNG from assets/icons, popped in as the word lands
+        sticker = document.createElement("span");
+        sticker.className = "sticker";
+        const im = document.createElement("img");
+        im.src = "file:///home/user/system/assets/icons/" + wd.emoji + ".png";
+        im.alt = "";
+        sticker.appendChild(im);
+        s.appendChild(sticker);
+      }
       if (kind === "key") {
         // keyword = ink on an accent PLATE (the format's highlight
         // word): the pair is 4.5:1+ by construction on any footage,
@@ -247,7 +350,8 @@ function buildPoster(item) {
       const sp = document.createElement("span");
       sp.style.display = "inline-block"; sp.style.width = (kind === "key" ? 26 : 16) + "px";
       r.appendChild(sp);
-      words.push({ el: s, at: wd.at, kind, kara,
+      words.push({ el: s, at: wd.at, kind, kara, mkbar, sticker,
+                   markerStyle,
                    entry: ["stretch", "wiggle", "glide", "bounce"].includes(style)
                      ? style : "pop",
                    finish: style === "neon" ? "neon" : null,
@@ -526,9 +630,22 @@ function buildBroll(item) {
     win.style.border = `4px solid ${hexA(item.accent || ACCENT, .9)}`;
     win.style.boxShadow = `0 30px 80px rgba(0,0,0,.55), 0 0 44px ${hexA(item.accent || ACCENT, .35)}`;
   }
-  const img = document.createElement("img");
-  img.src = mediaSrc(item);
-  win.appendChild(img);
+  let img, vid = null;
+  if (item.video) {
+    // motion B-roll (stock / client clip): a real <video>, seeked
+    // deterministically per frame by window.syncVideos (render.mjs)
+    vid = document.createElement("video");
+    vid.src = mediaSrc(item);
+    vid.muted = true;
+    vid.setAttribute("playsinline", "");
+    vid.preload = "auto";
+    win.appendChild(vid);
+    img = vid;
+  } else {
+    img = document.createElement("img");
+    img.src = mediaSrc(item);
+    win.appendChild(img);
+  }
   el("scrim", win);
   if (item.label) {
     const lab = el("blab", win);
@@ -536,7 +653,21 @@ function buildBroll(item) {
     if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
   }
   illTag(win, item);
-  return { item, root, win, bimg: img, bfull: full };
+  let bubbles = null;
+  if (item.messages && item.messages.length) {
+    // recreated chat bubbles typing in over the B-roll (R1's desk
+    // scene): the conversation is the caption for a silent insert
+    const bw = el("bubbles", win);
+    bubbles = item.messages.map((m, i) => {
+      const b = el("bubble", bw);
+      b.textContent = m.text;
+      b.style.background = m.me ? "#2E7CF6" : "rgba(16,20,27,.88)";
+      b.style.borderRadius = m.me ? "30px 30px 6px 30px" : "30px 30px 30px 6px";
+      b.style.alignSelf = m.me ? "flex-end" : "flex-start";
+      return { el: b, at: m.at != null ? m.at : item.at + 0.3 + i * 0.4 };
+    });
+  }
+  return { item, root, win, bimg: img, bvid: vid, bubbles, bfull: full };
 }
 
 /* ---- animated vector scenes (Fiverr-style: drawn, not photographed).
@@ -1474,6 +1605,47 @@ function buildScene(svg, V, ac, item, vw, vh) {
     n.thTx = svgEl("text", { x: 300 * s, y: (cy + 196) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 56 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
     n.thTx.textContent = "0%";
     n.thcy = cy;
+  } else if (V.name === "cowfield") {
+    // SHOW the analogy: a field of identical white cows, ONE turns
+    // the accent (the purple cow) as the point lands
+    const grad = svgEl("defs", {}, svg);
+    const lg = svgEl("linearGradient", { id: "cowg", x1: 0, y1: 0, x2: 0, y2: 1 }, grad);
+    svgEl("stop", { offset: "0%", "stop-color": "#79C94F" }, lg);
+    svgEl("stop", { offset: "100%", "stop-color": "#4E9B34" }, lg);
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "url(#cowg)" }, svg);
+    const hotIdx = item.hot != null ? item.hot : 12;
+    n.cows = []; n.hotCow = null; n.hotColor = item.color || "#8B30FF";
+    const cols = 5, rowsN = 5, cw2 = 540 / cols, ch2 = Math.min((H - 170) / rowsN, 150);
+    const yTop = H / 2 - (ch2 * rowsN) / 2;
+    for (let i = 0; i < cols * rowsN; i++) {
+      const cx = 30 + cw2 * (i % cols + 0.5), cy = yTop + ch2 * (Math.floor(i / cols) + 0.5);
+      const g = svgEl("g", { opacity: 0 }, svg);
+      const body = svgEl("ellipse", { cx: cx * s, cy: cy * s, rx: 34 * s, ry: 20 * s, fill: "#F4F7EF" }, g);
+      const head = svgEl("circle", { cx: (cx + 36) * s, cy: (cy - 6) * s, r: 12 * s, fill: "#F4F7EF" }, g);
+      svgEl("path", { d: `M ${(cx - 22) * s} ${(cy + 14) * s} v ${16 * s} M ${(cx + 20) * s} ${(cy + 14) * s} v ${16 * s}`,
+        stroke: "#F4F7EF", "stroke-width": 6 * s, "stroke-linecap": "round" }, g);
+      svgEl("ellipse", { cx: (cx - 8) * s, cy: (cy - 5) * s, rx: 9 * s, ry: 6 * s, fill: "#D8E2D2" }, g);
+      const rec = { g, body, head, cx, cy, i };
+      n.cows.push(rec);
+      if (i === hotIdx) n.hotCow = rec;
+    }
+  } else if (V.name === "roadcar") {
+    // SHOW motion: a car drives the road the speaker describes
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#17202B" }, svg);
+    const ry = H * 0.58;
+    svgEl("rect", { x: 0, y: ry * s, width: vw, height: 170 * s, fill: "#2C3542" }, svg);
+    n.dash = svgEl("line", { x1: 0, y1: (ry + 85) * s, x2: vw, y2: (ry + 85) * s,
+      stroke: "#F5C542", "stroke-width": 8 * s, "stroke-dasharray": `${52 * s} ${44 * s}`,
+      "stroke-linecap": "round" }, svg);
+    const car = svgEl("g", {}, svg);
+    const cc = item.color || "#E5322D";
+    svgEl("rect", { x: -62 * s, y: -26 * s, width: 124 * s, height: 34 * s, rx: 14 * s, fill: cc }, car);
+    svgEl("rect", { x: -34 * s, y: -48 * s, width: 62 * s, height: 28 * s, rx: 10 * s, fill: cc }, car);
+    svgEl("rect", { x: -26 * s, y: -44 * s, width: 22 * s, height: 18 * s, rx: 4 * s, fill: "#BFE6F5" }, car);
+    svgEl("rect", { x: 2 * s, y: -44 * s, width: 18 * s, height: 18 * s, rx: 4 * s, fill: "#BFE6F5" }, car);
+    n.wheel1 = svgEl("circle", { cx: -36 * s, cy: 10 * s, r: 13 * s, fill: "#0D0F12", stroke: "#8B98AC", "stroke-width": 4 * s }, car);
+    n.wheel2 = svgEl("circle", { cx: 38 * s, cy: 10 * s, r: 13 * s, fill: "#0D0F12", stroke: "#8B98AC", "stroke-width": 4 * s }, car);
+    n.car = car; n.roadY = ry;
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -1924,6 +2096,29 @@ function animateVector(b, t, lifeP) {
     n.thMerc.setAttribute("height", (h * s).toFixed(1));
     n.thMerc.setAttribute("y", ((n.thcy + 56 - h + 8) * s).toFixed(1));
     n.thTx.textContent = Math.round(n.thVal * q) + "%";
+  } else if (V.name === "cowfield") {
+    (n.cows || []).forEach((c, i) => {
+      const q = easeOutBack(clamp01((lt - 0.05 - i * 0.03) / 0.3));
+      c.g.setAttribute("opacity", clamp01(q * 1.6).toFixed(2));
+      c.g.setAttribute("transform", `translate(0 ${((1 - clamp01(q)) * 14 * s).toFixed(1)})`);
+    });
+    if (n.hotCow) {
+      // the odd one out turns on the point, mid-scene, and pulses
+      const on = p > 0.45;
+      n.hotCow.body.setAttribute("fill", on ? n.hotColor : "#F4F7EF");
+      n.hotCow.head.setAttribute("fill", on ? n.hotColor : "#F4F7EF");
+      const sc = on ? 1 + 0.08 * Math.sin((p - 0.45) * 22) * Math.max(0, 1 - (p - 0.45) * 2) + 0.08 : 1;
+      n.hotCow.g.setAttribute("transform",
+        `translate(${(n.hotCow.cx * (1 - sc) * s).toFixed(1)} ${(n.hotCow.cy * (1 - sc) * s).toFixed(1)}) scale(${sc.toFixed(3)})`);
+    }
+  } else if (V.name === "roadcar") {
+    const q = easeInOut(clamp01(lt / Math.max(0.4, dur * 0.92)));
+    const x = -90 + (690) * q;   // unit space: enters left, exits right
+    n.car.setAttribute("transform", `translate(${(x * s).toFixed(1)} ${(n.roadY * s).toFixed(1)})`);
+    n.dash.setAttribute("stroke-dashoffset", (-lt * 210 * s).toFixed(1));
+    const wr = `rotate(${((lt * 560) % 360).toFixed(0)}`;
+    n.wheel1.setAttribute("transform", `${wr} ${(-36 * s).toFixed(1)} ${(10 * s).toFixed(1)})`);
+    n.wheel2.setAttribute("transform", `${wr} ${(38 * s).toFixed(1)} ${(10 * s).toFixed(1)})`);
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;
@@ -1931,6 +2126,129 @@ function animateVector(b, t, lifeP) {
     n.ring.setAttribute("opacity", (0.85 * (1 - rq)).toFixed(2));
     n.dot.setAttribute("r", ((26 + Math.sin(lt * 4) * 3) * s).toFixed(1));
   }
+}
+
+function buildProof(item) {
+  // the receipt: a testimonial / screenshot card whose hot phrase is
+  // highlighted AS it is spoken, with an optional counting number
+  const root = el("item proof", stage);
+  const zone = item.zone || [0.20, 0.86];
+  root.style.paddingTop = Math.round(zone[0] * H) + "px";
+  const card = el("pfcard", root);
+  if (item.title) {
+    const head = el("pfhead", card);
+    const av = el("pfav", head);
+    av.textContent = item.title.split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase();
+    av.style.background = item.accent || ACCENT;
+    const tx = document.createElement("div");
+    const nm = el("pfname", tx); nm.textContent = item.title;
+    if (item.sub) {
+      const rl = el("pfrole", tx);
+      rl.textContent = item.sub.toUpperCase();
+      rl.style.color = item.accent2 || "#38B6E3";
+    }
+    head.appendChild(tx);
+  }
+  let hotBoxEl = null;
+  if (item.src) {
+    const pim = el("pfimg", card);
+    pim.style.height = "330px";
+    const img = document.createElement("img");
+    img.src = mediaSrc(item);
+    pim.appendChild(img);
+    if (item.hotBox) {
+      hotBoxEl = el("pfhotbox", pim);
+      const [hx, hy, hw, hh] = item.hotBox;
+      hotBoxEl.style.cssText = `left:${(hx * 100).toFixed(1)}%;top:${(hy * 100).toFixed(1)}%;` +
+        `width:${(hw * 100).toFixed(1)}%;height:${(hh * 100).toFixed(1)}%;` +
+        `border-color:${item.accent2 || "#38E1FF"};background:${hexA(item.accent2 || "#38E1FF", .18)};opacity:0;`;
+    }
+  }
+  const phrases = (item.phrases || []).map(ph => {
+    const ln = el("pfline", card);
+    let bar = null;
+    if (ph.hot) {
+      const wrap = document.createElement("span");
+      wrap.className = "hotwrap";
+      wrap.textContent = ph.text;
+      bar = document.createElement("span");
+      bar.className = "hotbar";
+      bar.style.background = item.accent2 || "#38E1FF";
+      wrap.appendChild(bar);
+      ln.appendChild(wrap);
+    } else {
+      ln.textContent = ph.text;
+    }
+    return { el: ln, bar, at: ph.at };
+  });
+  let valEl = null;
+  if (item.value != null) {
+    const row = el("pfval", card);
+    valEl = el("pfnum", row);
+    valEl.style.color = item.accent2 || "#1FA855";
+    valEl.textContent = "0";
+    if (item.valueLabel || item.label) {
+      const lab = el("pflab", row);
+      lab.textContent = item.valueLabel || item.label;
+    }
+  }
+  return { item, root, proofCard: card, proofPhrases: phrases,
+           proofValEl: valEl, proofHotBox: hotBoxEl };
+}
+
+function buildPhone(item) {
+  // a phone-frame screen insert: profile / screen recording that
+  // SCROLLS under its own power while the speaker keeps talking
+  const root = el("item phone", stage);
+  const zone = item.zone || [0.10, 0.90];
+  root.style.paddingTop = Math.round(zone[0] * H) + "px";
+  const frameW = Math.round((item.w || 0.62) * W);
+  const frame = el("phframe", root);
+  frame.style.width = frameW + "px";
+  const screen = el("phscreen", frame);
+  const screenH = Math.round(frameW * 1.72);
+  screen.style.height = screenH + "px";
+  const img = document.createElement("img");
+  img.src = mediaSrc(item);
+  screen.appendChild(img);
+  el("phnotch", screen);
+  if (item.title) {
+    const hd = el("phhandle", screen);
+    hd.textContent = item.title;
+  }
+  const holder = { item, root, phoneFrame: frame, phoneImg: img, phoneMax: 0 };
+  layoutJobs.push(() => {
+    holder.phoneMax = Math.max(0, img.offsetHeight - screenH);
+  });
+  return holder;
+}
+
+function buildDoodle(item) {
+  // hand-drawn annotation: a curved arrow that draws itself onto the
+  // footage and points at the thing being talked about
+  const root = el("item doodle", stage);
+  const svg = svgEl("svg", { viewBox: "0 0 1080 1920", preserveAspectRatio: "none" }, root);
+  const ac = item.accent || ACCENT;
+  const x0 = (item.x != null ? item.x : 0.30) * W, y0 = (item.y != null ? item.y : 0.30) * H;
+  const dir = item.flip ? -1 : 1;
+  const x1 = x0 + dir * 210, y1 = y0 + 250;
+  const d = `M ${x0} ${y0} C ${x0 + dir * 190} ${y0 + 30}, ${x0 + dir * 60} ${y0 + 190}, ${x1} ${y1}`;
+  const path = svgEl("path", { d, fill: "none", stroke: ac, "stroke-width": 15,
+    "stroke-linecap": "round", "stroke-dasharray": 460 }, svg);
+  path.style.strokeDashoffset = 460;
+  const head = svgEl("g", { opacity: 0 }, svg);
+  svgEl("path", { d: `M ${x1} ${y1} l ${-dir * 52} ${-6} M ${x1} ${y1} l ${-14} ${-50}`,
+    stroke: ac, "stroke-width": 15, fill: "none", "stroke-linecap": "round" }, head);
+  let lab = null;
+  if (item.title) {
+    lab = el("ddlab", root);
+    lab.textContent = item.title;
+    lab.style.fontSize = (item.titleSize || 58) + "px";
+    lab.style.left = Math.min(x0, x1) + "px";
+    lab.style.top = (y0 - 92) + "px";
+    lab.style.color = ac;
+  }
+  return { item, root, doodlePath: path, doodleHead: head, doodleLab: lab };
 }
 
 function buildCounter(item) {
@@ -2092,10 +2410,18 @@ function wordEnter(wd, t) {
   }
   if (entry === "wiggle" && dt > enterF)   // lands, then wiggles off
     rot += Math.sin((dt - enterF) * 22) * 2.6 * Math.exp(-(dt - enterF) * 5);
-  if (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero") {
+  if (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero"
+      || wd.kind === "mark" || wd.kind === "pay" || wd.kind === "grad") {
     const pk = clamp01(dt / ((10 / THEME.speed) / FPS));
     scale = pk < 0.62 ? 0.85 + (1.08 - 0.85) * themeEase(pk / 0.62)
                      : 1.08 - 0.08 * themeEase((pk - 0.62) / 0.38);
+    sx = sy = null;
+  }
+  if (wd.markerStyle && !["mark", "pay", "grad", "hero"].includes(wd.kind)) {
+    // every marker word pops with overshoot, not just the key word:
+    // the line itself performs (R4's word-by-word bounce)
+    const pb = clamp01(dt / (8 / FPS));
+    scale = Math.max(0.05, 0.55 + 0.45 * easeOutBack(pb));
     sx = sy = null;
   }
   return { blur, y, x, rot, op, scale, sx, sy };
@@ -2120,7 +2446,8 @@ function applyWord(wd, t, until) {
   // exit discipline, so the semi-transparent QC is untouched. Key
   // words keep their plate (already the highlight of the stack).
   let karaNow = false;
-  if (wd.kara && wd.kind !== "key" && wd.kind !== "hero") {
+  if (wd.kara && wd.kind !== "key" && wd.kind !== "hero"
+      && wd.kind !== "mark" && wd.kind !== "pay" && wd.kind !== "grad") {
     // heroes never swell: a hero already fills its row, so the
     // karaoke 13% lean-in pushed MILLIONAIRE off-frame (user-
     // reported on test edit #1). Heroes keep colour + glow only.
@@ -2134,13 +2461,15 @@ function applyWord(wd, t, until) {
   // until its (lead-shifted) pop has finished (blur cross-swap)
   const x = exitFade(Math.max(until, wd.at + 8 / FPS), t);
   const elx = wd.el;
-  if (wd.kara && wd.kind !== "key" && wd.kind !== "neon" && wd.kind !== "hero")
+  if (wd.kara && wd.kind !== "key" && wd.kind !== "neon" && wd.kind !== "hero"
+      && wd.kind !== "mark" && wd.kind !== "pay" && wd.kind !== "grad")
     elx.style.color = karaNow ? (wd.ac || "#FF3355") : "";
   const glow = wd.el.dataset.glow === "1" || wd.kind === "key";
   let shadow = "0 6px 22px rgba(0,0,0,.45)";
   if (karaNow && wd.kind !== "neon")
     shadow = `0 0 34px ${hexA(wd.ac || "#FF3355", .85)}, 0 6px 22px rgba(0,0,0,.45)`;
-  if (wd.kind === "key" || wd.kind === "hero") {
+  if (wd.kind === "key" || wd.kind === "hero" || wd.kind === "mark"
+      || wd.kind === "pay" || wd.kind === "grad") {
     const dt = t - (wd.at - WORD_LEAD);
     const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
     const c = wd.el.dataset.glowc || wd.el.style.color;
@@ -2160,6 +2489,17 @@ function applyWord(wd, t, until) {
     `rotate(${e.rot.toFixed(2)}deg) ` +
     `scale(${(e.sx != null ? e.sx : e.scale).toFixed(3)}, ${(e.sy != null ? e.sy : e.scale).toFixed(3)})`;
   elx.style.textShadow = shadow;
+  if (wd.mkbar) {
+    const q = easeOut(clamp01((t - (wd.at - WORD_LEAD)) / (6 / FPS)));
+    wd.mkbar.style.transform = `scaleX(${q.toFixed(3)})`;
+    wd.mkbar.style.opacity = Math.min(e.op, x.op).toFixed(3);
+  }
+  if (wd.sticker) {
+    const q = easeOutBack(clamp01((t - wd.at) / (9 / FPS)));
+    wd.sticker.style.transform =
+      `scale(${Math.max(0.001, q).toFixed(3)}) rotate(${(-9 * (1 - clamp01(q))).toFixed(1)}deg)`;
+    wd.sticker.style.opacity = clamp01((t - wd.at) / (2 / FPS)).toFixed(3);
+  }
   trackSemi(elx, Math.min(e.op, x.op));
 }
 
@@ -2328,6 +2668,14 @@ function renderAt(tMs) {
         b.win.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
         b.bimg.style.transform = `scale(${(1.0 + 0.08 * lifeP).toFixed(3)}) translateX(${(-1.6 + 3.2 * lifeP).toFixed(2)}%)`;
       }
+      if (b.bubbles) b.bubbles.forEach(mb => {
+        const dt = t - mb.at;
+        mb.el.style.opacity = clamp01(dt / (2 / FPS)).toFixed(3);
+        mb.el.style.transform = `translateY(${((1 - easeOut(clamp01(dt / (7 / FPS)))) * 26).toFixed(1)}px) ` +
+          `scale(${(0.85 + 0.15 * easeOutBack(clamp01(dt / (7 / FPS)))).toFixed(3)})`;
+      });
+      if (b.bvid) b.bvid.dataset.seek =
+        Math.max(0, Math.min((it.until ?? it.at + 2) - it.at, t - it.at)).toFixed(3);
       trackSemi(b.win, b._vecOp !== undefined ? b._vecOp : L.op);
     }
     if (b.vec) animateVector(b, t, lifeP);
@@ -2417,9 +2765,90 @@ function renderAt(tMs) {
         trackSemi(s.row, op);
       });
     }
+    if (b.proofCard) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 10);
+      b.proofCard.style.opacity = L.op.toFixed(3);
+      b.proofCard.style.filter = `blur(${(L.blur * 1.3).toFixed(2)}px)`;
+      b.proofCard.style.transform = `translateY(${((1 - easeOut(L.pIn)) * 52 + L.slide).toFixed(1)}px) ` +
+        `scale(${((0.92 + 0.08 * easeOut(L.pIn)) * (1 + 0.015 * lifeP)).toFixed(3)})`;
+      (b.proofPhrases || []).forEach(ph => {
+        const dt = t - ph.at;
+        ph.el.style.opacity = clamp01(dt / (2 / FPS)).toFixed(3);
+        ph.el.style.transform = `translateY(${((1 - easeOut(clamp01(dt / (7 / FPS)))) * 22).toFixed(1)}px)`;
+        // the highlight lands WITH the spoken phrase, then stays
+        if (ph.bar) ph.bar.style.transform =
+          `scaleX(${easeOut(clamp01((t - ph.at) / 0.35)).toFixed(3)})`;
+      });
+      if (b.proofValEl) {
+        const cd = it.countDur || 0.9;
+        const p = clamp01((t - it.at) / cd);
+        b.proofValEl.textContent = (it.prefix || "") +
+          fmtVal((it.value || 0) * easeOut(p), it.decimals || 0) + (it.suffix || "");
+      }
+      if (b.proofHotBox) {
+        const q = it.hotAt != null ? easeOut(clamp01((t - it.hotAt) / 0.3)) : 0;
+        b.proofHotBox.style.opacity = (0.92 * q).toFixed(3);
+        b.proofHotBox.style.transform = `scale(${(0.94 + 0.06 * q).toFixed(3)})`;
+      }
+      trackSemi(b.proofCard, L.op);
+    }
+    if (b.phoneFrame) {
+      const until = it.until ?? it.at + 2;
+      const L = lifeFx(t, it.at, until, 10);
+      b.phoneFrame.style.opacity = L.op.toFixed(3);
+      b.phoneFrame.style.filter = `blur(${(L.blur * 1.3).toFixed(2)}px)`;
+      b.phoneFrame.style.transform = `translateY(${((1 - easeOut(L.pIn)) * 56 + L.slide).toFixed(1)}px) ` +
+        `scale(${(0.92 + 0.08 * easeOut(L.pIn)).toFixed(3)})`;
+      if (b.phoneImg) {
+        // scroll starts after the entry settles, eases to its depth
+        const p = easeInOut(clamp01((t - it.at - 0.35) /
+                                    Math.max(0.001, (until - it.at) - 0.7)));
+        b.phoneImg.style.transform =
+          `translateY(${(-(b.phoneMax || 0) * (it.scroll != null ? it.scroll : 0.7) * p).toFixed(1)}px)`;
+      }
+      trackSemi(b.phoneFrame, L.op);
+    }
+    if (b.doodlePath) {
+      const until = it.until ?? it.at + 2;
+      const x = exitFade(until, t);
+      const op = Math.min(clamp01((t - it.at) / (2 / FPS)), x.op);
+      b.root.style.opacity = op.toFixed(3);
+      const q = easeInOut(clamp01((t - it.at) / 0.55));
+      b.doodlePath.style.strokeDashoffset = (460 * (1 - q)).toFixed(1);
+      if (b.doodleHead) b.doodleHead.setAttribute("opacity",
+        clamp01((q - 0.82) / 0.18).toFixed(2));
+      if (b.doodleLab) {
+        b.doodleLab.style.opacity = clamp01((q - 0.45) / 0.3).toFixed(3);
+        b.doodleLab.style.transform =
+          `translateY(${((1 - easeOut(clamp01((q - 0.45) / 0.3))) * 16).toFixed(1)}px)`;
+      }
+      trackSemi(b.doodlePath, op);
+    }
   }
   return stats;
 }
+
+window.syncVideos = function () {
+  // deterministic media sync for video B-roll: every <video> is
+  // seeked to the frame clock's local time and we wait for the seek
+  // to land before the screenshot (render.mjs awaits this per frame)
+  const jobs = [];
+  for (const b of builtItems) {
+    if (!b.bvid) continue;
+    const v = b.bvid, want = parseFloat(v.dataset.seek || "0");
+    if (v.readyState >= 1 && Math.abs((v.currentTime || 0) - want) > 1 / 30) {
+      jobs.push(new Promise(res => {
+        let done = false;
+        const fin = () => { if (!done) { done = true; res(1); } };
+        v.addEventListener("seeked", fin, { once: true });
+        setTimeout(fin, 350);
+        try { v.currentTime = want; } catch (e) { fin(); }
+      }));
+    }
+  }
+  return Promise.all(jobs);
+};
 
 window.setTimeline = function (tl) {
   TL = tl;
@@ -2451,6 +2880,7 @@ window.setTimeline = function (tl) {
   const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx,
                      pip: buildPip, broll: buildBroll, counter: buildCounter,
                      list: buildList, process: buildProcess, vector: buildVector,
+                     proof: buildProof, phone: buildPhone, doodle: buildDoodle,
                      lowerthird: buildLower, hook: buildHook, endcard: buildEndcard };
   for (const item of tl.items || []) {
     if (item.type === "fx" && item.until == null) item.until = item.at + (item.dur || 0.45);
@@ -2466,5 +2896,22 @@ window.layoutStage = function () {
   return layoutJobs.length;
 };
 </script>
+</body>
+</html>
+gth;
+};
+</script>
+</body>
+</html>
+>
+</body>
+</html>
+html>
+gth;
+};
+</script>
+</body>
+</html>
+>
 </body>
 </html>

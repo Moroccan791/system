@@ -56,6 +56,19 @@ VECTOR_SCENES = {"hoop": "hoop", "basketball": "hoop", "lights": "led",
 CLAIM_MARKERS = set("never always nobody everyone everybody nothing everything "
                     "stop truth cannot can't wont won't impossible nobody's "
                     "everyone's".split())
+# marker caption style (eye-catching captions): word ROLES, not one
+# keyword. Structure words earn the marker bar (the red "Step one /
+# 3 Questions" voice), payoff words take the semantic second accent,
+# and a sticker may ride the operative word (Twemoji, assets/icons).
+STRUCTURE = set("first second third fourth step steps question questions "
+                "never always nobody nothing only not no don't cant can't "
+                "wont won't stop".split())
+PAYOFF = NEON_HOT | set("money dollars sales revenue profit followers "
+                        "subscribers growth percent % results win wins".split())
+EMOJI_MAP = {"idea": "thinking", "ideas": "thinking", "think": "thinking",
+             "fire": "fire", "hot": "fire", "money": "chart_up",
+             "growth": "chart_up", "look": "eyes", "watch": "eyes",
+             "love": "smiling_hearts", "angry": "angry", "100": "hundred"}
 SEQ_MARKERS = {"first", "second", "third", "fourth", "then", "next", "finally", "step"}
 NUM_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
              "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11,
@@ -195,15 +208,17 @@ def key_word(u):
     return best
 
 
-def poster_items(u, log, caption_style=None):
+def poster_items(u, log, caption_style=None, accent2=None):
     items, chunk = [], []
+    marker = caption_style == "marker"
     def flush():
         if not chunk:
             return
+        per_row = 3 if marker else 4
         rows, row = [], []
         for w in chunk:
             row.append(w)
-            if len(row) >= 4:
+            if len(row) >= per_row:
                 rows.append(row)
                 row = []
         if row:
@@ -216,7 +231,24 @@ def poster_items(u, log, caption_style=None):
             for w in r:
                 t = norm(w["text"])
                 entry = {"w": w["text"], "at": round(w["start"], 3)}
-                if w is kw:
+                if marker:
+                    # roles, sentence case, inline size hierarchy:
+                    # connective ~62, spoken word 96, marked/payoff 124
+                    if w is kw and t in SERIF_SOFT:
+                        entry.update({"kind": "serif", "size": 96})
+                    elif w is kw or t in STRUCTURE:
+                        entry.update({"kind": "mark", "size": 126})
+                    elif t in PAYOFF or parse_number([w], 0):
+                        entry.update({"kind": "pay", "size": 124})
+                    elif t in SERIF_SOFT:
+                        entry.update({"kind": "serif", "size": 96})
+                    elif t in STOP or len(t) <= 2:
+                        entry.update({"kind": "conn", "size": 62})
+                    else:
+                        entry.update({"kind": "word", "size": 96})
+                    if t in EMOJI_MAP and entry.get("kind") in ("mark", "pay"):
+                        entry["emoji"] = EMOJI_MAP[t]
+                elif w is kw:
                     if t in NEON_HOT:
                         entry.update({"w": w["text"].upper(), "kind": "neon"})
                     elif t in SERIF_SOFT:
@@ -228,7 +260,9 @@ def poster_items(u, log, caption_style=None):
         items.append({"type": "poster", "at": round(chunk[0]["start"], 3),
                       "until": round(chunk[-1]["start"] + 0.55, 3), "rows": out_rows,
                       **({"captionStyle": caption_style}
-                         if caption_style and caption_style != "pop" else {})})
+                         if caption_style and caption_style != "pop" else {}),
+                      **({"accent2": accent2}
+                         if marker and accent2 else {})})
         log.append(f"  poster  @{chunk[0]['start']:6.2f}  "
                    f"{' '.join(w['text'] for w in chunk)[:58]!r}")
         chunk.clear()
@@ -260,7 +294,7 @@ def counter_item(u, i, parsed, log):
     return item
 
 
-def classify(u, log, caption_style=None):
+def classify(u, log, caption_style=None, accent2=None):
     text = " ".join(w["text"] for w in u)
     toks = [norm(w["text"]) for w in u]
     nums = [(i, p) for i in range(len(u)) if (p := parse_number(u, i))]
@@ -336,7 +370,7 @@ def classify(u, log, caption_style=None):
         i, p = strong[0]
         items = []
         if i >= 3:
-            items += poster_items(u[:i], log, caption_style)
+            items += poster_items(u[:i], log, caption_style, accent2)
         items.append(counter_item(u, i, p, log))
         return items
 
@@ -354,7 +388,7 @@ def classify(u, log, caption_style=None):
                  "lines": [line(u[:half]), line(u[half:])]}]
 
     # 5. POSTER
-    return poster_items(u, log, caption_style)
+    return poster_items(u, log, caption_style, accent2)
 
 
 def flat_words(item):
@@ -439,10 +473,18 @@ def main() -> int:
     ap.add_argument("--accent", default="#9BE82E")
     ap.add_argument("--caption-style",
                     choices=["pop", "karaoke", "stretch", "wiggle", "glide",
-                             "bounce", "neon"],
+                             "bounce", "neon", "marker"],
                     default="pop",
                     help="karaoke lights each word as spoken; stretch/wiggle/"
-                         "glide/bounce change word entries; neon = glow finish")
+                         "glide/bounce change word entries; neon = glow finish; "
+                         "marker = eye-catching captions (marker-bar key "
+                         "word, semantic second accent, per-word pop)")
+    ap.add_argument("--accent2", default="#2FD574",
+                    help="semantic second accent for marker payoff words")
+    ap.add_argument("--proof", default=None,
+                    help="proof assets JSON (motion/proof.py format): "
+                         "matched receipts replace the poster stacks "
+                         "they overlap")
     ap.add_argument("--hook", action="store_true",
                     help="open with a hook slate built from the first "
                          "spoken words (first stack hands them over)")
@@ -470,13 +512,31 @@ def main() -> int:
 
     items, log, suggestions = [], [], {}
     for u in utts:
-        items += classify(u, log, args.caption_style)
+        items += classify(u, log, args.caption_style, args.accent2)
         for w in u:
             t = norm(w["text"])
             if t in CONCRETE and t not in suggestions:
                 suggestions[t] = w["start"]
     duration = args.duration or round(words[-1]["end"] + 0.8, 3)
     items = repair(items, duration)
+    if args.proof:
+        # receipts replace the captions they overlap: for that beat
+        # the card IS the text (its hot phrases highlight on speech)
+        sys.path.insert(0, str(Path(__file__).parent))
+        from proof import build_proof_items
+        assets = json.loads(Path(args.proof).read_text())
+        if isinstance(assets, dict):
+            assets = assets.get("proof") or assets.get("assets") or []
+        proof_items, proof_notes = build_proof_items(words, assets)
+        for n in proof_notes:
+            log.append(f"  {n}")
+        for pi in proof_items:
+            items = [i for i in items
+                     if not (i["type"] == "poster"
+                             and i["at"] < pi["until"]
+                             and pi["at"] < i.get("until", i["at"]))]
+        items += proof_items
+        items.sort(key=lambda i: i["at"])
     # pattern-interrupt scheduler: no 2.5s+ stretch may pass with
     # nothing landing. Where a gap has no active graphic, drop a
     # keyword chip on the strongest word inside it (max 3 per clip)

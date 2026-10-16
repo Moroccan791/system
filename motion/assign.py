@@ -245,6 +245,24 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                      "label": t.upper(), "at": s, "until": u},
                     "takeoff/growth - launch it", w["text"])
                 continue
+        # --- literal metaphors: show the analogy itself ----------------------
+        if t in ("cow", "cows", "sheep", "herd") or \
+                (t in ("stand", "stands") and "out" in ctx):
+            s, u = round(max(0.0, at - 0.1), 2), round(at + 1.6, 2)
+            if free(s, u) and not any(o.get("name") == "cowfield" for o in out):
+                add({"type": "vector", "name": "cowfield", "mode": "fullbleed",
+                     "label": "ONE STANDS OUT", "at": s, "until": u},
+                    "the herd/stand-out analogy - show it, one turns "
+                    "the accent on the point", w["text"])
+                continue
+        if t in ("road", "drive", "drives", "driving", "drove", "highway"):
+            s, u = round(max(0.0, at - 0.1), 2), round(at + 1.6, 2)
+            if free(s, u) and not any(o.get("name") == "roadcar" for o in out):
+                add({"type": "vector", "name": "roadcar", "mode": "fullbleed",
+                     "label": "DOWN THE ROAD", "at": s, "until": u},
+                    "driving is the analogy - a car crosses the frame",
+                    w["text"])
+                continue
         # --- a win -> trophy -----------------------------------------------------------
         if t in ("trophy", "won", "winner", "champion", "championship"):
             s, u = round(at - 0.2, 2), round(at + 2.1, 2)

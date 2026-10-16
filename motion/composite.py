@@ -41,17 +41,61 @@ def _grade(accent: str) -> str:
             f"bs={0.05 * (b - .5):.3f}")
 
 
+# Named cinematic grades (the refs' baseline table stakes: mixed
+# locations unified under one look, not our neutral denoise/sharpen).
+# "subject_pop" grades globally like brand; its selective half
+# (background dimmed+desaturated behind the matte) is built in
+# composite() where the person mask is available.
+GRADE_PRESETS = {
+    "teal": ("eq=contrast=1.12:saturation=1.14,"
+             "colorbalance=rs=-0.07:gs=0.03:bs=0.10:"
+             "rm=0.00:gm=0.02:bm=0.02:rh=0.05:gh=0.02:bh=-0.03"),
+    "warm": ("eq=contrast=1.09:saturation=1.16,"
+             "colorbalance=rs=0.09:gs=0.03:bs=-0.08:"
+             "rm=0.04:gm=0.01:bm=-0.03:rh=0.03:gh=0.01:bh=-0.02"),
+    "punchy": "eq=contrast=1.18:saturation=1.26",
+}
+
+
+def grade_filter(name: str | None, accent: str) -> str:
+    if not name or name in ("brand", "subject_pop"):
+        return _grade(accent)
+    if name not in GRADE_PRESETS:
+        raise ValueError(f"unknown grade {name!r} "
+                         f"(brand, teal, warm, punchy, subject_pop)")
+    return GRADE_PRESETS[name]
+
+
+# the selective half of subject_pop: the room goes quiet, the
+# speaker keeps the brand grade (R1's dark-office look)
+POP_BG_FILTER = "eq=saturation=0.52:brightness=-0.075:contrast=1.03"
+
+
 def composite(base: Path, frames: Path, tl: dict, out: Path,
               behind_frames: Path | None = None,
-              mask: Path | None = None) -> Path:
+              mask: Path | None = None,
+              grade: str | None = None) -> Path:
     fps = int(tl.get("fps") or 30)
     accent = (tl.get("brand") or {}).get("accent") or "#FFC531"
     items = tl.get("items") or []
     opening = any(i.get("type") == "fx" and i.get("kind") == "opening" for i in items)
     bw = [i for i in items if i.get("type") == "fx" and i.get("kind") == "bwflash"]
 
-    chains = [f"[0:v]{_grade(accent)}[g]"]
+    chains = [f"[0:v]{grade_filter(grade, accent)}[g]"]
     src = "[g]"
+    if grade == "subject_pop":
+        if mask is None:
+            raise ValueError("grade subject_pop needs a person mask "
+                             "(motion/matte.py) - refusing to fake it")
+        mi = 3 if behind_frames is not None else 2
+        chains += [
+            f"{src}split=2[popbg][popfg]",
+            f"[popbg]{POP_BG_FILTER}[popbgq]",
+            f"[{mi}:v]fps={fps}[popmask]",
+            "[popfg][popmask]alphamerge,format=yuva444p[popper]",
+            "[popbgq][popper]overlay=0:0:format=auto:eof_action=pass[popout]",
+        ]
+        src = "[popout]"
     for i, it in enumerate(bw):
         a = float(it["at"]); d = float(it.get("dur") or 0.12)
         chains.append(f"{src}hue=s=0:enable='between(t,{a:.3f},{a + d:.3f})'[bw{i}]")
@@ -96,8 +140,8 @@ def composite(base: Path, frames: Path, tl: dict, out: Path,
     freezes = [i for i in items if i.get("type") == "fx"
                and i.get("kind") == "freeze"][:2]
     freeze_stills: list[Path] = []
-    still0 = 2 + (2 if (behind_frames is not None
-                        and mask is not None) else 0)
+    still0 = 2 + (2 if (behind_frames is not None and mask is not None)
+                  else (1 if mask is not None else 0))
     for j, it in enumerate(freezes):
         a = float(it["at"]); d = float(it.get("dur") or 0.5)
         still = out.parent / f".freeze{j}.png"
@@ -158,6 +202,8 @@ def composite(base: Path, frames: Path, tl: dict, out: Path,
     if behind_frames is not None and mask is not None:
         args += ["-framerate", str(fps), "-i", str(behind_frames / "%05d.png"),
                  "-i", str(mask)]
+    elif mask is not None:
+        args += ["-i", str(mask)]
     for still in freeze_stills:
         args += ["-loop", "1", "-framerate", str(fps), "-i", str(still)]
     args += ["-filter_complex", fc, "-map", "[vout]"]
@@ -234,15 +280,22 @@ if __name__ == "__main__":
     else:
         argv = sys.argv[1:]
         behind = mask = None
+        grade = None
+        if "--grade" in argv:
+            grade = argv[argv.index("--grade") + 1]
+            argv = [a for a in argv if a not in ("--grade", grade)]
         if "--behind" in argv:
             behind = Path(argv[argv.index("--behind") + 1])
             mask = Path(argv[argv.index("--mask") + 1])
             argv = [a for a in argv if a not in ("--behind", "--mask")
                     and a not in (str(behind), str(mask))]
+        elif "--mask" in argv:
+            mask = Path(argv[argv.index("--mask") + 1])
+            argv = [a for a in argv if a not in ("--mask", str(mask))]
         base, frames, tl_path, out = (Path(argv[0]), Path(argv[1]),
                                       Path(argv[2]), Path(argv[3]))
         composite(base, frames, json.loads(tl_path.read_text()), out,
-                  behind_frames=behind, mask=mask)
+                  behind_frames=behind, mask=mask, grade=grade)
         side = Path(str(tl_path) + ".transitions.json")
         if side.exists():   # cut/transition sidecar travels with the video
             dest = out.with_name(out.stem + ".transitions.json")

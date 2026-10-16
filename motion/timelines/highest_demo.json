@@ -1,0 +1,347 @@
+{
+ "version": 1,
+ "fps": 30,
+ "width": 1080,
+ "height": 1920,
+ "duration": 32.0,
+ "brand": {
+  "accent": "#FF3355",
+  "name": "Highest Demo"
+ },
+ "theme": {
+  "radius": "round",
+  "glow": 1.0,
+  "speed": 1.1,
+  "easing": "pop",
+  "fontMode": "sans",
+  "fontPack": "poppins",
+  "captionStyle": "marker"
+ },
+ "items": [
+  {
+   "type": "poster",
+   "at": 0.1,
+   "until": 3.1,
+   "captionStyle": "marker",
+   "accent2": "#2FD574",
+   "gradient": [
+    "#22D3EE",
+    "#F472B6"
+   ],
+   "zone": [
+    0.68,
+    0.9
+   ],
+   "rows": [
+    [
+     {
+      "w": "Step",
+      "at": 0.1,
+      "kind": "mark",
+      "size": 126
+     },
+     {
+      "w": "one",
+      "at": 0.4,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "is",
+      "at": 0.65,
+      "kind": "conn",
+      "size": 62
+     }
+    ],
+    [
+     {
+      "w": "never",
+      "at": 0.9,
+      "kind": "mark",
+      "size": 126
+     },
+     {
+      "w": "trust",
+      "at": 1.25,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "ideas",
+      "at": 1.6,
+      "kind": "pay",
+      "size": 124,
+      "emoji": "thinking"
+     }
+    ],
+    [
+     {
+      "w": "without",
+      "at": 2.0,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "proof",
+      "at": 2.3,
+      "kind": "pay",
+      "size": 124
+     }
+    ]
+   ]
+  },
+  {
+   "type": "doodle",
+   "at": 3.9,
+   "until": 5.7,
+   "x": 0.34,
+   "y": 0.3,
+   "title": "THE RECEIPT"
+  },
+  {
+   "type": "proof",
+   "at": 6.4,
+   "until": 9.7,
+   "title": "Sarah Johnson",
+   "sub": "Student",
+   "accent2": "#38E1FF",
+   "phrases": [
+    {
+     "text": "I've been posting consistently",
+     "at": 6.8
+    },
+    {
+     "text": "for 36 days straight,",
+     "at": 7.6,
+     "hot": true
+    },
+    {
+     "text": "with 936 followers",
+     "at": 8.8,
+     "hot": true
+    }
+   ],
+   "value": 7000,
+   "prefix": "$",
+   "valueLabel": "Automated sales",
+   "countDur": 0.9
+  },
+  {
+   "type": "poster",
+   "at": 9.9,
+   "until": 12.3,
+   "captionStyle": "marker",
+   "accent2": "#2FD574",
+   "zone": [
+    0.68,
+    0.9
+   ],
+   "rows": [
+    [
+     {
+      "w": "then",
+      "at": 10.1,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "the",
+      "at": 10.4,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "messages",
+      "at": 10.7,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "started",
+      "at": 11.2,
+      "kind": "pay",
+      "size": 124
+     }
+    ],
+    [
+     {
+      "w": "coming",
+      "at": 11.6,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "in",
+      "at": 11.9,
+      "kind": "conn",
+      "size": 62
+     }
+    ]
+   ]
+  },
+  {
+   "type": "phone",
+   "at": 12.6,
+   "until": 16.6,
+   "src": "motion/test_assets/hoop.jpg",
+   "title": "@creator.profile",
+   "scroll": 0.7,
+   "illustrative": true
+  },
+  {
+   "type": "fx",
+   "kind": "flash",
+   "at": 18.6,
+   "dur": 0.25
+  },
+  {
+   "type": "vector",
+   "name": "cowfield",
+   "mode": "fullbleed",
+   "at": 18.6,
+   "until": 20.2,
+   "label": "ONE STANDS OUT"
+  },
+  {
+   "type": "poster",
+   "at": 21.0,
+   "until": 24.0,
+   "captionStyle": "marker",
+   "accent2": "#2FD574",
+   "gradient": [
+    "#22D3EE",
+    "#F472B6"
+   ],
+   "zone": [
+    0.68,
+    0.9
+   ],
+   "rows": [
+    [
+     {
+      "w": "it",
+      "at": 21.0,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "can",
+      "at": 21.25,
+      "kind": "word",
+      "size": 96
+     }
+    ],
+    [
+     {
+      "w": "BECOME",
+      "at": 21.6,
+      "kind": "grad",
+      "size": 150
+     }
+    ],
+    [
+     {
+      "w": "the",
+      "at": 22.5,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "whole",
+      "at": 22.75,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "story",
+      "at": 23.1,
+      "kind": "serif",
+      "size": 96
+     }
+    ]
+   ]
+  },
+  {
+   "type": "broll",
+   "mode": "card",
+   "w": 0.68,
+   "at": 25.0,
+   "until": 28.0,
+   "src": "motion/demo_highest/broll_clip.mp4",
+   "video": true,
+   "illustrative": false,
+   "label": "STOCK B-ROLL",
+   "sub": "chat bubbles over motion",
+   "messages": [
+    {
+     "text": "This is a remote job.",
+     "me": true,
+     "at": 25.5
+    },
+    {
+     "text": "You can expect to...",
+     "me": true,
+     "at": 26.4
+    },
+    {
+     "text": "I'm in.",
+     "me": false,
+     "at": 27.2
+    }
+   ]
+  },
+  {
+   "type": "poster",
+   "at": 28.6,
+   "until": 31.4,
+   "captionStyle": "marker",
+   "accent2": "#2FD574",
+   "zone": [
+    0.68,
+    0.9
+   ],
+   "rows": [
+    [
+     {
+      "w": "the",
+      "at": 28.8,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "whole",
+      "at": 29.15,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "story",
+      "at": 29.6,
+      "kind": "pay",
+      "size": 124
+     }
+    ],
+    [
+     {
+      "w": "in",
+      "at": 30.1,
+      "kind": "conn",
+      "size": 62
+     },
+     {
+      "w": "one",
+      "at": 30.35,
+      "kind": "word",
+      "size": 96
+     },
+     {
+      "w": "receipt",
+      "at": 30.7,
+      "kind": "pay",
+      "size": 124
+     }
+    ]
+   ]
+  }
+ ]
+}

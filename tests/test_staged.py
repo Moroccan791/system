@@ -43,7 +43,7 @@ def test_tighten_compresses_dead_air_and_remaps():
 
 def test_themes_are_five_and_complete():
     themes = sorted((Path(brand.THEMES)).glob("*.json"))
-    assert len(themes) == 5
+    assert len(themes) == 9
     for p in themes:
         t = json.loads(p.read_text())
         for k in ("accent", "radius", "glow", "speed", "easing",

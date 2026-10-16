@@ -57,7 +57,7 @@ def main(path: str) -> int:
                 problems.append(f"{it['type']} at {it['at']}: until {until} cuts "
                                 f"the last word (spoken at {last}) - a word needs "
                                 f"its entry plus a beat before the exit begins")
-        if it["type"] in ("pip", "broll"):
+        if it["type"] in ("pip", "broll", "proof", "phone"):
             src = it.get("src") or ""
             p = Path(src) if src.startswith("/") else HERE.parent / src
             if src and not p.exists():
@@ -69,6 +69,48 @@ def main(path: str) -> int:
                 problems.append(f"{it['type']} at {it['at']}: generated media must "
                                 f"set illustrative=true (it is rendered with an "
                                 f"ILLUSTRATIVE tag, never as real proof)")
+        # ---- highest-level additions (proof / phone / doodle / marker) --
+        if it["type"] == "proof":
+            if not 1.5 <= dwell <= 7.0:
+                problems.append(f"proof at {it['at']}: dwell {dwell:.2f}s "
+                                f"outside 1.5-7.0s (land the receipt, let "
+                                f"it be read, take it away)")
+            phr = it.get("phrases") or []
+            pats = [float(p["at"]) for p in phr]
+            if pats != sorted(pats):
+                problems.append(f"proof at {it['at']}: phrase times not monotonic")
+            for p in phr:
+                if not (it["at"] - 0.05 <= float(p["at"]) <= until + 0.05):
+                    problems.append(f"proof phrase {p['text'][:24]!r} at "
+                                    f"{p['at']} outside the card window")
+            if phr and until - pats[-1] > 2.5:
+                problems.append(f"proof at {it['at']}: card dwells "
+                                f"{until - pats[-1]:.1f}s after its last "
+                                f"phrase (cap 2.5s - the highlight is "
+                                f"the event, then it leaves)")
+            if it.get("hotBox") and it.get("hotAt") is None:
+                problems.append(f"proof at {it['at']}: hotBox without "
+                                f"hotAt (the box must land on the spoken "
+                                f"moment, not float)")
+            if it.get("value") is not None and until - it["at"] < \
+                    float(it.get("countDur") or 0.9) + 0.3:
+                problems.append(f"proof at {it['at']}: no beat after "
+                                f"its count-up lands")
+        if it["type"] == "phone":
+            if not 1.2 <= dwell <= 6.0:
+                problems.append(f"phone at {it['at']}: dwell {dwell:.2f}s "
+                                f"outside 1.2-6.0s (a scroll, not a scene)")
+        if it["type"] == "doodle":
+            if not 0.6 <= dwell <= 3.5:
+                problems.append(f"doodle at {it['at']}: dwell {dwell:.2f}s "
+                                f"outside 0.6-3.5s (point, then vanish)")
+        if it.get("captionStyle") == "marker" and it["type"] == "poster":
+            kinds = {w.get("kind") for r in (it.get("rows") or [])
+                     for w in r}
+            if not kinds & {"mark", "pay", "grad", "hero"}:
+                problems.append(f"marker poster at {it['at']}: no marked "
+                                f"word (mark/pay/grad) - a marker line "
+                                f"without a swipe is just small karaoke")
         if it["type"] == "counter":
             if until - it["at"] < float(it.get("countDur") or 0.9) + 0.3:
                 problems.append(f"counter at {it['at']}: until {until} leaves no "
@@ -119,6 +161,10 @@ def main(path: str) -> int:
             sizes = {"hero": float(it.get("heroSize") or 250),
                      "key": float(it.get("keySize") or 118),
                      "neon": float(it.get("keySize") or 118),
+                     "mark": float(it.get("keySize") or 118),
+                     "pay": float(it.get("keySize") or 118),
+                     "grad": float(it.get("keySize") or 118),
+                     "word": float(it.get("wordSize") or 96),
                      "conn": float(it.get("connSize") or 58)}
             row_est = []
             for row in (it.get("rows") or it.get("lines") or []):
@@ -197,7 +243,7 @@ def main(path: str) -> int:
                             f"(a sub breaks the 6-7% bar height / 3% text floor); "
                             f"merge it into title or drop it")
         if it["type"] == "vector" and it.get("name") not in (
-                "hoop", "led", "donut", "arrow", "burst",
+                "hoop", "led", "donut", "arrow", "burst", "cowfield", "roadcar",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
                 "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo"):

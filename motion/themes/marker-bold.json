@@ -1,0 +1,20 @@
+{
+  "name": "marker-bold",
+  "accent": "#FF3355",
+  "ink": "#0D0F12",
+  "paper": "#FFFFFF",
+  "radius": "round",
+  "glow": 1.0,
+  "speed": 1.1,
+  "easing": "pop",
+  "fontMode": "sans",
+  "captionStyle": "marker",
+  "transitionOrder": [
+    "flash",
+    "flare",
+    "leak",
+    "bwflash"
+  ],
+  "soundSeedSalt": 41,
+  "fontPack": "poppins"
+}

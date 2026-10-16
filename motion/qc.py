@@ -106,7 +106,7 @@ def _sizes(tl: dict) -> list[tuple[str, float, str]]:
         if ty in ("poster", "card"):
             for row in (it.get("rows") or it.get("lines") or []):
                 for w in row:
-                    key = w.get("kind") in ("key", "neon")
+                    key = w.get("kind") in ("key", "neon", "mark", "pay", "grad")
                     px = float(w.get("size") or
                                (it.get("keySize", 118) if key and ty == "poster"
                                 else it.get("connSize", 58) if ty == "poster"
@@ -253,8 +253,27 @@ def _events(tl: dict) -> list[float]:
         for key in ("items", "steps"):
             for sub in it.get(key) or []:
                 events.add(round(float(sub["at"]), 3))
+        for key in ("phrases", "messages"):
+            for sub in it.get(key) or []:
+                if sub.get("at") is not None:
+                    events.add(round(float(sub["at"]), 3))
+        if it.get("hotAt") is not None:
+            events.add(round(float(it["hotAt"]), 3))
         if it["type"] == "counter":
             events.add(round(float(it["at"]) + float(it.get("countDur") or 0.9), 3))
+        # continuous-motion inserts ARE visual change for their whole
+        # dwell: a scrolling phone screen or a playing b-roll video is
+        # re-drawn every frame by stage renderAt, never a static hold
+        if (it["type"] == "phone" and it.get("scroll")) or \
+           (it["type"] == "broll" and it.get("video")):
+            t = float(it["at"]) + 0.6
+            while t < float(it.get("until") or it["at"]):
+                events.add(round(t, 3))
+                t += 0.6
+        # a doodle draws itself on (dash-offset) over its first ~1s
+        if it["type"] == "doodle":
+            events.add(round(float(it["at"]) + 0.45, 3))
+            events.add(round(float(it["at"]) + 0.9, 3))
     return sorted(events)
 
 
@@ -308,7 +327,11 @@ IDLE = {"poster": "stack drift 100->103%", "card": "card drift 100->103%",
         "lowerthird": "shine sweep every 1.2s + drift",
         "hook": "slate drift 100->103% + line stagger",
         "endcard": "slate drift 100->103% + line stagger",
-        "broll": "still push-in 100->108%", "fx": "self-animating",
+        "broll": "still push-in 100->108% (video: plays + bubbles land)",
+        "fx": "self-animating",
+        "proof": "card drift + phrase highlights land on speech",
+        "phone": "screen scrolls under its own power",
+        "doodle": "arrow draws on in 0.55s, then points",
         "vector": "scene animates from the frame clock (ball/strip/draw-on)"}
 
 
@@ -333,7 +356,7 @@ def images(tl: dict) -> tuple[str, str]:
                    "funnel", "pyramid", "target", "podium", "beforeafter",
                    "battery", "proscons", "chapter", "bigword", "heart",
                    "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo")
-    imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll")
+    imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll", "proof", "phone")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     data = [i for i in tl["items"] if i["type"] == "vector"
             and i.get("name") in DATA_SCENES
@@ -343,7 +366,7 @@ def images(tl: dict) -> tuple[str, str]:
         return "pass", "no image inserts"
     lines, bad = [], []
     for a, b in zip(imgs, imgs[1:]):
-        if b["at"] - a["at"] < 6.0:
+        if b["at"] - a["at"] < 6.0 - 0.02:  # float dust on authored 6.0s
             bad.append(f"images {b['at'] - a['at']:.1f}s apart (<6s)")
     for a, b in zip(data, data[1:]):
         if b["at"] - a["at"] < 2.4:

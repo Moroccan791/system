@@ -86,9 +86,29 @@ def load_theme(name: str | None, base: Path, tl: dict,
 def simplify(tl: dict, level: int) -> dict:
     tl = json.loads(json.dumps(tl))
     if level == 1:  # drop inserts/fx/chips, keep the argument
-        tl["items"] = [i for i in tl["items"] if i["type"] in
-                       ("poster", "card", "counter", "list", "process")
-                       or (i["type"] == "fx" and i.get("kind") == "opening")]
+        kept = []
+        for i in tl["items"]:
+            if i["type"] in ("poster", "card", "counter", "list", "process") \
+                    or (i["type"] == "fx" and i.get("kind") == "opening"):
+                kept.append(i)
+            elif i["type"] == "proof":
+                # the receipt IS the argument: never vanish it in a
+                # fallback - downgrade the proof card to a caption
+                # poster (hot phrases become payoff words)
+                rows = []
+                for ph in i.get("phrases") or []:
+                    t0 = float(ph.get("at") or i["at"])
+                    kind = "pay" if ph.get("hot") else "word"
+                    rows.append([{"w": w, "at": round(t0 + 0.22 * k, 2),
+                                  "kind": kind}
+                                 for k, w in enumerate(
+                                     str(ph["text"]).split())])
+                if rows:
+                    kept.append({"type": "poster", "at": i["at"],
+                                 "until": min(float(i["until"]),
+                                              float(i["at"]) + 3.0),
+                                 "rows": rows})
+        tl["items"] = kept
     return tl
 
 
@@ -224,7 +244,11 @@ def main() -> int:
         tl.setdefault("brand", {})["accent"] = theme["accent"]
         if auto_zone:
             for it in tl["items"]:
-                if it["type"] == "poster" and "zone" not in it \
+                # proof cards get the face-safe zone too: the receipt
+                # must never sit on the speaker's eyes (house rule).
+                # phone inserts are deliberate full-bleed cutaways and
+                # doodles are authored point annotations: both stay.
+                if it["type"] in ("poster", "proof") and "zone" not in it \
                         and not it.get("behind") \
                         and not it.get("place3d"):
                     it["zone"] = list(auto_zone)
@@ -263,6 +287,22 @@ def main() -> int:
         behind_frames = None
         mask = None
         render_tl = fx_path
+        grade = opt("--grade") or theme.get("grade")
+        if grade:
+            log.setdefault("choices", {})["grade"] = grade
+        need_matte = any(it.get("behind") for it in fx["items"]) \
+            or grade == "subject_pop"
+        if need_matte:
+            # subject_pop shares the behind-the-person matte: the
+            # speaker keeps the grade, the room goes quiet behind them
+            mask = job / "person_mask.mp4"
+            if not mask.exists():
+                m = py("matte.py", str(base), str(mask))
+                if m.returncode != 0:
+                    log["levels"].append(
+                        {"level": level, "stage": "matte",
+                         "error": (m.stderr or m.stdout)[-300:]})
+                    continue
         if any(it.get("behind") for it in fx["items"]):
             # behind-the-person: matte once per job (pure function of
             # the base), then render the behind layer and the main
@@ -307,6 +347,10 @@ def main() -> int:
         cargs = [str(base), str(frames), str(fx_path), str(final)]
         if behind_frames is not None:
             cargs += ["--behind", str(behind_frames), "--mask", str(mask)]
+        elif mask is not None:
+            cargs += ["--mask", str(mask)]
+        if grade:
+            cargs += ["--grade", grade]
         c = py("composite.py", *cargs)
         if c.returncode != 0 or not final.exists():
             log["levels"].append({"level": level, "stage": "composite",

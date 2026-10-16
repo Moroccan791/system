@@ -73,11 +73,19 @@ async function main() {
   // PiP / B-roll stills must be decoded before any frame is shot
   await page.evaluate(() => Promise.all([...document.images].map((img) =>
     img.complete ? 1 : new Promise((r) => { img.onload = img.onerror = () => r(1); }))));
+  // video B-roll: metadata must be in before the first seek
+  await page.evaluate(() => Promise.all([...document.querySelectorAll("video")].map((v) =>
+    v.readyState >= 1 ? 1 : new Promise((r) => {
+      v.addEventListener("loadedmetadata", () => r(1), { once: true });
+      v.addEventListener("error", () => r(1), { once: true });
+      setTimeout(() => r(1), 4000);
+    }))));
 
   let semiFrames = 0, semiMaxRun = 0;
   const t0 = Date.now();
   for (let f = from; f <= to; f++) {
     const stats = await page.evaluate((ms) => window.renderAt(ms), (f / fps) * 1000);
+    await page.evaluate(() => window.syncVideos());
     semiFrames += stats.semiFrames > 0 ? 1 : 0;
     semiMaxRun = Math.max(semiMaxRun, stats.semiMaxRun || 0);
     const out = path.join(framesDir, String(f).padStart(5, "0") + ".png");

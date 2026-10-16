@@ -1,0 +1,16 @@
+MOTION QC v2 highest_demo_teal.mp4: PASS
+  [PASS] duration: video 31.97s matches timeline 32.00s
+  [PASS] word_sync: 26 words, visual offset +3..+3 ms (2-frame lead = -67 ms)
+  [PASS] text_sizes: 28 text elements, min 58px (3%), keywords in 115-154px
+  [PASS] text_contrast: all text >= 4.5:1 against plate / sampled bg
+  [PASS] pacing: longest without a visual change 2.40s at 16.2s (under 2.5s cap; over the 1.5s target - idle drift runs)
+  [PASS] dwell: max simple dwell 4.00s (phone), panels exit <=1s after last entry
+  [PASS] idle: 9 graphics held >0.8s, all idle-animated (engine drift/shine/glow, verified on strips)
+  [PASS] images: proof @6.4s asset/footage 100%w 3.30s; phone @12.6s generated 100%w 4.00s ILLUSTRATIVE; vector @18.6s vector 100%w 1.60s; broll @25.0s asset/footage 68%w 3.00s
+  [WARN] cuts: no transitions sidecar (single-shot base?)
+  [PASS] opening: first caption animating at frame 3 (0-10)
+  [PASS] face_zone: faces clear of the text zone in 4 items
+  [PASS] value_anchor: 0 numbered graphic(s) land on or after their spoken number
+  [PASS] behind_fit: no behind-the-person posters
+  [PASS] semi_text: max semi-transparent run 2 frames (cap 2)
+  [PASS] margins: all zones inside the 6% safe margin plan

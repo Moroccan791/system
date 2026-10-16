@@ -154,6 +154,22 @@ Campaign folders and their references/raw files, candidate moments as **seekable
 players** (they start at the moment), assembled clips with their plan summary,
 style profiles, and work files. Range requests work, so seeking works.
 
+### Motion — the receipts update (from the reference teardown)
+The gap-closers the portfolio reels exposed, now shipped in `motion/`:
+**proof** cards (real testimonial/screenshot assets, phrase highlighted
+as spoken, number counting up inside the card; `motion/proof.py`
+matches phrases to the transcript and reports — never guesses — the
+rest), **phone** screen inserts (device mock, scrolling capture),
+**doodle** hand-drawn arrow annotations, literal-metaphor vector scenes
+(**cowfield** purple cow, **roadcar**) plus **video b-roll with chat
+bubbles**, the **`marker` captionStyle** (marker-bar keyword, semantic
+structure/payoff accent pair, gradient shout words, emoji glued to a
+word; theme `marker-bold`, `decide.py --caption-style marker`), and
+named **grades** (`teal`/`warm`/`punchy` + selective `subject_pop`
+over the person matte). All validated/QC'd like everything else;
+`motion/timelines/highest_demo.json` + `motion/demo_highest/` show
+every one of them in a single 32s clip that passes MOTION QC v2.
+
 ---
 
 ## 2. The menu — what we can add
