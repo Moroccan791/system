@@ -88,34 +88,48 @@ def composite(base: Path, frames: Path, tl: dict, out: Path) -> Path:
             for sub in it.get(key) or []:
                 sfx.append((float(sub["at"]), POP, 0.18))
     info = probe(base)
-
-    args = [ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),
-            "-framerate", str(fps), "-i", str(frames / "%05d.png")]
     fc = ";".join(chains)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # Pass 1: video only. (The old one-pass A/V encode silently ate the
+    # audio tail -- with the PNG-sequence input in the same graph,
+    # ffmpeg ended the mixed audio up to ~0.7s early, and the sound
+    # stage's -shortest then cut the picture to match, chopping clip
+    # endings. Two passes keep both streams full-length.)
+    vid = out.with_suffix(".vid.mp4")
+    args = [ffmpeg_exe(), "-y", "-v", "error", "-i", str(base),
+            "-framerate", str(fps), "-i", str(frames / "%05d.png"),
+            "-filter_complex", fc, "-map", "[vout]"]
+    if tl.get("duration"):
+        args += ["-t", f"{float(tl['duration']):.3f}"]
+    args += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "17",
+             "-pix_fmt", "yuv420p", "-an", str(vid)]
+    _run(args)
+    # Pass 2: audio (base voice + transition SFX) muxed onto the video.
+    args = [ffmpeg_exe(), "-y", "-v", "error", "-i", str(vid),
+            "-i", str(base)]
     if sfx and info.has_audio:
-        parts = ["[0:a]anull[abase]"]
+        parts = ["[1:a]anull[abase]"]
         labels = ["[abase]"]
         for j, (at, f, vol) in enumerate(sfx):
             ms = int(at * 1000)
             parts.append(f"[{2 + j}:a]adelay={ms}|{ms},volume={vol}[s{j}]")
             labels.append(f"[s{j}]")
-        parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:duration=first:"
+        parts.append(f"{''.join(labels)}amix=inputs={len(labels)}:duration=longest:"
                      "dropout_transition=0:normalize=0[aout]")
         for _, f, _ in sfx:
             args += ["-i", str(f)]
-        args += ["-filter_complex", ";".join([fc] + parts),
-                 "-map", "[vout]", "-map", "[aout]"]
+        args += ["-filter_complex", ";".join(parts),
+                 "-map", "0:v", "-map", "[aout]", "-c:v", "copy",
+                 "-c:a", "aac", "-b:a", "160k"]
+    elif info.has_audio:
+        args += ["-map", "0:v", "-map", "1:a", "-c", "copy"]
     else:
-        args += ["-filter_complex", fc, "-map", "[vout]"]
-        if info.has_audio:
-            args += ["-map", "0:a"]
+        args += ["-map", "0:v", "-c", "copy"]
     if tl.get("duration"):
         args += ["-t", f"{float(tl['duration']):.3f}"]
-    args += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "17",
-             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",
-             "-movflags", "+faststart", str(out)]
-    out.parent.mkdir(parents=True, exist_ok=True)
+    args += ["-movflags", "+faststart", str(out)]
     _run(args)
+    vid.unlink()
     return out
 
 

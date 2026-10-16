@@ -1,6 +1,6 @@
 # Post 7 — “One Guy Waited. One Didn’t.” (Michael Sartain)
 
-- **Video:** `sartain_one_guy_waited.mp4` (21.5 s, 1080×1920) — **v2: full motion-graphics edit** (Stages A–D system: opening question card, poster typography with keyword plates, designed transitions + sound design). Motion QC v2 **PASS at level 0** + sound QC PASS, **−14.0 LUFS / TP −1.7 dBTP**. (v1 was plain word-pop captions; replaced.)
+- **Video:** `sartain_one_guy_waited.mp4` (21.3 s, 1080×1920) — **v2.1: full motion-graphics edit** (Stages A–D system: opening question card, poster typography with keyword plates, designed transitions + sound design). Motion QC v2 **PASS at level 0** + sound QC PASS, **−14.1 LUFS / TP −1.9 dBTP**. v2.1 fixes caption sync: captions are now timed from the edited audio itself (v2's base had a hidden cut that left captions ~0.7 s behind the voice) and the composite no longer trims clip endings.
 - **Cover:** `cover.jpg`
 - **Source:** Women Will Only Make You Wait If You’re A Beta — 6:33.5–6:54.9
 - **Hook (0 s):** Michael: “You made one guy WAIT. Another guy NOT wait. Can you explain why?”

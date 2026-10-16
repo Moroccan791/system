@@ -6,6 +6,17 @@ words lead speech by 2 frames), plus a hand-placed special per clip:
 clip1 opening card (the question), clip2 counter (57), clip3 closing
 card (the payoff). Words inside a special's window are not captioned
 twice. Mirrors motion/timelines/sartain_stage_a.json conventions.
+
+SLICE PROVENANCE (sync-critical, learned from a shipped desync):
+word slices MUST be timed against the base edit's own audio -- either
+transcribe the base edit itself, or remap source-transcript words
+through the edit plan (plan shots: out = out_start + (t - shot.start)).
+Never slice as source_time - window_start: if the edit's shots skip
+source material, speech lands earlier than that map and every caption
+lags. Slices here came from transcribing the rebuilt bases (tracked
+candidates, plan-verified contiguous), plus a uniform -100ms onset
+compensation (moonshine marks word onsets ~100ms late against the
+audio; measured across all three clips).
 """
 import json
 import subprocess
