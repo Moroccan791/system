@@ -245,6 +245,33 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                      "label": t.upper(), "at": s, "until": u},
                     "takeoff/growth - launch it", w["text"])
                 continue
+        # --- a win -> trophy -----------------------------------------------------------
+        if t in ("trophy", "won", "winner", "champion", "championship"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u) and not any(o.get("name") == "trophy" for o in out):
+                add({"type": "vector", "name": "trophy", "mode": "fullbleed",
+                     "label": "THE WIN", "at": s, "until": u},
+                    "a win is claimed - raise the cup", w["text"])
+                continue
+        # --- searching -> search ---------------------------------------------------------
+        if t in ("search", "searching", "searches"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "search", "mode": "fullbleed",
+                     "label": "LOOKING", "at": s, "until": u},
+                    "a search is on - scan with the glass", w["text"])
+                continue
+        # --- money (general) -> cash -------------------------------------------------------
+        if t in ("money", "cash", "rich", "wealth", "wealthy"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u) and not any(o.get("name") == "cash" for o in out):
+                add({"type": "vector", "name": "cash", "mode": "fullbleed",
+                     "label": "THE MONEY",
+                     "_note": "set value to the spoken amount if one is named",
+                     "at": s, "until": u},
+                    "money as a thing - fan the bills (an amount is a price)",
+                    w["text"])
+                continue
         # --- suggestions (creative params are prose; the author fills them) ----------------------
         if t in ("rules", "steps", "checklist", "habits", "routine"):
             out.append({"_suggest": "checklist", "_anchor": w["text"],
@@ -304,6 +331,48 @@ def propose(words: list[dict], duration: float) -> list[dict]:
         if t in ("podcast", "voice", "recording", "audio"):
             out.append({"_suggest": "wave", "_anchor": w["text"],
                         "_reason": "a voice/podcast moment - show the waveform",
+                        "at": round(at, 2)})
+        if t in ("spotlight", "attention", "eyes", "famous"):
+            out.append({"_suggest": "spotlight", "_anchor": w["text"],
+                        "_reason": "all eyes on them - sweep the spotlight",
+                        "at": round(at, 2)})
+        if t in ("level", "levels", "leveling", "levelling", "climb",
+                 "climbing", "ladder") and "up" in ctx:
+            out.append({"_suggest": "ladder", "_anchor": w["text"],
+                        "_reason": "levelling up - climb the rungs "
+                                   "(count = the levels)",
+                        "at": round(at, 2)})
+        if t in ("stars", "rating", "rated", "ten", "perfect"):
+            out.append({"_suggest": "stars", "_anchor": w["text"],
+                        "_reason": "a rating is implied - fill the stars "
+                                   "(value = the score out of 5)",
+                        "at": round(at, 2)})
+        if t == "countdown" or (t == "days" and "left" in texts[i:i + 3]):
+            out.append({"_suggest": "countdown", "_anchor": w["text"],
+                        "_reason": "a deadline counts down - burn the digits "
+                                   "(value = where it starts)",
+                        "at": round(at, 2)})
+        if t in ("king", "crown", "boss", "alpha"):
+            out.append({"_suggest": "crown", "_anchor": w["text"],
+                        "_reason": "top-dog status - drop the crown",
+                        "at": round(at, 2)})
+        if t in ("bridge", "connect", "connects", "gap", "between"):
+            out.append({"_suggest": "bridge", "_anchor": w["text"],
+                        "_reason": "a gap gets closed - draw the bridge",
+                        "at": round(at, 2)})
+        if t in ("fit", "fits", "puzzle", "compatible", "match"):
+            out.append({"_suggest": "puzzle", "_anchor": w["text"],
+                        "_reason": "a fit/compatibility call - click the "
+                                   "pieces (labels = the two sides)",
+                        "at": round(at, 2)})
+        if t in ("cycle", "loop", "routine", "habit", "daily"):
+            out.append({"_suggest": "cycle", "_anchor": w["text"],
+                        "_reason": "a repeating loop - spin the cycle",
+                        "at": round(at, 2)})
+        if t in ("heating", "temperature", "hotter", "rising"):
+            out.append({"_suggest": "thermo", "_anchor": w["text"],
+                        "_reason": "it's heating up - climb the mercury "
+                                   "(value = how hot, 0-100)",
                         "at": round(at, 2)})
         if t == "before" and "after" in texts[i:i + 7]:
             out.append({"_suggest": "beforeafter", "_anchor": w["text"],

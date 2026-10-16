@@ -227,8 +227,8 @@ def poster_items(u, log, caption_style=None):
             out_rows.append(out)
         items.append({"type": "poster", "at": round(chunk[0]["start"], 3),
                       "until": round(chunk[-1]["start"] + 0.55, 3), "rows": out_rows,
-                      **({"captionStyle": "karaoke"}
-                         if caption_style == "karaoke" else {})})
+                      **({"captionStyle": caption_style}
+                         if caption_style and caption_style != "pop" else {})})
         log.append(f"  poster  @{chunk[0]['start']:6.2f}  "
                    f"{' '.join(w['text'] for w in chunk)[:58]!r}")
         chunk.clear()
@@ -437,8 +437,12 @@ def main() -> int:
     ap.add_argument("transcript")
     ap.add_argument("out")
     ap.add_argument("--accent", default="#9BE82E")
-    ap.add_argument("--caption-style", choices=["pop", "karaoke"], default="pop",
-                    help="karaoke lights each word in the accent as it is spoken")
+    ap.add_argument("--caption-style",
+                    choices=["pop", "karaoke", "stretch", "wiggle", "glide",
+                             "bounce", "neon"],
+                    default="pop",
+                    help="karaoke lights each word as spoken; stretch/wiggle/"
+                         "glide/bounce change word entries; neon = glow finish")
     ap.add_argument("--duration", type=float, default=0)
     args = ap.parse_args()
 

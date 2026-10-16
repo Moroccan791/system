@@ -151,7 +151,8 @@ def main() -> int:
             transcript, tl_src.get("duration", 10))
         tl = json.loads(json.dumps(tl))
         tl["theme"] = {k: theme[k] for k in
-                       ("radius", "glow", "speed", "easing", "fontMode")
+                       ("radius", "glow", "speed", "easing", "fontMode",
+                        "captionStyle")
                        if k in theme}
         tl.setdefault("brand", {})["accent"] = theme["accent"]
         if level == 1:

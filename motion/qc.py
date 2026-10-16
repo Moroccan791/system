@@ -322,7 +322,7 @@ def images(tl: dict) -> tuple[str, str]:
                    "calendar", "clock", "price", "checklist", "magnet",
                    "funnel", "pyramid", "target", "podium", "beforeafter",
                    "battery", "proscons", "chapter", "bigword", "heart",
-                   "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave")
+                   "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo")
     imgs = [i for i in tl["items"] if i["type"] in ("pip", "broll")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     data = [i for i in tl["items"] if i["type"] == "vector"

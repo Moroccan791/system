@@ -113,6 +113,18 @@ presented as proof.
 | Speaker or guest needs naming | **lowerthird** (name + role) | ORIENT |
 | Dense fast speech, eye must track the line | poster `captionStyle: "karaoke"` | EMPHASISE |
 | A lockup with one payoff word | poster hero word (`kind: "hero"`) | EMPHASISE |
+| All eyes on them / famous moment | **spotlight** | FEEL |
+| A win is claimed ("he won…") | **trophy** | PROVE |
+| Levelling up, stages climbed | **ladder** (`count` rungs) | ORIENT |
+| A rating ("four stars", "an eight") | **stars** (`value` /5) | PROVE |
+| A deadline counts down ("3 days left") | **countdown** (`value`) | ORIENT |
+| Searching / looking for the one | **search** | SHOW |
+| Money made, winnings, being rich | **cash** (`value`) | SHOW |
+| Top-dog status ("king", "boss") | **crown** | EMPHASISE |
+| A gap closed, two worlds meet | **bridge** | SHOW |
+| Compatibility / the right fit | **puzzle** (labels = sides) | COMPARE |
+| A habit loop, every-day cycle | **cycle** | ORIENT |
+| It's heating up, tension rising | **thermo** (`value` %) | SHOW |
 | A concrete picturable noun | pip / broll (client footage first) | SHOW |
 | Scene change, breath, mood | fx leak/flare, broll cutaway | FEEL |
 
@@ -377,6 +389,59 @@ A waveform plays left→right: played bars turn accent and keep
 dancing. For podcast/voice-note moments, "listen to what he said".
 `count` = bar count (12–44).
 
+#### spotlight — FEEL attention
+A cone of light sways over a lit pool on the floor. All eyes on
+them, the moment someone becomes the story. Metaphor only.
+
+#### trophy — PROVE the win
+A cup drops in with sparkles. Wins, championships, "he took it
+home". For claimed victories — alleged ones get `podium`.
+
+#### ladder — ORIENT progress
+A climber dot ascends `count` rungs (3–6); passed rungs light
+accent toward the flag. Levelling up, ranks climbed, glow-up
+stages.
+
+#### stars — PROVE a rating
+Five stars pop in; `value` (1–5) fill accent. Ratings and scores
+out of five. A spoken "ten" is a 5 — halve it, don't overflow.
+
+#### countdown — ORIENT/EMPHASISE a deadline
+Digits burn down from `value` (2–10) inside a closing ring; the
+last digit turns accent. "Three days left", "in five, four…". The
+window IS the countdown — author the dwell to match.
+
+#### search — SHOW looking
+A magnifier scans a dotted field; one dot pulses as the find. For
+searching, looking for the right one, vetting.
+
+#### cash — SHOW money made
+Bills fan out; the $ lands; `value` counts up beneath when an
+amount is spoken. Money as a thing (income, winnings) — a cost is
+`price`, a stat is `counter`.
+
+#### crown — EMPHASISE status
+A crown drops on with a tilt; gems twinkle. Top dog, king, the
+alpha of the story. Status claims, played straight or ironic.
+
+#### bridge — SHOW connection
+A span draws itself across the gap and a dot crosses. Closing
+distance, connecting two worlds, "meet in the middle".
+
+#### puzzle — COMPARE fit
+Two pieces slide in and click (knob into socket); `labels` name
+the two sides. Compatibility, "she fits his life", the missing
+piece.
+
+#### cycle — ORIENT a loop
+Two chase arrows circle continuously. Habits, routines, the loop
+he's stuck in — or the one that saves him.
+
+#### thermo — SHOW a level rising
+Mercury climbs the tube to `value` % with a counting readout.
+Heating up, tension rising. (A dial is `gauge`, a charge is
+`battery` — pick the body the metaphor lives in.)
+
 ### Typography (over the speaker; does not cost face time)
 
 #### poster — EMPHASISE the spoken words
@@ -394,6 +459,17 @@ plate (already the highlight). Use karaoke for fast/dense delivery and
 younger-skewing edits; pop for slower, weightier pieces. One mode per
 clip — never mix within a video. `decide.py --caption-style karaoke`
 authors it across a transcript.
+
+**Dynamic entries + finishes** (same `captionStyle` field): `stretch`
+(rubber-band wide→true), `wiggle` (lands, then wiggles off), `glide`
+(slides in sharp from the left), `bounce` (drops in big, settles) —
+how words ARRIVE. `neon` is a finish: accent ink with an electric
+glow + entry flicker on every word. All entry styles are pure
+functions of the frame clock and never touch the opacity curve, so
+the QC discipline is identical across styles. Theme packs ship the
+combinations: `karaoke-bold`, `bounce-party`, `neon-nights`
+(motion/themes/) — a theme sets the caption style for the whole
+clip unless a poster overrides it.
 
 #### hero lockup — EMPHASISE with one giant word
 A poster whose middle row is a single `kind: "hero"` word at

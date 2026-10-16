@@ -92,7 +92,7 @@ def main(path: str) -> int:
                 "hoop", "led", "donut", "arrow", "burst",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
-                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave"):
+                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":
@@ -136,6 +136,14 @@ def main(path: str) -> int:
             if nm == "dice" and not (1 <= (it.get("from") or 3) <= 6
                                      and 1 <= (it.get("to") or 5) <= 6):
                 problems.append(f"dice at {it['at']}: faces (from/to) must be 1-6")
+            if nm == "stars" and not 1 <= (it.get("value") or 5) <= 5:
+                problems.append(f"stars at {it['at']}: value must be 1-5")
+            if nm == "countdown" and not 2 <= (it.get("value") or 3) <= 10:
+                problems.append(f"countdown at {it['at']}: value must be 2-10")
+            if nm == "thermo" and not 0 <= (it.get("value") if it.get("value") is not None else 75) <= 100:
+                problems.append(f"thermo at {it['at']}: value must be 0-100")
+            if nm == "ladder" and not 3 <= (it.get("count") or 4) <= 6:
+                problems.append(f"ladder at {it['at']}: count (rungs) must be 3-6")
         if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed":
             # data scenes keep moving (fills/growth) so they may hold longer;
             # metaphor scenes must stay punchy
@@ -145,7 +153,7 @@ def main(path: str) -> int:
                 "calendar", "clock", "price", "checklist", "magnet",
                 "funnel", "pyramid", "target", "podium", "beforeafter",
                 "battery", "proscons", "chapter", "bigword", "heart",
-                "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave") else (1.0, 1.8)
+                "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo") else (1.0, 1.8)
             if not lo <= dwell <= hi:
                 problems.append(f"vector broll at {it['at']}: full-bleed dwell "
                                 f"{dwell:.2f}s outside {lo}-{hi}s")
@@ -193,7 +201,7 @@ def main(path: str) -> int:
                    "calendar", "clock", "price", "checklist", "magnet",
                    "funnel", "pyramid", "target", "podium", "beforeafter",
                    "battery", "proscons", "chapter", "bigword", "heart",
-                   "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave")
+                   "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo")
     imgs = [i for i in items if i["type"] in ("pip", "broll")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     for a, b in zip(imgs, imgs[1:]):

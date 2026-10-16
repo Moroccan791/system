@@ -1,0 +1,5 @@
+{"name": "bounce-party", "accent": "#FFC531", "ink": "#0D0F12", "paper": "#FFFFFF",
+ "radius": "pill", "glow": 1.1, "speed": 1.2, "easing": "pop",
+ "fontMode": "sans", "captionStyle": "bounce",
+ "transitionOrder": ["bwflash", "flare", "flash", "leak"],
+ "soundSeedSalt": 97}
