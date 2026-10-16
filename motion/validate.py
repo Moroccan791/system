@@ -80,6 +80,10 @@ def main(path: str) -> int:
             if not 0.19 <= d <= 0.34:
                 problems.append(f"fx {it.get('kind')} at {it['at']}: dur {d}s is "
                                 f"outside the 6-10 frame transition window")
+        if it["type"] == "lowerthird" and not 1.8 <= dwell <= 6.0:
+            problems.append(f"lowerthird at {it['at']}: dwell {dwell:.2f}s "
+                            f"outside 1.8-6.0s (name them, let it be read, "
+                            f"take it away)")
         if it["type"] == "chip" and it.get("sub"):
             problems.append(f"chip at {it['at']}: a chip is a single text line "
                             f"(a sub breaks the 6-7% bar height / 3% text floor); "
@@ -88,7 +92,7 @@ def main(path: str) -> int:
                 "hoop", "led", "donut", "arrow", "burst",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
-                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert"):
+                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":
@@ -126,6 +130,12 @@ def main(path: str) -> int:
                 problems.append(f"beforeafter at {it['at']}: needs before and after")
             if nm == "funnel" and (it.get("from") is None or it.get("to") is None):
                 problems.append(f"funnel at {it['at']}: needs from and to")
+            if nm == "scale" and not (it.get("left") and it.get("right")):
+                problems.append(f"scale at {it['at']}: needs left and right "
+                                f"(label + value each) - the beam tips on data")
+            if nm == "dice" and not (1 <= (it.get("from") or 3) <= 6
+                                     and 1 <= (it.get("to") or 5) <= 6):
+                problems.append(f"dice at {it['at']}: faces (from/to) must be 1-6")
         if it["type"] == "vector" and (it.get("mode") or "card") == "fullbleed":
             # data scenes keep moving (fills/growth) so they may hold longer;
             # metaphor scenes must stay punchy
@@ -135,7 +145,7 @@ def main(path: str) -> int:
                 "calendar", "clock", "price", "checklist", "magnet",
                 "funnel", "pyramid", "target", "podium", "beforeafter",
                 "battery", "proscons", "chapter", "bigword", "heart",
-                "alert") else (1.0, 1.8)
+                "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave") else (1.0, 1.8)
             if not lo <= dwell <= hi:
                 problems.append(f"vector broll at {it['at']}: full-bleed dwell "
                                 f"{dwell:.2f}s outside {lo}-{hi}s")
@@ -183,7 +193,7 @@ def main(path: str) -> int:
                    "calendar", "clock", "price", "checklist", "magnet",
                    "funnel", "pyramid", "target", "podium", "beforeafter",
                    "battery", "proscons", "chapter", "bigword", "heart",
-                   "alert")
+                   "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave")
     imgs = [i for i in items if i["type"] in ("pip", "broll")
             or (i["type"] == "vector" and i.get("name") not in DATA_SCENES)]
     for a, b in zip(imgs, imgs[1:]):

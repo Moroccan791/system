@@ -195,7 +195,7 @@ def key_word(u):
     return best
 
 
-def poster_items(u, log):
+def poster_items(u, log, caption_style=None):
     items, chunk = [], []
     def flush():
         if not chunk:
@@ -226,7 +226,9 @@ def poster_items(u, log):
                 out.append(entry)
             out_rows.append(out)
         items.append({"type": "poster", "at": round(chunk[0]["start"], 3),
-                      "until": round(chunk[-1]["start"] + 0.55, 3), "rows": out_rows})
+                      "until": round(chunk[-1]["start"] + 0.55, 3), "rows": out_rows,
+                      **({"captionStyle": "karaoke"}
+                         if caption_style == "karaoke" else {})})
         log.append(f"  poster  @{chunk[0]['start']:6.2f}  "
                    f"{' '.join(w['text'] for w in chunk)[:58]!r}")
         chunk.clear()
@@ -258,7 +260,7 @@ def counter_item(u, i, parsed, log):
     return item
 
 
-def classify(u, log):
+def classify(u, log, caption_style=None):
     text = " ".join(w["text"] for w in u)
     toks = [norm(w["text"]) for w in u]
     nums = [(i, p) for i in range(len(u)) if (p := parse_number(u, i))]
@@ -334,7 +336,7 @@ def classify(u, log):
         i, p = strong[0]
         items = []
         if i >= 3:
-            items += poster_items(u[:i], log)
+            items += poster_items(u[:i], log, caption_style)
         items.append(counter_item(u, i, p, log))
         return items
 
@@ -352,7 +354,7 @@ def classify(u, log):
                  "lines": [line(u[:half]), line(u[half:])]}]
 
     # 5. POSTER
-    return poster_items(u, log)
+    return poster_items(u, log, caption_style)
 
 
 def flat_words(item):
@@ -435,6 +437,8 @@ def main() -> int:
     ap.add_argument("transcript")
     ap.add_argument("out")
     ap.add_argument("--accent", default="#9BE82E")
+    ap.add_argument("--caption-style", choices=["pop", "karaoke"], default="pop",
+                    help="karaoke lights each word in the accent as it is spoken")
     ap.add_argument("--duration", type=float, default=0)
     args = ap.parse_args()
 
@@ -459,7 +463,7 @@ def main() -> int:
 
     items, log, suggestions = [], [], {}
     for u in utts:
-        items += classify(u, log)
+        items += classify(u, log, args.caption_style)
         for w in u:
             t = norm(w["text"])
             if t in CONCRETE and t not in suggestions:

@@ -208,6 +208,10 @@ def build_events(tl: dict, cuts: list[dict], typing: bool,
             add(until, "swipe", -20, "scene exit")
         elif ty == "chip":
             add(at, "pop", -6, "chip enter")
+        elif ty == "lowerthird":
+            add(at, "pop_low", -9, "lower-third slides in")
+            if until - at > 2.0:
+                add(until, "swipe", -20, "lower-third exit")
         elif ty == "fx" and it.get("kind") == "opening":
             add(0.0, "whoosh", -14, "opening")
     for c in cuts:

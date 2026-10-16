@@ -208,6 +208,43 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                      "at": s, "until": u},
                     "a structural break - mark the chapter", w["text"])
                 continue
+        # --- a call -> phone (it rings) ------------------------------------------
+        if t in ("call", "called", "calling", "phone", "rang", "facetime",
+                 "facetimed"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u) and not any(o.get("name") == "phone" for o in out):
+                add({"type": "vector", "name": "phone", "mode": "fullbleed",
+                     "title": "", "label": "THE CALL",
+                     "_note": "set title to the caller ('HER', 'MOM'...)",
+                     "at": s, "until": u},
+                    "a call happens - show the phone ringing", w["text"])
+                continue
+        # --- notifications -> bell ------------------------------------------------
+        if t in ("notification", "notifications", "alerts"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u) and not any(o.get("name") == "bell" for o in out):
+                add({"type": "vector", "name": "bell", "mode": "fullbleed",
+                     "count": 3, "label": "BLOWING UP",
+                     "_note": "set count to the spoken number of pings",
+                     "at": s, "until": u},
+                    "notifications stack up - ring the bell", w["text"])
+                continue
+        # --- "the key" -> key ------------------------------------------------------
+        if t == "key" and i > 0 and texts[i - 1] == "the":
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "key", "mode": "fullbleed",
+                     "label": "THE KEY", "at": s, "until": u},
+                    "'the key' is named - slide it into the lock", w["text"])
+                continue
+        # --- takeoff -> rocket -------------------------------------------------------
+        if t in ("launched", "launch", "viral") or t.startswith("skyrocket"):
+            s, u = round(at - 0.2, 2), round(at + 2.1, 2)
+            if free(s, u):
+                add({"type": "vector", "name": "rocket", "mode": "fullbleed",
+                     "label": t.upper(), "at": s, "until": u},
+                    "takeoff/growth - launch it", w["text"])
+                continue
         # --- suggestions (creative params are prose; the author fills them) ----------------------
         if t in ("rules", "steps", "checklist", "habits", "routine"):
             out.append({"_suggest": "checklist", "_anchor": w["text"],
@@ -232,6 +269,41 @@ def propose(words: list[dict], duration: float) -> list[dict]:
         if t == "one" and i > 0 and texts[i - 1] == "number":
             out.append({"_suggest": "podium", "_anchor": "number one",
                         "_reason": "a ranking peaks - podium finish",
+                        "at": round(at, 2)})
+        if t in ("weigh", "weighing", "balance", "balanced"):
+            out.append({"_suggest": "scale", "_anchor": w["text"],
+                        "_reason": "two options weighed - tip the beam "
+                                   "(left/right = the two claims)",
+                        "at": round(at, 2)})
+        if t in ("mindset", "psychology", "brain", "mentality", "thinking"):
+            out.append({"_suggest": "brain", "_anchor": w["text"],
+                        "_reason": "it's in the head - draw the brain",
+                        "at": round(at, 2)})
+        if t in ("door", "doors", "opportunity", "opportunities"):
+            out.append({"_suggest": "door", "_anchor": w["text"],
+                        "_reason": "an opening appears - swing the door",
+                        "at": round(at, 2)})
+        if t in ("gamble", "gambling", "bet", "dice", "risky"):
+            out.append({"_suggest": "dice", "_anchor": w["text"],
+                        "_reason": "a chance is taken - roll the dice",
+                        "at": round(at, 2)})
+        if t == "common" and ("ground" in ctx or " in " in f" {ctx} "):
+            out.append({"_suggest": "venn", "_anchor": w["text"],
+                        "_reason": "common ground - overlap the circles "
+                                   "(labels = the two sides + the overlap)",
+                        "at": round(at, 2)})
+        if t in ("protect", "protected", "safe", "safety", "boundaries",
+                 "guard"):
+            out.append({"_suggest": "shield", "_anchor": w["text"],
+                        "_reason": "protection/boundaries - raise the shield",
+                        "at": round(at, 2)})
+        if t == "out" and i > 0 and texts[i - 1] == "running":
+            out.append({"_suggest": "hourglass", "_anchor": "running out",
+                        "_reason": "time is running out - drain the glass",
+                        "at": round(at, 2)})
+        if t in ("podcast", "voice", "recording", "audio"):
+            out.append({"_suggest": "wave", "_anchor": w["text"],
+                        "_reason": "a voice/podcast moment - show the waveform",
                         "at": round(at, 2)})
         if t == "before" and "after" in texts[i:i + 7]:
             out.append({"_suggest": "beforeafter", "_anchor": w["text"],

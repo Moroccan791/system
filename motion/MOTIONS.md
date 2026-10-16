@@ -98,6 +98,21 @@ presented as proof.
 | One word IS the clip ("…exactly.") | **bigword** | EMPHASISE |
 | Warning ("never do this", "big mistake") | **alert** | EMPHASISE |
 | Feelings land ("I actually loved her") | **heart** | FEEL |
+| A call happens ("she called him…") | **phone** (caller in `title`) | SHOW |
+| Two claims weighed, one heavier | **scale** (left/right values) | COMPARE |
+| It's psychology / mindset ("it's in your head") | **brain** | FEEL |
+| Phone blowing up, pings stacking | **bell** (`count`) | SHOW |
+| "The key is…" / access granted | **key** | SHOW / EMPHASISE |
+| An opportunity opens ("doors opened") | **door** | SHOW |
+| A gamble / risk taken | **dice** (`from`/`to` faces) | FEEL |
+| Common ground, shared wants | **venn** (labels = sides + overlap) | COMPARE |
+| It skyrocketed / blew up / launched | **rocket** | SHOW |
+| Boundaries, protection, safety | **shield** | SHOW / FEEL |
+| Time running out (felt, not stated) | **hourglass** | ORIENT |
+| Podcast / voice-note moment | **wave** | SHOW |
+| Speaker or guest needs naming | **lowerthird** (name + role) | ORIENT |
+| Dense fast speech, eye must track the line | poster `captionStyle: "karaoke"` | EMPHASISE |
+| A lockup with one payoff word | poster hero word (`kind: "hero"`) | EMPHASISE |
 | A concrete picturable noun | pip / broll (client footage first) | SHOW |
 | Scene change, breath, mood | fx leak/flare, broll cutaway | FEEL |
 
@@ -306,6 +321,62 @@ feelings, "it got real". Metaphor only.
 Warning triangle lands with a shake and settles. Mistakes, dangers,
 "never do this". Use sparingly — it shouts.
 
+#### phone — SHOW a call
+A phone rings in buzz bursts (shake, ring waves, pulsing answer
+button); `title` names the caller. For "she called…", "he never
+picked up", the call that changed things.
+
+#### scale — COMPARE by weight
+Balance beam tips toward the heavier side (`left`/`right` =
+{label, value}, same shape as `versus`) and settles with overshoot;
+the heavier value takes the accent. For weighing two claims where
+one wins by weight, not by lists (that's `proscons`).
+
+#### brain — FEEL mindset
+Brain outline; the wrinkles draw in accent, then it pulses softly.
+Psychology, mindset, "it's all in your head". Metaphor only.
+
+#### bell — SHOW notifications
+Bell swings, ring waves expand, a badge counts the pings (`count`).
+For blowing up, followers arriving, "my phone wouldn't stop".
+
+#### key — SHOW access
+A key slides into the keyhole plate and sparks — unlocked. For
+"the key is…", access, the one move that opens it. Literal and
+figurative.
+
+#### door — SHOW opportunity
+A door swings open and accent light spills across the floor. For
+opportunities, access, "doors opened for him". Metaphor only.
+
+#### dice — FEEL chance
+Two dice tumble in and settle on authored faces (`from`/`to`, 1–6).
+For gambles, risk, "he rolled the dice". The faces are the author's
+choice — never imply a spoken number that wasn't said.
+
+#### venn — COMPARE overlap
+Two circles slide together; the overlap brightens. `labels` =
+[left side, right side, the overlap]. Common ground, shared wants,
+"what you both actually want".
+
+#### rocket — SHOW takeoff
+Rocket launches with flicker flame and streaking stars. For
+skyrocketing, blowing up, launches. Keep abstract — real growth
+numbers belong to `line`/`counter`.
+
+#### shield — SHOW protection
+Shield outline draws itself, check lands inside, one ring pulse.
+Boundaries, safety, "protect your peace". Metaphor only.
+
+#### hourglass — ORIENT time running out
+Sand drains from the top glass into the pile below across the
+window. Deadlines felt, not stated (stated times are `clock`).
+
+#### wave — SHOW a voice
+A waveform plays left→right: played bars turn accent and keep
+dancing. For podcast/voice-note moments, "listen to what he said".
+`count` = bar count (12–44).
+
 ### Typography (over the speaker; does not cost face time)
 
 #### poster — EMPHASISE the spoken words
@@ -313,6 +384,32 @@ Warning triangle lands with a shake and settles. Mistakes, dangers,
 accent (kind `key`), emotional word neon (`neon`), soft/reflective words
 serif italic (`serif`). This is the system's backbone — most sentences live
 here. Words appear on their real spoken onsets.
+
+**Caption modes** (`captionStyle` on the poster, or per-theme): `pop` is
+the house default (words pop in as spoken). `karaoke` keeps that rhythm
+but the word being spoken *right now* lights up in the accent and leans
+in 13%, settling back to white when the next word starts — the eye is
+pulled along the line exactly at speech speed. Key words keep their
+plate (already the highlight). Use karaoke for fast/dense delivery and
+younger-skewing edits; pop for slower, weightier pieces. One mode per
+clip — never mix within a video. `decide.py --caption-style karaoke`
+authors it across a transcript.
+
+#### hero lockup — EMPHASISE with one giant word
+A poster whose middle row is a single `kind: "hero"` word at
+`heroSize` (150–340px, accent) between two normal rows: small setup,
+GIANT PAYOFF WORD, small landing. The multiline lockup of modern
+caption packages, in our type system. One hero per lockup, one or two
+lockups per clip — if everything is giant, nothing is.
+
+#### lowerthird — ORIENT: name the speaker
+`{"type": "lowerthird", "title": "MICHAEL Sartain", "sub": "Men of
+Action Podcast"}` — name + role plate slides in bottom-LEFT (captions
+own the centre), accent spine, dissolves exactly at `until`. For
+introductions and re-introductions after a long cutaway: opening
+seconds, guest names, "as X said". Dwell 1.8–6s (validator). It is
+not a caption — QC does not count it as one, and every word under it
+still needs its poster.
 
 #### card — EMPHASISE a thesis / PROVE a verbatim line
 Full statement card, ≤3 lines, ≤5 words/line, words pop on onsets. Use for

@@ -26,6 +26,20 @@
   .poster .w.conn { font-weight: 800; letter-spacing: .02em; }
   .poster .w.serif { font-family: "SerifX"; font-style: italic; font-weight: 700; -webkit-text-stroke: 3px rgba(0,0,0,.55); }
   .poster .w.key { font-weight: 800; letter-spacing: .015em; transform-origin: 50% 60%; }
+  .poster .w.hero { font-weight: 800; letter-spacing: .01em; transform-origin: 50% 60%; }
+
+  /* ---- speaker lower-third (name + role, bottom-left) ---- */
+  .lowerthird { position: absolute; inset: 0; pointer-events: none; }
+  .lowerthird .ltplate { position: absolute; left: 56px; display: flex; align-items: stretch;
+    background: rgba(9,12,16,.88); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 22px 54px rgba(0,0,0,.5); will-change: transform, opacity; }
+  .lowerthird .ltspine { flex: 0 0 14px; }
+  .lowerthird .lttx { display: flex; flex-direction: column; padding: 24px 38px 24px 30px; }
+  .lowerthird .ltname { font-family: "MontserratX"; font-weight: 800; color: #fff;
+    letter-spacing: .015em; line-height: 1.05; white-space: nowrap;
+    -webkit-text-stroke: 2px rgba(0,0,0,.5); paint-order: stroke fill; }
+  .lowerthird .ltrole { font-family: "MontserratX"; font-weight: 600; color: rgba(255,255,255,.72);
+    letter-spacing: .06em; line-height: 1.15; white-space: nowrap; margin-top: 8px; }
 
   /* ---- label chip ---- */
   .chip { display: flex; align-items: center; justify-content: center; }
@@ -165,14 +179,19 @@ function buildPoster(item) {
   wrap.style.cssText = `position:absolute;left:0;right:0;top:${(((zone[0] + zone[1]) / 2) * H).toFixed(0)}px;transform:translateY(-50%);display:flex;justify-content:center;`;
   const stack = el("stack", wrap);
   const words = [];
+  const kara = item.captionStyle === "karaoke" ||
+    (item.captionStyle == null && THEME.captionStyle === "karaoke");
   (item.rows || []).forEach(row => {
     const r = el("row", stack);
     row.forEach(wd => {
       const s = document.createElement("span");
       const kind = wd.kind || "conn";
-      s.className = "w " + (kind === "key" ? "key" : kind === "serif" ? "serif" : kind === "neon" ? "neon" : "conn");
+      s.className = "w " + (kind === "key" ? "key" : kind === "hero" ? "hero"
+        : kind === "serif" ? "serif" : kind === "neon" ? "neon" : "conn");
       s.textContent = wd.w;
-      s.style.fontSize = (kind === "key" || kind === "neon" ? (item.keySize || 118) : (item.connSize || 58)) + "px";
+      s.style.fontSize = (kind === "hero" ? (item.heroSize || 250)
+        : kind === "key" || kind === "neon" ? (item.keySize || 118)
+        : (item.connSize || 58)) + "px";
       if (kind === "key") {
         // keyword = ink on an accent PLATE (the format's highlight
         // word): the pair is 4.5:1+ by construction on any footage,
@@ -185,15 +204,28 @@ function buildPoster(item) {
         s.style.borderRadius = "16px";
         s.dataset.glowc = ac;
       }
+      if (kind === "hero") {
+        // hero word: the one giant word of a lockup - accent ink, no
+        // plate (at 250px the glyphs themselves carry the contrast)
+        const ac = item.accent || ACCENT;
+        s.style.color = wd.color || ac;
+        s.dataset.glowc = ac;
+      }
       if (kind === "neon") s.style.color = wd.color || "#FF3355";
       if (wd.glow) s.dataset.glow = "1";
       r.appendChild(s);
       const sp = document.createElement("span");
       sp.style.display = "inline-block"; sp.style.width = (kind === "key" ? 26 : 16) + "px";
       r.appendChild(sp);
-      words.push({ el: s, at: wd.at, kind });
+      words.push({ el: s, at: wd.at, kind, kara, ac: item.accent || ACCENT });
     });
   });
+  if (kara) {
+    // karaoke: each word is "live" from its onset until the next word
+    // starts (the last word stays live until the stack exits)
+    for (let i = 0; i < words.length; i++)
+      words[i].end = i + 1 < words.length ? words[i + 1].at : (item.until ?? item.at + 2);
+  }
   layoutJobs.push(() => autofit(stack, 0.88));
   return { item, root, words, stack };
 }
@@ -291,6 +323,28 @@ function buildFx(item) {
     node.style.background = `linear-gradient(90deg, transparent, ${hexA(c, .5)}, transparent)`;
   }
   return { item, root, node };
+}
+
+function buildLower(item) {
+  // speaker lower-third: name + role on a dark plate, bottom-LEFT
+  // (captions own the centre; this owns the introduction moment)
+  const root = el("item lowerthird", stage);
+  const zone = item.zone || [0.80, 0.93];
+  const plate = el("ltplate", root);
+  plate.style.top = Math.round(zone[0] * H) + "px";
+  const spine = el("ltspine", plate);
+  spine.style.background = item.accent || ACCENT;
+  const tx = el("lttx", plate);
+  const nm = el("ltname", tx);
+  nm.textContent = item.title || "";
+  nm.style.fontSize = (item.titleSize || 66) + "px";
+  let role = null;
+  if (item.sub) {
+    role = el("ltrole", tx);
+    role.textContent = item.sub.toUpperCase();
+    role.style.fontSize = (item.subSize || 58) + "px";
+  }
+  return { item, root, lower: plate };
 }
 
 function zoneCentre(item, def) {
@@ -924,6 +978,205 @@ function buildScene(svg, V, ac, item, vw, vh) {
     svgEl("rect", { x: 291 * s, y: (cy - 62) * s, width: 18 * s, height: 84 * s, rx: 9 * s, fill: "#FFFFFF" }, n.alertG);
     svgEl("circle", { cx: 300 * s, cy: (cy + 52) * s, r: 11 * s, fill: "#FFFFFF" }, n.alertG);
     n.acy = cy;
+  } else if (V.name === "phone") {
+    // SHOW a call: the phone rings - picks up, or doesn't
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.phRings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: cy * s, r: 178 * s, fill: "none", stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg));
+    n.phG = svgEl("g", {}, svg);
+    svgEl("rect", { x: 215 * s, y: (cy - 160) * s, width: 170 * s, height: 320 * s, rx: 26 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, n.phG);
+    svgEl("rect", { x: 229 * s, y: (cy - 132) * s, width: 142 * s, height: 264 * s, rx: 14 * s, fill: "#171e29" }, n.phG);
+    svgEl("rect", { x: 282 * s, y: (cy - 146) * s, width: 36 * s, height: 8 * s, rx: 4 * s, fill: "#2b3547" }, n.phG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 56) * s, r: 34 * s, fill: "#232d40" }, n.phG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 66) * s, r: 12 * s, fill: "#93A5C4" }, n.phG);
+    svgEl("ellipse", { cx: 300 * s, cy: (cy - 34) * s, rx: 20 * s, ry: 12 * s, fill: "#93A5C4" }, n.phG);
+    const nm = svgEl("text", { x: 300 * s, y: (cy + 12) * s, "text-anchor": "middle", fill: "#FFFFFF", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, n.phG);
+    nm.textContent = (item.title || "HER").toUpperCase();
+    fitSvg(nm, 130 * s);
+    const st = svgEl("text", { x: 300 * s, y: (cy + 40) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 19 * s, "font-weight": 600, "font-family": "MontserratX" }, n.phG);
+    st.textContent = "INCOMING CALL";
+    svgEl("circle", { cx: 254 * s, cy: (cy + 94) * s, r: 24 * s, fill: "#2b3547" }, n.phG);
+    svgEl("path", { d: `M ${245 * s} ${(cy + 85) * s} L ${263 * s} ${(cy + 103) * s} M ${263 * s} ${(cy + 85) * s} L ${245 * s} ${(cy + 103) * s}`, stroke: "#E8EDF4", "stroke-width": 5 * s, "stroke-linecap": "round" }, n.phG);
+    n.phOk = svgEl("circle", { cx: 346 * s, cy: (cy + 94) * s, r: 24 * s, fill: ac }, n.phG);
+    svgEl("path", { d: `M ${335 * s} ${(cy + 94) * s} L ${343 * s} ${(cy + 102) * s} L ${358 * s} ${(cy + 85) * s}`, fill: "none", stroke: "#0D0F12", "stroke-width": 6 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, n.phG);
+    n.phcy = cy;
+  } else if (V.name === "scale") {
+    // COMPARE by weight: the beam tips toward the heavier claim
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const L = item.left || { label: "THIS", value: 1 }, R = item.right || { label: "THAT", value: 1 };
+    svgEl("path", { d: `M ${258 * s} ${(cy + 152) * s} H ${342 * s} L ${322 * s} ${(cy + 112) * s} H ${278 * s} Z`, fill: "#232d40" }, svg);
+    svgEl("rect", { x: 292 * s, y: (cy - 96) * s, width: 16 * s, height: 212 * s, rx: 8 * s, fill: "#41506B" }, svg);
+    n.scBeam = svgEl("g", {}, svg);
+    svgEl("rect", { x: 96 * s, y: (cy - 104) * s, width: 408 * s, height: 14 * s, rx: 7 * s, fill: "#E8EDF4" }, n.scBeam);
+    [150, 450].forEach(x => {
+      svgEl("line", { x1: x * s, y1: (cy - 90) * s, x2: (x - 38) * s, y2: (cy - 28) * s, stroke: "#93A5C4", "stroke-width": 4 * s }, n.scBeam);
+      svgEl("line", { x1: x * s, y1: (cy - 90) * s, x2: (x + 38) * s, y2: (cy - 28) * s, stroke: "#93A5C4", "stroke-width": 4 * s }, n.scBeam);
+      svgEl("path", { d: `M ${(x - 52) * s} ${(cy - 28) * s} A 56 20 0 0 0 ${(x + 52) * s} ${(cy - 28) * s} Z`, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, n.scBeam);
+    });
+    svgEl("circle", { cx: 300 * s, cy: (cy - 97) * s, r: 12 * s, fill: ac }, n.scBeam);
+    const mk = (side, x) => {
+      const g = svgEl("g", {}, n.scBeam);
+      const v = svgEl("text", { x: x * s, y: (cy + 62) * s, "text-anchor": "middle", fill: side.value >= (side === L ? R.value : L.value) ? ac : "#FFFFFF", "font-size": 46 * s, "font-weight": 800, "font-family": "MontserratX" }, g);
+      v.textContent = fmt(side.value);
+      const l = svgEl("text", { x: x * s, y: (cy + 94) * s, "text-anchor": "middle", fill: "#93A5C4", "font-size": 22 * s, "font-weight": 700, "font-family": "MontserratX" }, g);
+      l.textContent = (side.label || "").toUpperCase();
+      fitSvg(l, 150 * s);
+      return g;
+    };
+    n.scLabL = mk(L, 150); n.scLabR = mk(R, 450);
+    n.scAng = ((R.value - L.value) / Math.max(1, L.value + R.value)) * 16;
+    n.sccy = cy;
+  } else if (V.name === "brain") {
+    // FEEL mindset: the brain draws itself in, then thinks (pulse)
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.brG = svgEl("g", {}, svg);
+    const d = `M ${300 * s} ${(cy - 120) * s} C ${252 * s} ${(cy - 132) * s} ${204 * s} ${(cy - 104) * s} ${200 * s} ${(cy - 58) * s} C ${172 * s} ${(cy - 44) * s} ${176 * s} ${(cy - 2) * s} ${196 * s} ${(cy + 10) * s} C ${182 * s} ${(cy + 44) * s} ${204 * s} ${(cy + 76) * s} ${232 * s} ${(cy + 76) * s} C ${240 * s} ${(cy + 104) * s} ${276 * s} ${(cy + 116) * s} ${300 * s} ${(cy + 104) * s} C ${324 * s} ${(cy + 116) * s} ${360 * s} ${(cy + 104) * s} ${368 * s} ${(cy + 76) * s} C ${396 * s} ${(cy + 76) * s} ${418 * s} ${(cy + 44) * s} ${404 * s} ${(cy + 10) * s} C ${424 * s} ${(cy - 2) * s} ${428 * s} ${(cy - 44) * s} ${400 * s} ${(cy - 58) * s} C ${396 * s} ${(cy - 104) * s} ${348 * s} ${(cy - 132) * s} ${300 * s} ${(cy - 120) * s} Z`;
+    svgEl("path", { d, fill: "#1A2230", stroke: "#41506B", "stroke-width": 5 * s }, n.brG);
+    svgEl("line", { x1: 300 * s, y1: (cy - 104) * s, x2: 300 * s, y2: (cy + 96) * s, stroke: "#2b3547", "stroke-width": 4 * s }, n.brG);
+    n.brW = [
+      `M ${236 * s} ${(cy - 58) * s} q ${26 * s} ${-14 * s} ${44 * s} ${2 * s}`,
+      `M ${228 * s} ${(cy + 6) * s} q ${30 * s} ${10 * s} ${22 * s} ${34 * s}`,
+      `M ${364 * s} ${(cy - 58) * s} q ${-26 * s} ${-14 * s} ${-44 * s} ${2 * s}`,
+      `M ${372 * s} ${(cy + 6) * s} q ${-30 * s} ${10 * s} ${-22 * s} ${34 * s}`,
+    ].map(dd => {
+      const p = svgEl("path", { d: dd, fill: "none", stroke: ac, "stroke-width": 5 * s, "stroke-linecap": "round" }, n.brG);
+      const tl = 62 * s;
+      p.setAttribute("stroke-dasharray", tl); p.style.strokeDashoffset = tl;
+      return { p, tl };
+    });
+    n.brcy = cy;
+  } else if (V.name === "bell") {
+    // SHOW notifications: the bell swings, pings stack up
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.blRings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: (cy - 10) * s, r: 120 * s, fill: "none", stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg));
+    n.blG = svgEl("g", {}, svg);
+    svgEl("path", { d: `M ${300 * s} ${(cy - 100) * s} C ${348 * s} ${(cy - 100) * s} ${372 * s} ${(cy - 64) * s} ${372 * s} ${(cy - 8) * s} L ${372 * s} ${(cy + 30) * s} L ${398 * s} ${(cy + 64) * s} H ${202 * s} L ${228 * s} ${(cy + 30) * s} L ${228 * s} ${(cy - 8) * s} C ${228 * s} ${(cy - 64) * s} ${252 * s} ${(cy - 100) * s} ${300 * s} ${(cy - 100) * s} Z`, fill: ac }, n.blG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 112) * s, r: 13 * s, fill: "#E8EDF4" }, n.blG);
+    n.blClap = svgEl("circle", { cx: 300 * s, cy: (cy + 86) * s, r: 16 * s, fill: "#E8EDF4" }, n.blG);
+    svgEl("circle", { cx: 372 * s, cy: (cy - 88) * s, r: 27 * s, fill: "#FFFFFF" }, svg);
+    const bd = svgEl("text", { x: 372 * s, y: (cy - 78) * s, "text-anchor": "middle", fill: "#0D0F12", "font-size": 30 * s, "font-weight": 800, "font-family": "MontserratX" }, svg);
+    bd.textContent = String(Math.max(1, Math.min(99, item.count || 3)));
+    n.blcy = cy;
+  } else if (V.name === "key") {
+    // SHOW access: the key slides in and unlocks
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("rect", { x: 238 * s, y: (cy - 130) * s, width: 124 * s, height: 260 * s, rx: 26 * s, fill: "#10141c", stroke: "#2b3547", "stroke-width": 4 * s }, svg);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 34) * s, r: 30 * s, fill: "#05070a" }, svg);
+    svgEl("path", { d: `M ${282 * s} ${(cy - 22) * s} H ${318 * s} L ${308 * s} ${(cy + 62) * s} H ${292 * s} Z`, fill: "#05070a" }, svg);
+    n.keyG = svgEl("g", {}, svg);
+    svgEl("circle", { cx: 148 * s, cy: (cy - 34) * s, r: 30 * s, fill: "none", stroke: ac, "stroke-width": 11 * s }, n.keyG);
+    svgEl("line", { x1: 176 * s, y1: (cy - 34) * s, x2: 272 * s, y2: (cy - 34) * s, stroke: ac, "stroke-width": 12 * s, "stroke-linecap": "round" }, n.keyG);
+    svgEl("line", { x1: 238 * s, y1: (cy - 34) * s, x2: 238 * s, y2: (cy - 8) * s, stroke: ac, "stroke-width": 11 * s, "stroke-linecap": "round" }, n.keyG);
+    svgEl("line", { x1: 260 * s, y1: (cy - 34) * s, x2: 260 * s, y2: (cy - 14) * s, stroke: ac, "stroke-width": 11 * s, "stroke-linecap": "round" }, n.keyG);
+    n.keySparks = [0, 1, 2, 3].map(i => {
+      const a = -0.9 + i * 0.6;
+      return svgEl("line", { x1: (300 + Math.cos(a) * 44) * s, y1: (cy - 34 + Math.sin(a) * 44) * s, x2: (300 + Math.cos(a) * 78) * s, y2: (cy - 34 + Math.sin(a) * 78) * s, stroke: "#FFFFFF", "stroke-width": 6 * s, "stroke-linecap": "round", opacity: 0 }, svg);
+    });
+    n.keycy = cy;
+  } else if (V.name === "door") {
+    // SHOW opportunity: the door swings open, light spills out
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("rect", { x: 226 * s, y: (cy - 170) * s, width: 148 * s, height: 340 * s, fill: hexA(ac, .34) }, svg);
+    n.doorLight = svgEl("path", { d: `M ${374 * s} ${(cy - 170) * s} L ${492 * s} ${(cy + 92) * s} L ${492 * s} ${(cy + 170) * s} L ${374 * s} ${(cy + 170) * s} Z`, fill: hexA(ac, .5), opacity: 0 }, svg);
+    n.doorG = svgEl("g", {}, svg);
+    svgEl("rect", { x: 226 * s, y: (cy - 170) * s, width: 148 * s, height: 340 * s, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
+    svgEl("rect", { x: 246 * s, y: (cy - 146) * s, width: 108 * s, height: 128 * s, fill: "none", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
+    svgEl("rect", { x: 246 * s, y: (cy + 8) * s, width: 108 * s, height: 128 * s, fill: "none", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
+    svgEl("circle", { cx: 352 * s, cy: cy * s, r: 9 * s, fill: ac }, n.doorG);
+    svgEl("rect", { x: 214 * s, y: (cy - 182) * s, width: 172 * s, height: 364 * s, rx: 10 * s, fill: "none", stroke: "#41506B", "stroke-width": 8 * s }, svg);
+    n.doorcy = cy;
+  } else if (V.name === "dice") {
+    // FEEL chance: two dice tumble in and settle (from/to are the faces)
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] };
+    const face = v => Math.max(1, Math.min(6, Math.round(v == null ? 3 : v)));
+    n.dice = [[216, face(item.from == null ? 3 : item.from), -1, "#E8EDF4"],
+              [384, face(item.to == null ? 5 : item.to), 1, ac]].map(([cx, f, dir, fill]) => {
+      const g = svgEl("g", {}, svg);
+      svgEl("rect", { x: (cx - 58) * s, y: (cy - 58) * s, width: 116 * s, height: 116 * s, rx: 24 * s, fill }, g);
+      PIPS[f].forEach(([px, py]) => svgEl("circle", { cx: (cx + px * 30) * s, cy: (cy + py * 30) * s, r: 11 * s, fill: "#0D0F12" }, g));
+      return { g, cx, dir };
+    });
+    n.dicy = cy;
+  } else if (V.name === "venn") {
+    // COMPARE overlap: two worlds slide together, common ground lights
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.vnL = svgEl("circle", { cx: 232 * s, cy: cy * s, r: 118 * s, fill: hexA("#FFFFFF", .07), stroke: "#E8EDF4", "stroke-width": 5 * s }, svg);
+    n.vnR = svgEl("circle", { cx: 368 * s, cy: cy * s, r: 118 * s, fill: hexA(ac, .28), stroke: ac, "stroke-width": 5 * s }, svg);
+    const labs = item.labels || [];
+    const mkT = (x, y, txt, fill, fs) => {
+      const t = svgEl("text", { x: x * s, y: y * s, "text-anchor": "middle", fill, "font-size": fs * s, "font-weight": 800, "font-family": "MontserratX", opacity: 0 }, svg);
+      t.textContent = (txt || "").toUpperCase();
+      fitSvg(t, 120 * s);
+      return t;
+    };
+    n.vnTxL = mkT(196, cy + 8, labs[0], "#FFFFFF", 24);
+    n.vnTxR = mkT(404, cy + 8, labs[1], "#FFFFFF", 24);
+    n.vnTxC = mkT(300, cy + 9, labs[2], "#FFFFFF", 26);
+    n.vncy = cy;
+  } else if (V.name === "rocket") {
+    // SHOW takeoff: it launches, stars streak past
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.rkStars = [];
+    for (let i = 0; i < 10; i++) {
+      const x = 60 + ((i * 173) % 480), y = 80 + ((i * 211) % Math.max(120, H - 160));
+      const c = svgEl("circle", { cx: x * s, cy: y * s, r: (i % 3 === 0 ? 5 : 3.4) * s, fill: "#93A5C4", opacity: .8 }, svg);
+      n.rkStars.push({ c, x, y0: y });
+    }
+    n.rkG = svgEl("g", {}, svg);
+    n.rkFlame = svgEl("path", { d: `M ${278 * s} ${(cy + 44) * s} L ${300 * s} ${(cy + 122) * s} L ${322 * s} ${(cy + 44) * s} Z`, fill: ac }, n.rkG);
+    svgEl("path", { d: `M ${256 * s} ${(cy + 2) * s} L ${212 * s} ${(cy + 94) * s} L ${256 * s} ${(cy + 76) * s} Z`, fill: ac }, n.rkG);
+    svgEl("path", { d: `M ${344 * s} ${(cy + 2) * s} L ${388 * s} ${(cy + 94) * s} L ${344 * s} ${(cy + 76) * s} Z`, fill: ac }, n.rkG);
+    svgEl("path", { d: `M ${300 * s} ${(cy - 150) * s} C ${336 * s} ${(cy - 96) * s} ${344 * s} ${(cy - 30) * s} ${344 * s} ${(cy + 44) * s} L ${256 * s} ${(cy + 44) * s} C ${256 * s} ${(cy - 30) * s} ${264 * s} ${(cy - 96) * s} ${300 * s} ${(cy - 150) * s} Z`, fill: "#E8EDF4" }, n.rkG);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 52) * s, r: 22 * s, fill: ac, stroke: "#0D0F12", "stroke-width": 5 * s }, n.rkG);
+    n.rkcy = cy;
+  } else if (V.name === "shield") {
+    // SHOW protection: the shield draws, the check lands
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    n.shRing = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 148 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
+    const sd = `M ${300 * s} ${(cy - 138) * s} L ${396 * s} ${(cy - 100) * s} V ${(cy + 16) * s} C ${396 * s} ${(cy + 86) * s} ${348 * s} ${(cy + 118) * s} ${300 * s} ${(cy + 140) * s} C ${252 * s} ${(cy + 118) * s} ${204 * s} ${(cy + 86) * s} ${204 * s} ${(cy + 16) * s} V ${(cy - 100) * s} Z`;
+    n.shPath = svgEl("path", { d: sd, fill: "#1A2230", stroke: ac, "stroke-width": 6 * s, "stroke-linejoin": "round" }, svg);
+    n.shLen = 960 * s;
+    n.shPath.setAttribute("stroke-dasharray", n.shLen);
+    n.shPath.style.strokeDashoffset = n.shLen;
+    n.shCheck = svgEl("path", { d: `M ${258 * s} ${(cy + 2) * s} L ${288 * s} ${(cy + 34) * s} L ${344 * s} ${(cy - 30) * s}`, fill: "none", stroke: "#FFFFFF", "stroke-width": 13 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
+    n.shChkLen = 140 * s;
+    n.shCheck.setAttribute("stroke-dasharray", n.shChkLen);
+    n.shCheck.style.strokeDashoffset = n.shChkLen;
+  } else if (V.name === "hourglass") {
+    // ORIENT time: the sand runs out while you watch
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    svgEl("rect", { x: 216 * s, y: (cy - 160) * s, width: 168 * s, height: 14 * s, rx: 7 * s, fill: "#41506B" }, svg);
+    svgEl("rect", { x: 216 * s, y: (cy + 146) * s, width: 168 * s, height: 14 * s, rx: 7 * s, fill: "#41506B" }, svg);
+    svgEl("path", { d: `M ${226 * s} ${(cy - 144) * s} H ${374 * s} L ${308 * s} ${(cy - 6) * s} H ${292 * s} Z`, fill: hexA("#FFFFFF", .05), stroke: "#93A5C4", "stroke-width": 4 * s, "stroke-linejoin": "round" }, svg);
+    svgEl("path", { d: `M ${292 * s} ${(cy + 6) * s} H ${308 * s} L ${374 * s} ${(cy + 144) * s} H ${226 * s} Z`, fill: hexA("#FFFFFF", .05), stroke: "#93A5C4", "stroke-width": 4 * s, "stroke-linejoin": "round" }, svg);
+    n.hgTop = svgEl("path", { d: `M ${242 * s} ${(cy - 130) * s} H ${358 * s} L ${306 * s} ${(cy - 16) * s} H ${294 * s} Z`, fill: ac }, svg);
+    n.hgBot = svgEl("path", { d: `M ${252 * s} ${(cy + 132) * s} L ${300 * s} ${(cy + 56) * s} L ${348 * s} ${(cy + 132) * s} Z`, fill: ac }, svg);
+    n.hgStream = svgEl("line", { x1: 300 * s, y1: (cy - 8) * s, x2: 300 * s, y2: (cy + 98) * s, stroke: ac, "stroke-width": 4 * s, opacity: 0 }, svg);
+    n.hgcy = cy;
+  } else if (V.name === "wave") {
+    // SHOW a voice: waveform bars, accent sweeps as it "plays"
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2;
+    const count = Math.max(12, Math.min(44, item.count || 36));
+    n.wvBars = [];
+    const bw = 480 / count;
+    for (let i = 0; i < count; i++) {
+      const hBase = 30 + 118 * Math.abs(Math.sin(i * 1.93) * 0.6 + Math.sin(i * 0.71) * 0.4);
+      const r = svgEl("rect", { x: (60 + i * bw + bw * 0.22) * s, y: (cy - hBase / 2) * s, width: (bw * 0.56) * s, height: hBase * s, rx: (bw * 0.28) * s, fill: "#41506B" }, svg);
+      n.wvBars.push({ r, hBase });
+    }
+    n.wvcy = cy; n.wvN = count;
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -1199,6 +1452,99 @@ function animateVector(b, t, lifeP) {
     const dx = Math.sin(lt * 38) * 7 * Math.exp(-lt * 2.6);
     n.alertG.setAttribute("transform", `translate(${(dx * s).toFixed(1)} 0)`);
     n.alertG.setAttribute("opacity", clamp01(lt / 0.15).toFixed(2));
+  } else if (V.name === "phone") {
+    // buzz bursts: hard shake for 0.35s, rest, repeat - it keeps ringing
+    const cyc = lt % 1.3, buzz = Math.exp(-cyc * 7) * (cyc < 0.45 ? 1 : 0);
+    const ang = Math.sin(lt * 46) * 5 * buzz;
+    n.phG.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${(n.phcy + 120) * s})`);
+    n.phRings.forEach((r, i) => {
+      const pq = ((lt * 0.8 + i * 0.5) % 1 + 1) % 1;
+      r.setAttribute("r", ((178 + pq * 90) * s).toFixed(1));
+      r.setAttribute("opacity", ((1 - pq) * 0.55).toFixed(2));
+    });
+    const pl = 1 + Math.sin(lt * 5.2) * 0.1;
+    n.phOk.setAttribute("r", (24 * pl * s).toFixed(1));
+  } else if (V.name === "scale") {
+    // tips to the heavier side, overshoots, settles like real weight
+    const q = easeOutBack(clamp01((lt - 0.15) / 0.9));
+    const ang = n.scAng * q;
+    n.scBeam.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${(n.sccy - 97) * s})`);
+    // pan labels stay upright: counter-rotate around their own centres
+    n.scLabL.setAttribute("transform", `rotate(${(-ang).toFixed(2)} ${150 * s} ${(n.sccy - 60) * s})`);
+    n.scLabR.setAttribute("transform", `rotate(${(-ang).toFixed(2)} ${450 * s} ${(n.sccy - 60) * s})`);
+  } else if (V.name === "brain") {
+    n.brW.forEach((w, i) => {
+      const q = easeOut(clamp01((lt - 0.2 - i * 0.16) / 0.4));
+      w.p.style.strokeDashoffset = (w.tl * (1 - q)).toFixed(1);
+    });
+    const pl = 1 + Math.sin(lt * 2.4) * 0.022;
+    n.brG.setAttribute("transform", `translate(${300 * s} ${n.brcy * s}) scale(${pl.toFixed(3)}) translate(${-300 * s} ${-n.brcy * s})`);
+  } else if (V.name === "bell") {
+    const amp = 3 + 8 * Math.exp(-lt * 1.1);
+    n.blG.setAttribute("transform", `rotate(${(Math.sin(lt * 7) * amp).toFixed(2)} ${300 * s} ${(n.blcy - 104) * s})`);
+    n.blRings.forEach((r, i) => {
+      const pq = ((lt * 0.65 + i * 0.5) % 1 + 1) % 1;
+      r.setAttribute("r", ((118 + pq * 92) * s).toFixed(1));
+      r.setAttribute("opacity", ((1 - pq) * 0.5).toFixed(2));
+    });
+  } else if (V.name === "key") {
+    const q = easeInOut(clamp01((lt - 0.12) / 0.5));
+    n.keyG.setAttribute("transform", `translate(${(q * 66 * s).toFixed(1)} 0)`);
+    const sq = clamp01((lt - 0.68) / 0.25);
+    n.keySparks.forEach(sp => sp.setAttribute("opacity", (sq * (1 - sq * 0.6)).toFixed(2)));
+  } else if (V.name === "door") {
+    const q = easeInOut(clamp01((lt - 0.15) / 0.85));
+    n.doorG.style.transformOrigin = `${226 * s}px ${n.doorcy * s}px`;
+    n.doorG.style.transform = `scaleX(${Math.max(0.14, 1 - q * 0.86).toFixed(3)}) skewY(${(-3.5 * q).toFixed(2)}deg)`;
+    n.doorLight.setAttribute("opacity", (q * 0.85).toFixed(2));
+  } else if (V.name === "dice") {
+    n.dice.forEach((d, i) => {
+      const q = easeOutBack(clamp01((lt - 0.08 - i * 0.15) / 0.55));
+      d.g.style.transformOrigin = `${d.cx * s}px ${n.dicy * s}px`;
+      d.g.style.transform = `translateY(${((1 - clamp01(q)) * -84 * s).toFixed(1)}px) rotate(${((1 - clamp01(q)) * d.dir * 46).toFixed(1)}deg)`;
+    });
+  } else if (V.name === "venn") {
+    const q = easeOut(clamp01((lt - 0.1) / 0.6));
+    n.vnL.setAttribute("cx", ((196 + 36 * q) * s).toFixed(1));
+    n.vnR.setAttribute("cx", ((404 - 36 * q) * s).toFixed(1));
+    const oq = clamp01((lt - 0.5) / 0.35);
+    n.vnTxL.setAttribute("opacity", oq.toFixed(2));
+    n.vnTxR.setAttribute("opacity", oq.toFixed(2));
+    n.vnTxC.setAttribute("opacity", clamp01((lt - 0.75) / 0.35).toFixed(2));
+  } else if (V.name === "rocket") {
+    const q = easeInOut(clamp01(lt / 1.05));
+    const ty = (1 - q) * 96 - q * 30 + Math.sin(lt * 2.3) * 6 * q;
+    n.rkG.setAttribute("transform", `translate(0 ${(-ty * s).toFixed(1)})`);
+    const fl = 0.75 + 0.35 * Math.abs(Math.sin(lt * 27));
+    n.rkFlame.style.transformOrigin = `${300 * s}px ${(n.rkcy + 44) * s}px`;
+    n.rkFlame.style.transform = `scaleY(${fl.toFixed(2)})`;
+    n.rkStars.forEach((st, i) => {
+      const yy = ((st.y0 + lt * (60 + q * 220) + i * 37) % Math.max(140, V.H - 60));
+      st.c.setAttribute("cy", (yy * s).toFixed(1));
+    });
+  } else if (V.name === "shield") {
+    const q = easeOut(clamp01((lt - 0.1) / 0.7));
+    n.shPath.style.strokeDashoffset = (n.shLen * (1 - q)).toFixed(1);
+    const cq = easeOutBack(clamp01((lt - 0.55) / 0.35));
+    n.shCheck.style.strokeDashoffset = (n.shChkLen * (1 - clamp01(cq))).toFixed(1);
+    const pq = clamp01((lt - 0.9) / 0.7);
+    n.shRing.setAttribute("r", ((148 + pq * 44) * s).toFixed(1));
+    n.shRing.setAttribute("opacity", ((1 - pq) * 0.6 * clamp01((lt - 0.9) * 4)).toFixed(2));
+  } else if (V.name === "hourglass") {
+    const q = clamp01(lt / Math.min(1.7, dur * 0.75));
+    n.hgTop.style.transformOrigin = `${300 * s}px ${(n.hgcy - 16) * s}px`;
+    n.hgTop.style.transform = `scaleY(${Math.max(0.06, 1 - q * 0.94).toFixed(3)})`;
+    n.hgBot.style.transformOrigin = `${300 * s}px ${(n.hgcy + 132) * s}px`;
+    n.hgBot.style.transform = `scaleY(${Math.max(0.08, q).toFixed(3)})`;
+    n.hgStream.setAttribute("opacity", (q > 0.03 && q < 0.97 ? 0.9 : 0).toFixed(2));
+  } else if (V.name === "wave") {
+    const p = clamp01(lt / dur);
+    n.wvBars.forEach((bar, i) => {
+      const h = bar.hBase * (0.72 + 0.28 * Math.sin(lt * 3.4 + i * 0.65));
+      bar.r.setAttribute("height", Math.max(6, h * s).toFixed(1));
+      bar.r.setAttribute("y", ((n.wvcy - h / 2) * s).toFixed(1));
+      bar.r.setAttribute("fill", i / n.wvN < p ? (b.item.accent || ACCENT) : "#41506B");
+    });
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;
@@ -1350,7 +1696,7 @@ function wordEnter(wd, t) {
   const rot = 1.6 * (1 - easeOut(p));
   const op = clamp01(dt / (2 / FPS));
   let scale = 1;
-  if (wd.kind === "key" || wd.kind === "neon") {
+  if (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero") {
     const pk = clamp01(dt / ((10 / THEME.speed) / FPS));
     scale = pk < 0.62 ? 0.85 + (1.08 - 0.85) * themeEase(pk / 0.62)
                      : 1.08 - 0.08 * themeEase((pk - 0.62) / 0.38);
@@ -1371,13 +1717,27 @@ function exitFade(endT, t) {
 const WORD_LEAD = 2 / FPS;   // words appear 2 frames BEFORE the onset
 function applyWord(wd, t, until) {
   const e = wordEnter(wd, t);
+  // karaoke captions: the word being spoken right now lights up in the
+  // accent and leans in 13%; it settles back to white when the next
+  // word starts. Colour/scale only - opacity keeps its 2-frame entry/
+  // exit discipline, so the semi-transparent QC is untouched. Key
+  // words keep their plate (already the highlight of the stack).
+  let karaNow = false;
+  if (wd.kara && wd.kind !== "key") {
+    karaNow = t >= wd.at - WORD_LEAD && t < (wd.end ?? until);
+    if (karaNow) e.scale *= 1.13;
+  }
   // a word always completes its entry first: its exit cannot start
   // until its (lead-shifted) pop has finished (blur cross-swap)
   const x = exitFade(Math.max(until, wd.at + 8 / FPS), t);
   const elx = wd.el;
+  if (wd.kara && wd.kind !== "key" && wd.kind !== "neon" && wd.kind !== "hero")
+    elx.style.color = karaNow ? (wd.ac || "#FF3355") : "";
   const glow = wd.el.dataset.glow === "1" || wd.kind === "key";
   let shadow = "0 6px 22px rgba(0,0,0,.45)";
-  if (wd.kind === "key") {
+  if (karaNow && wd.kind !== "neon")
+    shadow = `0 0 34px ${hexA(wd.ac || "#FF3355", .85)}, 0 6px 22px rgba(0,0,0,.45)`;
+  if (wd.kind === "key" || wd.kind === "hero") {
     const dt = t - (wd.at - WORD_LEAD);
     const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
     const c = wd.el.dataset.glowc || wd.el.style.color;
@@ -1454,6 +1814,18 @@ function renderAt(tMs) {
       b.node.style.opacity = (op * (it.strength || 1)).toFixed(3);
       if (it.kind === "flare") b.node.style.transform =
         `translate(${(-2 + p * 4).toFixed(2)}%, ${(-1 + p * 2).toFixed(2)}%) scale(1.06)`;
+    }
+    if (b.lower) {
+      const until = it.until ?? it.at + 2;
+      const pin = easeOut(clamp01((t - it.at) / (10 / FPS)));
+      // dissolve exactly AT until, gone in 2 frames (the vector law -
+      // no exit overhang over whatever comes next)
+      const xq = clamp01((t - until) / (2 / FPS));
+      const op = Math.min(clamp01((t - it.at) / (2 / FPS)), 1 - xq);
+      b.lower.style.opacity = op.toFixed(3);
+      b.lower.style.transform =
+        `translateX(${(-112 * (1 - pin) - 10 * xq).toFixed(1)}%)`;
+      trackSemi(b.lower, op);
     }
     if (b.item.type === "card") {
       const until = it.until ?? it.at + 2;
@@ -1623,7 +1995,8 @@ window.setTimeline = function (tl) {
   layoutJobs.length = 0;
   const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx,
                      pip: buildPip, broll: buildBroll, counter: buildCounter,
-                     list: buildList, process: buildProcess, vector: buildVector };
+                     list: buildList, process: buildProcess, vector: buildVector,
+                     lowerthird: buildLower };
   for (const item of tl.items || []) {
     if (item.type === "fx" && item.until == null) item.until = item.at + (item.dur || 0.45);
     const b = builders[item.type];

@@ -28,7 +28,8 @@
         "glow": { "type": "number", "minimum": 0, "maximum": 2 },
         "speed": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
         "easing": { "enum": ["pop", "snap", "soft"] },
-        "fontMode": { "enum": ["sans", "serif"] }
+        "fontMode": { "enum": ["sans", "serif"] },
+        "captionStyle": { "enum": ["pop", "karaoke"] }
       }
     },
     "items": { "type": "array", "items": { "$ref": "#/definitions/item" } }
@@ -41,7 +42,7 @@
       "properties": {
         "w": { "type": "string", "minLength": 1 },
         "at": { "type": "number", "minimum": 0 },
-        "kind": { "enum": ["conn", "key", "serif", "word", "neon"] },
+        "kind": { "enum": ["conn", "key", "serif", "word", "neon", "hero"] },
         "size": { "type": "number", "minimum": 58, "maximum": 320 },
         "glow": { "type": "boolean" },
         "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
@@ -61,13 +62,15 @@
       "type": "object",
       "required": ["type", "at"],
       "properties": {
-        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process", "vector"] },
+        "type": { "enum": ["poster", "chip", "card", "fx", "pip", "broll", "counter", "list", "process", "vector", "lowerthird"] },
         "at": { "type": "number", "minimum": 0 },
         "until": { "type": "number", "exclusiveMinimum": 0 },
         "rows": {
-          "type": "array", "minItems": 1, "maxItems": 2,
+          "type": "array", "minItems": 1, "maxItems": 3,
           "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
         },
+        "captionStyle": { "enum": ["pop", "karaoke"] },
+        "heroSize": { "type": "number", "minimum": 150, "maximum": 340 },
         "connSize": { "type": "number", "minimum": 58, "maximum": 90 },
         "keySize": { "type": "number", "minimum": 115, "maximum": 154 },
         "zone": {
@@ -179,7 +182,9 @@
         { "if": { "properties": { "type": { "const": "list" } } },
           "then": { "required": ["items", "until"] } },
         { "if": { "properties": { "type": { "const": "process" } } },
-          "then": { "required": ["steps", "until"] } }
+          "then": { "required": ["steps", "until"] } },
+        { "if": { "properties": { "type": { "const": "lowerthird" } } },
+          "then": { "required": ["title", "until"] } }
       ]
     }
   }
