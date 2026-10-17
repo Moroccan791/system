@@ -360,8 +360,9 @@ function buildPoster(item) {
       sp.style.display = "inline-block"; sp.style.width = (kind === "key" ? 26 : 16) + "px";
       r.appendChild(sp);
       words.push({ el: s, at: wd.at, kind, kara, mkbar, sticker,
-                   markerStyle,
-                   entry: ["stretch", "wiggle", "glide", "bounce"].includes(style)
+                   markerStyle, style,
+                   entry: style === "impact" ? "impact"
+                     : ["stretch", "wiggle", "glide", "bounce"].includes(style)
                      ? style : "pop",
                    finish: style === "neon" ? "neon" : null,
                    ac: item.accent || ACCENT });
@@ -2707,7 +2708,9 @@ function wordEnter(wd, t) {
   let rot = 1.6 * (1 - easeOut(p));
   const op = clamp01(dt / (2 / FPS));
   let scale = 1, sx = null, sy = null;
-  if (entry === "glide") {           // slides in from the left, sharp
+  if (entry === "impact") {          // print pop: sharp, no blur
+    blur = 0; y = 12 * (1 - easeOut(p)); rot = 0;
+  } else if (entry === "glide") {           // slides in from the left, sharp
     x = -54 * (1 - easeOut(p)); y = 0; blur = 0; rot = 0;
   } else if (entry === "stretch") {  // rubber-band: wide -> true width
     sx = 0.45 + 0.55 * easeOutBack(p); sy = 1;
@@ -2778,10 +2781,15 @@ function applyWord(wd, t, until) {
     shadow = `0 0 34px ${hexA(wd.ac || "#FF3355", .85)}, 0 6px 22px rgba(0,0,0,.45)`;
   if (wd.kind === "key" || wd.kind === "hero" || wd.kind === "mark"
       || wd.kind === "pay" || wd.kind === "grad") {
-    const dt = t - (wd.at - WORD_LEAD);
-    const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
-    const c = wd.el.dataset.glowc || wd.el.style.color;
-    shadow = `0 0 ${26 * pulse + 10}px ${c}, 0 6px 22px rgba(0,0,0,.4)`;
+    if (wd.style === "impact") {
+      // reference print: hard offset shadow, never a coloured glow
+      shadow = "0 5px 0 rgba(0,0,0,.55), 0 10px 24px rgba(0,0,0,.35)";
+    } else {
+      const dt = t - (wd.at - WORD_LEAD);
+      const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
+      const c = wd.el.dataset.glowc || wd.el.style.color;
+      shadow = `0 0 ${26 * pulse + 10}px ${c}, 0 6px 22px rgba(0,0,0,.4)`;
+    }
   }
   if (wd.kind === "neon" || wd.finish === "neon") {
     // electric glow with a 4-frame flicker at entry (glow only - the
