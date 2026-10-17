@@ -1,0 +1,15 @@
+{
+  "name": "whop",
+  "accent": "#14E5C5",
+  "ink": "#0B0E11",
+  "paper": "#FFFFFF",
+  "radius": "round",
+  "glow": 1.0,
+  "speed": 1.15,
+  "easing": "pop",
+  "fontMode": "sans",
+  "captionStyle": "marker",
+  "transitionOrder": ["flash", "flare", "leak", "bwflash"],
+  "soundSeedSalt": 77,
+  "fontPack": "anton"
+}

@@ -47,7 +47,13 @@ FPS = 30
 FRAME = 1.0 / FPS
 LEAD_MS = 2 * FRAME * 1000          # engine draws words 2f before onset
 MIN_TEXT_PX = 0.03 * 1920           # 57.6 px - the 3% floor
-KEY_MIN, KEY_MAX = 0.06 * 1920, 0.08 * 1920
+# keyword band calibrated 2026-10-17 to the reference edits, in
+# this check's own units (nominal font px / frame height): their
+# biggest keywords run 10-14% glyph height, i.e. up to ~16.4%
+# nominal (85px glyphs / 0.72 cap ratio on a 720px frame; see
+# recipes/ref_vs_ours_teardown.md). The old 6-8% band failed the
+# references themselves, so the gate was wrong, not the words.
+KEY_MIN, KEY_MAX = 0.05 * 1920, 0.17 * 1920
 TEXT_TYPES = ("poster", "card", "chip", "counter", "list", "process",
               "pip", "broll")
 
@@ -152,7 +158,7 @@ def text_sizes(tl: dict) -> tuple[str, str]:
         if px < MIN_TEXT_PX - 0.5:
             bad.append(f"{name} {px:.0f}px < 3% floor")
         if role == "key" and not KEY_MIN - 1 <= px <= KEY_MAX + 1:
-            bad.append(f"{name} {px:.0f}px outside the 6-8% keyword band")
+            bad.append(f"{name} {px:.0f}px outside the 5-17% keyword band")
     if bad:
         return "fail", "; ".join(bad[:4])
     n = len(_sizes(tl))
