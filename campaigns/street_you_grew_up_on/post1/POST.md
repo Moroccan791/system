@@ -1,3 +1,11 @@
+> **v3 (2026-10-17, current file):** rebuilt with the fixed Whop editor
+> (recipes/editing_brain.md): face-first open (no title slate), all dead
+> air cut (0 pauses >0.25s), chest-height Anton captions with teal keyword
+> markers + amber payoffs, 17 jump cuts, wide-shot beat on "my dogs and my
+> husband", camera punches on "joy"/"connection", frozen payoff tail into
+> the endcard. 21.5s, QC PASS level 0, whop invariant check PASS,
+> -14.14 LUFS. Replaces the v2 below.
+
 # Post 1 — PILOT v2 — “I Don't Come Home to an Award” (Demi Lovato)
 
 > **v2 (this file):** adds the typed hook slate (“MY CRAFT KEEPS ME SANE” + key-click typing), a balloon metaphor cutaway on “All of this can go away”, a camera punch on “connection”, and the `chill` music bed ducked ~20 dB under her voice. This is the batch template.
