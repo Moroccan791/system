@@ -1,4 +1,6 @@
-# Post 1 — PILOT — “I Don't Come Home to an Award” (Demi Lovato)
+# Post 1 — PILOT v2 — “I Don't Come Home to an Award” (Demi Lovato)
+
+> **v2 (this file):** adds the typed hook slate (“MY CRAFT KEEPS ME SANE” + key-click typing), a balloon metaphor cutaway on “All of this can go away”, a camera punch on “connection”, and the `chill` music bed ducked ~20 dB under her voice. This is the batch template.
 
 - **Video:** `street_post1.mp4` (33.6 s, 1080×1920, 30 fps) — motion-graphics edit with the new marker-caption system: sentence-case captions, pink marker swipe on structural words, green on the payoff words (“joy”, “connection”), word-by-word sync. Branded end card “STREET YOU GREW UP ON”. **Motion QC v2 PASS at level 0**, loudness normalised to **−14.3 LUFS / −0.7 dBTP**.
 - **Cover:** `cover.jpg` — “I DON'T COME HOME / TO AN AWARD” (direct quote, nothing exaggerated).
