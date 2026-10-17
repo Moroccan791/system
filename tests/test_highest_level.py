@@ -298,3 +298,16 @@ def test_qc_cadence_tolerates_authored_six_seconds():
          "illustrative": True}]}
     status, detail = qc.images(tl)
     assert "apart" not in detail, detail
+
+
+def test_stage_html_has_nothing_after_closing_tag():
+    # Anything after </html> is parsed as body text by Chromium and
+    # renders as stray source fragments in the corner of every frame
+    # (bit us on the Street pilot, 2026-10-17). stage.html must end
+    # at its single closing tag.
+    import re
+    text = (ROOT / "motion" / "stage.html").read_text(errors="replace")
+    closes = [m.start() for m in re.finditer(r"</html>", text)]
+    assert len(closes) == 1, f"stage.html has {len(closes)} closing tags"
+    after = text[closes[0] + len("</html>"):]
+    assert after.strip() == "", f"junk after </html>: {after[:80]!r}"
