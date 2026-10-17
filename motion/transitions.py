@@ -57,6 +57,19 @@ def main() -> int:
     base, tl_path, out = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
     tl = json.loads(tl_path.read_text())
     cuts = detect_cuts(base)
+    if "--hard" in sys.argv:
+        # theme-scoped doctrine (whop): the reference editors cut
+        # hard - no injected flash/flare/leak. The sidecar still
+        # lists every cut so QC can enforce that no text exit is
+        # in progress across one.
+        out.write_text(json.dumps(tl, indent=2))
+        sidecar = {"base": str(base), "cuts": [
+            {"t": round(c, 3), "kind": "hard", "dur": 0.0,
+             "source": "theme"} for c in cuts]}
+        Path(str(out) + ".transitions.json").write_text(
+            json.dumps(sidecar, indent=2))
+        print(f"transitions: {len(cuts)} cut(s), hard (theme) -> {out}")
+        return 0
     items = tl.setdefault("items", [])
     authored = [i for i in items
                 if i.get("type") == "fx" and i.get("kind") in TRANSITION_KINDS]

@@ -269,7 +269,10 @@ def main() -> int:
         auth_path = job / f"timeline_l{level}.json"
         auth_path.write_text(json.dumps(tl, indent=1))
         fx_path = job / f"timeline_fx_l{level}.json"
-        r = py("transitions.py", str(base), str(auth_path), str(fx_path))
+        tr_args = [str(base), str(auth_path), str(fx_path)]
+        if theme.get("cutTransitions") == "hard":
+            tr_args.append("--hard")
+        r = py("transitions.py", *tr_args)
         if r.returncode != 0:
             log["levels"].append({"level": level, "stage": "transitions",
                                   "error": r.stderr[-300:]})

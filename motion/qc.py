@@ -439,6 +439,9 @@ def cuts(video: Path, tl: dict) -> tuple[str, str]:
     kinds = ", ".join(f"{c['t']:.1f}:{c['kind']}" for c in cut_list)
     if bad:
         return "fail", "; ".join(bad[:3])
+    if all(c.get("kind") == "hard" for c in cut_list):
+        return "pass", f"{len(cut_list)} hard cuts (theme), " \
+                       "no exit straddles one"
     return "pass", f"{len(cut_list)} cuts all transitioned [{kinds}]; " \
                    f"{masked} exit(s) masked by their cut transition, " \
                    f"none visibly crossing"

@@ -8,8 +8,14 @@
   "speed": 1.15,
   "easing": "pop",
   "fontMode": "sans",
-  "captionStyle": "marker",
-  "transitionOrder": ["flash", "flare", "leak", "bwflash"],
+  "captionStyle": "impact",
+  "transitionOrder": [
+    "flash",
+    "flare",
+    "leak",
+    "bwflash"
+  ],
   "soundSeedSalt": 77,
-  "fontPack": "anton"
+  "fontPack": "anton",
+  "cutTransitions": "hard"
 }
