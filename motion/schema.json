@@ -81,7 +81,7 @@
         "at": { "type": "number", "minimum": 0 },
         "until": { "type": "number", "exclusiveMinimum": 0 },
         "rows": {
-          "type": "array", "minItems": 1, "maxItems": 3,
+          "type": "array", "minItems": 1, "maxItems": 4,
           "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
         },
         "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact"] },
