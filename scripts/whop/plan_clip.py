@@ -60,6 +60,36 @@ def shots(ff, start, end, thresh=0.30):
     return out
 
 
+def face_crop(ff, t, push=0.0):
+    """Crop for a shot: a close crop on the face, or a full-height
+    frame when she is small in the picture. 9:16 always."""
+    import cv2
+    import numpy as np
+    tmp = "/tmp/planclip_frame.jpg"
+    subprocess.run([ff, "-y", "-v", "error", "-ss", str(t), "-i", str(SRC),
+                    "-frames:v", "1", tmp], check=False)
+    img = cv2.imread(tmp)
+    if img is None:
+        return MCU
+    h, w = img.shape[:2]
+    grey = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    ).detectMultiScale(grey, 1.15, 5, minSize=(60, 60))
+    if len(faces) == 0:
+        return TWO_SHOT
+    x, y, fw, fh = max(faces, key=lambda f: f[2] * f[3])
+    cx = x + fw / 2
+    frac = fh / h
+    if frac > 0.26:                      # a real close-up
+        cw, ch = 480, 854
+    else:                                # she is small: take more room
+        cw, ch = 608, 1080
+    left = int(max(0, min(w - cw, cx - cw / 2)))
+    top = 90 if ch == 854 else 0
+    return [left, top, cw, ch]
+
+
 def sentences(words, gap=0.32):
     out, cur = [], []
     for w in words:
@@ -96,11 +126,22 @@ def main() -> int:
     for s in sents:
         txt = " ".join(w["text"] for w in s)
         print(f"  {s[0]['start']:8.2f}  {txt}")
+    # one crop per shot, each centred on the face
+    bounds = [a.start] + cuts + [a.end]
+    crops = []
+    for i in range(len(bounds) - 1):
+        mid = (bounds[i] + bounds[i + 1]) / 2
+        c = face_crop(ff, mid)
+        crops.append({"until": round(bounds[i + 1], 2), "crop": c,
+                      "push": 0.05, "anchor": 0.3})
+    print("crops:", crops)
+
     spec = {
         "post": a.post,
         "span": [a.start, a.end],
         "drops": drops,
         "shot_cuts": cuts,
+        "crops": crops,
     }
     out = ROOT / "work" / "street" / a.post
     out.mkdir(parents=True, exist_ok=True)

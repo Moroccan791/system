@@ -113,7 +113,7 @@
     {
       "type": "list",
       "layout": "diagram",
-      "hold": 1.4,
+      "hold": 0.9,
       "lead": 0.07,
       "items": [
         [
@@ -132,7 +132,9 @@
           "STRUCTURE",
           "structure."
         ]
-      ]
+      ],
+      "at": 3.23,
+      "until": 9.57
     },
     {
       "type": "caption",

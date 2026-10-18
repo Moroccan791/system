@@ -3129,10 +3129,11 @@ function renderAt(tMs) {
       // hook slate / end card: lines stagger in over ~6f each,
       // slate drifts (idle law), dissolves exactly AT until in 2f
       const until = it.until ?? it.at + 1.2;
-      // the end card dissolves in over ~10 frames: the speaker has
-      // stopped, the picture is allowed to breathe into the outro.
-      const op = Math.min(it.type === "endcard" ? clamp01((t - it.at) / (10 / FPS))
-                                                 : clamp01((t - it.at) / (2 / FPS)),
+      // the slate itself comes up hard - the lines stagger in over 2
+      // frames each (QC: no semi-transparent text for more than 2
+      // frames). The resolution is the picture's fade to black, not a
+      // slow dissolve of the card.
+      const op = Math.min(clamp01((t - it.at) / (2 / FPS)),
                           clamp01(1 - (t - until) / (2 / FPS)));
       b.slate.style.opacity = op.toFixed(3);
       b.slate.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;

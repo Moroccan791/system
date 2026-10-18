@@ -157,7 +157,7 @@ def build(plan: dict) -> dict:
                 start = min(ats) - beat.get("lead", 0.07)
             end = beat.get("until")
             if end is None:
-                end = max(ats) + beat.get("hold", 1.4)
+                end = max(ats) + beat.get("hold", 0.9)
             items.append({
                 "type": "list", "layout": beat.get("layout", "diagram"),
                 "at": round(start, 2), "until": round(end, 2),
@@ -205,13 +205,23 @@ def build(plan: dict) -> dict:
             nxt = posts[i + 1]["at"]
             it["until"] = round(min(max(last + 0.12, last + 0.95), nxt - 2 / 30), 3)
         else:
-            it["until"] = round(last + 1.05, 3)
+            it["until"] = round(last + 0.95, 3)
     # A caption is never cancelled by a graphic: MOTIONS.md rule 4 - the
     # caption layer runs UNDER everything, a full-screen scene is a
     # cutaway, not a caption break. The zone decides where it sits, so
     # the author puts a scene caption in the scene zone (top band) and
     # a face caption at chest height.
     duration = max(it.get("until", it["at"]) for it in items)
+    # no negative times: the first word of a clip can land a hair
+    # before zero once the silences are cut
+    for it in items:
+        it["at"] = max(0.0, round(float(it["at"]), 3))
+        if it.get("until") is not None:
+            it["until"] = round(max(it["at"] + 0.05, float(it["until"])), 3)
+        for r in it.get("rows", []):
+            for w in r:
+                w["at"] = max(0.0, round(float(w["at"]), 3))
+
     timeline = {
         "version": 1, "width": 1080, "height": 1920, "fps": 30,
         "duration": round(duration, 2),

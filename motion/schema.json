@@ -10,6 +10,7 @@
     "width": { "const": 1080 },
     "height": { "const": 1920 },
     "duration": { "type": "number", "exclusiveMinimum": 0 },
+    "fadeOut": { "type": "number", "minimum": 0, "maximum": 2 },
     "posting": {
       "type": "object", "additionalProperties": false,
       "required": ["title", "description", "disclosure", "requiredLine", "hashtags"],

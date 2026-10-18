@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Build and ship one whop clip from a plan.
+
+    python scripts/whop/make_post.py scripts/whop/plans/post2.json
+
+Chain (strictly sequential - a render that races the edit ships a
+stale cut):
+    1. plan  -> spec.json          (source window, drops, crops)
+    2. tight_base.py spec.json     -> base.mp4 + slice.json (the cut)
+    3. plan  -> timeline.json       (captions/graphics on the cut's clock)
+    4. validate.py timeline.json
+    5. produce.py                   -> job/final.mp4 + job/final_s.mp4
+    6. check.py job/final_s.mp4     (the picture QC gate)
+    7. copy to campaigns/<campaign>/<post>/ + write POST.md
+"""
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path("/home/user/system")
+PY = str(ROOT / ".venv/bin/python")
+CAMPAIGNS = ROOT / "campaigns" / "street_you_grew_up_on"
+
+
+def run(cmd, env=None, cwd=ROOT):
+    print("\n$ " + " ".join(str(c) for c in cmd))
+    r = subprocess.run([str(c) for c in cmd], cwd=cwd, env=env,
+                       capture_output=True, text=True)
+    tail = "\n".join((r.stdout + r.stderr).strip().splitlines()[-25:])
+    print(tail)
+    if r.returncode != 0:
+        raise SystemExit(f"FAILED ({r.returncode}): {' '.join(str(c) for c in cmd)}")
+    return r.stdout
+
+
+def main() -> int:
+    plan_path = Path(sys.argv[1])
+    plan = json.loads(plan_path.read_text())
+    post = plan["post"]
+    campaign = plan.get("campaign", "street_you_grew_up_on")
+    work = ROOT / "work" / "street" / post
+    work.mkdir(parents=True, exist_ok=True)
+
+    # 1. spec
+    run([PY, ROOT / "scripts/whop/build_whop_clip.py", plan_path])
+    # 2. the cut
+    run([PY, ROOT / "scripts/whop/tight_base.py", work / "spec.json"])
+    # 3. the timeline, now on the cut's own word clock
+    run([PY, ROOT / "scripts/whop/build_whop_clip.py", plan_path])
+    # 4. validate
+    run([PY, ROOT / "motion/validate.py", work / "timeline.json"])
+
+    # 5. render
+    import os
+    env = dict(os.environ)
+    env["LD_LIBRARY_PATH"] = "/tmp/al2023/lib"
+    theme = ROOT / "motion" / "themes" / f"{campaign}__{post}"
+    music = ROOT / "assets" / "music" / plan.get("music", "chill.wav")
+    run([PY, ROOT / "motion/produce.py", work / "timeline.json", work / "base.mp4",
+         work / "slice.json", work / "job", "--theme", theme, "--music", music],
+        env=env)
+
+    # 6. picture QC
+    run([PY, ROOT / "scripts/whop/check.py", work / "job" / "final_s.mp4"])
+
+    # 7. ship
+    dest = CAMPAIGNS / post
+    dest.mkdir(parents=True, exist_ok=True)
+    out = dest / f"street_{post}.mp4"
+    shutil.copy2(work / "job" / "final_s.mp4", out)
+    print(f"\nshipped {out} ({out.stat().st_size} bytes)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

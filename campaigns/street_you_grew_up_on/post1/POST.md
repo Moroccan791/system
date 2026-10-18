@@ -1,4 +1,27 @@
-# Post 1 — Demi Lovato · v6 review
+# Post 1 — Demi Lovato · v6.2 (fade outro)
+
+> **Review cut, not approved for posting.** The font/colour combination is
+> the one saved in `style.json` (Inter Regular captions, Newsreader Book
+> Italic keywords, Montserrat Italic diagram, Outfit Semibold outro; teal
+> `#14E5C5`). The same per-video chooser is available for every new clip
+> (`scripts/whop/style_card.py serve --video post2 …`).
+
+## v6.2 — what changed from v6.1
+
+- **Fade outro.** The speaker stops, the picture fades to black over the
+  last 0.5 s, and the end card dissolves in with the fade rather than
+  stopping dead. The fade lives in the engine (`motion/stage.html`,
+  `TL.fadeOut`), so every clip ends the same way.
+- The end card itself still appears hard (QC: no semi-transparent text
+  for more than 2 frames) — the resolution is the picture's fade, not a
+  slow dissolve of the card.
+- Re-render: PASS at level 0 (MOTION QC v2, 15 checks) and PASS on the
+  whop invariants (dead air 0, change rate 26.6/10 s, face-first open).
+  Sound: −14.05 LUFS integrated, true peak −1.95 dBTP.
+
+## v6.1 — the approved workflow (kept for reference)
+
+
 
 > **Review cut, not approved for posting.** The font/colour combination in
 > `street_post1_v6.mp4` is a provisional proposal (Inter Regular captions,
@@ -7,8 +30,10 @@
 > live per-video style card before the approved render. Earlier post1/v4/v5
 > files in this folder are superseded demos, not approval.
 
-- **Video:** [`street_post1_v6.mp4`](street_post1_v6.mp4) — 21.9 s, 1080×1920,
+- **Video:** [`street_post1_v6_2.mp4`](street_post1_v6_2.mp4) — 21.8 s, 1080×1920,
   30 fps, supplied episode footage only; 48 kHz AAC music/voice master.
+- **Earlier cuts:** `street_post1_v6.mp4` (v6), `street_post1_v6_1.mp4`
+  (v6.1, the approved workflow) — superseded by v6.2.
 - **Review cover:** [`cover_v6.jpg`](cover_v6.jpg) (from the cut, no generated imagery).
 - **Source window:** episode 45:59.4–46:30.235. All 64 kept spoken words are
   represented: 60 in word-synced editorial captions; BUSY / SANE / FOCUSED /
