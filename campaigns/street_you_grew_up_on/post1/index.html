@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>post1 - review cuts</title>
+<style>
+  body { margin:0; background:#0b0e11; color:#e9eef2;
+         font:15px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { padding:18px 24px 10px; }
+  h1 { margin:0 0 4px; font-size:19px; letter-spacing:.01em; }
+  header p { margin:0; color:#8fa3ad; font-size:13px; }
+  .wrap { display:flex; gap:26px; padding:18px 24px 40px; flex-wrap:wrap; align-items:flex-start; }
+  .main video { height:min(82vh,900px); aspect-ratio:9/16; background:#000; border-radius:14px; display:block; }
+  .side { max-width:420px; }
+  .side h2 { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#8fa3ad; margin:0 0 10px; }
+  .cut { display:flex; gap:12px; align-items:flex-start; padding:11px 0; border-top:1px solid #1d242c; }
+  .cut video { width:74px; height:132px; background:#000; border-radius:8px; flex:0 0 auto; }
+  .cut b { display:block; font-size:14px; }
+  .cut span { color:#8fa3ad; font-size:12.5px; }
+  a { color:#14e5c5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>post1 &mdash; review cuts</h1>
+  <p>Latest: <b>v6.1</b> (editorial type, full-screen graphics on hard cuts, fixed diagram label). Earlier cuts below for comparison.</p>
+</header>
+<div class="wrap">
+  <div class="main">
+    <video src="street_post1_v6_1.mp4" controls autoplay loop playsinline></video>
+    <p style="color:#8fa3ad;font-size:13px;margin-top:10px">
+      <a href="street_post1_v6_1.mp4" download>download v6.1 mp4</a>
+    </p>
+  </div>
+  <div class="side">
+    <h2>Other cuts</h2>
+    <div class="cut"><video src="street_post1_v6.mp4" controls preload="metadata"></video>
+      <div><b>v6</b><span>first editorial cut - had the hard-coded &ldquo;MY CRAFT&rdquo; label</span></div></div>
+    <div class="cut"><video src="street_post1_v5.mp4" controls preload="metadata"></video>
+      <div><b>v5</b><span>impact captions + trophy/network scenes (face ghosting on the network beat)</span></div></div>
+    <div class="cut"><video src="street_post1_v4.mp4" controls preload="metadata"></video>
+      <div><b>v4</b><span>reference caption system, no motion graphics</span></div></div>
+    <div class="cut"><video src="street_post1.mp4" controls preload="metadata"></video>
+      <div><b>v3 (shipped)</b><span>the cut you rejected</span></div></div>
+  </div>
+</div>
+</body>
+</html>
