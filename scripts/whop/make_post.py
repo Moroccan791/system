@@ -45,6 +45,25 @@ def main() -> int:
     work = ROOT / "work" / "street" / post
     work.mkdir(parents=True, exist_ok=True)
 
+    # 0. the per-post style (the user picks the fonts and the colours
+    #    BEFORE the edit - the style card writes it, we only seed it
+    #    from the campaign style when the post is new)
+    dest = CAMPAIGNS / post
+    dest.mkdir(parents=True, exist_ok=True)
+    style_src = CAMPAIGNS / "style.json"
+    style_dst = dest / "style.json"
+    if not style_dst.exists() and style_src.exists():
+        shutil.copy2(style_src, style_dst)
+        print(f"seeded {style_dst}")
+    theme_file = ROOT / "motion" / "themes" / f"{campaign}__{post}.json"
+    if not theme_file.exists():
+        base_theme = ROOT / "motion" / "themes" / f"{campaign}__post1.json"
+        if not base_theme.exists():
+            base_theme = ROOT / "motion" / "themes" / f"{campaign}.json"
+        if base_theme.exists():
+            shutil.copy2(base_theme, theme_file)
+            print(f"seeded {theme_file}")
+
     # 1. spec
     run([PY, ROOT / "scripts/whop/build_whop_clip.py", plan_path])
     # 2. the cut
@@ -68,11 +87,27 @@ def main() -> int:
     run([PY, ROOT / "scripts/whop/check.py", work / "job" / "final_s.mp4"])
 
     # 7. ship
-    dest = CAMPAIGNS / post
-    dest.mkdir(parents=True, exist_ok=True)
     out = dest / f"street_{post}.mp4"
     shutil.copy2(work / "job" / "final_s.mp4", out)
     print(f"\nshipped {out} ({out.stat().st_size} bytes)")
+
+    # 8. the posting pack
+    post_md = plan.get("posting")
+    if post_md:
+        lines = [f"# {post.upper()} - posting pack", "",
+                 f"**File:** `street_{post}.mp4`", "",
+                 "## Title", "", post_md["title"], "",
+                 "## Description", "",
+                 post_md.get("description", ""), "",
+                 post_md.get("requiredLine", ""), "",
+                 "## Hashtags", "",
+                 " ".join(post_md.get("hashtags", [])), "",
+                 "## Notes", "",
+                 f"- Disclosure: {post_md.get('disclosure', '#ad')}",
+                 "- Full episode: the podcast is the source; this is a clipped edit.",
+                 ""]
+        (dest / "POST.md").write_text("\n".join(lines))
+        print(f"wrote {dest / 'POST.md'}")
     return 0
 
 

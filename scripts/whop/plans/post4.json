@@ -1,0 +1,37 @@
+{
+  "post": "post4",
+  "campaign": "street_you_grew_up_on",
+  "source": "work/street/raw/street_full.mp4",
+  "transcript": "work/street/asr/episode_transcript.json",
+  "offset": 0.0,
+  "span": [3344.40, 3369.60],
+  "drops": [],
+  "splits": [3369.32],
+  "crops": [
+    {"until": 3369.32, "crop": [822, 90, 480, 854], "push": 0.05, "anchor": 0.3},
+    {"until": 999999999, "crop": [822, 90, 480, 854], "push": 0.05, "anchor": 0.3}
+  ],
+  "fadeOut": 0.5,
+  "music": "dark.wav",
+  "beats": [
+    {"type": "caption", "zone": "face", "lines": ["The first time", "I got on stage"]},
+    {"type": "caption", "zone": "face", "lines": ["I was terrified."], "wordKind": "hero", "heroSize": 250},
+    {"type": "vector", "name": "spotlight", "trigger": "go on stage.", "lead": 0.05, "dur": 1.6},
+    {"type": "caption", "zone": "face", "lines": ["People aren't", "looking at you"]},
+    {"type": "caption", "zone": "face", "lines": ["I thought nobody", "turned around."]},
+    {"type": "caption", "zone": "face", "lines": ["And then they", "all started singing"]},
+    {"type": "caption", "zone": "face", "lines": ["they still loved me"], "wordKind": "hero", "heroSize": 230},
+    {"type": "caption", "zone": "face", "lines": ["and cried tears", "of joy"], "wordKind": "hero", "heroSize": 230},
+    {"type": "vector", "name": "heart", "trigger": "of joy", "lead": 0.05, "dur": 1.5},
+    {"type": "endcard", "after": "last", "gap": 1.0, "dur": 1.1,
+     "title": "STREET YOU GREW UP ON", "titleLines": ["STREET YOU", "GREW UP ON"],
+     "sub": "@street_you_grew_up_on", "wordSize": 148}
+  ],
+  "posting": {
+    "title": "Demi Lovato Was Terrified on Stage - and They Sang With Her",
+    "description": "Demi Lovato on her first stage fright: 'I was terrified. People aren't looking at you - I thought nobody turned around.' Then the room sang with her, and cried tears of joy.",
+    "disclosure": "#ad",
+    "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
+    "hashtags": ["#DemiLovato", "#StreetYouGrewUpOn", "#StageFright", "#PodcastClips", "#SingerLife", "#Performing", "#MusicAndLife", "#PodCulture"]
+  }
+}

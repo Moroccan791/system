@@ -1,0 +1,35 @@
+{
+  "post": "post5",
+  "campaign": "street_you_grew_up_on",
+  "source": "work/street/raw/street_full.mp4",
+  "transcript": "work/street/asr/episode_transcript.json",
+  "offset": 0.0,
+  "span": [3370.67, 3401.60],
+  "drops": [],
+  "splits": [3371.45],
+  "crops": [
+    {"until": 3371.45, "crop": [770, 90, 480, 854], "push": 0.05, "anchor": 0.3},
+    {"until": 999999999, "crop": [821, 90, 480, 854], "push": 0.05, "anchor": 0.3}
+  ],
+  "fadeOut": 0.5,
+  "music": "chill.wav",
+  "beats": [
+    {"type": "caption", "zone": "face", "lines": ["I'm not sitting", "in this chair"]},
+    {"type": "caption", "zone": "face", "lines": ["because of my body."], "wordKind": "hero", "heroSize": 230},
+    {"type": "vector", "name": "bigword", "trigger": "body.", "lead": 0.02, "dur": 1.7, "word": "WORTH"},
+    {"type": "caption", "zone": "scene", "lines": ["My worth isn't", "in my body"]},
+    {"type": "caption", "zone": "face", "lines": ["I'm a good human."], "wordKind": "hero", "heroSize": 250},
+    {"type": "vector", "name": "shield", "trigger": "human.", "lead": 0.05, "dur": 1.6},
+    {"type": "caption", "zone": "face", "lines": ["and that's what", "matters."]},
+    {"type": "endcard", "after": "last", "gap": 1.0, "dur": 1.1,
+     "title": "STREET YOU GREW UP ON", "titleLines": ["STREET YOU", "GREW UP ON"],
+     "sub": "@street_you_grew_up_on", "wordSize": 148}
+  ],
+  "posting": {
+    "title": "\"My Worth Isn't in My Body\" - Demi Lovato on What She Is Actually Worth",
+    "description": "Demi Lovato on self-worth: 'I'm not sitting in this chair because of my body.' Her worth was never in the body - 'I'm a good human, and that's what matters.'",
+    "disclosure": "#ad",
+    "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
+    "hashtags": ["#DemiLovato", "#StreetYouGrewUpOn", "#SelfWorth", "#BodyImage", "#PodcastClips", "#MentalHealth", "#MusicAndLife", "#PodCulture"]
+  }
+}

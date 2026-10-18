@@ -1,0 +1,42 @@
+{
+  "post": "post3",
+  "campaign": "street_you_grew_up_on",
+  "source": "work/street/raw/street_full.mp4",
+  "transcript": "work/street/asr/episode_transcript.json",
+  "offset": 0.0,
+  "span": [1975.60, 2013.00],
+  "drops": [[2001.00, 2010.75]],
+  "splits": [1975.77, 1997.75, 2000.25, 2008.84, 2011.01],
+  "crops": [
+    {"until": 1997.75, "crop": [850, 90, 480, 854], "push": 0.05, "anchor": 0.3},
+    {"until": 2000.25, "crop": [706, 90, 480, 854], "push": 0.05, "anchor": 0.3},
+    {"until": 2008.84, "crop": [859, 90, 480, 854], "push": 0.05, "anchor": 0.3},
+    {"until": 2011.01, "crop": [758, 90, 480, 854], "push": 0.05, "anchor": 0.3},
+    {"until": 999999999, "crop": [833, 90, 480, 854], "push": 0.05, "anchor": 0.3}
+  ],
+  "fadeOut": 0.5,
+  "music": "chill.wav",
+  "beats": [
+    {"type": "caption", "zone": "face", "lines": ["I'm Hispanic, so", "I wanted to represent"]},
+    {"type": "caption", "zone": "face", "lines": ["my culture."], "wordKind": "hero", "heroSize": 250},
+    {"type": "caption", "zone": "face", "lines": ["I grew up singing", "in Spanish"]},
+    {"type": "vector", "name": "bigword", "trigger": "Spanish", "lead": 0.02, "dur": 1.8, "word": "SPANISH"},
+    {"type": "caption", "zone": "scene", "lines": ["every day of", "my life"]},
+    {"type": "caption", "zone": "face", "lines": ["I sang in Spanish", "in school"]},
+    {"type": "caption", "zone": "face", "lines": ["I sang in Spanish", "in church"]},
+    {"type": "caption", "zone": "face", "lines": ["I sang two songs."]},
+    {"type": "caption", "zone": "face", "lines": ["One was Selena."], "wordKind": "hero", "heroSize": 250},
+    {"type": "vector", "name": "stars", "trigger": "Selena.", "lead": 0.05, "dur": 1.4, "count": 5},
+    {"type": "caption", "zone": "face", "lines": ["That's how I", "represented her."]},
+    {"type": "endcard", "after": "last", "gap": 1.0, "dur": 1.1,
+     "title": "STREET YOU GREW UP ON", "titleLines": ["STREET YOU", "GREW UP ON"],
+     "sub": "@street_you_grew_up_on", "wordSize": 148}
+  ],
+  "posting": {
+    "title": "Demi Lovato Grew Up Singing in Spanish - and Represented Selena at 7",
+    "description": "Demi Lovato on representing her Hispanic heritage as a kid: 'I'm Hispanic, so I wanted to represent my culture.' She sang two songs - one of them was Selena.",
+    "disclosure": "#ad",
+    "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
+    "hashtags": ["#DemiLovato", "#StreetYouGrewUpOn", "#Selena", "#LatinCommunity", "#PodcastClips", "#MusicAndLife", "#GrowingUp", "#PodCulture"]
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "post": "post7",
+  "campaign": "street_you_grew_up_on",
+  "source": "work/street/raw/street_full.mp4",
+  "transcript": "work/street/asr/episode_transcript.json",
+  "offset": 0.0,
+  "span": [
+    3734.4,
+    3758.9
+  ],
+  "drops": [],
+  "splits": [
+    3737.4,
+    3745.12
+  ],
+  "crops": [
+    {
+      "until": 3737.4,
+      "crop": [
+        651,
+        0,
+        608,
+        1080
+      ],
+      "push": 0.05,
+      "anchor": 0.3
+    },
+    {
+      "until": 3745.12,
+      "crop": [
+        790,
+        0,
+        608,
+        1080
+      ],
+      "push": 0.05,
+      "anchor": 0.3
+    },
+    {
+      "until": 999999999,
+      "crop": [
+        846,
+        90,
+        480,
+        854
+      ],
+      "push": 0.05,
+      "anchor": 0.3
+    }
+  ],
+  "fadeOut": 0.5,
+  "music": "chill.wav",
+  "beats": [
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "I will never be",
+        "angry for a struggle"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "that we share."
+      ],
+      "wordKind": "hero",
+      "heroSize": 240
+    },
+    {
+      "type": "vector",
+      "name": "venn",
+      "trigger": "share.",
+      "lead": 0.05,
+      "dur": 1.6,
+      "lines": []
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "My mom went into",
+        "treatment"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "because of me"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "a few months later",
+        "she went in too"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "I opened that door",
+        "for her."
+      ],
+      "wordKind": "hero",
+      "heroSize": 230
+    },
+    {
+      "type": "vector",
+      "name": "door",
+      "trigger": "for her.",
+      "lead": 0.05,
+      "dur": 1.6,
+      "lines": []
+    },
+    {
+      "type": "endcard",
+      "after": "last",
+      "gap": 1.0,
+      "dur": 1.1,
+      "title": "STREET YOU GREW UP ON",
+      "titleLines": [
+        "STREET YOU",
+        "GREW UP ON"
+      ],
+      "sub": "@street_you_grew_up_on",
+      "wordSize": 148,
+      "lines": []
+    }
+  ],
+  "posting": {
+    "title": "Demi Lovato Opened the Door for Her Mom - and Her Mom Walked Through It",
+    "description": "Demi Lovato on treatment and her mother: 'I will never be angry for a struggle that we share.' When she went into treatment, a few months later her mom went in too - she opened that door for her.",
+    "disclosure": "#ad",
+    "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
+    "hashtags": [
+      "#DemiLovato",
+      "#StreetYouGrewUpOn",
+      "#Recovery",
+      "#Family",
+      "#PodcastClips",
+      "#MentalHealth",
+      "#Treatment",
+      "#PodCulture"
+    ]
+  }
+}
