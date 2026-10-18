@@ -1,0 +1,13 @@
+# Script 002 — Pi Contains Everything
+- Q: What's hidden in it? / A: A number. Pi.
+- Q: What's so special about pi? / A: It never ends.
+- Q: So what's inside it? / A: Probably every number there is. In every order.
+- Q: My phone number? / A: Somewhere. Yes.
+- Q: Even words? / A: Turn the digits into letters. Every book ever written.
+- [B-ROLL: Pi grid 1,000,000 words]
+- Q: Even ones not written yet? / A: Those too.
+- A: Every moment of it.
+- Q: The day I die? / A: Already in there.
+- Q: Then why hasn't anyone read it? / A: It's buried too deep to ever find.
+- A: ...Word for word.
+- Q: All that, from a circle? / A: It was always there.

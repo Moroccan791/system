@@ -1,0 +1,12 @@
+# Script 001 — Butterfly Effect (Master — Verified from Source)
+- Q: What if you'd never been born? / A: The world would be different.
+- Q: My fingerprint? / A: Every breath you take moves the air.
+- Q: But a breath is barely anything. / A: So is the flap of a butterfly's wing.
+- Q: What could they change? / A: The course of a storm.
+- Q: From something so small? / A: That's the butterfly effect.
+- Q: How? / A: Small changes can grow over time.
+- Q: And? / A: His weather model predicted a different future.
+- Q: So if I'd never taken a single breath... / Q: And everything after that? / A: Like ripples. Never stopping.
+- Q: So I'll never know everything I've changed?
+- Q: Then why does it feel like I've changed nothing? / A: Because the world you see is one you changed.
+- Q: Does the butterfly know which storms it changes? / A: No.
