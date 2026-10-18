@@ -2,12 +2,13 @@
 """Build a whop clip (timeline + base spec) from a PLAN file.
 
     python scripts/whop/build_whop_clip.py plans/post2.json
+    python scripts/whop/build_whop_clip.py plans/post2.json --check
 
 The plan is data: which lines become captions, where a full-screen
 graphic lands, which word triggers it, how the clip ends. The builder
 resolves every word against the episode transcript (so captions land on
 the real acoustic onset, never a hand-typed time), refuses to cut a
-phrase in half, and writes:
+phrase in half, keeps every caption clear of her face, and writes:
 
     work/street/<post>/timeline.json   (the creative timeline)
     work/street/<post>/spec.json       (the base spec for tight_base.py)
@@ -19,14 +20,16 @@ Beat types
     endcard   the outro slate (always last, always with the fade)
 
 Zones
-    face      [0.55, 0.66]  over her (chest height, never the face)
-    graphic   [0.30, 0.36]  over a full-screen graphic: a headline
-    scene     [0.30, 0.36]  over a full-screen scene
-    payoff    [0.73, 0.84]  low, over the two-shot (hands move at .47)
+    face      under her chin, measured on the actual base (never on
+              her face - that is the thing v5 got rejected for)
+    graphic   over a full-screen graphic: a headline
+    scene     over a full-screen scene
+    payoff    lower still, for the two-shot
 """
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -35,12 +38,65 @@ CAMPAIGNS = ROOT / "campaigns" / "street_you_grew_up_on"
 EPISODE = ROOT / "work" / "street" / "asr" / "episode_transcript.json"
 
 ZONES = {
-    "face":   ([0.55, 0.66], 88),
+    "face":   ([0.55, 0.66], 88),   # default; recomputed from the face report
     "graphic": ([0.30, 0.36], 118),
     "scene":  ([0.30, 0.36], 104),
     "payoff": ([0.73, 0.84], 92),
 }
 SIZES = {"sm": 88, "md": 104, "lg": 118}
+LOOKAHEAD = 1.0   # a caption word is never matched more than a second ahead
+
+
+def _norm(tok: str) -> str:
+    return tok.lower().strip(".,!?\u2019\u201d'\"")
+
+
+def face_zone(base: Path):
+    """The caption band BELOW her face, measured on the actual base.
+
+    A caption that lands on the face is the thing the user rejected in
+    v5, so the band is derived from where the face actually ends: the
+    caption sits under the chin, never across it.
+    """
+    report = base.parent / "face_report.json"
+    if not report.exists():
+        try:
+            out = subprocess.run([str(ROOT / ".venv/bin/python"),
+                                  str(ROOT / "motion" / "reframe.py"),
+                                  "--report", str(base)],
+                                 capture_output=True, text=True, cwd=ROOT)
+            report.write_text(out.stdout)
+        except Exception:
+            return None
+    try:
+        d = json.loads(report.read_text())
+    except Exception:
+        return None
+    bottom = float(d.get("face_bottom", 0.44))
+    centre = min(max(bottom + 0.16, 0.50), 0.80)
+    return [round(centre - 0.055, 3), round(centre + 0.055, 3)]
+
+
+def base_seconds(base: Path):
+    """The length of the cut base, so the timeline can match it."""
+    if not base.exists():
+        return None
+    try:
+        out = subprocess.run(
+            [str(ROOT / ".venv/bin/python"), "-c",
+             "import imageio_ffmpeg,subprocess,sys;"
+             "ff=imageio_ffmpeg.get_ffmpeg_exe();"
+             "print(subprocess.run([ff,'-i',sys.argv[1]],capture_output=True,"
+             "text=True).stderr)", str(base)],
+            capture_output=True, text=True, cwd=ROOT)
+        for line in out.stdout.splitlines():
+            if "Duration:" in line:
+                h, m, sec = (line.split("Duration:")[1].split(",")[0]
+                             .strip().split(":"))
+                return int(h) * 3600 + int(m) * 60 + float(sec)
+    except Exception:
+        pass
+    return None
 
 
 def load_words(span, transcript_path=EPISODE, offset=0.0):
@@ -51,45 +107,94 @@ def load_words(span, transcript_path=EPISODE, offset=0.0):
     the same convention tight_base.py uses.
     """
     data = json.loads(Path(transcript_path).read_text())
-    words = [{"text": w["text"], "start": w["start"] + offset,
-              "end": w["end"] + offset}
-             for w in data["words"]
-             if w["start"] + offset >= span[0] - 0.05
-             and w["end"] + offset <= span[1] + 0.05]
-    return words
+    return [{"text": w["text"], "start": w["start"] + offset,
+             "end": w["end"] + offset}
+            for w in data["words"]
+            if w["start"] + offset >= span[0] - 0.05
+            and w["end"] + offset <= span[1] + 0.05]
 
 
 class Clock:
-    """Resolves spoken words to absolute source times, in order."""
+    """Resolves spoken words to times, in order."""
 
     def __init__(self, words):
         self.words = words
         self.i = 0
 
-    def find(self, text, advance=True, occurrence=1):
-        """The occurrence-th time this word is spoken from the cursor."""
-        hits = []
-        for i in range(self.i, len(self.words)):
-            w = self.words[i]
-            if w["text"].lower().strip(".,!?") == text.lower().strip(".,!?"):
-                hits.append((i, w))
-                if len(hits) >= occurrence:
-                    break
+    def line(self, text):
+        """A caption LINE written as prose.
+
+        The words are matched against the transcript from the cursor, so
+        the caption lands on the syllable that was actually spoken - and
+        the plan can be written as the sentence the speaker said.
+        """
+        row = []
+        anchor = (self.words[self.i]["start"] if self.i < len(self.words)
+                  else 0.0)
+        for tok in text.split():
+            key = _norm(tok)
+            j = self.i
+            while (j < len(self.words)
+                   and _norm(self.words[j]["text"]) != key
+                   and self.words[j]["start"] - anchor <= LOOKAHEAD):
+                j += 1
+            if j < len(self.words) and _norm(self.words[j]["text"]) != key:
+                j = len(self.words)      # too far ahead: treat as unheard
+            if j >= len(self.words):
+                # The ASR sometimes drops a short word ("next to it" ->
+                # "next to?"). The caption still has to be right, so the
+                # missing word is FUSED onto the previous one and the
+                # line is flagged for review.
+                if row:
+                    prev = row[-1]
+                    print(f"  ! fused (not heard): {tok!r} in {text!r}")
+                    row.append({"w": tok, "at": round(prev["at"] + 0.08, 2),
+                                "kind": "conn"})
+                    continue
+                raise ValueError(f"line {text!r}: {tok!r} is not spoken after "
+                                 f"cursor {self.i}")
+            w = self.words[j]
+            row.append({"w": w["text"], "at": round(w["start"], 2),
+                        "kind": "conn"})
+            self.i = j + 1
+        return row
+
+    def occurrences(self, text):
+        """Every place in the clip where the phrase is spoken."""
+        toks = text.split()
+        if not toks:
+            return []
+        keys = [_norm(t) for t in toks]
+        out = []
+        for i in range(len(self.words) - len(keys) + 1):
+            if all(_norm(self.words[i + k]["text"]) == keys[k]
+                   for k in range(len(keys))):
+                out.append(i)
+        return out
+
+    def _nearest(self, text):
+        hits = self.occurrences(text)
         if not hits:
-            raise ValueError(f"word {text!r} not spoken after cursor "
-                             f"({self.i})")
-        i, w = hits[0]
-        if advance:
-            self.i = i + 1
-        return round(w["start"], 2)
+            return None
+        # the occurrence closest to the caption cursor: a trigger that
+        # names a line the captions already consumed still lands on it
+        return min(hits, key=lambda i: abs(i - self.i))
+
+    def phrase_at(self, text):
+        """The time of the first word of a phrase - a graphic trigger.
+        Does not move the caption cursor."""
+        i = self._nearest(text)
+        if i is None:
+            raise ValueError(f"trigger {text!r} is not spoken in this clip")
+        return round(self.words[i]["start"], 2)
 
     def at(self, text):
         """A word already spoken - names a graphic, does not move the
         caption cursor."""
-        for w in self.words:
-            if w["text"].lower().strip(".,!?") == text.lower().strip(".,!?"):
-                return round(w["start"], 2)
-        raise ValueError(f"word {text!r} not spoken in this clip")
+        i = self._nearest(text)
+        if i is None:
+            raise ValueError(f"word {text!r} not spoken in this clip")
+        return round(self.words[i]["start"], 2)
 
 
 def build(plan: dict) -> dict:
@@ -103,6 +208,15 @@ def build(plan: dict) -> dict:
     span = plan["span"]
     transcript = plan.get("transcript", EPISODE)
     offset = float(plan.get("offset", 0.0))
+
+    base_file = ROOT / "work" / "street" / post / "base.mp4"
+    auto_face = face_zone(base_file) if base_file.exists() else None
+    if auto_face:
+        ZONES["face"] = (auto_face, ZONES["face"][1])
+        ZONES["payoff"] = ([round(auto_face[0] + 0.18, 3),
+                            round(auto_face[1] + 0.18, 3)], ZONES["payoff"][1])
+    base_duration = base_seconds(base_file)
+
     # Word times must be CLIP-relative (the base's own clock, after the
     # silences were cut) - a caption that lands on the right syllable
     # in the source lands on the right syllable in the cut. So the
@@ -125,6 +239,15 @@ def build(plan: dict) -> dict:
             ats = []
             kinds = beat.get("kinds")
             for li, line in enumerate(beat["lines"]):
+                if isinstance(line, str):
+                    row = clock.line(line)
+                    for wi, w in enumerate(row):
+                        w["kind"] = beat.get("wordKind", "conn")
+                        if kinds and li < len(kinds) and wi < len(kinds[li]):
+                            w["kind"] = kinds[li][wi]
+                        ats.append(w["at"])
+                    rows.append(row)
+                    continue
                 row = []
                 for wi, w in enumerate(line):
                     t = clock.find(w)
@@ -137,7 +260,10 @@ def build(plan: dict) -> dict:
             if len(rows) > 2:
                 raise ValueError("captions never exceed two lines")
             if any(len(r) > 4 for r in rows):
-                raise ValueError("a caption line never exceeds four words")
+                bad = [r for r in rows if len(r) > 4]
+                raise ValueError("a caption line never exceeds four words: "
+                                 + " / ".join(" ".join(w["w"] for w in r)
+                                              for r in bad))
             size = SIZES.get(beat.get("size", ""), default_size)
             items.append({
                 "type": "poster", "at": min(ats), "rows": rows, "zone": zone,
@@ -149,7 +275,8 @@ def build(plan: dict) -> dict:
             rows = []
             ats = []
             for label, trigger in beat["items"]:
-                t = clock.at(trigger)
+                t = (clock.phrase_at(trigger) if " " in trigger
+                     else clock.at(trigger))
                 rows.append({"text": label, "at": t})
                 ats.append(t)
             start = beat.get("at")
@@ -164,7 +291,8 @@ def build(plan: dict) -> dict:
                 "hardOut": True, "accent": accent, "items": rows,
             })
         elif kind == "vector":
-            t = clock.at(beat["trigger"])
+            t = (clock.phrase_at(beat["trigger"]) if " " in beat["trigger"]
+                 else clock.at(beat["trigger"]))
             start = beat.get("at")
             if start is None:
                 start = t - beat.get("lead", 0.07) + float(beat.get("offset", 0.0))
@@ -173,7 +301,8 @@ def build(plan: dict) -> dict:
                 end = start + beat.get("dur", 1.0)
             item = {"type": "vector", "name": beat["name"], "mode": "fullbleed",
                     "at": round(start, 2), "until": round(end, 2), "accent": accent}
-            for k in ("offsetY", "radius", "title", "count", "label"):
+            for k in ("offsetY", "radius", "title", "count", "label",
+                      "word", "bgColor", "sub"):
                 if k in beat:
                     item[k] = beat[k]
             items.append(item)
@@ -185,8 +314,15 @@ def build(plan: dict) -> dict:
                 last_caption = max((it for it in items if it["type"] == "poster"),
                                    key=lambda it: it["at"], default=None)
                 base_at = (last_caption["_last"] if last_caption else 0.0)
-                at = round(base_at + beat.get("gap", 0.18), 2)
+                at = round(base_at + beat.get("gap", 1.00), 2)
+                if last_caption is not None:
+                    at = round(max(at, base_at + 0.95 + 0.05), 2)
                 until = round(at + beat.get("dur", 1.1), 2)
+                if base_duration:
+                    # the card runs to the last frame of the clip
+                    until = round(base_duration, 2)
+                    at = round(until - beat.get("dur", 1.1), 2)
+                    at = round(max(at, base_at + 0.95 + 0.05), 2)
             items.append({
                 "type": "endcard", "at": at, "until": until,
                 "title": beat.get("title", "STREET YOU GREW UP ON"),
@@ -203,15 +339,13 @@ def build(plan: dict) -> dict:
         last = it.pop("_last")
         if i + 1 < len(posts):
             nxt = posts[i + 1]["at"]
-            it["until"] = round(min(max(last + 0.12, last + 0.95), nxt - 2 / 30), 3)
+            # the exit never lands inside the last word: the word needs
+            # its entry plus a beat (validator: 0.12s on a hard out)
+            it["until"] = round(max(last + 0.12,
+                                    min(last + 0.95, nxt - 2 / 30)), 3)
         else:
             it["until"] = round(last + 0.95, 3)
-    # A caption is never cancelled by a graphic: MOTIONS.md rule 4 - the
-    # caption layer runs UNDER everything, a full-screen scene is a
-    # cutaway, not a caption break. The zone decides where it sits, so
-    # the author puts a scene caption in the scene zone (top band) and
-    # a face caption at chest height.
-    duration = max(it.get("until", it["at"]) for it in items)
+
     # no negative times: the first word of a clip can land a hair
     # before zero once the silences are cut
     for it in items:
@@ -221,6 +355,11 @@ def build(plan: dict) -> dict:
         for r in it.get("rows", []):
             for w in r:
                 w["at"] = max(0.0, round(float(w["at"]), 3))
+
+    duration = base_duration or max(it.get("until", it["at"]) for it in items)
+    last_word_time = max((w["at"] for it in items
+                          for r in it.get("rows", []) for w in r),
+                         default=0.0)
 
     timeline = {
         "version": 1, "width": 1080, "height": 1920, "fps": 30,
@@ -252,7 +391,10 @@ def build(plan: dict) -> dict:
         "crops": plan.get("crops", []),
         "out_base": str(out / "base.mp4"),
         "out_slice": str(out / "slice.json"),
-        "tail_seconds": plan.get("tail_seconds", 1.35),
+        # the base has to hold the outro: the tail runs from the last
+        # spoken word to the end of the end card (plus a little)
+        "tail_seconds": plan.get("tail_seconds") or round(
+            max(0.5, duration - last_word_time + 0.10), 2),
         "splits": plan.get("splits", []),
     }
     (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
@@ -268,9 +410,22 @@ def build(plan: dict) -> dict:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("usage: build_whop_clip.py <plan.json>")
+        print("usage: build_whop_clip.py <plan.json> [--check]")
         return 2
     plan = json.loads(Path(sys.argv[1]).read_text())
+    if "--check" in sys.argv:
+        bad = []
+        for b in plan.get("beats", []):
+            for line in b.get("lines", []):
+                if isinstance(line, str) and len(line.split()) > 4:
+                    bad.append(f'{len(line.split())}w  "{line}"')
+        if bad:
+            print("lines over four words:")
+            for x in bad:
+                print("   ", x)
+            return 1
+        print("plan ok: every caption line is four words or fewer")
+        return 0
     build(plan)
     return 0
 

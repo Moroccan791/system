@@ -104,6 +104,18 @@ def main(spec_path: str) -> int:
     # attach a word to the kept audio segment with the largest overlap.
     # If no segment contains audible material for it, fail rather than
     # inventing a caption over absent speech.
+    # A word that falls ENTIRELY inside an acoustic silence was never
+    # spoken - the ASR invented it. Drop it (it would otherwise be a
+    # caption over absent speech).
+    def inside_silence(w):
+        return any(a - 0.005 <= w["start"] and w["end"] <= b + 0.005
+                   for a, b in cuts)
+    ghosts = [w for w in words
+              if (lo - 0.02 <= (w["start"] + w["end"]) / 2 <= hi + 0.02)
+              and not dropped(w) and inside_silence(w)]
+    for w in ghosts:
+        print(f"dropped unsung word {w['text']!r} at {w['start']:.2f}")
+    words = [w for w in words if w not in ghosts]
     candidates = [w for w in words
                   if (lo - 0.02 <= (w["start"] + w["end"]) / 2 <= hi + 0.02)
                   and w["end"] > lo and w["start"] < hi and not dropped(w)]
