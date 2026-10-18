@@ -52,12 +52,21 @@ def faces_in(ff, t, tmp="/tmp/facec.jpg"):
 
 def crop_for(box, W=1920, H=1080, margin=36):
     x, y, fw, fh = box
-    if fh / H > 0.26:
-        cw, ch = 480, 854
-        top = 90
-    else:
-        cw, ch = 608, 1080
-        top = 0
+    # The detector's box runs past the jaw into the neck, and the hair
+    # sits above the forehead: the visible chin is ~0.80 of the box
+    # height and the hair's top ~0.25 above it.
+    chin = y + 0.80 * fh
+    head_top = y - 0.25 * fh
+    # The crop is as WIDE as the frame allows while the chin stays at
+    # ~0.57 (the caption then sits just under it) and the head stays
+    # in frame. A wide crop also keeps the face at the reference size
+    # (~45-60% of the frame width) instead of a tight close-up.
+    lo = (chin - head_top) / 0.57          # the head must fit
+    hi = min(H, chin / 0.57, (H - chin) / 0.43)
+    ch = int(round(max(lo, min(hi, H))))
+    ch = max(240, min(ch, H))
+    cw = int(round(ch * 9 / 16 / 2) * 2)
+    top = int(max(0, min(chin - 0.57 * ch, H - ch)))
     cx = x + fw / 2
     centred = int(round(cx - cw / 2))
     # the face must sit fully inside with margin on BOTH sides:

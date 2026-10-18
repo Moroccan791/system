@@ -368,8 +368,10 @@ def main() -> int:
             log["levels"].append({"level": level, "stage": "composite",
                                   "error": (c.stderr or c.stdout)[-300:]})
             continue
+        # the QC needs the CLEAN base as well: the caption letters
+        # themselves read as a face on the finished clip
         q = py("qc.py", str(fx_path), str(tr_path), str(final),
-               str(frames))
+               str(frames), str(base))
         passed = q.returncode == 0
         log["levels"].append({"level": level, "qc_pass": passed,
                               "qc_tail": q.stdout.strip().split("\n")[0]

@@ -74,7 +74,9 @@ def face_zone(base: Path):
     except Exception:
         return None
     bottom = float(d.get("face_bottom", 0.44))
-    centre = min(max(bottom + 0.16, 0.50), 0.80)
+    bmax = float(d.get("face_bottom_max", bottom))
+    # the band clears the LOWEST chin in the clip, not the median one
+    centre = min(max(max(bottom, bmax) + 0.10, 0.50), 0.72)
     return [round(centre - 0.055, 3), round(centre + 0.055, 3)]
 
 
@@ -244,7 +246,9 @@ def build(plan: dict) -> dict:
         "crops": plan.get("crops", []),
         "out_base": str(out / "base.mp4"),
         "out_slice": str(out / "slice.json"),
-        "tail_seconds": plan.get("tail_seconds") or 2.2,
+        # the frozen tail that holds the outro: the end card (1.1s) +
+        # the fade (0.45s) + the beat after the last caption
+        "tail_seconds": plan.get("tail_seconds") or 2.7,
         "splits": plan.get("splits", []),
     }
     (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
@@ -404,10 +408,6 @@ def build(plan: dict) -> dict:
                           for r in it.get("rows", []) for w in r),
                          default=0.0)
 
-    # the base has to hold the outro: the tail runs from the last
-    # spoken word to the end of the end card (plus a little)
-    spec["tail_seconds"] = plan.get("tail_seconds") or round(
-        max(0.5, duration - last_word_time + 0.10), 2)
     (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
 
     timeline = {

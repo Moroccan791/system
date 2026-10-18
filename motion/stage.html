@@ -484,7 +484,7 @@ function buildPoster(item) {
     }
     // behind-the-person stacks fit wider: the words must flank the
     // silhouette, so they are allowed 94% of the frame
-    autofit(stack, item.behind ? 0.94 : 0.88);
+    fitStack(stack, item.behind ? 0.94 : 0.90);
   });
   return { item, root, words, stack, sp3d };
 }
@@ -2872,6 +2872,35 @@ function fitSvg(tx, maxW) {
       tx.setAttribute("font-size", fs.toFixed(1));
     }
   });
+}
+
+function stackContentWidth(stack) {
+  // The rows are flex containers: when the words are wider than the
+  // row, the content OVERFLOWS the row box, so scrollWidth still
+  // reports the row width and the old autofit never saw the spill.
+  // Measure the words themselves instead.
+  let widest = 0;
+  for (const row of stack.children) {
+    let w = 0;
+    const kids = Array.from(row.children);
+    for (const sp of kids) w += sp.offsetWidth;
+    const gap = parseFloat(getComputedStyle(row).columnGap || "0") || 0;
+    w += Math.max(0, kids.length - 1) * gap;
+    widest = Math.max(widest, w);
+  }
+  return widest;
+}
+
+function fitStack(stack, maxFrac) {
+  // shrink the whole stack until the widest row fits the frame
+  const maxW = maxFrac * W;
+  const natural = stackContentWidth(stack);
+  if (!natural || natural <= maxW) { stack._fitScale = 1; return; }
+  let scale = maxW / natural;
+  scale = Math.max(0.45, scale);
+  stack.style.transform = `scale(${scale})`;
+  stack.style.transformOrigin = "50% 50%";
+  stack._fitScale = scale;
 }
 
 function autofit(node, maxFrac, singleLine) {

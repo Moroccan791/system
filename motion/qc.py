@@ -474,7 +474,8 @@ def opening(tl: dict) -> tuple[str, str]:
 
 
 # ------------------------------------------------------------ face/margin
-def face_zone(video: Path, tl: dict) -> tuple[str, str]:
+def face_zone(video: Path, tl: dict, base: Path | None = None
+               ) -> tuple[str, str]:
     # behind=true posters are MEANT to sit under the face (the speaker
     # stands in front of the words) - the face-zone rule is inverted
     # for them, so they are exempt here, not flagged
@@ -495,6 +496,14 @@ def face_zone(video: Path, tl: dict) -> tuple[str, str]:
     det = _detector()
     if det is None:
         return "warn", "YuNet unavailable"
+    # The face is measured on the CLEAN base, never on the finished
+    # clip: the white caption letters themselves read as a face
+    # (conf 0.91) and fail every poster they touch.
+    source = base if (base and Path(base).exists()) else video
+    # a full-bleed vector scene covers the frame: her face is not on
+    # screen while it runs, so a caption inside it cannot hit her face
+    scenes = [(float(v["at"]), float(v.get("until") or v["at"]))
+              for v in tl["items"] if v["type"] == "vector"]
     zone_def = {"list": [0.50, 0.95], "process": [0.52, 0.92]}
     hits = []
     for it in posters:
@@ -505,7 +514,9 @@ def face_zone(video: Path, tl: dict) -> tuple[str, str]:
         half = (zone[1] - zone[0]) * 0.30
         zy0, zy1 = (cy - half) * 1920, (cy + half) * 1920
         t = (float(it["at"]) + float(it.get("until") or it["at"])) / 2
-        frame = next(iter_frames(video, size=(540, 960), start=t, duration=0.1), None)
+        if any(a - 0.05 <= t <= b + 0.05 for a, b in scenes):
+            continue          # a full-screen scene is on: no face there
+        frame = next(iter_frames(source, size=(540, 960), start=t, duration=0.1), None)
         if frame is None:
             continue
         det.setInputSize((frame.shape[1], frame.shape[0]))
@@ -514,6 +525,8 @@ def face_zone(video: Path, tl: dict) -> tuple[str, str]:
             continue
         fy = frame.shape[0] / 1920.0
         for f in faces:
+            if f[-1] < 0.80:
+                continue      # a raised hand is not a face
             fy0, fh = float(f[1]), float(f[3])
             if fy0 < zy1 * fy and fy0 + fh > zy0 * fy:
                 hits.append(f"{t:.1f}s")
@@ -691,6 +704,9 @@ def main() -> int:
     tl = json.loads(Path(sys.argv[1]).read_text())
     transcript = json.loads(Path(sys.argv[2]).read_text())
     video, frames = Path(sys.argv[3]), Path(sys.argv[4])
+    # the clean base (optional): the face rules read it, not the
+    # finished clip where the caption letters read as a face
+    base = Path(sys.argv[5]) if len(sys.argv) > 5 else None
     checks = [("duration", *duration(video, tl)),
               ("word_sync", *word_sync(tl, transcript)),
               ("text_sizes", *text_sizes(tl)),
@@ -701,7 +717,7 @@ def main() -> int:
               ("images", *images(tl)),
               ("cuts", *cuts(video, tl)),
               ("opening", *opening(tl)),
-              ("face_zone", *face_zone(video, tl)),
+              ("face_zone", *face_zone(video, tl, base)),
               ("value_anchor", *value_anchor(tl, transcript)),
               ("behind_fit", *behind_fit(video, tl)),
               ("semi_text", *semi_text(frames)),

@@ -55,8 +55,10 @@ def detect_track(src: Path, stride: int, cuts: list[int]):
                 primary_c = None
                 last_seg = seg
             _, faces = det.detect(fr)
+            # confidence floor: a raised hand is not a face, and a
+            # false positive would drag the caption band down
             boxes = [] if faces is None else [tuple(map(float, b[:4]))
-                                              for b in faces]
+                                              for b in faces if b[-1] >= 0.80]
             primary = None
             if boxes:
                 if primary_c is None:
@@ -180,12 +182,18 @@ def face_report(src: Path) -> dict:
     _cap.release()
     fps, total, w, h, samples = detect_track(
         src, 3 if n0 <= 1000 else 6, [])
-    boxes = [p for _, p, _ in samples if p is not None]
+    # every confident detection, not only the tracked one: the caption
+    # band has to clear the LOWEST chin in the clip
+    boxes = []
+    for _f, _p, allb in samples:
+        boxes.extend(allb)
     if not boxes:
         return {"src": str(src), "faces_detected_pct": 0.0,
                 "note": "no face tracked - keep default zones"}
     arr = np.array(boxes, dtype=np.float64)
     fb = float(np.median((arr[:, 1] + arr[:, 3]) / h))
+    fbm = float(np.percentile((arr[:, 1] + arr[:, 3]) / h, 95))
+    fbm = float(np.percentile((arr[:, 1] + arr[:, 3]) / h, 95))
     zone = [round(min(max(fb + 0.05, 0.58), 0.78), 3),
             round(min(max(fb + 0.32, 0.82), 0.94), 3)]
     return {"src": str(src), "frames": total,
@@ -197,6 +205,8 @@ def face_report(src: Path) -> dict:
                                                   + arr[:, 3] / 2) / h), 3)],
             "face_h_frac": round(float(np.median(arr[:, 3]) / h), 3),
             "face_bottom": round(fb, 3),
+            "face_bottom_max": round(fbm, 3),
+            "face_bottom_max": round(fbm, 3),
             "recommended_caption_zone": zone,
             "recommended_poster_zone": [zone[0],
                                         round(min(zone[0] + 0.20, 0.90), 3)]}
