@@ -1928,6 +1928,60 @@ function buildScene(svg, V, ac, item, vw, vh) {
     const mkLeaf = (dir) => { const g = svgEl("g", {}, svg); svgEl("ellipse", { cx: 0, cy: 0, rx: 36 * s, ry: 15 * s, fill: "#58B368" }, g); return { g, dir }; };
     n.leafL = mkLeaf(-1); n.leafR = mkLeaf(1);
     n.soilY = soil;
+  } else if (V.name === "oaktree") {
+    // A story-specific oak, not a generic seed icon: roots anchor it,
+    // branches spread, the canopy opens, and two small figures settle
+    // under the shade (the line is about protecting her children).
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101319" }, svg);
+    const ground = H * 0.77, crown = H * 0.49;
+    svgEl("ellipse", { cx: 300 * s, cy: (ground + 10) * s,
+      rx: 12 * s, ry: 19 * s, fill: hexA(ac, .22), opacity: 0 }, svg);
+    n.shade = svg.querySelector("ellipse");
+    svgEl("line", { x1: 82 * s, y1: ground * s, x2: 518 * s,
+      y2: ground * s, stroke: "#364536", "stroke-width": 5 * s,
+      "stroke-linecap": "round" }, svg);
+    n.oakDraws = [];
+    const strokePath = (d, color, width, delay) => {
+      const el = svgEl("path", { d, fill: "none", stroke: color,
+        "stroke-width": width * s, "stroke-linecap": "round",
+        "stroke-linejoin": "round" }, svg);
+      const len = el.getTotalLength();
+      el.setAttribute("stroke-dasharray", len.toFixed(1));
+      el.setAttribute("stroke-dashoffset", len.toFixed(1));
+      n.oakDraws.push({ el, len, delay });
+      return el;
+    };
+    strokePath(`M 300 ${ground + 4} C 292 ${ground - 52}, 309 ${ground - 100}, 300 ${ground - 172} C 296 ${ground - 212}, 303 ${crown + 46}, 300 ${crown + 10}`, "#8B6B46", 19, 0.08);
+    strokePath(`M 300 ${ground - 148} C 276 ${ground - 190}, 242 ${ground - 222}, 211 ${ground - 250} C 190 ${ground - 268}, 175 ${ground - 284}, 169 ${crown + 46}`, "#8B6B46", 8, 0.30);
+    strokePath(`M 301 ${ground - 180} C 329 ${ground - 216}, 357 ${ground - 242}, 392 ${ground - 268} C 410 ${ground - 282}, 425 ${ground - 290}, 432 ${crown + 42}`, "#8B6B46", 8, 0.39);
+    strokePath(`M 300 ${ground - 117} C 274 ${ground - 143}, 253 ${ground - 158}, 230 ${ground - 180}`, "#8B6B46", 6, 0.45);
+    strokePath(`M 301 ${ground - 130} C 327 ${ground - 151}, 350 ${ground - 173}, 372 ${ground - 193}`, "#8B6B46", 6, 0.51);
+    // roots make the tree feel planted; a soft ground shadow grows with it
+    strokePath(`M 300 ${ground + 2} C 273 ${ground + 22}, 246 ${ground + 28}, 218 ${ground + 18}`, "#8B6B46", 4, 0.63);
+    strokePath(`M 300 ${ground + 2} C 327 ${ground + 22}, 354 ${ground + 28}, 382 ${ground + 18}`, "#8B6B46", 4, 0.68);
+    const canopyD = "M -62 4 C -75 -22 -51 -48 -24 -40 C -17 -70 17 -70 27 -41 C 58 -52 78 -23 62 2 C 77 28 48 49 20 39 C 3 62 -27 53 -34 38 C -63 46 -81 24 -62 4 Z";
+    n.canopies = [[222, crown + 36, "#315F49", 0.28],
+                  [300, crown - 2, "#3B704F", 0.38],
+                  [378, crown + 34, "#2D5944", 0.48],
+                  [264, crown + 71, "#3E7754", 0.58],
+                  [340, crown + 72, "#315F49", 0.68]].map(([x, y, fill, delay]) => {
+      const g = svgEl("g", { opacity: 0,
+        transform: `translate(${x * s} ${y * s}) scale(${0.01 * s})` }, svg);
+      svgEl("path", { d: canopyD, fill, stroke: "#244834",
+        "stroke-width": 2.5 }, g);
+      return { g, x, y, delay };
+    });
+    // small, calm silhouettes beneath the canopy; no faces or added claims
+    n.children = [276, 324].map((x, i) => {
+      const g = svgEl("g", { opacity: 0 }, svg);
+      const yy = ground - (i ? 28 : 24);
+      svgEl("circle", { cx: x * s, cy: (yy - 22) * s, r: (i ? 10 : 9) * s,
+        fill: "#F2EFE6" }, g);
+      svgEl("path", { d: `M ${(x - 11) * s} ${yy * s} Q ${x * s} ${(yy - 15) * s} ${(x + 11) * s} ${yy * s} L ${(x + 8) * s} ${(ground + 1) * s} L ${(x - 8) * s} ${(ground + 1) * s} Z`,
+        fill: i ? "#D8D1BE" : ac }, g);
+      return g;
+    });
+    n.oakGround = ground;
   } else if (V.name === "chess") {
     // SHOW strategy: not checkers — chess. The pawn advances with intent
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
@@ -2597,6 +2651,22 @@ function animateVector(b, t, lifeP) {
     n.leafR.g.setAttribute("transform", `translate(${316 * s} ${topY}) rotate(32) scale(${Math.max(0.001, kr).toFixed(3)})`);
     n.roots.setAttribute("opacity", clamp01((p - 0.5) / 0.3).toFixed(2));
     n.sun.setAttribute("transform", `translate(0 ${(-26 * q * s).toFixed(1)})`);
+  } else if (V.name === "oaktree") {
+    n.oakDraws.forEach(d => {
+      const q = easeOut(clamp01((lt - d.delay) / 0.33));
+      d.el.setAttribute("stroke-dashoffset", (d.len * (1 - q)).toFixed(1));
+    });
+    n.canopies.forEach((c, i) => {
+      const q = easeOutBack(clamp01((lt - c.delay) / 0.38));
+      c.g.setAttribute("opacity", clamp01((lt - c.delay) / 0.12).toFixed(2));
+      c.g.setAttribute("transform", `translate(${c.x * s} ${c.y * s}) scale(${(s * Math.max(0.01, q)).toFixed(3)})`);
+    });
+    const shade = easeOut(clamp01((lt - 0.82) / 0.38));
+    n.shade.setAttribute("rx", (178 * shade * s).toFixed(1));
+    n.shade.setAttribute("opacity", (0.22 * shade).toFixed(2));
+    n.children.forEach((g, i) => {
+      g.setAttribute("opacity", easeOut(clamp01((lt - 0.78 - i * 0.10) / 0.22)).toFixed(2));
+    });
   } else if (V.name === "chess") {
     const seg = clamp01(p / 0.78) * (n.chessPath.length - 1);
     const i = Math.min(n.chessPath.length - 2, Math.floor(seg)), f = seg - i;

@@ -65,7 +65,7 @@
     },
     {
       "type": "vector",
-      "name": "sprout",
+      "name": "oaktree",
       "trigger": "protects",
       "lead": 0.05,
       "dur": 1.6
