@@ -88,7 +88,13 @@
       "type": "caption",
       "zone": "face",
       "lines": [
-        "I'm Hispanic, so",
+        "I'm Hispanic, so"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
         "I wanted to represent"
       ]
     },

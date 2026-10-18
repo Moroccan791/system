@@ -192,7 +192,7 @@ def face_report(src: Path) -> dict:
                 "note": "no face tracked - keep default zones"}
     arr = np.array(boxes, dtype=np.float64)
     fb = float(np.median((arr[:, 1] + arr[:, 3]) / h))
-    fbm = float(np.percentile((arr[:, 1] + arr[:, 3]) / h, 95))
+    fbm = float(np.max((arr[:, 1] + arr[:, 3]) / h))
     fbm = float(np.percentile((arr[:, 1] + arr[:, 3]) / h, 95))
     zone = [round(min(max(fb + 0.05, 0.58), 0.78), 3),
             round(min(max(fb + 0.32, 0.82), 0.94), 3)]
