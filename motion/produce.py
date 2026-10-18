@@ -88,7 +88,8 @@ def simplify(tl: dict, level: int) -> dict:
     if level == 1:  # drop inserts/fx/chips, keep the argument
         kept = []
         for i in tl["items"]:
-            if i["type"] in ("poster", "card", "counter", "list", "process") \
+            if i["type"] in ("poster", "card", "counter", "list", "process",
+                             "vector") \
                     or (i["type"] == "fx" and i.get("kind") == "opening"):
                 kept.append(i)
             elif i["type"] == "proof":
@@ -239,7 +240,8 @@ def main() -> int:
         tl = json.loads(json.dumps(tl))
         tl["theme"] = {k: theme[k] for k in
                        ("radius", "glow", "speed", "easing", "fontMode",
-                        "captionStyle", "captionShade", "fontPack")
+                        "captionStyle", "captionShade", "fontPack",
+                        "fonts", "colors")          # style card roles
                        if k in theme}
         tl.setdefault("brand", {})["accent"] = theme["accent"]
         if auto_zone:

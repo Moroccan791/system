@@ -21,6 +21,15 @@
   @font-face { font-family: "PackGrotesk"; src: url("file:///home/user/system/assets/fonts/SpaceGrotesk-Bold.woff2"); font-weight: 700; }
   @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Bold.woff2"); font-weight: 700; }
   @font-face { font-family: "PackSerif"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-Italic.woff2"); font-weight: 700; font-style: italic; }
+  /* ---- editorial cuts added for the style card (OFL, fontsource) ----
+     Six looks the user picked by name: medium oblique, bold italic,
+     sans italic, regular, display book italic, grande semibold. */
+  @font-face { font-family: "PackOblique"; src: url("file:///home/user/system/assets/fonts/Archivo-MediumItalic.woff2"); font-weight: 500; font-style: italic; }
+  @font-face { font-family: "PackSerifBoldItalic"; src: url("file:///home/user/system/assets/fonts/PlayfairDisplay-BoldItalic.woff2"); font-weight: 700; font-style: italic; }
+  @font-face { font-family: "PackSansItalic"; src: url("file:///home/user/system/assets/fonts/Montserrat-Italic.woff2"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "PackRegular"; src: url("file:///home/user/system/assets/fonts/Inter-Regular.woff2"); font-weight: 400; }
+  @font-face { font-family: "PackDisplayBook"; src: url("file:///home/user/system/assets/fonts/Newsreader-BookItalic.woff2"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "PackGrande"; src: url("file:///home/user/system/assets/fonts/Outfit-Semibold.woff2"); font-weight: 600; }
   html, body { margin: 0; padding: 0; width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
   #stage { position: absolute; inset: 0; }
   .item { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
@@ -143,6 +152,18 @@
   .poster .stack.impact .w { text-transform: uppercase; letter-spacing: .02em;
     -webkit-text-stroke: 4px rgba(0,0,0,.85); }
 
+  /* ---- editorial captions (captionStyle "editorial") -----------------
+     Print type on picture: caps, tight tracking, a THIN hard outline
+     for legibility, no drop shadow, no soft plate, no glow. The
+     keyword swaps to the accent colour - it does not get a plate and
+     it never wipes in. */
+  .poster .stack.editorial::before { display: none; }
+  .poster .stack.editorial .w { text-transform: uppercase; letter-spacing: -.005em;
+    -webkit-text-stroke: 2px rgba(0,0,0,.92); paint-order: stroke fill;
+    text-shadow: none; font-weight: 800; }
+  .poster .stack.editorial .w.conn { font-weight: 700; }
+  .poster .stack.editorial .w.serif { text-transform: none; letter-spacing: -.01em; }
+
   /* ---- proof card: the receipt (testimonial / screenshot / number) ---- */
   .proof { position: absolute; inset: 0; display: flex; align-items: flex-start; justify-content: center; }
   .proof .pfcard { background: #FDFEFE; border-radius: 36px; padding: 34px 40px 38px; width: 84%;
@@ -251,6 +272,51 @@ const F = s => Math.round(s * FPS); // seconds -> frames
 
 let TL = null, builtItems = [], ACCENT = "#FFC531", stats = null;
 let THEME = { radius: "round", glow: 1, speed: 1, easing: "pop", fontMode: "sans" };
+// font pack registry: name -> CSS family. A pack is a whole-video
+// voice; the style card can also assign a pack PER ROLE.
+const PACKS = {
+  montserrat: "MontserratX", anton: "PackAnton", bebas: "PackBebas",
+  grotesk: "PackGrotesk", serif: "PackSerif", archivo: "PackArchivo",
+  poppins: "PackPoppins", luckiest: "PackLuckiest",
+  // the six editorial cuts from the style card
+  oblique: "PackOblique",            // medium oblique (slanted grotesk)
+  serifbi: "PackSerifBoldItalic",    // bold italic (display serif)
+  sansitalic: "PackSansItalic",      // sans italic
+  regular: "PackRegular",            // regular (neutral grotesk)
+  displaybook: "PackDisplayBook",    // display book italic
+  grande: "PackGrande"               // grande semibold
+};
+const ROLE_SEL = {
+  caption: ".poster .w.conn, .card .cw, .chip .t1",
+  keyword: ".poster .w.key, .poster .w.hero, .poster .w.pay, .poster .w.grad, .poster .w.neon",
+  serif: ".poster .w.serif",
+  endcard: ".slate .hk-line, .slate .hk-sub, .slate .hk-kicker",
+  list: ".listp .lhead, .listp .pt1, .listp .pt2, .listp .badge"
+};
+function roleFontCss() {
+  const f = THEME.fonts || {};
+  return Object.keys(ROLE_SEL)
+    .filter(r => PACKS[f[r]])
+    .map(r => `${ROLE_SEL[r]} { font-family: "${PACKS[f[r]]}" !important;`
+             + (r === "serif" ? " font-style: italic;" : "") + " }")
+    .join("");
+}
+function roleColorCss() {
+  const c = THEME.colors || {}, out = [];
+  if (c.caption) out.push(`.poster .w.conn, .card .cw, .chip .t1 { color: ${c.caption}; }`);
+  if (c.keyword) out.push(`.poster .w.hero, .poster .w.grad, .poster .w.pay { color: ${c.keyword} !important; }`);
+  // the plate only exists in the plate treatments: the editorial
+  // treatment swaps the keyword INK instead, so its plate must not be
+  // forced on (that is what turned "editorial" back into "impact").
+  if (c.plate) out.push(`.poster .stack:not(.editorial) .w.key { background: ${c.plate} !important; }`);
+  if (c.plateInk) out.push(`.poster .stack:not(.editorial) .w.key { color: ${c.plateInk} !important; }`);
+  if (c.listHead) out.push(`.listp .lhead { background: ${c.listHead} !important; }`);
+  if (c.listBg) out.push(`.listp .plate { background: ${c.listBg} !important; }`);
+  if (c.listText) out.push(`.listp .pt1, .listp .pt2 { color: ${c.listText} !important; }`);
+  if (c.sceneBg) out.push(`.broll.vecfull .win { background: ${c.sceneBg} !important; }`);
+  if (c.sceneInk) out.push(`.broll.vecfull .blab .l1 { color: ${c.sceneInk} !important; }`);
+  return out.join("");
+}
 function themeEase(p) {
   if (THEME.easing === "snap") { const q = clamp01(p * 1.15); return 1 - Math.pow(1 - q, 4); }
   if (THEME.easing === "soft") return p * p * (3 - 2 * p);
@@ -276,6 +342,7 @@ function buildPoster(item) {
   const words = [];
   const style = item.captionStyle || THEME.captionStyle || "pop";
   if (style === "impact") stack.classList.add("impact");
+  if (style === "editorial") stack.classList.add("editorial");
   const kara = style === "karaoke";
   const markerStyle = style === "marker";
   (item.rows || []).forEach(row => {
@@ -288,7 +355,9 @@ function buildPoster(item) {
         : kind === "mark" ? "mark" : kind === "pay" ? "pay"
         : kind === "grad" ? "grad" : "conn");
       s.textContent = wd.w;
-      s.style.fontSize = ((wd.size && (markerStyle || ["mark", "pay", "grad"].includes(kind)))
+      // an explicit per-word size always wins (a serif hero has to be
+      // able to scale to display size); otherwise the kind decides.
+      s.style.fontSize = (wd.size
         ? wd.size
         : kind === "hero" ? (item.heroSize || 250)
         : ["key", "neon", "mark", "pay", "grad"].includes(kind) ? (item.keySize || 118)
@@ -337,11 +406,21 @@ function buildPoster(item) {
         // word): the pair is 4.5:1+ by construction on any footage,
         // where accent-coloured glyphs on a bright wall cannot be
         const ac = item.accent || ACCENT;
-        s.style.background = ac;
-        s.style.color = "#0D0F12";
-        s.style.webkitTextStroke = "0px";
-        s.style.padding = "0px 20px";
-        s.style.borderRadius = "16px";
+        if (style === "editorial") {
+          // editorial: a flat COLOUR SWAP instead of a plate - the
+          // word stays type, it just changes ink. No box, no bar.
+          s.style.background = "none";
+          s.style.color = wd.color || ac;
+          s.style.webkitTextStroke = "2px rgba(0,0,0,.92)";
+          s.style.padding = "0px";
+          s.style.borderRadius = "0px";
+        } else {
+          s.style.background = ac;
+          s.style.color = "#0D0F12";
+          s.style.webkitTextStroke = "0px";
+          s.style.padding = "0px 20px";
+          s.style.borderRadius = "16px";
+        }
         s.dataset.glowc = ac;
       }
       if (kind === "hero") {
@@ -362,6 +441,7 @@ function buildPoster(item) {
       words.push({ el: s, at: wd.at, kind, kara, mkbar, sticker,
                    markerStyle, style,
                    entry: style === "impact" ? "impact"
+                     : style === "editorial" ? "editorial"
                      : ["stretch", "wiggle", "glide", "bounce"].includes(style)
                      ? style : "pop",
                    finish: style === "neon" ? "neon" : null,
@@ -696,7 +776,7 @@ function buildVector(item) {
   const V = { name: item.name || "burst", n: {} };
   let svg;
   if (full) {
-    const root = el("item broll", stage);
+    const root = el("item broll vecfull", stage);
     const win = el("win", root);
     win.style.left = "0px"; win.style.top = "0px";
     win.style.width = W + "px"; win.style.height = H + "px";
@@ -2710,6 +2790,8 @@ function wordEnter(wd, t) {
   let scale = 1, sx = null, sy = null;
   if (entry === "impact") {          // print pop: sharp, no blur
     blur = 0; y = 12 * (1 - easeOut(p)); rot = 0;
+  } else if (entry === "editorial") {  // flat print: settle, no pop
+    blur = 0; y = 7 * (1 - easeOut(p)); rot = 0;
   } else if (entry === "glide") {           // slides in from the left, sharp
     x = -54 * (1 - easeOut(p)); y = 0; blur = 0; rot = 0;
   } else if (entry === "stretch") {  // rubber-band: wide -> true width
@@ -2721,8 +2803,9 @@ function wordEnter(wd, t) {
   }
   if (entry === "wiggle" && dt > enterF)   // lands, then wiggles off
     rot += Math.sin((dt - enterF) * 22) * 2.6 * Math.exp(-(dt - enterF) * 5);
-  if (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero"
-      || wd.kind === "mark" || wd.kind === "pay" || wd.kind === "grad") {
+  if (wd.style !== "editorial"
+      && (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero"
+      || wd.kind === "mark" || wd.kind === "pay" || wd.kind === "grad")) {
     const pk = clamp01(dt / ((10 / THEME.speed) / FPS));
     scale = pk < 0.62 ? 0.85 + (1.08 - 0.85) * themeEase(pk / 0.62)
                      : 1.08 - 0.08 * themeEase((pk - 0.62) / 0.38);
@@ -2781,7 +2864,10 @@ function applyWord(wd, t, until) {
     shadow = `0 0 34px ${hexA(wd.ac || "#FF3355", .85)}, 0 6px 22px rgba(0,0,0,.45)`;
   if (wd.kind === "key" || wd.kind === "hero" || wd.kind === "mark"
       || wd.kind === "pay" || wd.kind === "grad") {
-    if (wd.style === "impact") {
+    if (wd.style === "editorial") {
+      // flat print: no shadow at all, the thin outline carries it
+      shadow = "none";
+    } else if (wd.style === "impact") {
       // reference print: hard offset shadow, never a coloured glow
       shadow = "0 5px 0 rgba(0,0,0,.55), 0 10px 24px rgba(0,0,0,.35)";
     } else {
@@ -2963,8 +3049,16 @@ function renderAt(tMs) {
           // (seen on chat: beat ended 23.04, ghost dissolved at 23.27
           // over the incoming poster). A vector scene instead dissolves
           // AT until and is gone within 2f; the beat boundary is exact.
-          b._vecOp = Math.min(clamp01((t - it.at) / (2 / FPS)),
-                              clamp01(1 - (t - until) / (2 / FPS)));
+          // HARD CUT in and out. The old 2-frame dissolve let the
+          // footage underneath show through: the scene's nodes landed
+          // ON the speaker's face for ~66ms, which read as a ghost
+          // overlay (v5, "connection" beat). A full-screen scene is an
+          // interstitial: it replaces the frame on a cut, like the
+          // reference clips. `softIn` opts back into the dissolve.
+          b._vecOp = it.softIn
+            ? Math.min(clamp01((t - it.at) / (2 / FPS)),
+                       clamp01(1 - (t - until) / (2 / FPS)))
+            : (t >= it.at && t < until ? 1 : 0);
           b.win.style.opacity = b._vecOp.toFixed(3);
           b.win.style.filter = "none";
           b.win.style.transform = "none";
@@ -3186,10 +3280,18 @@ window.setTimeline = function (tl) {
     // across posters, cards, slates, chips, lower-thirds, counters.
     // Serif-italic WORDS keep SerifX - that contrast is a meaning
     // cue (reflective), not a style accident.
-    ({ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk",
-       serif: "PackSerif", archivo: "PackArchivo",
-       poppins: "PackPoppins", luckiest: "PackLuckiest" }[THEME.fontPack]
-      ? `.poster .w, .card .cw, .slate .hk-line, .slate .hk-kicker, .slate .hk-sub, .chip .t1, .lowerthird .ltname, .counter .num { font-family: "${{ anton: "PackAnton", bebas: "PackBebas", grotesk: "PackGrotesk", serif: "PackSerif", archivo: "PackArchivo", poppins: "PackPoppins", luckiest: "PackLuckiest" }[THEME.fontPack]}" !important; }` : "");
+    (PACKS[THEME.fontPack]
+      ? `.poster .w, .card .cw, .slate .hk-line, .slate .hk-kicker, .slate .hk-sub, .chip .t1, .lowerthird .ltname, .counter .num { font-family: "${PACKS[THEME.fontPack]}" !important; }` : "") +
+    // ---- style card: per-ROLE fonts (one video, several voices) -------
+    // caption / keyword / serif / endcard / list each take their own
+    // face. The whole-video pack above paints the base; these rules
+    // are more specific and land last, so a role always wins.
+    roleFontCss() +
+    // ---- style card: per-ROLE colours --------------------------------
+    // keyword colour, plate colour + ink, caption text colour, list
+    // colours, and the full-bleed scene ground/ink (REF1 runs white
+    // scenes with dark type - the ground is a choice, not a constant).
+    roleColorCss();
   stage.innerHTML = "";
   builtItems = [];
   layoutJobs.length = 0;

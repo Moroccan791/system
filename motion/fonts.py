@@ -42,6 +42,25 @@ PACKS = [
     ("luckiest", "Luckiest Guy",
      "playful cartoon display: comedy, gaming, kids, high-energy "
      "hooks only - use sparingly, it shouts"),
+    # ---- the six editorial cuts (style card) ------------------------
+    ("oblique", "Archivo Medium Italic",
+     "medium oblique: a slanted mid-weight grotesk - the 'slanted "
+     "caption' look without the marker bar"),
+    ("serifbi", "Playfair Display Bold Italic",
+     "bold italic: display serif at full weight - the reflective / "
+     "premium hero (REF4's voice)"),
+    ("sansitalic", "Montserrat Italic",
+     "sans italic: a clean humanist slanted sans - softer than the "
+     "oblique, still flat editorial"),
+    ("regular", "Inter Regular",
+     "regular: the neutral workhorse - quiet caps that sit on any "
+     "picture without shouting"),
+    ("displaybook", "Newsreader Book Italic",
+     "display book italic: a high-contrast book-weight display serif, "
+     "the most 'designed' of the six"),
+    ("grande", "Outfit Semibold",
+     "grande semibold: geometric display semibold - big, clean, "
+     "confident; the keyword face in the editorial treatment"),
 ]
 
 

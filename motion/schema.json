@@ -33,7 +33,7 @@
         "fontMode": { "enum": ["sans", "serif"] },
         "fontPack": { "enum": ["montserrat", "anton", "bebas", "grotesk", "serif", "archivo", "poppins", "luckiest"] },
         "captionShade": { "type": "number", "minimum": 0, "maximum": 0.5 },
-        "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact"] }
+        "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact", "editorial"] }
       }
     },
     "items": { "type": "array", "items": { "$ref": "#/definitions/item" } }
@@ -84,7 +84,7 @@
           "type": "array", "minItems": 1, "maxItems": 4,
           "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
         },
-        "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact"] },
+        "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact", "editorial"] },
         "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
         "accent2": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
         "gradient": { "type": "array", "minItems": 2, "maxItems": 2,
