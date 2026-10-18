@@ -5,12 +5,12 @@
   "transcript": "work/street/asr/episode_transcript.json",
   "offset": 0.0,
   "span": [
-    3640.3,
-    3677.0
+    3649.1,
+    3676.3
   ],
   "drops": [
     [
-      3668.5,
+      3668.72,
       3673.2
     ]
   ],
@@ -35,38 +35,44 @@
       "type": "caption",
       "zone": "face",
       "lines": [
-        "My goal isn't",
-        "to be perfect"
-      ]
-    },
-    {
-      "type": "caption",
-      "zone": "face",
-      "lines": [
         "I'm trying to build",
-        "a beautiful oak tree"
+        "a beautiful oak tree."
       ]
     },
     {
       "type": "vector",
       "name": "bigword",
       "trigger": "oak tree",
-      "lead": 0.02,
+      "lead": 0.05,
       "dur": 1.8,
       "word": "OAK TREE"
     },
     {
       "type": "caption",
+      "zone": "face",
+      "lines": [
+        "That will come from",
+        "that soil,"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "that will shade and"
+      ]
+    },
+    {
+      "type": "caption",
       "zone": "scene",
       "lines": [
-        "something that gives",
-        "shade and protects"
+        "protect my children"
       ]
     },
     {
       "type": "vector",
       "name": "oaktree",
-      "trigger": "protects",
+      "trigger": "protect",
       "lead": 0.05,
       "dur": 1.6
     },
@@ -74,27 +80,32 @@
       "type": "caption",
       "zone": "face",
       "lines": [
-        "shade and protect",
-        "my children"
+        "from negative body",
+        "image talk"
       ]
     },
     {
       "type": "caption",
       "zone": "face",
       "lines": [
-        "so they can grow",
-        "in a world without"
+        "and outside, um",
+        "influence, diet culture,"
       ]
     },
     {
       "type": "caption",
       "zone": "face",
       "lines": [
-        "negative body image",
-        "talk"
-      ],
-      "wordKind": "hero",
-      "heroSize": 210
+        "things like that."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "like, I want to",
+        "protect my kids,"
+      ]
     },
     {
       "type": "caption",
@@ -119,8 +130,8 @@
     }
   ],
   "posting": {
-    "title": "Demi Lovato's Goal: Build an Oak Tree That Shades Her Children",
-    "description": "Demi Lovato on what she is building: 'I'm trying to build a beautiful oak tree' that gives shade and protects her children, so they grow up in a world without negative body image talk. She calls it a journey she wants to embark on.",
+    "title": "Demi Lovato Is Building an Oak Tree to Protect Her Kids",
+    "description": "Demi Lovato says she's trying to build a beautiful oak tree that will shade and protect her children from negative body-image talk and outside influence. She calls it a journey she wants to embark on.",
     "disclosure": "#ad",
     "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
     "hashtags": [

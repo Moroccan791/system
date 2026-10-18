@@ -14,7 +14,7 @@
       2010.7
     ],
     [
-      2012.99,
+      2013.23,
       2015.3
     ]
   ],
@@ -176,8 +176,14 @@
       "type": "caption",
       "zone": "face",
       "lines": [
-        "And you weren't",
-        "speaking Spanish"
+        "And you didn't have."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "You weren't speaking Spanish"
       ]
     },
     {
@@ -225,10 +231,8 @@
       "type": "caption",
       "zone": "face",
       "lines": [
-        "Christine Aguilera,"
-      ],
-      "wordKind": "hero",
-      "heroSize": 210
+        "a Christine Aguilera,"
+      ]
     },
     {
       "type": "caption",
@@ -254,8 +258,8 @@
     }
   ],
   "posting": {
-    "title": "She Wasn't Speaking Spanish at Home - Then She Sang Selena at 7",
-    "description": "Demi Lovato on singing in Spanish for the first time: 'I'm Hispanic, so I wanted to represent my culture.' Her mom said if she wanted to do the festival, she had to sing in Spanish. She was seven. 'I sang two songs. One was Selena.'",
+    "title": "Demi Lovato Sang Selena in Spanish at Seven",
+    "description": "Demi Lovato wanted to represent her culture. At seven, she sang two songs in Spanish\u2014one was Selena, and the other was a Christine Aguilera Spanish version.",
     "disclosure": "#ad",
     "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
     "hashtags": [

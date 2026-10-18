@@ -457,7 +457,19 @@ def main() -> int:
             return 1
         print("plan ok: every caption line is four words or fewer")
         return 0
-    build(plan)
+    try:
+        build(plan)
+    except ValueError as exc:
+        # A caption after an authored drop may not be reachable on the
+        # source clock. The spec is written before caption matching, so
+        # let tight_base apply the drops; the second builder pass then
+        # resolves every word on the exact cut clock. A failure after
+        # slice.json exists is real and must stay loud.
+        work = ROOT / "work" / "street" / plan["post"]
+        if (work / "spec.json").exists() and not (work / "slice.json").exists():
+            print(f"caption timing deferred until after the cut: {exc}")
+            return 0
+        raise
     return 0
 
 

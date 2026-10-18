@@ -5,10 +5,15 @@
   "transcript": "work/street/asr/episode_transcript.json",
   "offset": 0.0,
   "span": [
-    3734.4,
-    3758.9
+    3736.86,
+    3758.96
   ],
-  "drops": [],
+  "drops": [
+    [
+      3751.6,
+      3752.78
+    ]
+  ],
   "splits": [
     3737.4,
     3745.12
@@ -63,59 +68,110 @@
       "type": "caption",
       "zone": "face",
       "lines": [
+        "that you know",
         "that we share."
-      ],
-      "wordKind": "hero",
-      "heroSize": 240
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "We share."
+      ]
     },
     {
       "type": "vector",
       "name": "venn",
       "trigger": "share.",
       "lead": 0.05,
-      "dur": 1.6,
-      "lines": []
+      "dur": 1.5
     },
     {
       "type": "caption",
       "zone": "face",
       "lines": [
-        "My mom went into",
-        "treatment"
+        "Um, and she's",
+        "in recovery now,"
       ]
     },
     {
       "type": "caption",
       "zone": "face",
       "lines": [
-        "because of me"
+        "and it's beautiful",
+        "because when I went"
       ]
     },
     {
       "type": "caption",
       "zone": "face",
       "lines": [
-        "a few months later",
-        "she went in too"
+        "into treatment,",
+        "a few months later,"
       ]
     },
     {
       "type": "caption",
       "zone": "face",
       "lines": [
-        "I opened that door",
-        "for her."
-      ],
-      "wordKind": "hero",
-      "heroSize": 230
+        "she went into treatment."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "Oh, wow."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "You know, I'm grateful"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "that I could open"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "that door for her"
+      ]
     },
     {
       "type": "vector",
       "name": "door",
-      "trigger": "for her.",
+      "trigger": "for her",
       "lead": 0.05,
-      "dur": 1.6,
-      "lines": []
+      "dur": 1.5
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "and she's really done"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "the rest of the"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        "work."
+      ]
     },
     {
       "type": "endcard",
@@ -133,8 +189,8 @@
     }
   ],
   "posting": {
-    "title": "Demi Lovato Opened the Door for Her Mom - and Her Mom Walked Through It",
-    "description": "Demi Lovato on treatment and her mother: 'I will never be angry for a struggle that we share.' When she went into treatment, a few months later her mom went in too - she opened that door for her.",
+    "title": "Demi Lovato Is Grateful She Could Open That Door for Her Mom",
+    "description": "Demi Lovato says, \u2018I will never be angry for a struggle that we share.\u2019 She describes her mom going into treatment a few months after she did, and says she is grateful she could open that door.",
     "disclosure": "#ad",
     "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
     "hashtags": [
