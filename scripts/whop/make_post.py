@@ -94,16 +94,19 @@ def main() -> int:
     # 8. the posting pack
     post_md = plan.get("posting")
     if post_md:
+        disclosure = post_md.get("disclosure", "#ad").strip()
+        description = post_md.get("description", "").strip()
+        if disclosure and disclosure.casefold() not in description.casefold():
+            description = f"{disclosure}\n{description}".strip()
         lines = [f"# {post.upper()} - posting pack", "",
                  f"**File:** `street_{post}.mp4`", "",
                  "## Title", "", post_md["title"], "",
-                 "## Description", "",
-                 post_md.get("description", ""), "",
+                 "## Description (copy-paste exactly)", "", description, "",
                  post_md.get("requiredLine", ""), "",
                  "## Hashtags", "",
                  " ".join(post_md.get("hashtags", [])), "",
                  "## Notes", "",
-                 f"- Disclosure: {post_md.get('disclosure', '#ad')}",
+                 f"- Disclosure: {disclosure}",
                  "- Full episode: the podcast is the source; this is a clipped edit.",
                  ""]
         (dest / "POST.md").write_text("\n".join(lines))
