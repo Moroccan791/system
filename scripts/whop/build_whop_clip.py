@@ -42,10 +42,13 @@ ZONES = {
     "graphic": ([0.30, 0.36], 118),
     "scene":  ([0.30, 0.36], 104),
     "payoff": ([0.73, 0.84], 92),
+    "low":    ([0.82, 0.90], 92),   # close-up-safe lower third, clear of a low chin
 }
 SIZES = {"sm": 88, "md": 104, "lg": 118}
 LOOKAHEAD = 1.0        # a caption word is never matched more than a second ahead
 FIRST_LOOKAHEAD = 2.5  # the first word of a caption group may sit a beat later
+DEFAULT_ENDCARD_GAP = 0.45   # short handoff; no long frozen-speaker hold
+DEFAULT_LAST_CAPTION_TAIL = 0.35
 
 
 def _norm(tok: str) -> str:
@@ -133,15 +136,26 @@ class Clock:
         """
         key = _norm(tok)
         first = None
+        compound = None
         j = self.i
         while j < len(self.words) and self.words[j]["start"] - anchor <= limit:
-            if _norm(self.words[j]["text"]) == key:
+            current = _norm(self.words[j]["text"])
+            if current == key:
                 if self.words[j]["text"] == tok:
                     return j
                 if first is None:
                     first = j
+            # Whisper occasionally splits the ordinary spoken word
+            # "into" into adjacent "in" + "to" tokens. Match that as one
+            # caption word at the true onset, without falsely fusing it
+            # to the preceding word.
+            if key == "into" and current == "in" and j + 1 < len(self.words) \
+                    and _norm(self.words[j + 1]["text"]) == "to" \
+                    and self.words[j + 1]["start"] - anchor <= limit \
+                    and compound is None:
+                compound = j
             j += 1
-        return first
+        return first if first is not None else compound
 
     def line(self, text):
         """A caption LINE written as prose.
@@ -175,9 +189,12 @@ class Clock:
                 raise ValueError(f"line {text!r}: {tok!r} is not spoken after "
                                  f"cursor {self.i}")
             w = self.words[j]
-            row.append({"w": w["text"], "at": round(w["start"], 2),
-                        "kind": "conn"})
-            self.i = j + 1
+            compound = (key == "into" and _norm(w["text"]) == "in"
+                        and j + 1 < len(self.words)
+                        and _norm(self.words[j + 1]["text"]) == "to")
+            row.append({"w": tok if compound else w["text"],
+                        "at": round(w["start"], 2), "kind": "conn"})
+            self.i = j + 2 if compound else j + 1
             anchor = w["start"]
         return row
 
@@ -274,6 +291,7 @@ def build(plan: dict) -> dict:
     clock = Clock(words)
 
     items = []
+    last_caption_tail = DEFAULT_LAST_CAPTION_TAIL
     for beat in plan["beats"]:
         kind = beat["type"]
         if kind == "caption":
@@ -361,20 +379,21 @@ def build(plan: dict) -> dict:
                 last_caption = max((it for it in items if it["type"] == "poster"),
                                    key=lambda it: it["at"], default=None)
                 base_at = (last_caption["_last"] if last_caption else 0.0)
-                at = round(base_at + beat.get("gap", 1.00), 2)
-                if last_caption is not None:
-                    at = round(max(at, base_at + 0.95 + 0.05), 2)
+                endcard_gap = float(beat.get("gap", DEFAULT_ENDCARD_GAP))
+                last_caption_tail = max(0.12, endcard_gap - 0.10)
+                at = round(base_at + endcard_gap, 2)
                 until = round(at + beat.get("dur", 1.1), 2)
                 if base_duration:
-                    # the card runs to the last frame of the clip
+                    # The slate runs to the final frame. It may not wait
+                    # on a held speaker frame after the closing line.
                     until = round(base_duration, 2)
                     at = round(until - beat.get("dur", 1.1), 2)
-                    at = round(max(at, base_at + 0.95 + 0.05), 2)
+                    at = round(max(at, base_at + endcard_gap), 2)
             items.append({
                 "type": "endcard", "at": at, "until": until,
                 "title": beat.get("title", "STREET YOU GREW UP ON"),
                 "titleLines": beat.get("titleLines"),
-                "sub": beat.get("sub", "@street_you_grew_up_on"),
+                "sub": beat.get("sub", ""),
                 "wordSize": beat.get("wordSize", 148), "accent": accent,
             })
         else:
@@ -391,7 +410,7 @@ def build(plan: dict) -> dict:
             it["until"] = round(max(last + 0.12,
                                     min(last + 0.95, nxt - 2 / 30)), 3)
         else:
-            it["until"] = round(last + 0.95, 3)
+            it["until"] = round(last + last_caption_tail, 3)
 
     # no negative times: the first word of a clip can land a hair
     # before zero once the silences are cut

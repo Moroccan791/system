@@ -166,6 +166,28 @@ def main(spec_path: str) -> int:
         raise RuntimeError("a visual split lost a word")
     pairs = expanded
 
+    # Map transcript words through the exact kept source ranges. A word may
+    # straddle a removed silence or a visual split: the clip retains the
+    # first audible piece before the gap and/or the last piece after it.
+    # Mapping its raw onset through only the segment selected by midpoint
+    # can place a caption before its word (or reverse word order).
+    segment_offsets = []
+    mapped_cursor = 0.0
+    for (s, e), _seg in pairs:
+        segment_offsets.append((s, e, mapped_cursor))
+        mapped_cursor += e - s
+
+    def map_word(w):
+        pieces = []
+        ws, we = float(w["start"]), float(w["end"])
+        for s, e, out_at in segment_offsets:
+            a, b = max(ws, s), min(we, e)
+            if b > a:
+                pieces.append((out_at + a - s, out_at + b - s))
+        if not pieces:
+            raise RuntimeError(f"word {w['text']!r} has no audible kept audio")
+        return pieces[0][0], pieces[-1][1]
+
     def crop_for(mid: float):
         for rule in spec["crops"]:
             if mid <= rule["until"]:
@@ -202,10 +224,11 @@ def main(spec_path: str) -> int:
             f"[0:a]atrim=start={s:.3f}:end={e:.3f},asetpts=PTS-STARTPTS[a{i}]")
         labels += [f"[v{i}]", f"[a{i}]"]
         for w in seg:
+            word_start, word_end = map_word(w)
             slice_words.append({
                 "text": w["text"],
-                "start": round(cursor + (w["start"] - s), 3),
-                "end": round(cursor + (w["end"] - s), 3)})
+                "start": round(word_start, 3),
+                "end": round(word_end, 3)})
         cursor += dur  # audio-exact clock
         print(f"seg {i}: src {s:.2f}-{e:.2f} ({dur:.2f}s) "
               f"crop {cw}x{ch}@{cx} words {len(seg)}")

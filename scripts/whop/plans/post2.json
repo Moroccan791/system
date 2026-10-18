@@ -282,7 +282,7 @@
     {
       "type": "endcard",
       "after": "last",
-      "gap": 1.0,
+      "gap": 0.45,
       "dur": 1.1,
       "title": "STREET YOU GREW UP ON",
       "titleLines": [
@@ -308,5 +308,6 @@
       "#MusicAndLife",
       "#PodCulture"
     ]
-  }
+  },
+  "tail_seconds": 1.3
 }

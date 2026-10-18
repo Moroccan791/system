@@ -663,7 +663,11 @@ function buildEndcard(item) {
   const root = el("item endcard", stage);
   const slate = el("slate", root);
   const kick = el("hk-kicker", slate);
-  kick.textContent = "FOLLOW FOR MORE";
+  // New campaign clips can use the CTA itself as the full headline;
+  // avoid rendering the same words twice (small kicker + hero title).
+  const followOnly = (item.title || "").trim().toUpperCase() === "FOLLOW FOR MORE";
+  kick.textContent = followOnly ? "" : "FOLLOW FOR MORE";
+  if (followOnly) kick.style.display = "none";
   const nm = el("hk-line", slate);
   if (item.titleLines && item.titleLines.length) {
     for (const str of item.titleLines) {
