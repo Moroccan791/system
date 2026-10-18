@@ -25,6 +25,8 @@ while one fails):
   semi_text     no element semi-transparent >2 consecutive frames
   margins       zones keep the 6% safe-margin plan
   duration      video length matches the authored timeline
+  endcard_bg    the full-frame CTA slate is opaque at entry; no frozen
+                speaker frame may bleed beneath the endcard
   value_anchor  a graphic that NAMES a number (counter value, data
                 scene label) may not appear before that number is
                 spoken - no spoilers, no early scenes
@@ -35,6 +37,7 @@ while one fails):
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -691,6 +694,56 @@ def behind_fit(video: Path, tl: dict) -> tuple[str, str]:
     return "pass", "; ".join(lines) if lines else "no hero rows"
 
 
+def endcard_opaque(video: Path, tl: dict) -> tuple[str, str]:
+    """Sample the outer border on the first frame at/after CTA slate entry.
+
+    Endcard copy sits well inside the safe area, so the 6% border should
+    contain only the slate background. Bright border pixels at entry mean
+    the underlying speaker/video is still bleeding through.
+    """
+    cards = [it for it in tl.get("items", []) if it.get("type") == "endcard"]
+    if not cards:
+        return "pass", "no endcard in timeline"
+    try:
+        import cv2
+        import numpy as np
+    except ImportError:
+        return "warn", "opencv/numpy unavailable for endcard opacity check"
+
+    cap = cv2.VideoCapture(str(video))
+    if not cap.isOpened():
+        return "fail", "could not open video for endcard opacity check"
+    fps = cap.get(cv2.CAP_PROP_FPS) or FPS
+    count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    bad = []
+    for it in cards:
+        at = float(it["at"])
+        frame_no = int(math.ceil(at * fps - 1e-9))
+        if frame_no >= count:
+            bad.append(f"@{at:.2f}s entry sample falls past the video")
+            continue
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+        ok, frame = cap.read()
+        if not ok:
+            bad.append(f"@{at:.2f}s entry frame could not be read")
+            continue
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        h, w = gray.shape[:2]
+        bw, bh = max(1, round(w * 0.06)), max(1, round(h * 0.06))
+        border = np.concatenate((gray[:bh, :].ravel(), gray[-bh:, :].ravel(),
+                                 gray[bh:-bh, :bw].ravel(),
+                                 gray[bh:-bh, -bw:].ravel()))
+        p95 = float(np.percentile(border, 95))
+        mean = float(border.mean())
+        if p95 > 28 or mean > 18:
+            bad.append(f"@{at:.2f}s border mean {mean:.1f}, p95 {p95:.1f}")
+    cap.release()
+    if bad:
+        return "fail", "possible footage under CTA: " + "; ".join(bad[:3])
+    return "pass", f"{len(cards)} endcard(s), opaque on its entry frame " \
+                   f"(outer-border p95 <=28 luma)"
+
+
 def duration(video: Path, tl: dict) -> tuple[str, str]:
     # a filter graph that stalls (framesync EOF race) can silently
     # ship a video seconds short while every visual check passes -
@@ -720,6 +773,7 @@ def main() -> int:
     # finished clip where the caption letters read as a face
     base = Path(sys.argv[5]) if len(sys.argv) > 5 else None
     checks = [("duration", *duration(video, tl)),
+              ("endcard_bg", *endcard_opaque(video, tl)),
               ("word_sync", *word_sync(tl, transcript)),
               ("text_sizes", *text_sizes(tl)),
               ("text_contrast", *text_contrast(video, tl)),

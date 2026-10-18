@@ -282,14 +282,14 @@
     {
       "type": "endcard",
       "after": "last",
-      "gap": 0.45,
-      "dur": 1.1,
-      "title": "STREET YOU GREW UP ON",
+      "gap": 0.37,
+      "dur": 1.33,
+      "title": "FOLLOW FOR MORE",
       "titleLines": [
-        "STREET YOU",
-        "GREW UP ON"
+        "FOLLOW",
+        "FOR MORE"
       ],
-      "sub": "@street_you_grew_up_on",
+      "sub": "",
       "wordSize": 148
     }
   ],

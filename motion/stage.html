@@ -658,8 +658,9 @@ function buildHook(item) {
 }
 
 function buildEndcard(item) {
-  // end card: 1s branded outro slate (name + handle + follow
-  // kicker). Tail-anchored by the validator; dissolves at until.
+  // end card: CTA-only outro slate. Its background becomes fully opaque
+  // on the first frame so the frozen base tail can never bleed through;
+  // the CTA lines animate over it and the engine fades the whole frame.
   const root = el("item endcard", stage);
   const slate = el("slate", root);
   const kick = el("hk-kicker", slate);
@@ -3518,15 +3519,15 @@ function renderAt(tMs) {
       trackSemi(b.lower, op);
     }
     if (b.slate) {
-      // hook slate / end card: lines stagger in over ~6f each,
-      // slate drifts (idle law), dissolves exactly AT until in 2f
+      // Hook slates retain their short dissolve; endcards snap their
+      // background fully opaque at entry so no frozen speaker frame can
+      // show under the CTA. The end-of-clip fadeOverlay fades the entire
+      // endcard, so it never needs to reveal the base on exit.
       const until = it.until ?? it.at + 1.2;
-      // the slate itself comes up hard - the lines stagger in over 2
-      // frames each (QC: no semi-transparent text for more than 2
-      // frames). The resolution is the picture's fade to black, not a
-      // slow dissolve of the card.
-      const op = Math.min(clamp01((t - it.at) / (2 / FPS)),
-                          clamp01(1 - (t - until) / (2 / FPS)));
+      const op = it.type === "endcard"
+        ? (t >= it.at ? 1 : 0)
+        : Math.min(clamp01((t - it.at) / (2 / FPS)),
+                   clamp01(1 - (t - until) / (2 / FPS)));
       b.slate.style.opacity = op.toFixed(3);
       b.slate.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;
       (b.hkLines || []).forEach((ln, i) => {
