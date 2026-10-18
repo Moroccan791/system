@@ -1,0 +1,16 @@
+HOOK (0-3s): What if you'd never been born?
+BEAT 1: Q: "What if you'd never been born?"  A: "The world would be different."
+BEAT 2: Q: "My fingerprint?"  A: "Every breath you take moves the air."
+BEAT 3: Q: "But a breath is barely anything."  A: "So is the flap of a butterfly's wing."
+BEAT 4: Q: "What could they change?"  A: "The course of a storm."
+BEAT 5: Q: "From something so small?"  A: "That's the butterfly effect."
+BEAT 6: Q: "How?"  A: "Small changes can grow over time."
+BEAT 7: Q: "And?"  A: "His weather model predicted a different future."
+BEAT 8: Q: "So if I'd never taken a single breath..." A: "Like ripples. Never stopping."
+BEAT 9: Q: "So I'll never know everything I've changed?" -> "Then why does it feel like I've changed nothing?" A: "Because the world you see is one you changed."
+CLOSER: Q: "Does the butterfly know which storms it changes?" A: "No."
+
+RULES:
+- Max 65 words total
+- Every line <10 words
+- Final answer 1-3 words + 2s silence
