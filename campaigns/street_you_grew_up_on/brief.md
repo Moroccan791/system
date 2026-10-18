@@ -35,3 +35,17 @@ Fetched 2026-10-17.
 - USER RULE (2026-10-17): no visible "ILLUSTRATIVE" word on any graphic — it looks ugly. Consequence: for THIS campaign, do not use generated raster inserts at all (our generated b-roll stills/rolls or generated phone captures would require that tag). Inserts come only from the supplied content-library footage; everything else is typography + vector motion graphics, which carry no such label.
 - USER RULE (2026-10-17): PILOT FIRST. Produce exactly ONE clip — the strongest moment, fully finished with the new caption style + motion system — as the approval sample. Do NOT batch-produce further clips until the user has seen the pilot and said go. The full ranked moment slate can (and should) still be prepared meanwhile so the batch starts instantly after approval.
 - Footage route: 640MB source via GitHub Release `footage-demi-1` (user uploading 2026-10-17).
+
+## Current workflow authorization (2026-10-18)
+- The user reviewed the post1 pilot, approved its editorial caption + full-screen graphic workflow as the template, and then explicitly directed a full-episode sweep for additional hook-first 30–40s (or up to 50s) shorts. That later instruction supersedes the earlier wait-after-one-pilot rule for the Whop batch only.
+- Current approved scope: finish the selected Demi Lovato posts from the 69-minute episode; do not start faceless, Kelly/batch, or football work.
+- Each post gets its own `style.json` before the edit, using the campaign's user-approved font roles and colours unless the user changes them in the style card.
+- Captions stay verbatim and engine-synced; use full-bleed, story-specific vector motion graphics plus a low-volume music bed. No marker swipes, hot pink, or captions-only edits.
+- Finish each post with the last complete spoken thought, a fade, and the branded end card; ship the video and a posting pack with `#ad`, the exact required description line, and 7–8 hashtags.
+
+## Current workflow authorization (2026-10-18)
+- The user reviewed the post1 pilot, approved its editorial caption + full-screen graphic workflow as the template, and then explicitly directed a full-episode sweep for additional hook-first 30–40s (or up to 50s) shorts. That later instruction supersedes the earlier wait-after-one-pilot rule for the Whop batch only.
+- Current approved scope: finish the selected Demi Lovato posts from the 69-minute episode; do not start faceless, Kelly/batch, or football work.
+- Each post gets its own `style.json` before the edit, using the campaign's user-approved font roles and colours unless the user changes them in the style card.
+- Captions stay verbatim and engine-synced; use full-bleed, story-specific vector motion graphics plus a low-volume music bed. No marker swipes, hot pink, or captions-only edits.
+- Finish each post with the last complete spoken thought, a fade, and the branded end card; ship the video and a posting pack with `#ad`, the exact required description line, and 7–8 hashtags.
