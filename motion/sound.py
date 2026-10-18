@@ -344,10 +344,11 @@ def main() -> int:
 
     bed = sub_bed(n, voice_rms, rng)
     pad = pad_loop(n, voice_rms, voice)
-    # external music bed (--music FILE): looped to length, ~20 dB
-    # under the voice, ducked a further 10 dB while he speaks (same
-    # envelope law as the generated pad). The pad stays - it is felt
-    # more than heard; a supplied track carries the actual tune.
+    # external music bed (--music FILE): looped to length, ~11 dB
+    # under the voice, ducked a further 6 dB while she speaks (same
+    # envelope law as the generated pad). At -20 dB the bed was
+    # effectively inaudible on a phone and the outro tail was silence.
+    # Keep the bed genuinely audible, then fade it with the picture.
     music = None
     if "--music" in sys.argv:
         mpath = Path(sys.argv[sys.argv.index("--music") + 1])
@@ -360,15 +361,19 @@ def main() -> int:
             reps = int(np.ceil(n / len(mtrack)))
             music = np.tile(mtrack, reps)[:n].astype(np.float32)
             mrms = float(np.sqrt(np.mean(music ** 2))) + 1e-9
-            music *= voice_rms * 10 ** (-20 / 20) / mrms
+            music *= voice_rms * 10 ** (-11 / 20) / mrms
             win = int(0.05 * SR)
             env = np.sqrt(np.convolve(voice ** 2,
                                       np.ones(win, np.float32) / win,
                                       "same") + 1e-12)
             k = int(0.15 * SR)
             env = np.convolve(env, np.ones(k, np.float32) / k, "same")
-            duck = np.where(env > voice_rms * 0.5, 10 ** (-10 / 20), 1.0)
+            duck = np.where(env > voice_rms * 0.5, 10 ** (-6 / 20), 1.0)
             music = (music * duck.astype(np.float32)).astype(np.float32)
+            # the outro: the bed fades with the picture
+            tail = np.arange(n, dtype=np.float32) / SR
+            music = (music * np.clip((n / SR - tail) / 0.5, 0.0, 1.0)).astype(
+                np.float32)
     # 80-150 ms silence dips in bed+pad before the biggest impacts
     def ramp(bus, s0, s1, g0, g1):
         s0, s1 = max(0, s0), min(n, s1)
