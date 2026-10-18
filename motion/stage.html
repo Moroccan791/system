@@ -2741,12 +2741,17 @@ function buildDiagram(item) {
     stroke: guide, "stroke-width": 4 }, svg);
   svgEl("path", { d: `M 945 ${y0-90} V ${y1+95}`, fill: "none",
     stroke: guide, "stroke-width": 3, "stroke-dasharray": "5 17" }, svg);
+  // the label is the clip's business, not the engine's: it is drawn
+  // only when the timeline asks for it (item.label). A hard-coded
+  // caption fought the running caption and split the sentence.
   const title = svgEl("text", { x: 108, y: 1692, fill: ink,
     "font-size": 66, "font-family": font, "font-weight": 600,
     "letter-spacing": 4 }, svg);
-  title.textContent = "MY CRAFT";
+  const hasLabel = !!item.label;
+  title.textContent = hasLabel ? item.label : "";
   const rule = svgEl("path", { d: "M 108 1725 H 630", fill: "none", stroke: ac,
-    "stroke-width": 8, "stroke-dasharray": 522, "stroke-dashoffset": 522 }, svg);
+    "stroke-width": 8, "stroke-dasharray": 522, "stroke-offset": 522 }, svg);
+  if (!hasLabel) { title.setAttribute("opacity", "0"); rule.setAttribute("opacity", "0"); }
   const spineLen = (y1 + 95) - (y0 - 90);
   const spine = svgEl("line", { x1: 190, y1: y0-90, x2: 190, y2: y1+95,
     stroke: ac, "stroke-width": 8, "stroke-dasharray": spineLen,

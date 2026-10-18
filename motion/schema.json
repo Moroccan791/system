@@ -128,7 +128,7 @@
                       "items": { "type": "number", "minimum": 0.5, "maximum": 1.6 } }
           }
         },
-        "connSize": { "type": "number", "minimum": 58, "maximum": 90 },
+        "connSize": { "type": "number", "minimum": 58, "maximum": 140 },
         "keySize": { "type": "number", "minimum": 115, "maximum": 154 },
         "zone": {
           "type": "array", "minItems": 2, "maxItems": 2,

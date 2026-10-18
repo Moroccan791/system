@@ -43,7 +43,8 @@ def word_time(text: str) -> float:
     return round(next(w["start"] for w in WORDS if w["text"] == text), 2)
 
 
-def card(rows, *, scene=False, graphic=False, payoff=False, hero_size=242):
+def card(rows, *, scene=False, graphic=False, payoff=False, hero_size=242,
+         conn=84):
     """Two-line maximum; each row is [(word, kind)]; one fixed eye path."""
     zone = [0.30, 0.36] if graphic else [0.55, 0.66]
     if scene:
@@ -67,7 +68,7 @@ def card(rows, *, scene=False, graphic=False, payoff=False, hero_size=242):
         raise ValueError("caption line exceeds four words")
     return {"type": "poster", "at": min(ats), "rows": out,
             "zone": zone, "captionStyle": STYLE["captionStyle"],
-            "connSize": 84, "heroSize": hero_size,
+            "connSize": conn, "heroSize": hero_size,
             "hardOut": True}
 
 
@@ -78,17 +79,20 @@ C = [
     card([[ ("because","conn"),("my","conn"),("my","conn") ]]),
     card([[ ("craft","hero") ]], hero_size=248),
     # Full-screen diagram begins two frames before "keeps" is spoken.
-    card([[ ("keeps","conn"),("me.","conn") ]], graphic=True),
-    card([[ ("it","conn"),("keeps","conn"),("me","conn") ]], graphic=True),
-    card([[ ("It","conn"),("keeps","conn"),("me,","conn") ]], graphic=True),
-    card([[ ("It","conn"),("gives","conn"),("me","conn") ]], graphic=True),
+    # Over a full-screen graphic the caption is a HEADLINE: big, one
+    # stable band, held long enough to read as a line. A 84px caption
+    # left a single word floating in an empty dark frame.
+    card([[ ("keeps","conn"),("me.","conn") ]], graphic=True, conn=118),
+    card([[ ("it","conn"),("keeps","conn"),("me","conn") ]], graphic=True, conn=118),
+    card([[ ("It","conn"),("keeps","conn"),("me,","conn") ]], graphic=True, conn=118),
+    card([[ ("It","conn"),("gives","conn"),("me","conn") ]], graphic=True, conn=118),
     # Back to the face on the structural payoff.
     card([[ ("But","conn"),("at","conn"),("the","conn"),("end","conn") ]]),
     card([[ ("of","conn"),("the","conn"),("day,","conn") ]]),
     card([[ ("I","conn"),("don't","conn"),("come","conn"),("home","conn") ]]),
     # Full-bleed cup drawing: caption placed in open sky above the cup.
     card([[ ("to","conn"),("an","conn") ],[("award","hero")]], scene=True,
-         hero_size=250),
+         hero_size=250, conn=104),
     # Cut to her face for the emotional reveal, not on the picture of a cup.
     card([[ ("I","conn"),("come","conn"),("to","conn") ]], payoff=True),
     card([[ ("my","conn") ],[("dogs","hero")]],
@@ -125,6 +129,9 @@ next(it for it in C if it["rows"][0][0]["w"] == "craft")["until"] = 3.23
 
 LIST = {"type": "list", "layout": "diagram", "at": 3.23,
         "until": 9.57, "hardOut": True, "accent": ACCENT,
+        # no label: the running caption says "my craft" - a second
+        # label at the foot of the graphic split the sentence.
+        
         "items": [
             {"text": "BUSY", "at": word_time("Busy,")},
             {"text": "SANE", "at": word_time("sane.")},
