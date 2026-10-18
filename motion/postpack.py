@@ -80,9 +80,28 @@ def build(tl: dict, tr, video: Path | None, out: Path) -> dict:
         if low & set(keys):
             tags += hs
     tags += ["#viral", "#fyp"]
+    authored = tl.get("posting") or {}
+    if authored:
+        # The editor, not a keyword matcher, is responsible for campaign
+        # restrictions. A single spoken "husband" must never turn a
+        # Demi Lovato interview into #dating content. Preserve the
+        # required description line byte-for-byte, including #ad.
+        tags = list(authored["hashtags"])
+        if not 7 <= len(set(tags)) <= 8 or len(set(tags)) != len(tags):
+            raise ValueError("authored pack needs 7-8 unique hashtags")
+        titles = [authored["title"]] + list(authored.get("alternativeTitles") or [])
+        variants = list(authored.get("hookVariants") or variants)
+        description = (authored["disclosure"] + "\n" +
+                       authored["description"].strip() + "\n\n" +
+                       authored["requiredLine"])
+        if authored["requiredLine"] not in description or not description.startswith("#ad\n") \
+                and not description.startswith("#sponsored\n"):
+            raise ValueError("campaign description line and ad disclosure are required")
+    else:
+        tags = list(dict.fromkeys(tags))[:8]
     pack = {"hook_variants": variants, "titles": titles,
             "description": description,
-            "hashtags": list(dict.fromkeys(tags))[:8],
+            "hashtags": tags,
             "covers": []}
     out.mkdir(parents=True, exist_ok=True)
     if video is not None and video.exists():
@@ -90,11 +109,14 @@ def build(tl: dict, tr, video: Path | None, out: Path) -> dict:
                      and any(w.get("kind") == "hero"
                              for r in i.get("rows") or [] for w in r)),
                     None)
-        moments = [("cover_a_hook.jpg", 0.6),
-                   ("cover_b_hero.jpg",
-                    (float(hero["at"]) + float(hero["until"])) / 2
-                    if hero else dur * 0.3),
-                   ("cover_c_late.jpg", dur * 0.62)]
+        custom = authored.get("coverMoments")
+        moments = list(zip(("cover_a_hook.jpg", "cover_b_hero.jpg", "cover_c_late.jpg"),
+                           custom)) if custom else [
+            ("cover_a_hook.jpg", 0.6),
+            ("cover_b_hero.jpg",
+             (float(hero["at"]) + float(hero["until"])) / 2
+             if hero else dur * 0.3),
+            ("cover_c_late.jpg", dur * 0.62)]
         for name, t in moments:
             dest = out / name
             r = subprocess.run(
@@ -114,7 +136,8 @@ def main() -> int:
     out = Path(sys.argv[3])
     video = Path(sys.argv[4]) if len(sys.argv) > 4 else None
     pack = build(tl, tr, video, out)
-    print(f"packaging: 3 hook variants, {len(pack['covers'])} covers, "
+    print(f"packaging: {len(pack['hook_variants'])} hook variants, "
+          f"{len(pack['covers'])} covers, "
           f"{len(pack['hashtags'])} hashtags -> {out / 'packaging.json'}")
     return 0
 

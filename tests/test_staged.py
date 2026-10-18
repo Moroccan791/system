@@ -41,9 +41,11 @@ def test_tighten_compresses_dead_air_and_remaps():
     assert starts == sorted(starts)
 
 
-def test_themes_are_five_and_complete():
+def test_themes_include_per_video_choices_and_are_complete():
     themes = sorted((Path(brand.THEMES)).glob("*.json"))
-    assert len(themes) == 9
+    names = {p.stem for p in themes}
+    assert {"high-energy", "clean-blue", "whop",
+            "street_you_grew_up_on__post1"} <= names
     for p in themes:
         t = json.loads(p.read_text())
         for k in ("accent", "radius", "glow", "speed", "easing",
@@ -63,9 +65,12 @@ def test_brand_pick_maps_red_footage_to_bold_red():
 def test_simplify_drops_inserts_keeps_argument():
     tl = {"items": [{"type": "poster"}, {"type": "vector"},
                     {"type": "counter"}, {"type": "fx", "kind": "flare"},
-                    {"type": "fx", "kind": "opening"}]}
+                    {"type": "fx", "kind": "opening"},
+                    {"type": "endcard"}]}
     out = produce.simplify(tl, 1)
-    assert [i["type"] for i in out["items"]] == ["poster", "counter", "fx"]
+    # Simplification cannot erase the actual animated scenes or ending.
+    assert [i["type"] for i in out["items"]] == [
+        "poster", "vector", "counter", "fx", "endcard"]
 
 
 def test_plain_captions_chunks_words():

@@ -53,7 +53,12 @@ def main(path: str) -> int:
                                 f"outside item window {it['at']}..{until}")
         if words and it["type"] in ("poster", "card"):
             last = max(w["at"] for w in words)
-            if until < last + 0.2:
+            # Speech has some <250ms handoffs. A hard-out caption can
+            # leave after 120ms to avoid coexisting with the next
+            # caption's 2-frame anticipatory entry. A normal caption
+            # still needs the full 200ms readable beat.
+            floor = 0.12 if it.get("hardOut") else 0.2
+            if until < last + floor - 0.001:
                 problems.append(f"{it['type']} at {it['at']}: until {until} cuts "
                                 f"the last word (spoken at {last}) - a word needs "
                                 f"its entry plus a beat before the exit begins")
@@ -248,7 +253,7 @@ def main(path: str) -> int:
                 "anchor", "balloon", "redflag", "ghost", "wall", "compass",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
-                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo"):
+                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "noaward", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":
@@ -344,11 +349,16 @@ def main(path: str) -> int:
                 if b - a < 0.18:
                     problems.append(f"{it['type']} at {it['at']}: {key} stagger "
                                     f"{b - a:.2f}s under the 6-frame minimum")
-                if b - a > 1.5:
+                if b - a > 1.5 and not (
+                        it.get("layout") == "diagram" and b - a <= 2.0):
                     problems.append(f"{it['type']} at {it['at']}: {key} gap "
                                     f"{b - a:.2f}s over 1.5s - a panel may only "
                                     f"live while it keeps adding entries")
-            if subs and until < ats[-1] + 0.8:
+            # A diagram continuously draws the rail between words. Its
+            # label still lands on the WORD, never 0.3s early to placate
+            # a generic plate cadence rule.
+            min_read = 0.55 if it.get("layout") == "diagram" else 0.8
+            if subs and until < ats[-1] + min_read:
                 problems.append(f"{it['type']} at {it['at']}: until {until} gives the "
                                 f"last entry no dwell time")
     for tname in ("hook", "endcard"):

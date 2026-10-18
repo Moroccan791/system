@@ -1,0 +1,1061 @@
+{
+  "text": "But you understand what's even more important, but you, you were able to like hold space for both things. Yeah. I'm able to hold space because my my craft keeps me. Busy, it keeps me sane. It keeps me, you know, focused. It gives me structure. But at the end of the day, I don't come home to an award and. You know what I mean? I come to my dogs and my husband and that's what brings me joy. And I'm like, All of this can go away. What's important in life is connection. And that's what I hold true to me. Do you feel like your music has allowed you to explore that healing? I could feel like we have a window into some of your most painful moments.",
+  "language": "en",
+  "provider": "moonshine",
+  "duration": 50.0,
+  "meta": {
+    "chunks": 9,
+    "model": "moonshine-base.en",
+    "aligned": true
+  },
+  "words": [
+    {
+      "text": "But",
+      "start": 0.014,
+      "end": 0.321,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "you",
+      "start": 0.321,
+      "end": 0.486,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "understand",
+      "start": 0.486,
+      "end": 1.061,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "what's",
+      "start": 1.061,
+      "end": 1.545,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "even",
+      "start": 1.545,
+      "end": 1.7,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "more",
+      "start": 1.7,
+      "end": 1.959,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "important,",
+      "start": 1.959,
+      "end": 2.852,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "but",
+      "start": 2.852,
+      "end": 3.033,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "you,",
+      "start": 3.033,
+      "end": 3.236,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "you",
+      "start": 3.236,
+      "end": 3.479,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "were",
+      "start": 3.479,
+      "end": 3.863,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "able",
+      "start": 3.863,
+      "end": 4.026,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "to",
+      "start": 4.026,
+      "end": 4.246,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "like",
+      "start": 4.246,
+      "end": 4.477,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "hold",
+      "start": 4.477,
+      "end": 4.681,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "space",
+      "start": 4.681,
+      "end": 5.181,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "for",
+      "start": 5.181,
+      "end": 5.693,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "both",
+      "start": 5.693,
+      "end": 5.983,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "things.",
+      "start": 5.983,
+      "end": 7.038,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "Yeah.",
+      "start": 7.038,
+      "end": 7.506,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I'm",
+      "start": 7.63,
+      "end": 7.875,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "able",
+      "start": 7.875,
+      "end": 8.085,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "to",
+      "start": 8.085,
+      "end": 8.313,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "hold",
+      "start": 8.313,
+      "end": 8.696,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "space",
+      "start": 8.696,
+      "end": 9.49,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "because",
+      "start": 9.806,
+      "end": 10.482,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "my",
+      "start": 10.894,
+      "end": 11.091,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "my",
+      "start": 11.091,
+      "end": 11.296,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "craft",
+      "start": 11.296,
+      "end": 12.05,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "keeps",
+      "start": 12.558,
+      "end": 13.211,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "me.",
+      "start": 13.211,
+      "end": 13.618,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "Busy,",
+      "start": 13.966,
+      "end": 14.287,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "it",
+      "start": 14.287,
+      "end": 14.489,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "keeps",
+      "start": 14.489,
+      "end": 15.363,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "me",
+      "start": 15.363,
+      "end": 15.573,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "sane.",
+      "start": 15.573,
+      "end": 15.924,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "It",
+      "start": 15.924,
+      "end": 16.306,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "keeps",
+      "start": 16.43,
+      "end": 17.006,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "me,",
+      "start": 17.006,
+      "end": 17.253,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "you",
+      "start": 17.253,
+      "end": 17.586,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "know,",
+      "start": 17.71,
+      "end": 18.019,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "focused.",
+      "start": 18.019,
+      "end": 18.381,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "It",
+      "start": 18.381,
+      "end": 19.218,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "gives",
+      "start": 19.374,
+      "end": 20.048,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "me",
+      "start": 20.048,
+      "end": 20.245,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "structure.",
+      "start": 20.245,
+      "end": 21.042,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "But",
+      "start": 21.678,
+      "end": 22.037,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "at",
+      "start": 22.037,
+      "end": 22.182,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "the",
+      "start": 22.182,
+      "end": 22.409,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "end",
+      "start": 22.409,
+      "end": 22.626,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "of",
+      "start": 22.626,
+      "end": 22.783,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "the",
+      "start": 22.783,
+      "end": 23.058,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "day,",
+      "start": 23.058,
+      "end": 23.29,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I",
+      "start": 23.29,
+      "end": 23.511,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "don't",
+      "start": 23.511,
+      "end": 23.736,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "come",
+      "start": 23.736,
+      "end": 24.178,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "home",
+      "start": 24.622,
+      "end": 24.888,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "to",
+      "start": 24.888,
+      "end": 25.009,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "an",
+      "start": 25.009,
+      "end": 25.121,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "award",
+      "start": 25.121,
+      "end": 25.621,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "and.",
+      "start": 25.621,
+      "end": 25.938,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "You",
+      "start": 26.35,
+      "end": 26.604,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "know",
+      "start": 26.604,
+      "end": 26.888,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "what",
+      "start": 26.888,
+      "end": 27.042,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I",
+      "start": 27.042,
+      "end": 27.218,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "mean?",
+      "start": 27.218,
+      "end": 27.369,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I",
+      "start": 27.369,
+      "end": 27.57,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "come",
+      "start": 27.57,
+      "end": 27.794,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "to",
+      "start": 27.794,
+      "end": 28.09,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "my",
+      "start": 28.09,
+      "end": 28.2,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "dogs",
+      "start": 28.2,
+      "end": 28.6,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "and",
+      "start": 28.6,
+      "end": 28.735,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "my",
+      "start": 28.735,
+      "end": 28.964,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "husband",
+      "start": 28.964,
+      "end": 29.312,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "and",
+      "start": 29.312,
+      "end": 29.478,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "that's",
+      "start": 29.478,
+      "end": 30.066,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "what",
+      "start": 30.19,
+      "end": 30.386,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "brings",
+      "start": 30.386,
+      "end": 30.758,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "me",
+      "start": 30.758,
+      "end": 30.894,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "joy.",
+      "start": 30.894,
+      "end": 31.092,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "And",
+      "start": 31.092,
+      "end": 31.346,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I'm",
+      "start": 31.346,
+      "end": 31.49,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "like,",
+      "start": 31.49,
+      "end": 31.826,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "All",
+      "start": 32.654,
+      "end": 32.95,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "of",
+      "start": 32.95,
+      "end": 33.298,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "this",
+      "start": 33.298,
+      "end": 33.626,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "can",
+      "start": 33.626,
+      "end": 33.791,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "go",
+      "start": 33.791,
+      "end": 34.027,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "away.",
+      "start": 34.027,
+      "end": 34.45,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "What's",
+      "start": 35.31,
+      "end": 35.538,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "important",
+      "start": 35.982,
+      "end": 36.799,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "in",
+      "start": 36.799,
+      "end": 36.98,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "life",
+      "start": 36.98,
+      "end": 37.147,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "is",
+      "start": 37.147,
+      "end": 37.365,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "connection.",
+      "start": 37.365,
+      "end": 38.244,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "And",
+      "start": 38.244,
+      "end": 38.706,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "that's",
+      "start": 38.798,
+      "end": 39.129,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "what",
+      "start": 39.129,
+      "end": 39.538,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I",
+      "start": 39.79,
+      "end": 40.018,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "hold",
+      "start": 40.018,
+      "end": 40.175,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "true",
+      "start": 40.175,
+      "end": 40.516,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "to",
+      "start": 40.516,
+      "end": 40.637,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "me.",
+      "start": 40.637,
+      "end": 41.042,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "Do",
+      "start": 41.326,
+      "end": 41.688,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "you",
+      "start": 41.688,
+      "end": 41.886,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "feel",
+      "start": 41.886,
+      "end": 42.054,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "like",
+      "start": 42.054,
+      "end": 42.304,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "your",
+      "start": 42.304,
+      "end": 42.627,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "music",
+      "start": 42.627,
+      "end": 42.95,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "has",
+      "start": 42.95,
+      "end": 43.172,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "allowed",
+      "start": 43.172,
+      "end": 43.622,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "you",
+      "start": 43.622,
+      "end": 43.752,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "to",
+      "start": 43.752,
+      "end": 43.933,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "explore",
+      "start": 43.933,
+      "end": 44.824,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "that",
+      "start": 44.824,
+      "end": 44.972,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "healing?",
+      "start": 44.972,
+      "end": 45.68,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "I",
+      "start": 45.68,
+      "end": 45.925,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "could",
+      "start": 45.925,
+      "end": 46.692,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "feel",
+      "start": 46.692,
+      "end": 46.854,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "like",
+      "start": 46.854,
+      "end": 46.998,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "we",
+      "start": 46.998,
+      "end": 47.191,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "have",
+      "start": 47.191,
+      "end": 47.386,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "a",
+      "start": 47.386,
+      "end": 47.478,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "window",
+      "start": 47.478,
+      "end": 47.885,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "into",
+      "start": 47.885,
+      "end": 48.093,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "some",
+      "start": 48.093,
+      "end": 48.255,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "of",
+      "start": 48.255,
+      "end": 48.458,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "your",
+      "start": 48.458,
+      "end": 48.695,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "most",
+      "start": 48.695,
+      "end": 49.08,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "painful",
+      "start": 49.08,
+      "end": 49.495,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    },
+    {
+      "text": "moments.",
+      "start": 49.495,
+      "end": 50.0,
+      "prob": null,
+      "kind": "word",
+      "source": "energy-align"
+    }
+  ]
+}

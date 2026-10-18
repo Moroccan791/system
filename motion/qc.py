@@ -9,7 +9,7 @@ while one fails):
                 time minus the engine's 2-frame lead) vs its speech
                 onset - must sit in the -90..+5 ms lead window
   text_sizes    no text under 3% of frame height anywhere; keywords
-                inside the 6-8% band (engine size table, below)
+                inside the 5-17% band (engine size table, below)
   text_contrast measured bg luminance behind over-footage text vs the
                 4.5:1 target (plate-backed text is checked statically)
   pacing        longest stretch without a visual change (2.5 s cap)
@@ -112,9 +112,14 @@ def _sizes(tl: dict) -> list[tuple[str, float, str]]:
         if ty in ("poster", "card"):
             for row in (it.get("rows") or it.get("lines") or []):
                 for w in row:
-                    key = w.get("kind") in ("key", "neon", "mark", "pay", "grad")
+                    kind = w.get("kind")
+                    key = kind in ("key", "hero", "neon", "mark", "pay", "grad")
+                    # Reflect the engine's actual font-size precedence:
+                    # word size > heroSize (hero only) > keySize > connSize.
+                    # The old check counted hero words as 58px captions.
                     px = float(w.get("size") or
-                               (it.get("keySize", 118) if key and ty == "poster"
+                               (it.get("heroSize", 250) if kind == "hero" and ty == "poster"
+                                else it.get("keySize", 118) if key and ty == "poster"
                                 else it.get("connSize", 58) if ty == "poster"
                                 else it.get("wordSize", 120)))
                     out.append((f"{ty} word {w['w']!r}", px, "key" if key else "text"))
@@ -161,9 +166,11 @@ def text_sizes(tl: dict) -> tuple[str, str]:
             bad.append(f"{name} {px:.0f}px outside the 5-17% keyword band")
     if bad:
         return "fail", "; ".join(bad[:4])
-    n = len(_sizes(tl))
-    return "pass", f"{n} text elements, min {MIN_TEXT_PX:.0f}px (3%), " \
-                   f"keywords in 115-154px"
+    sizes = _sizes(tl)
+    keys = [px for _label, px, role in sizes if role == "key"]
+    k_range = f"{min(keys):.0f}-{max(keys):.0f}px" if keys else "none"
+    return "pass", f"{len(sizes)} text elements, min {MIN_TEXT_PX:.0f}px (3%), " \
+                   f"keyword sizes {k_range} (5-17% band)"
 
 
 # ------------------------------------------------------------- contrast
@@ -317,8 +324,10 @@ def dwell(tl: dict) -> tuple[str, str]:
                     bad.append(f"{it['type']} @{it['at']:.1f}s finished panel "
                                f"dwells {tail:.2f}s (cap 1.0)")
                 for a, b in zip(subs, subs[1:]):
-                    if float(b["at"]) - float(a["at"]) > 1.5:
-                        bad.append(f"{it['type']} entries {float(b['at']) - float(a['at']):.2f}s apart")
+                    gap = float(b["at"]) - float(a["at"])
+                    if gap > 1.5 and not (
+                            it.get("layout") == "diagram" and gap <= 2.0):
+                        bad.append(f"{it['type']} entries {gap:.2f}s apart")
     if bad:
         return "fail", "; ".join(bad[:3])
     return "pass", f"max simple dwell {longest[0]:.2f}s ({longest[1]}), " \

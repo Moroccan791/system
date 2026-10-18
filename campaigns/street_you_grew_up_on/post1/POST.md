@@ -1,33 +1,45 @@
-> **v3 (2026-10-17, current file):** rebuilt with the fixed Whop editor
-> (recipes/editing_brain.md): face-first open (no title slate), all dead
-> air cut (0 pauses >0.25s), chest-height Anton captions with teal keyword
-> markers + amber payoffs, 17 jump cuts, wide-shot beat on "my dogs and my
-> husband", camera punches on "joy"/"connection", frozen payoff tail into
-> the endcard. 21.5s, QC PASS level 0, whop invariant check PASS,
-> -14.14 LUFS. Replaces the v2 below.
+# Post 1 — Demi Lovato · v6 review
 
-# Post 1 — PILOT v2 — “I Don't Come Home to an Award” (Demi Lovato)
+> **Review cut, not approved for posting.** The font/colour combination in
+> `street_post1_v6.mp4` is a provisional proposal (Inter Regular captions,
+> Newsreader Book Italic keywords, Montserrat Italic diagram, Outfit Semibold
+> outro; teal `#14E5C5`). Choose the type and ink for **this post** in the
+> live per-video style card before the approved render. Earlier post1/v4/v5
+> files in this folder are superseded demos, not approval.
 
-> **v2 (this file):** adds the typed hook slate (“MY CRAFT KEEPS ME SANE” + key-click typing), a balloon metaphor cutaway on “All of this can go away”, a camera punch on “connection”, and the `chill` music bed ducked ~20 dB under her voice. This is the batch template.
-
-- **Video:** `street_post1.mp4` (33.6 s, 1080×1920, 30 fps) — motion-graphics edit with the new marker-caption system: sentence-case captions, pink marker swipe on structural words, green on the payoff words (“joy”, “connection”), word-by-word sync. Branded end card “STREET YOU GREW UP ON”. **Motion QC v2 PASS at level 0**, loudness normalised to **−14.3 LUFS / −0.7 dBTP**.
-- **Cover:** `cover.jpg` — “I DON'T COME HOME / TO AN AWARD” (direct quote, nothing exaggerated).
-- **Source:** full episode 45:59.6–46:33.2. Self-contained answer, clean in/out, real closing line (“All of this can go away. What's important in life is connection.”) + fade into the end card. No banned-topic content, no profanity.
-- **Hook (0 s):** “I'm able to hold space because my craft keeps me busy, it keeps me sane…” — captions animating from frame 1.
+- **Video:** [`street_post1_v6.mp4`](street_post1_v6.mp4) — 21.9 s, 1080×1920,
+  30 fps, supplied episode footage only; 48 kHz AAC music/voice master.
+- **Review cover:** [`cover_v6.jpg`](cover_v6.jpg) (from the cut, no generated imagery).
+- **Source window:** episode 45:59.4–46:30.235. All 64 kept spoken words are
+  represented: 60 in word-synced editorial captions; BUSY / SANE / FOCUSED /
+  STRUCTURE are speech-synced inside a full-screen motion diagram. The
+  award is *crossed out*, not celebrated. The CONNECTION scene cuts cleanly
+  off her face and sits under the thesis, followed by a hard-cut outro.
+- **QC:** picture PASS level 0; sound PASS at approximately −14.0 LUFS and
+  true peak below −1 dBTP. QC is a technical gate, **not** the user's look approval.
 
 ## Title
-Demi Lovato: “I Don't Come Home to an Award”
+Demi Lovato: I Don't Come Home to an Award
 
-## Description (copy-paste exactly)
+## Description — copy after approval
 #ad
-Demi Lovato on what actually keeps her grounded: “I don't come home to an award. I come to my dogs and my husband — and that's what brings me joy. All of this can go away. What's important in life is connection.”
+Demi Lovato says her craft keeps her busy, sane and focused. But home means her dogs and husband, not an award. What's important in life is connection.
 
 The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms
 
 ## Hashtags (8)
-#DemiLovato #StreetYouGrewUpOn #podcast #podcastclips #celebrityinterview #interview #popmusic #inspiration
+#DemiLovato #StreetYouGrewUpOn #PodcastClips #DemiLovatoInterview #PodcastMoments #SelfReflection #Connection #MusicAndLife
 
-## Production notes (for the batch)
-- Vertical base built per reframe shot (3 shots): close-up crops on Demi Lovato + one centred two-shot for “my dogs and my husband”. Rule for every base: `fps=30` BEFORE `zoompan`, then verify frame count = duration × 30 (an earlier build ran 1.7 s fast against its audio and every automated gate missed it).
-- Engine fix shipped with this pilot: `motion/stage.html` had junk lines after `</html>` that rendered as source-code fragments in the top-left corner of every frame. Removed + regression test added (`test_stage_html_has_nothing_after_closing_tag`).
-- decide.py put the filler “YOU KNOW” in a generated list panel; replaced by hand with the spoken caption. Check every auto-panel for filler before shipping.
+## Rebuild notes for the editor (nothing needed from the viewer)
+
+- Per-video chooser: `scripts/whop/style_card.py serve --campaign
+  street_you_grew_up_on --video post1 --port 8010 --preview
+  work/style_card/face.jpg`; user selection is saved in `post1/style.json`.
+- Base spec: `scripts/whop/specs/street_post1_v6.json`; re-create
+  `work/street/raw/street_full.mp4` from the tracked `origin/footage` episode
+  parts if a workspace reset removes it, then run `tight_base.py` on the spec.
+- Re-author timeline after changing the style with
+  `scripts/whop/build_street_post1_v6.py`; validate; render using
+  `--theme street_you_grew_up_on__post1 --music assets/music/chill.wav`.
+- Campaign requirements: [`../brief.md`](../brief.md). No visible
+  “ILLUSTRATIVE” label, generated photo, marker swipe or pink accent.

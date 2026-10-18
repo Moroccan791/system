@@ -42,10 +42,13 @@ def main() -> int:
         at, until = float(it["at"]), float(it.get("until") or it["at"])
         entry = {"type": it["type"], "at": at, "until": until,
                  "enter_f": 10, "hold_s": round(until - at, 2),
-                 "exit": "8f slide+blur+fade (engine)"}
+                 "exit": ("hard cut at until" if it.get("hardOut") or
+                          (it["type"] == "vector" and it.get("mode") == "fullbleed")
+                          else "2f fade" if it["type"] == "endcard"
+                          else "8f slide+blur+fade (engine)")}
         if it["type"] in ("pip", "broll", "vector"):
-            entry["width_pct"] = (100 if (it.get("mode") or "") == "broll"
-                                  and it["type"] != "pip"
+            entry["width_pct"] = (100 if it["type"] in ("broll", "vector")
+                                  and it.get("mode") == "fullbleed"
                                   else round(float(it.get("w") or 0.58) * 100))
             entry["source"] = ("vector:" + str(it.get("name")) if
                                it["type"] == "vector" else

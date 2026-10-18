@@ -1,0 +1,42 @@
+{
+  "name": "whop",
+  "accent": "#14E5C5",
+  "ink": "#0B0E11",
+  "paper": "#FFFFFF",
+  "radius": "sharp",
+  "glow": 1.0,
+  "speed": 1.15,
+  "easing": "pop",
+  "fontMode": "sans",
+  "captionStyle": "editorial",
+  "transitionOrder": [
+    "flash",
+    "flare",
+    "leak",
+    "bwflash"
+  ],
+  "soundSeedSalt": 77,
+  "fontPack": "regular",
+  "cutTransitions": "hard",
+  "fonts": {
+    "caption": "regular",
+    "keyword": "displaybook",
+    "serif": "serifbi",
+    "list": "sansitalic",
+    "endcard": "grande"
+  },
+  "colors": {
+    "accent": "#14E5C5",
+    "caption": "#FFFFFF",
+    "keyword": "#14E5C5",
+    "serif": "#FFFFFF",
+    "endcard": "#14E5C5",
+    "plate": "#14E5C5",
+    "plateInk": "#0B0E11",
+    "listHead": "#14E5C5",
+    "listBg": "rgba(9,11,15,0.90)",
+    "listText": "#FFFFFF",
+    "sceneBg": "#101319",
+    "sceneInk": "#FFFFFF"
+  }
+}

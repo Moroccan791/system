@@ -3,7 +3,7 @@
   "accent": "#14E5C5",
   "ink": "#0B0E11",
   "paper": "#FFFFFF",
-  "radius": "round",
+  "radius": "sharp",
   "glow": 1.0,
   "speed": 1.15,
   "easing": "pop",
@@ -16,7 +16,7 @@
     "bwflash"
   ],
   "soundSeedSalt": 77,
-  "fontPack": "anton",
+  "fontPack": "regular",
   "cutTransitions": "hard",
   "fonts": {
     "caption": "regular",
@@ -29,6 +29,8 @@
     "accent": "#14E5C5",
     "caption": "#FFFFFF",
     "keyword": "#14E5C5",
+    "serif": "#FFFFFF",
+    "endcard": "#14E5C5",
     "plate": "#14E5C5",
     "plateInk": "#0B0E11",
     "listHead": "#14E5C5",

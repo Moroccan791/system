@@ -1,0 +1,68 @@
+{
+  "source": "work/street/raw/street_full.mp4",
+  "words": "campaigns/street_you_grew_up_on/post1/window_transcript_v6.json",
+  "offset": 2752.0,
+  "span": [
+    2759.4,
+    2790.235
+  ],
+  "drops": [
+    [
+      2769.2,
+      2769.95
+    ],
+    [
+      2777.63,
+      2777.95
+    ],
+    [
+      2778.3,
+      2779.36
+    ],
+    [
+      2783.15,
+      2784.6
+    ]
+  ],
+  "crops": [
+    {
+      "until": 2779.32,
+      "crop": [
+        790,
+        90,
+        480,
+        854
+      ],
+      "push": 0.055,
+      "anchor": 0.3
+    },
+    {
+      "until": 2784.78,
+      "crop": [
+        1080,
+        90,
+        480,
+        854
+      ],
+      "push": 0.04,
+      "anchor": 0.3
+    },
+    {
+      "until": 1000000000,
+      "crop": [
+        790,
+        90,
+        480,
+        854
+      ],
+      "push": 0.055,
+      "anchor": 0.3
+    }
+  ],
+  "out_base": "work/street/whop_v6/base.mp4",
+  "out_slice": "work/street/whop_v6/slice.json",
+  "tail_seconds": 1.35,
+  "splits": [
+    2784.78
+  ]
+}

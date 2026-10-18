@@ -225,6 +225,9 @@ networking, circles, teams, "everyone he knows", org structures.
  "count":8,"label":"HIS CIRCLE","at":12.0,"until":14.2}
 ```
 Params: `count` 3–14 satellites, `title` = hub text (≤6 chars).
+Set `offsetY` and `radius` when a word sits above the web: the nodes
+must not land under the caption or across the returning face. Full-bleed
+scenes cut hard at both boundaries; they do not dissolve through a face.
 
 #### gauge — SHOW intensity / certainty / a level
 A semicircular gauge sweeps its needle to the value while the % counts.
@@ -436,6 +439,14 @@ them, the moment someone becomes the story. Metaphor only.
 A cup drops in with sparkles. Wins, championships, "he took it
 home". For claimed victories — alleged ones get `podium`.
 
+#### noaward — NEGATE the win
+The trophy outline draws in neutral ink, then an accent slash draws across
+it. For the *opposite* of a win: “I **don't** come home to an award.”
+Never use the celebratory `trophy` there. `offsetY` moves the cup BELOW a
+face-safe caption; the full-bleed scene hard-cuts before the emotional
+payoff returns to the speaker. The scene/ink colours follow the per-video
+style chooser.
+
 #### ladder — ORIENT progress
 A climber dot ascends `count` rungs (3–6); passed rungs light
 accent toward the flag. Levelling up, ranks climbed, glow-up
@@ -628,6 +639,13 @@ One line only, no sub (validator enforces).
 #### list — ORIENT through an enumeration
 Numbered plates slide in on each spoken item ("first… second… third…").
 Plate text = the item, not a summary of the whole sentence.
+For a personal/craft list where the speaker's hands occupy the lower third,
+`layout: "diagram"` is a full-bleed alternative: vertical rail and
+cross-members animate between the spoken labels, the final beam closes the
+frame, and the captions live separately above the drawing. Each label
+appears **on** its own word — the rail anticipates the next blank node;
+the word does not appear early to satisfy a cadence heuristic. Use
+`hardOut: true` to return to a face cleanly.
 
 #### process — ORIENT through steps
 Step stack for how-to/mechanism ("step 1… then… finally…").

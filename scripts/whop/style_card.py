@@ -7,23 +7,25 @@
     python scripts/whop/style_card.py theme --campaign street_you_grew_up_on \
             --out work/street/whop_v6/style_theme.json
 
-The card stores one style per campaign in
-campaigns/<campaign>/style.json and writes a produce-ready theme next to
-it. The preview panel renders through the REAL engine (motion/stage.html
+The card inherits campaign defaults and stores an independent choice
+per video in campaigns/<campaign>/postN/style.json. It writes a matching
+produce-ready theme next to each video and into motion/themes/. The preview panel renders through the REAL engine (motion/stage.html
 driven by window.setTimeline/renderAt), so what you approve on the card is
 exactly what the render will look like - no mock-up drift.
 
 The user picks:
   fonts   - caption face, keyword/hero face, serif face, endcard face,
             list face (each one of the vendored OFL packs)
-  colours - accent (keyword), caption text, keyword ink, keyword plate +
-            plate ink, list head/bg/text, scene ground + scene ink
+  colours - project accent (also the spoken-keyword ink), caption text,
+            serif ink, end-card ink, keyword plate + plate ink, list
+            head/bg/text, scene ground + scene ink
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -62,9 +64,10 @@ ROLES = [
 ]
 
 COLORS = [
-    ("accent", "Accent (scenes, badges)"),
+    ("accent", "Project accent / keyword ink"),
     ("caption", "Caption text"),
-    ("keyword", "Keyword ink"),
+    ("serif", "Serif words"),
+    ("endcard", "End card title"),
     ("plate", "Keyword plate"),
     ("plateInk", "Plate ink"),
     ("listHead", "List head"),
@@ -80,11 +83,14 @@ DEFAULT_STYLE = {
     "serif": "serifbi",
     "list": "sansitalic",
     "endcard": "grande",
-    "captionStyle": "impact",
+    "captionStyle": "editorial",
+    "radius": "sharp",
     "colors": {
         "accent": "#14E5C5",
         "caption": "#FFFFFF",
         "keyword": "#14E5C5",
+        "serif": "#FFFFFF",
+        "endcard": "#14E5C5",
         "plate": "#14E5C5",
         "plateInk": "#0B0E11",
         "listHead": "#14E5C5",
@@ -97,42 +103,89 @@ DEFAULT_STYLE = {
 
 
 # ----------------------------------------------------------------- helpers
-def style_path(campaign: str) -> Path:
-    return ROOT / "campaigns" / campaign / "style.json"
+SLUG = re.compile(r"^[a-zA-Z0-9_-]+$")
+HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
+LEGACY_LIST_BG = re.compile(r"^rgba\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,"
+                            r"\s*\d{1,3}\s*,\s*(?:0|1|0?\.\d+)\s*\)$")
 
 
-def load_style(campaign: str) -> dict:
-    p = style_path(campaign)
-    if p.exists():
+def validate_style(style: dict) -> bool:
+    """Do not embed untrusted font names/colour CSS in the preview."""
+    if not isinstance(style, dict):
+        return False
+    roles = {r[0] for r in ROLES}
+    packs = {p[0] for p in PACKS}
+    if set(style) - (roles | {"colors", "captionStyle", "radius"}):
+        return False
+    if any(style.get(role) not in packs for role in roles):
+        return False
+    if style.get("captionStyle") not in (
+            "editorial", "impact", "pop", "karaoke", "stretch", "bounce"):
+        return False
+    if style.get("radius") not in ("sharp", "round", "pill"):
+        return False
+    colors = style.get("colors")
+    if not isinstance(colors, dict) or set(colors) - (
+            {c[0] for c in COLORS} | {"keyword"}):
+        return False
+    for name, value in colors.items():
+        if not isinstance(value, str) or not (HEX.fullmatch(value) or (
+                name == "listBg" and LEGACY_LIST_BG.fullmatch(value))):
+            return False
+    return True
+
+
+def style_path(campaign: str, video: str | None = None) -> Path:
+    if not SLUG.fullmatch(campaign) or (video and not SLUG.fullmatch(video)):
+        raise ValueError("campaign and video must be simple slugs")
+    root = ROOT / "campaigns" / campaign
+    return root / video / "style.json" if video else root / "style.json"
+
+
+def load_style(campaign: str, video: str | None = None) -> dict:
+    """Campaign defaults, then the saved choice for this *one* video."""
+    merged = json.loads(json.dumps(DEFAULT_STYLE))
+    for p in (style_path(campaign), style_path(campaign, video)) if video else (style_path(campaign),):
+        if not p.exists():
+            continue
         try:
             st = json.loads(p.read_text())
-            merged = json.loads(json.dumps(DEFAULT_STYLE))
             merged.update({k: v for k, v in st.items() if k != "colors"})
             merged["colors"].update(st.get("colors") or {})
-            return merged
-        except Exception:
-            pass
-    return json.loads(json.dumps(DEFAULT_STYLE))
+        except (json.JSONDecodeError, TypeError):
+            raise ValueError(f"invalid style file: {p}")
+    # Spoken keyword ink is the chosen project accent, not an editor-
+    # imposed second highlight. Old saved campaign cards are normalised.
+    merged["colors"]["keyword"] = merged["colors"]["accent"]
+    return merged
 
 
-def save_style(campaign: str, style: dict) -> Path:
-    p = style_path(campaign)
+def save_style(campaign: str, style: dict, video: str | None = None) -> Path:
+    p = style_path(campaign, video)
+    style = json.loads(json.dumps(style))
+    style["colors"]["keyword"] = style["colors"]["accent"]
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(style, indent=2) + "\n")
-    write_theme(campaign, style)
+    write_theme(campaign, style, video)
     return p
 
 
-def write_theme(campaign: str, style: dict) -> Path:
-    """Emit a produce-ready theme: the whop base + the chosen roles/colors."""
+def write_theme(campaign: str, style: dict, video: str | None = None) -> Path:
+    """Emit the whop engine theme for this post, not a campaign-wide override."""
     base = json.loads((ROOT / "motion" / "themes" / "whop.json").read_text())
     base["fonts"] = {k: style.get(k) for k, _n, _t, _s in ROLES}
-    base["colors"] = style.get("colors") or {}
-    base["accent"] = (style.get("colors") or {}).get("accent", base.get("accent", "#14E5C5"))
-    base["captionStyle"] = style.get("captionStyle", base.get("captionStyle", "impact"))
-    out = ROOT / "campaigns" / campaign / "style_theme.json"
+    base["fontPack"] = style.get("caption") or "regular"
+    base["radius"] = style.get("radius", "sharp")
+    base["colors"] = dict(style.get("colors") or {})
+    base["accent"] = base["colors"].get("accent", base.get("accent", "#14E5C5"))
+    base["colors"]["keyword"] = base["accent"]
+    base["captionStyle"] = style.get("captionStyle", "editorial")
+    out = style_path(campaign, video).with_name("style_theme.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(base, indent=2) + "\n")
+    engine = ROOT / "motion" / "themes" / (campaign + ("__" + video if video else "") + ".json")
+    engine.parent.mkdir(parents=True, exist_ok=True)
+    engine.write_text(json.dumps(base, indent=2) + "\n")
     return out
 
 
@@ -141,9 +194,9 @@ def print_menu() -> None:
     for name, face, vibe, _css in PACKS:
         print(f"  {name:<12} {face:<28} {vibe}")
     print("\nROLES: caption text, keyword/hero, serif words, list plates, end card")
-    print("COLOURS: accent, caption text, keyword ink, keyword plate + plate ink,")
+    print("COLOURS: accent (= spoken-keyword ink), caption/serif/endcard text, keyword plate + plate ink,")
     print("         list head/ground/text, scene ground + scene ink")
-    print("\n  python scripts/whop/style_card.py serve --campaign <name>")
+    print("\n  python scripts/whop/style_card.py serve --campaign <name> --video post<N>")
 
 
 # ------------------------------------------------------------- the server
@@ -151,6 +204,7 @@ PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Style card</title>
 <style>
+  __FONT_FACES__
   :root { --bg:#0b0e11; --card:#141920; --line:#232a33; --ink:#e9eef2; --dim:#8fa3ad; --acc:#14e5c5; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
@@ -172,7 +226,10 @@ PAGE = r"""<!doctype html>
   .spec { font-size:26px; line-height:1.15; margin:2px 0 12px; min-height:30px;
           -webkit-text-stroke:1px rgba(0,0,0,.5); paint-order:stroke fill; }
   .spec small { display:block; font-size:11px; color:var(--dim); letter-spacing:.08em; text-transform:uppercase; }
-  iframe { width:360px; height:640px; border:0; border-radius:10px; background:#000; transform-origin:top center; }
+  /* The engine is fixed at 1080x1920. Scale the WHOLE iframe, never
+     give it a 360x640 viewport (that cropped the preview to top-left). */
+  iframe { width:1080px; height:1920px; border:0; background:#000;
+           transform:scale(0.3333333); transform-origin:top left; }
   .framewrap { width:360px; height:640px; overflow:hidden; border-radius:10px; }
   .bar { display:flex; gap:8px; align-items:center; }
   button { background:var(--acc); color:#04120f; border:0; border-radius:8px; padding:9px 16px;
@@ -205,13 +262,18 @@ document.getElementById("camp").textContent = __CAMPAIGN__;
 
 function famOf(name) { const p = PACKS.find(x => x[0] === name); return p ? p[3] : "MontserratX"; }
 function labelOf(name) { const p = PACKS.find(x => x[0] === name); return p ? p[1] : name; }
+function inkOf(role) {
+  const c = style.colors;
+  return ({ caption:c.caption, keyword:c.accent, serif:c.serif,
+            list:c.listText, endcard:c.endcard })[role] || "#ffffff";
+}
 
 function buildPanel() {
 panel.innerHTML = "<h2>Type - per role</h2>" +
   ROLES.map(r => `<div class="row"><label>${r[1]}</label>
       <select data-role="${r[0]}">${PACKS.map(p =>
         `<option value="${p[0]}"${p[0]===style[r[0]]?" selected":""}>${p[1]} - ${p[2]}</option>`).join("")}</select></div>
-      <div class="spec" data-spec="${r[0]}" style="font-family:'${famOf(style[r[0]])}'">${r[3]}
+      <div class="spec" data-spec="${r[0]}" style="font-family:'${famOf(style[r[0]])}';color:${inkOf(r[0])}">${r[3]}
         <small>${labelOf(style[r[0]])}</small></div>`).join("") +
   `<h2>Colours</h2>` +
   COLORS.map(c => `<div class="row"><label>${c[1]}</label>
@@ -233,7 +295,15 @@ panel.addEventListener("change", e => {
     const sp = panel.querySelector(`[data-spec="${t2.dataset.role}"]`);
     sp.style.fontFamily = "'" + famOf(t2.value) + "'";
     sp.querySelector("small").textContent = labelOf(t2.value); }
-  else if (t2.dataset.color) style.colors[t2.dataset.color] = t2.value;
+  else if (t2.dataset.color) {
+    style.colors[t2.dataset.color] = t2.value;
+    if (t2.dataset.color === "accent") style.colors.keyword = t2.value;
+    const role = t2.dataset.color === "listText" ? "list" : t2.dataset.color;
+    const sp = panel.querySelector(`[data-spec="${role}"]`);
+    if (sp) sp.style.color = t2.value;
+    if (t2.dataset.color === "accent")
+      panel.querySelector('[data-spec="keyword"]').style.color = t2.value;
+  }
   else if (t2.id === "cstyle") style.captionStyle = t2.value;
   else return;
   push();
@@ -250,16 +320,24 @@ function previewTimeline() {
     brand: { accent: c.accent },
     items: [
       { type:"broll", mode:"fullbleed", at:0, until:9, src:"/preview/face.jpg" },
-      { type:"poster", at:0.20, until:3.60, zone:[0.58,0.82], captionStyle:style.captionStyle,
-        rows:[ [ {w:"I",at:0.20,kind:"conn"},{w:"DON'T",at:0.38,kind:"conn"},{w:"COME",at:0.56,kind:"conn"} ],
-               [ {w:"HOME",at:0.78,kind:"key"} ] ] },
-      { type:"poster", at:3.70, until:6.10, zone:[0.50,0.72], captionStyle:style.captionStyle,
-        rows:[ [ {w:"WHAT'S",at:3.80,kind:"conn"} ],
-               [ {w:"IMPORTANT",at:4.20,kind:"hero"} ] ] },
-      { type:"list", at:6.20, until:8.40, zone:[0.58,0.95], title:"KEEPS ME", accent:c.accent,
-        items:[ {text:"BUSY",at:6.40},{text:"SANE",at:6.95},{text:"FOCUSED",at:7.50} ] },
-      { type:"endcard", at:8.45, until:9, title:"STREET YOU GREW UP ON",
-        sub:"@street_you_grew_up_on", accent:c.accent, wordSize:86 } ] };
+      { type:"poster", at:0.20, until:2.75, zone:[0.55,0.66], connSize:84,
+        heroSize:255, captionStyle:style.captionStyle, hardOut:true,
+        rows:[ [ {w:"I",at:0.20,kind:"conn"},{w:"DON'T",at:0.38,kind:"conn"},
+                 {w:"COME",at:0.56,kind:"conn"} ],[ {w:"HOME",at:0.78,kind:"hero"} ] ] },
+      { type:"poster", at:2.80, until:5.70, zone:[0.55,0.66], connSize:84,
+        heroSize:240, captionStyle:style.captionStyle, hardOut:true,
+        rows:[ [ {w:"WHAT'S",at:2.82,kind:"conn"} ],
+               [ {w:"IMPORTANT",at:3.25,kind:"hero"} ] ] },
+      { type:"list", layout:"diagram", at:5.75, until:8.35, hardOut:true,
+        items:[ {text:"BUSY",at:5.95},{text:"SANE",at:6.85},
+                {text:"FOCUSED",at:7.65} ] },
+      { type:"poster", at:5.90, until:8.33, zone:[0.30,0.36], connSize:84,
+        captionStyle:style.captionStyle, hardOut:true,
+        rows:[ [ {w:"IT",at:5.95,kind:"conn"},{w:"KEEPS",at:6.25,kind:"conn"},
+                 {w:"ME",at:6.50,kind:"conn"} ] ] },
+      { type:"endcard", at:8.35, until:9, title:"STREET YOU GREW UP ON",
+        titleLines:["STREET YOU","GREW UP ON"],
+        sub:"@street_you_grew_up_on", accent:c.accent, wordSize:148 } ] };
 }
 
 const fr = document.getElementById("pv");
@@ -267,13 +345,16 @@ let frameReady = false;
 fr.addEventListener("load", () => {
   const w = fr.contentWindow;
   w.setTimeline(previewTimeline());
-  w.document.fonts.ready.then(() => { w.layoutStage(); frameReady = true; push(); });
+  w.document.fonts.ready.then(() => {
+    w.layoutStage(); frameReady = true; push();
+    document.getElementById("status").textContent = "live preview";
+  });
 });
 function push() { if (!frameReady) return; const w = fr.contentWindow;
   w.setTimeline(previewTimeline()); w.document.fonts.ready.then(() => w.layoutStage()); }
 function loop(ts) {
   if (frameReady) { const dt = (ts - last) / 1000; last = ts;
-    if (playing) { t = (t + dt) % 9; fr.contentWindow.renderAt(t); } }
+    if (playing) { t = (t + dt) % 9; fr.contentWindow.renderAt(t * 1000); } }
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -314,6 +395,8 @@ def _preview_face() -> Path:
 
 class Handler(BaseHTTPRequestHandler):
     campaign = "street_you_grew_up_on"
+    video: str | None = None
+    face_path: Path | None = None
     style: dict = DEFAULT_STYLE
 
     def log_message(self, *a):  # keep the console clean
@@ -330,11 +413,18 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         p = urlparse(self.path).path
         if p in ("/", "/index.html"):
-            page = (PAGE.replace("__PACKS__", json.dumps(PACKS))
+            # Font faces live in the stage *iframe* by default; the
+            # parent must load them too for the specimen labels. Reuse
+            # the same declarations so the specimen is honest.
+            faces = "\n".join(re.findall(r"@font-face\s*\{[^}]+\}",
+                                        STAGE.read_text(encoding="utf-8")))
+            faces = faces.replace("file:///home/user/system/assets/fonts/", "/fonts/")
+            page = (PAGE.replace("__FONT_FACES__", faces)
+                        .replace("__PACKS__", json.dumps(PACKS))
                         .replace("__ROLES__", json.dumps(ROLES))
                         .replace("__COLORS__", json.dumps(COLORS))
                         .replace("__STYLE__", json.dumps(self.style))
-                        .replace("__CAMPAIGN__", json.dumps(self.campaign)))
+                        .replace("__CAMPAIGN__", json.dumps(self.campaign + (" / " + self.video if self.video else ""))))
             return self._send(200, page.encode(), "text/html; charset=utf-8")
         if p == "/stage.html":
             html = STAGE.read_text(encoding="utf-8")
@@ -350,7 +440,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(404, b"no font", "text/plain")
             return self._send(200, f.read_bytes(), "font/woff2")
         if p == "/preview/face.jpg":
-            f = _preview_face()
+            f = self.face_path or _preview_face()
             if not f.exists():
                 return self._send(404, b"no preview", "text/plain")
             return self._send(200, f.read_bytes(), "image/jpeg")
@@ -364,20 +454,31 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(n) or b"{}")
         except Exception:
             return self._send(400, b"bad json", "text/plain")
+        if not isinstance(data, dict) or not isinstance(data.get("colors"), dict):
+            return self._send(400, b"invalid style", "text/plain")
         st = json.loads(json.dumps(DEFAULT_STYLE))
         st.update({k: v for k, v in data.items() if k != "colors"})
-        st["colors"].update(data.get("colors") or {})
-        self.style = st
-        save_style(self.campaign, st)
+        st["colors"].update(data["colors"])
+        st["colors"]["keyword"] = st["colors"]["accent"]
+        if not validate_style(st) or set(data) - (
+                {r[0] for r in ROLES} | {"colors", "captionStyle", "radius"}):
+            return self._send(400, b"invalid font/colour choice", "text/plain")
+        type(self).style = st
+        save_style(self.campaign, st, self.video)
         return self._send(200, b"saved", "text/plain")
 
 
-def serve(campaign: str, port: int) -> None:
+def serve(campaign: str, video: str | None, port: int,
+          preview: str | None = None) -> None:
     Handler.campaign = campaign
-    Handler.style = load_style(campaign)
-    _preview_face()
+    Handler.video = video
+    Handler.style = load_style(campaign, video)
+    Handler.face_path = Path(preview).resolve() if preview else _preview_face()
+    if not Handler.face_path.exists():
+        raise FileNotFoundError(f"speaker preview missing: {Handler.face_path}")
     srv = ThreadingHTTPServer(("0.0.0.0", port), Handler)
-    print(f"style card: http://0.0.0.0:{port}  (campaign {campaign})")
+    label = campaign + (" / " + video if video else "")
+    print(f"style card: http://0.0.0.0:{port}  ({label})")
     srv.serve_forever()
 
 
@@ -388,27 +489,35 @@ def main() -> int:
     sub.add_parser("menu", help="print the font/colour menu")
     s2 = sub.add_parser("show", help="print the saved style")
     s2.add_argument("--campaign", default="street_you_grew_up_on")
+    s2.add_argument("--video", default="")
     s3 = sub.add_parser("serve", help="serve the interactive style card")
     s3.add_argument("--campaign", default="street_you_grew_up_on")
+    s3.add_argument("--video", default="")
+    s3.add_argument("--preview", default="", help="clean still of this video's speaker")
     s3.add_argument("--port", type=int, default=8010)
     s4 = sub.add_parser("theme", help="write a produce-ready theme json")
     s4.add_argument("--campaign", default="street_you_grew_up_on")
+    s4.add_argument("--video", default="")
     s4.add_argument("--out", default="")
     a = ap.parse_args()
 
     if a.cmd == "menu":
         print_menu()
     elif a.cmd == "show":
-        print(json.dumps(load_style(a.campaign), indent=2))
+        print(json.dumps(load_style(a.campaign, a.video or None), indent=2))
     elif a.cmd == "serve":
-        serve(a.campaign, a.port)
+        serve(a.campaign, a.video or None, a.port, a.preview or None)
     elif a.cmd == "theme":
-        st = load_style(a.campaign)
-        out = Path(a.out) if a.out else ROOT / "campaigns" / a.campaign / "style_theme.json"
-        out.parent.mkdir(parents=True, exist_ok=True)
-        write_theme(a.campaign, st)
-        out.write_text((ROOT / "campaigns" / a.campaign / "style_theme.json").read_text())
-        print(f"theme written: {out}")
+        video = a.video or None
+        st = load_style(a.campaign, video)
+        produced = write_theme(a.campaign, st, video)
+        if a.out:
+            out = Path(a.out)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(produced.read_text())
+            print(f"theme written: {out}")
+        else:
+            print(f"theme written: {produced}")
     else:
         print_menu()
     return 0

@@ -427,6 +427,27 @@ def main() -> int:
                         "-c:a", "aac", "-b:a", "160k", str(tmp)], check=True)
         tmp.replace(out)
         loud = measure_loudness(out)
+    # A peak-only trim can move the integral down ~0.8 LU while leaving
+    # healthy -1.8 dBTP of headroom. Finish with a TP-aware loudness
+    # pass (rather than gain it back and recreate the intersample peak).
+    # The +0.5 LU command offset is calibrated to this mono AAC encode:
+    # ffmpeg's dynamic loudnorm measured -14.04 LUFS / -1.59 dBTP from a
+    # -14.86 LUFS / -1.86 dBTP input in the Whop pilot. Measure again;
+    # do not claim PASS if the exact encoded file misses the target.
+    for _ in range(2):
+        if -14.35 <= loud["lufs"] <= -13.65 and loud["true_peak"] < -1.05:
+            break
+        target = -13.5 if loud["lufs"] < -14.35 else -14.0
+        tmp = out.with_suffix(".norm.mp4")
+        subprocess.run([ffmpeg_exe(), "-y", "-v", "error", "-i", str(out),
+                        "-map", "0:v", "-map", "0:a", "-c:v", "copy",
+                        "-af", f"loudnorm=I={target:.1f}:TP=-1.5:LRA=11:linear=false",
+                        # loudnorm upsamples internally to 192kHz. Keep
+                        # delivery at 48kHz for broad platform support.
+                        "-ar", str(SR), "-c:a", "aac", "-b:a", "160k",
+                        str(tmp)], check=True)
+        tmp.replace(out)
+        loud = measure_loudness(out)
     dur = n / SR
     per_sec = len(events) / dur
     texture = sum(1 for e in events if e["kind"] in ("key", "tick"))

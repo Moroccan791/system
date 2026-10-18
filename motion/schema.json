@@ -10,6 +10,28 @@
     "width": { "const": 1080 },
     "height": { "const": 1920 },
     "duration": { "type": "number", "exclusiveMinimum": 0 },
+    "posting": {
+      "type": "object", "additionalProperties": false,
+      "required": ["title", "description", "disclosure", "requiredLine", "hashtags"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "alternativeTitles": { "type": "array", "minItems": 2, "maxItems": 2,
+                                "items": { "type": "string", "minLength": 1 } },
+        "hookVariants": { "type": "array", "minItems": 3, "maxItems": 3,
+                          "items": { "type": "object", "additionalProperties": false,
+                                     "required": ["strategy", "hook"],
+                                     "properties": {
+                                       "strategy": { "type": "string", "minLength": 1 },
+                                       "hook": { "type": "string", "minLength": 1 } } } },
+        "description": { "type": "string", "minLength": 1 },
+        "disclosure": { "enum": ["#ad", "#sponsored"] },
+        "requiredLine": { "type": "string", "minLength": 1 },
+        "hashtags": { "type": "array", "minItems": 7, "maxItems": 8,
+                      "items": { "type": "string", "pattern": "^#[A-Za-z0-9_]+$" } },
+        "coverMoments": { "type": "array", "minItems": 3, "maxItems": 3,
+                          "items": { "type": "number", "minimum": 0 } }
+      }
+    },
     "brand": {
       "type": "object",
       "required": ["accent"],
@@ -31,7 +53,7 @@
         "speed": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
         "easing": { "enum": ["pop", "snap", "soft"] },
         "fontMode": { "enum": ["sans", "serif"] },
-        "fontPack": { "enum": ["montserrat", "anton", "bebas", "grotesk", "serif", "archivo", "poppins", "luckiest"] },
+        "fontPack": { "enum": ["montserrat", "anton", "bebas", "grotesk", "serif", "archivo", "poppins", "luckiest", "oblique", "serifbi", "sansitalic", "regular", "displaybook", "grande"] },
         "captionShade": { "type": "number", "minimum": 0, "maximum": 0.5 },
         "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact", "editorial"] }
       }
@@ -85,6 +107,10 @@
           "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/word" } }
         },
         "captionStyle": { "enum": ["pop", "karaoke", "stretch", "wiggle", "glide", "bounce", "neon", "marker", "impact", "editorial"] },
+        "layout": { "enum": ["diagram"] },
+        "hardOut": { "type": "boolean" },
+        "offsetY": { "type": "number", "minimum": -260, "maximum": 260 },
+        "radius": { "type": "number", "minimum": 75, "maximum": 230 },
         "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
         "accent2": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
         "gradient": { "type": "array", "minItems": 2, "maxItems": 2,
@@ -109,6 +135,8 @@
           "items": { "type": "number", "minimum": 0.3, "maximum": 0.95 }
         },
         "title": { "type": "string" },
+        "titleLines": { "type": "array", "minItems": 2, "maxItems": 3,
+                        "items": { "type": "string", "minLength": 1, "maxLength": 30 } },
         "sub": { "type": "string" },
         "titleSize": { "type": "number", "minimum": 58, "maximum": 90 },
         "subSize": { "type": "number", "minimum": 58, "maximum": 80 },

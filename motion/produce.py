@@ -89,7 +89,7 @@ def simplify(tl: dict, level: int) -> dict:
         kept = []
         for i in tl["items"]:
             if i["type"] in ("poster", "card", "counter", "list", "process",
-                             "vector") \
+                             "vector", "endcard") \
                     or (i["type"] == "fx" and i.get("kind") == "opening"):
                 kept.append(i)
             elif i["type"] == "proof":
@@ -182,7 +182,8 @@ def main() -> int:
         # overrides the theme's pack, never the brand accent
         if opt("--font") in ("montserrat", "anton", "bebas",
                              "grotesk", "serif", "archivo", "poppins",
-                             "luckiest"):
+                             "luckiest", "oblique", "serifbi", "sansitalic",
+                             "regular", "displaybook", "grande"):
             theme["fontPack"] = opt("--font")
             log["font_pack"] = opt("--font")
         else:
@@ -235,6 +236,12 @@ def main() -> int:
                       "typing_sound": typing}
 
     for level in (0, 1, 2):
+        if level == 2 and theme.get("name") == "whop":
+            # A caption-only safety fallback is NOT a Whop deliverable.
+            # If both full and simplified motion fail, return failure.
+            log["levels"].append({"level": 2, "stage": "policy",
+                                  "error": "Whop requires real motion graphics"})
+            break
         tl = tl_src if level < 2 else plain_captions(
             transcript, tl_src.get("duration", 10))
         tl = json.loads(json.dumps(tl))
@@ -376,8 +383,12 @@ def main() -> int:
             sargs += ["--music", str(Path(opt("--music")).resolve())]
             log["music_bed"] = opt("--music")
         s = py("sound.py", *sargs)
-        log["sound_pass"] = s.returncode == 0
+        log["sound_pass"] = s.returncode == 0 and snd.exists()
         log["sound_tail"] = s.stdout.strip()
+        if not log["sound_pass"]:
+            log["levels"].append({"level": level, "stage": "sound",
+                                  "error": (s.stderr or s.stdout)[-500:]})
+            continue
         # Part-5 pack
         pack = job / "review_pack"
         pack.mkdir(exist_ok=True)
@@ -403,7 +414,11 @@ def main() -> int:
             pass
         pk = py("postpack.py", str(fx_path), str(tr_path),
                 str(pack / "packaging"), str(snd))
-        log["packaging"] = pk.stdout.strip() or "skipped"
+        if pk.returncode != 0:
+            log["levels"].append({"level": level, "stage": "postpack",
+                                  "error": (pk.stderr or pk.stdout)[-500:]})
+            break  # a video without its required campaign pack is not done
+        log["packaging"] = pk.stdout.strip()
         if flag("--fps60"):
             # optional 60 fps delivery master (motion-interpolated);
             # the QC'd 30 fps file stays the canonical render

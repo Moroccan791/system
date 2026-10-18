@@ -16,10 +16,11 @@ Spec JSON:
   "offset": 2752.0,                     // transcript t=0 in source seconds
   "span": [2759.6, 2790.4],             // keep words inside (source seconds)
   "drops": [[2769.2, 2770.05]],         // source-second ranges to delete
+  "splits": [2784.78],                  // camera cuts (keep both halves)
   "crops": [                            // first matching rule wins
-    {"until": 2779.3, "crop": [790, 0, 480, 1080], "push": 0.055},
-    {"until": 2784.6, "crop": [650, 0, 608, 1080], "push": 0.03},
-    {"until": 1e9,    "crop": [790, 0, 480, 1080], "push": 0.055}
+    {"until": 2779.3, "crop": [790, 90, 480, 854], "push": 0.055},
+    {"until": 2784.78,"crop": [1080, 90, 480, 854], "push": 0.04},
+    {"until": 1e9,    "crop": [790, 90, 480, 854], "push": 0.055}
   ],
   "out_base": "base.mp4",
   "out_slice": "slice.json"
@@ -49,7 +50,14 @@ def main(spec_path: str) -> int:
     drops = spec.get("drops", [])
 
     def dropped(w):
-        return any(a <= w["start"] <= b for a, b in drops)
+        # Drops are source-audio ranges. An ASR onset a few milliseconds
+        # before the cut must not leak an orphan caption if virtually the
+        # whole word was intentionally removed (e.g. "and." at 2777.62
+        # inside a drop beginning 2777.63).
+        dur = max(0.001, w["end"] - w["start"])
+        return any(a <= w["start"] <= b or
+                   max(0.0, min(b, w["end"]) - max(a, w["start"])) >
+                   max(0.05, dur * 0.5) for a, b in drops)
 
     # Cut on ACOUSTICS, not ASR timestamps: find true silences in the source
     # span and delete every one longer than MAX_GAP (keeping a few frames of
@@ -91,6 +99,49 @@ def main(spec_path: str) -> int:
             pairs.append(((a, b), seg))
     if not pairs:
         print("no words in span"); return 1
+
+    # Acoustic cuts can fall INSIDE an ASR word. Never silently omit one:
+    # attach a word to the kept audio segment with the largest overlap.
+    # If no segment contains audible material for it, fail rather than
+    # inventing a caption over absent speech.
+    candidates = [w for w in words
+                  if (lo - 0.02 <= (w["start"] + w["end"]) / 2 <= hi + 0.02)
+                  and w["end"] > lo and w["start"] < hi and not dropped(w)]
+    assigned = {id(w) for _ab, seg in pairs for w in seg}
+    for w in candidates:
+        if id(w) in assigned:
+            continue
+        overlaps = [max(0.0, min(b, w["end"]) - max(a, w["start"]))
+                    for (a, b), _seg in pairs]
+        best = max(range(len(pairs)), key=lambda j: overlaps[j])
+        if overlaps[best] < 0.025:
+            raise RuntimeError(f"orphan word with no source audio: {w['text']!r} "
+                               f"at {w['start']:.2f}-{w['end']:.2f}")
+        pairs[best][1].append(w)
+        pairs[best][1].sort(key=lambda x: x["start"])
+        print(f"rescued orphan {w['text']!r} into segment {best}")
+    if sum(len(seg) for _ab, seg in pairs) != len(candidates):
+        raise RuntimeError("source words lost or duplicated before rendering")
+
+    # Visual shot cuts are NOT silence cuts. Split the picture/audio at
+    # the camera edit, preserving *both* halves, even when the first
+    # half has no ASR midpoint (a word can span the cut). Source audio
+    # is continuous; word onsets are remapped exactly once below.
+    expanded = []
+    for (a, b), seg in pairs:
+        cuts_here = [a] + [t for t in spec.get("splits", [])
+                           if a + 0.04 < t < b - 0.04] + [b]
+        cuts_here.sort()
+        if len(cuts_here) == 2:
+            expanded.append(((a, b), seg))
+            continue
+        for j, (sa, sb) in enumerate(zip(cuts_here, cuts_here[1:])):
+            ws = [w for w in seg if sa <= (w["start"] + w["end"]) / 2
+                  < sb + (0.001 if j == len(cuts_here) - 2 else 0)]
+            expanded.append(((sa, sb), ws))
+    if sum(len(seg) for _ab, seg in expanded) != len(candidates):
+        raise RuntimeError("a visual split lost a word")
+    pairs = expanded
 
     def crop_for(mid: float):
         for rule in spec["crops"]:

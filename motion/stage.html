@@ -35,7 +35,12 @@
   .item { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
 
   /* ---- poster captions ---- */
-  .poster { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+  .poster { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            z-index: 2; }
+  /* Motion-scenes are a background CUT, not a translucent overlay across
+     the speaker; speech captions remain above the scene, outro above all. */
+  .listp.diagram, .broll.vecfull { z-index: 1; }
+  .endcard { z-index: 4; }
   .poster .stack { display: flex; flex-direction: column; align-items: center; position: relative; }
   /* soft dark plate under the stack (spec 1.6): an invisible-feeling
      radial falloff that guarantees the 4.5:1 ground on bright footage */
@@ -60,6 +65,7 @@
   .slate .hk-line { font-family: "MontserratX"; font-weight: 800; color: #fff;
     text-align: center; line-height: 1.05; letter-spacing: .01em; padding: 0 56px;
     -webkit-text-stroke: 2px rgba(0,0,0,.4); }
+  .slate .hk-line .hk-title-line { display: block; white-space: nowrap; }
   .slate .hk-bar { width: 190px; height: 14px; border-radius: 99px; margin-top: 46px; }
   .slate .hk-sub { font-family: "MontserratX"; font-weight: 700; color: #fff;
     opacity: .75; font-size: 54px; margin-top: 40px; letter-spacing: .04em; }
@@ -161,7 +167,11 @@
   .poster .stack.editorial .w { text-transform: uppercase; letter-spacing: -.005em;
     -webkit-text-stroke: 2px rgba(0,0,0,.92); paint-order: stroke fill;
     text-shadow: none; font-weight: 800; }
-  .poster .stack.editorial .w.conn { font-weight: 700; }
+  .poster .stack.editorial .w.conn { font-weight: 600; }
+  .poster .stack.editorial .w.key, .poster .stack.editorial .w.hero {
+    /* Match a Book Italic specimen rather than synthesising bold. */
+    font-weight: 400; letter-spacing: -.025em;
+  }
   .poster .stack.editorial .w.serif { text-transform: none; letter-spacing: -.01em; }
 
   /* ---- proof card: the receipt (testimonial / screenshot / number) ---- */
@@ -304,6 +314,7 @@ function roleFontCss() {
 function roleColorCss() {
   const c = THEME.colors || {}, out = [];
   if (c.caption) out.push(`.poster .w.conn, .card .cw, .chip .t1 { color: ${c.caption}; }`);
+  if (c.serif) out.push(`.poster .w.serif { color: ${c.serif} !important; }`);
   if (c.keyword) out.push(`.poster .w.hero, .poster .w.grad, .poster .w.pay { color: ${c.keyword} !important; }`);
   // the plate only exists in the plate treatments: the editorial
   // treatment swaps the keyword INK instead, so its plate must not be
@@ -315,6 +326,7 @@ function roleColorCss() {
   if (c.listText) out.push(`.listp .pt1, .listp .pt2 { color: ${c.listText} !important; }`);
   if (c.sceneBg) out.push(`.broll.vecfull .win { background: ${c.sceneBg} !important; }`);
   if (c.sceneInk) out.push(`.broll.vecfull .blab .l1 { color: ${c.sceneInk} !important; }`);
+  if (c.endcard) out.push(`.slate .hk-line { color: ${c.endcard} !important; }`);
   return out.join("");
 }
 function themeEase(p) {
@@ -653,7 +665,12 @@ function buildEndcard(item) {
   const kick = el("hk-kicker", slate);
   kick.textContent = "FOLLOW FOR MORE";
   const nm = el("hk-line", slate);
-  nm.textContent = item.title || "";
+  if (item.titleLines && item.titleLines.length) {
+    for (const str of item.titleLines) {
+      const line = el("hk-title-line", nm);
+      line.textContent = str;
+    }
+  } else nm.textContent = item.title || "";
   nm.style.fontSize = (item.wordSize || 120) + "px";
   nm.style.color = item.accent || ACCENT;
   const lines = [nm];
@@ -792,6 +809,13 @@ function buildVector(item) {
       if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
     }
     buildScene(svg, V, ac, item, 1080, 1920);
+    // the scene ground is the svg's first rect: let the style card
+    // repaint it (REF1 runs white full-screen scenes)
+    const sceneGround = item.bgColor || (THEME.colors || {}).sceneBg;
+    if (sceneGround) {
+      const r0 = svg.querySelector("rect");
+      if (r0) r0.setAttribute("fill", sceneGround);
+    }
     return { item, root, win, bimg: wrap, bfull: true, vec: V };
   }
   const root = el("item pip", stage);
@@ -1035,8 +1059,8 @@ function buildScene(svg, V, ac, item, vw, vh) {
   } else if (V.name === "network") {
     // SHOW a circle: one centre node, satellites link in one by one
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
-    const cx = 300, cy = H / 2, cnt = Math.max(3, Math.min(14, item.count || 7));
-    const R = Math.min(195, H / 2 - 80);
+    const cx = 300, cy = H / 2 + (item.offsetY || 0), cnt = Math.max(3, Math.min(14, item.count || 7));
+    const R = Math.min(item.radius || 195, H / 2 - 80);
     n.links = []; n.sats = [];
     for (let i = 0; i < cnt; i++) {
       const a = (i / cnt) * Math.PI * 2 - Math.PI / 2;
@@ -1537,6 +1561,32 @@ function buildScene(svg, V, ac, item, vw, vh) {
       return p;
     });
     n.trcy = cy;
+  } else if (V.name === "noaward") {
+    // NEGATE the win: a cup drawn in muted grey, then a slash that
+    // draws across it in the accent. "I don't come home to an award."
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    const cy = H / 2 + (item.offsetY || 0),
+          ink = item.ink || (THEME.colors || {}).sceneInk || "#7C889B";
+    n.naG = svgEl("g", {}, svg);
+    const cup = `M ${234 * s} ${(cy - 98) * s} H ${366 * s} V ${(cy - 30) * s} C ${366 * s} ${cy * s} ${334 * s} ${(cy + 40) * s} ${300 * s} ${(cy + 40) * s} C ${266 * s} ${(cy + 40) * s} ${234 * s} ${cy * s} ${234 * s} ${(cy - 30) * s} Z`;
+    n.naCup = svgEl("path", { d: cup, fill: "none", stroke: ink,
+      "stroke-width": 12 * s, "stroke-linecap": "round" }, n.naG);
+    n.naHandleL = svgEl("path", { d: `M ${236 * s} ${(cy - 78) * s} C ${198 * s} ${(cy - 78) * s} ${194 * s} ${(cy - 26) * s} ${242 * s} ${(cy - 18) * s}`, fill: "none", stroke: ink, "stroke-width": 11 * s, "stroke-linecap": "round" }, n.naG);
+    n.naHandleR = svgEl("path", { d: `M ${364 * s} ${(cy - 78) * s} C ${402 * s} ${(cy - 78) * s} ${406 * s} ${(cy - 26) * s} ${358 * s} ${(cy - 18) * s}`, fill: "none", stroke: ink, "stroke-width": 11 * s, "stroke-linecap": "round" }, n.naG);
+    n.naStem = svgEl("rect", { x: 288 * s, y: (cy + 40) * s, width: 24 * s, height: 34 * s, fill: ink }, n.naG);
+    n.naBase = svgEl("rect", { x: 252 * s, y: (cy + 74) * s, width: 96 * s, height: 20 * s, rx: 8 * s, fill: ink }, n.naG);
+    n.naSlash = svgEl("path", { d: `M ${168 * s} ${(cy - 128) * s} L ${432 * s} ${(cy + 118) * s}`, stroke: ac, "stroke-width": 20 * s, "stroke-linecap": "round", fill: "none" }, n.naG);
+    // measure the strokes so the draw-on is exact
+    n.naLens = [n.naCup, n.naHandleL, n.naHandleR].map(el2 => {
+      const L = el2.getTotalLength ? el2.getTotalLength() : 400;
+      el2.setAttribute("stroke-dasharray", L);
+      el2.setAttribute("stroke-dashoffset", L);
+      return L;
+    });
+    n.naSlashLen = n.naSlash.getTotalLength ? n.naSlash.getTotalLength() : 420;
+    n.naSlash.setAttribute("stroke-dasharray", n.naSlashLen);
+    n.naSlash.setAttribute("stroke-dashoffset", n.naSlashLen);
+    n.nacy = cy;
   } else if (V.name === "ladder") {
     // ORIENT progress: climb the rungs one by one
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
@@ -2310,6 +2360,16 @@ function animateVector(b, t, lifeP) {
       const pq = clamp01((lt - 0.5 - i * 0.18) / 0.4);
       sp.setAttribute("opacity", (Math.sin(pq * Math.PI) * (0.5 + 0.5 * Math.sin(lt * 3 + i))).toFixed(2));
     });
+  } else if (V.name === "noaward") {
+    // the cup draws itself, then the slash cuts across it
+    [n.naCup, n.naHandleL, n.naHandleR].forEach((el2, i) => {
+      const q = easeOut(clamp01((lt - i * 0.09) / 0.4));
+      el2.setAttribute("stroke-dashoffset", (n.naLens[i] * (1 - q)).toFixed(1));
+    });
+    const sq = easeOut(clamp01((lt - 0.55) / 0.4));
+    n.naSlash.setAttribute("stroke-dashoffset", (n.naSlashLen * (1 - sq)).toFixed(1));
+    n.naStem.setAttribute("opacity", (0.25 + 0.75 * easeOut(clamp01((lt - 0.25) / 0.3))).toFixed(2));
+    n.naBase.setAttribute("opacity", (0.25 + 0.75 * easeOut(clamp01((lt - 0.3) / 0.3))).toFixed(2));
   } else if (V.name === "ladder") {
     const cnt = n.ldRungs.length;
     const pos = easeInOut(clamp01(lt / Math.min(1.5, dur * 0.72))) * (cnt - 1);
@@ -2661,7 +2721,63 @@ function buildCounter(item) {
   return { item, root, num, numVal: val, cwrap: wrap };
 }
 
+function buildDiagram(item) {
+  // Full-bleed graphic of the four things her craft gives her. No pills,
+  // badges, photos, fake proof or captions over a moving hand. A real
+  // animated structure grows to each word in speech order.
+  const root = el("item listp diagram", stage);
+  const c = THEME.colors || {}, ac = c.listHead || item.accent || c.accent || ACCENT;
+  const ink = item.ink || c.listText || c.sceneInk || "#FFFFFF";
+  root.style.backgroundColor = item.bgColor || c.sceneBg || "#101319";
+  const svg = svgEl("svg", { viewBox: "0 0 1080 1920", preserveAspectRatio: "xMidYMid meet" }, root);
+  svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;";
+  const font = PACKS[(THEME.fonts || {}).list] || "PackGrande";
+  const rows = item.items || [], y0 = 805, y1 = 1480;
+  const ys = rows.map((_, i) => y0 + i * (y1 - y0) / Math.max(1, rows.length - 1));
+  // The immobile scaffold is low-contrast; the drawn rails are the
+  // motion. Both colours follow the pre-edit colour chooser.
+  const guide = hexA(ink, .17);
+  svgEl("path", { d: `M 190 ${y0-90} V ${y1+95}`, fill: "none",
+    stroke: guide, "stroke-width": 4 }, svg);
+  svgEl("path", { d: `M 945 ${y0-90} V ${y1+95}`, fill: "none",
+    stroke: guide, "stroke-width": 3, "stroke-dasharray": "5 17" }, svg);
+  const title = svgEl("text", { x: 108, y: 1692, fill: ink,
+    "font-size": 66, "font-family": font, "font-weight": 600,
+    "letter-spacing": 4 }, svg);
+  title.textContent = "MY CRAFT";
+  const rule = svgEl("path", { d: "M 108 1725 H 630", fill: "none", stroke: ac,
+    "stroke-width": 8, "stroke-dasharray": 522, "stroke-dashoffset": 522 }, svg);
+  const spineLen = (y1 + 95) - (y0 - 90);
+  const spine = svgEl("line", { x1: 190, y1: y0-90, x2: 190, y2: y1+95,
+    stroke: ac, "stroke-width": 8, "stroke-dasharray": spineLen,
+    "stroke-dashoffset": spineLen }, svg);
+  const built = rows.map((pl, i) => {
+    const y = ys[i], group = svgEl("g", { opacity: 0 }, svg);
+    const num = svgEl("text", { x: 100, y: y+28,
+      fill: hexA(ink,.52), "font-size": 55, "font-family": "PackRegular",
+      "letter-spacing": 2 }, group);
+    num.textContent = String(i+1).padStart(2,"0");
+    const dot = svgEl("circle", { cx: 190, cy: y, r: 0, fill: ac }, group);
+    const label = svgEl("text", { x: 320, y: y+39,
+      fill: ink, "font-size": 116, "font-family": font,
+      "font-weight": 600, "letter-spacing": -1 }, group);
+    label.textContent = pl.text.toUpperCase();
+    fitSvg(label, 630);
+    const bar = svgEl("path", { d: `M 190 ${y+86} H 945`, fill: "none",
+      stroke: ac, "stroke-width": 6, "stroke-dasharray": 755,
+      "stroke-dashoffset": 755 }, group);
+    return { group, num, dot, label, bar, at: pl.at, y };
+  });
+  const rightLen = (y1+95)-(y0-90);
+  const right = svgEl("path", { d: `M 945 ${y0-90} V ${y1+95}`,
+    fill: "none", stroke: ac, "stroke-width": 8,
+    "stroke-dasharray": rightLen, "stroke-dashoffset": rightLen }, svg);
+  return { item, root, diagram: { ac, ink, ys, rows: built, spine, spineLen,
+                                  right, rightLen, rule } };
+}
+
 function buildList(item) {
+  if (item.layout === "diagram") return buildDiagram(item);
   const root = el("item listp", stage);
   const zone = item.zone || [0.50, 0.95];
   const wrap = el("lwrap", root);
@@ -2923,7 +3039,7 @@ function renderAt(tMs) {
   for (const b of builtItems) {
     const it = b.item;
     const active = t >= it.at - 0.001 - (b.words ? WORD_LEAD : 0) &&
-                   t < (it.until ?? it.at + 2) + 10 / FPS;
+                   t < (it.until ?? it.at + 2) + (it.hardOut ? 0 : 10 / FPS);
     b.root.style.display = active ? "" : "none";
     if (!active) continue;
     if (b.words) b.words.forEach(wd => applyWord(wd, t, it.until ?? it.at + 2));
@@ -3000,7 +3116,8 @@ function renderAt(tMs) {
       // hook slate / end card: lines stagger in over ~6f each,
       // slate drifts (idle law), dissolves exactly AT until in 2f
       const until = it.until ?? it.at + 1.2;
-      const op = Math.min(clamp01((t - it.at) / (2 / FPS)),
+      const op = Math.min(it.type === "endcard" ? (t >= it.at ? 1 : 0)
+                                                    : clamp01((t - it.at) / (2 / FPS)),
                           clamp01(1 - (t - until) / (2 / FPS)));
       b.slate.style.opacity = op.toFixed(3);
       b.slate.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;
@@ -3112,6 +3229,45 @@ function renderAt(tMs) {
         b.cwrap.style.transform = `translateY(${L.slide.toFixed(1)}px)`;
       }
       trackSemi(b.num, L.op);
+    }
+    if (b.diagram) {
+      const dg = b.diagram, rows = dg.rows;
+      // A hard cut out (hardOut) is used for this full-bleed variant.
+      b.root.style.opacity = "1";
+      b.root.style.filter = "none";
+      b.root.style.transform = "none";
+      dg.rule.setAttribute("stroke-dashoffset", (522 * (1 - easeOut(clamp01((t-it.at)/0.48)))).toFixed(1));
+      let y = dg.ys[0] - 90;
+      const latest = rows.reduce((index, row, i) => t >= row.at ? i : index, -1);
+      rows.forEach((row, i) => {
+        const dt = t - row.at, p = easeOut(clamp01(dt / 0.26));
+        if (dt >= 0) {
+          y = (i === 0 ? dg.ys[0] - 90 : dg.ys[i-1]) +
+              (dg.ys[i] - (i === 0 ? dg.ys[0]-90 : dg.ys[i-1])) * easeInOut(clamp01(dt / 0.48));
+        }
+        row.group.setAttribute("opacity", dt < 0 ? "0" : p.toFixed(3));
+        row.group.setAttribute("transform", `translate(0 ${((1-p)*22).toFixed(1)})`);
+        row.bar.setAttribute("stroke-dashoffset", (755*(1-easeInOut(clamp01((dt-.08)/.50)))).toFixed(1));
+        row.dot.setAttribute("r", dt < 0 ? "0" :
+          (i === latest ? 18 + 3*Math.sin((t-row.at)*5) : 13).toFixed(1));
+        row.label.setAttribute("fill", i === latest ? dg.ac : dg.ink);
+        row.label.setAttribute("opacity", i === latest ? "1" : ".72");
+        row.bar.setAttribute("opacity", i === latest ? "1" : ".32");
+      });
+      // Between spoken labels, the rail visibly travels toward the
+      // next empty anchor (an open loop). The label still waits for its
+      // actual acoustic onset; there is no 320ms text spoiler.
+      if (latest >= 0 && latest < rows.length - 1) {
+        const cur = rows[latest], next = rows[latest+1];
+        const span = Math.max(.01, next.at - cur.at - .38);
+        const q = easeInOut(clamp01((t - cur.at - .38) / span));
+        y = Math.max(y, cur.y + (next.y-cur.y) * q * .88);
+      }
+      const px = Math.max(0, Math.min(dg.spineLen, y-(dg.ys[0]-90)));
+      dg.spine.setAttribute("stroke-dashoffset", (dg.spineLen-px).toFixed(1));
+      const last = rows[rows.length-1];
+      const rp = last ? easeInOut(clamp01((t-last.at-.08)/.55)) : 0;
+      dg.right.setAttribute("stroke-dashoffset", (dg.rightLen*(1-rp)).toFixed(1));
     }
     if (b.plates) {
       const until = it.until ?? it.at + 2;
