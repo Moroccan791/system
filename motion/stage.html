@@ -1325,7 +1325,7 @@ function buildScene(svg, V, ac, item, vw, vh) {
     // hand-drawn picture cues, and the ice-cream doodle that marks the
     // line. Every stroke is authored SVG and is drawn on the frame clock.
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#101319" }, svg);
-    const cy = H / 2, px = 64, py = cy - 310, pw = 472, ph = 620;
+    const cy = H / 2, px = 64, py = cy - 430, pw = 472, ph = 620;
     n.page = svgEl("g", {}, svg);
     svgEl("rect", { x: px * s, y: py * s, width: pw * s, height: ph * s,
       rx: 18 * s, fill: "#F2EFE6", stroke: "#FFFFFF", "stroke-width": 2 * s }, n.page);
@@ -1382,11 +1382,11 @@ function buildScene(svg, V, ac, item, vw, vh) {
     icePath(`M ${cx - 22} ${iy - 6} C ${cx - 28} ${iy - 20}, ${cx - 17} ${iy - 34}, ${cx - 3} ${iy - 30} C ${cx + 2} ${iy - 47}, ${cx + 27} ${iy - 43}, ${cx + 27} ${iy - 23} C ${cx + 40} ${iy - 16}, ${cx + 35} ${iy - 1}, ${cx + 23} ${iy + 2}`, 0.71, "#293039", 3);
     icePath(`M ${cx - 23} ${iy - 4} L ${cx} ${iy + 57} L ${cx + 24} ${iy - 4}`, 0.80, "#293039", 3);
     icePath(`M ${cx - 13} ${iy + 5} L ${cx + 11} ${iy + 30} M ${cx + 13} ${iy + 5} L ${cx - 5} ${iy + 31}`, 0.91, "#9A7439", 2);
-    n.cueLine = drawPath(`M ${cx + 31} ${iy + 3} Q ${cx + 55} ${iy + 37} ${px + 345} ${cy + 232}`, 0.92, ac, 3.5);
+    n.cueLine = drawPath(`M ${cx + 31} ${iy + 3} Q ${cx + 55} ${iy + 23} ${px + 345} ${cy + 145}`, 0.92, ac, 3.5);
     n.cuePill = svgEl("g", { opacity: 0 }, n.page);
-    svgEl("rect", { x: (px + 310) * s, y: (cy + 210) * s,
-      width: 105 * s, height: 45 * s, rx: 22 * s, fill: ac }, n.cuePill);
-    const cueText = svgEl("text", { x: (px + 362.5) * s, y: (cy + 240) * s,
+    svgEl("rect", { x: (px + 310) * s, y: (cy + 123) * s,
+      width: 105 * s, height: 42 * s, rx: 22 * s, fill: ac }, n.cuePill);
+    const cueText = svgEl("text", { x: (px + 362.5) * s, y: (cy + 151) * s,
       "text-anchor": "middle", fill: "#101319", "font-size": 22 * s,
       "font-weight": 800, "font-family": "MontserratX", "letter-spacing": 2 * s }, n.cuePill);
     cueText.textContent = "CUE";
@@ -2332,7 +2332,8 @@ function animateVector(b, t, lifeP) {
     });
     const cue = easeOutBack(clamp01((lt - 0.88) / 0.28));
     n.cuePill.setAttribute("opacity", clamp01(cue).toFixed(2));
-    n.cuePill.setAttribute("transform", `scale(${Math.max(0.01, cue).toFixed(3)} 1)`);
+    const bx = (64 + 362.5) * s, by = (cy + 144) * s;
+    n.cuePill.setAttribute("transform", `translate(${bx} ${by}) scale(${Math.max(0.01, cue).toFixed(3)}) translate(${-bx} ${-by})`);
     const pulse = ((lt * 1.4) % 1 + 1) % 1;
     n.cueRing.setAttribute("r", ((46 + pulse * 23) * s).toFixed(1));
     n.cueRing.setAttribute("opacity", (lt > 0.75 ? (1 - pulse) * 0.72 : 0).toFixed(2));
