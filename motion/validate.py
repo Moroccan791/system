@@ -253,7 +253,7 @@ def main(path: str) -> int:
                 "anchor", "balloon", "redflag", "ghost", "wall", "compass",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
-                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "noaward", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo"):
+                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "noaward", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo", "scriptcue", "oaktree"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":

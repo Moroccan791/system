@@ -304,6 +304,20 @@ row in `assign.py`, a row in this table, a test. A scene that needs
 authored data (counts, prices) is not a metaphor — it belongs to the
 data scenes above.
 
+#### Story-specific scenes — SHOW the line, not a stock metaphor
+These are authored for the Street You Grew Up On moments, not general
+trigger rules. Use only when the speech itself establishes the object:
+
+| Scene | Trigger speech | The picture |
+|---|---|---|
+| `scriptcue` | script / pictures / ice-cream cue | A page of script lines is written in; margin doodles appear; the ice-cream cone is drawn and linked to a CUE tag. |
+| `oaktree` | oak tree / shade / protect children | Trunk and roots draw in; a wide canopy grows above two small figures, creating a visible pool of shade. |
+
+Both are bespoke SVG motion scenes (not generated raster inserts),
+full-bleed for 1.0–1.8s, and count as picture inserts for the 6s
+metaphor cadence. They must never be used as evidence or add a claim
+not present in the source line.
+
 #### calendar — ORIENT in the week
 Seven day cells pop in; the spoken day (`day` 0=Mon) lights accent and
 rings. Use when a day/date carries the point ("by Friday…").
