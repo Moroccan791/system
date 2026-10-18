@@ -151,6 +151,17 @@ def main(spec_path: str) -> int:
             ws = [w for w in seg if sa <= (w["start"] + w["end"]) / 2
                   < sb + (0.001 if j == len(cuts_here) - 2 else 0)]
             expanded.append(((sa, sb), ws))
+        # a word rescued into this pair (it fell in a gap) keeps its
+        # place: the split divides the picture, never the words
+        lost = [w for w in seg if not any(w in ws for _r, ws in expanded)]
+        for w in lost:
+            overlaps = [max(0.0, min(r[1], w["end"]) - max(r[0], w["start"]))
+                        for r, _ws in expanded[-len(cuts_here) + 1:]]
+            if overlaps:
+                j = max(range(len(overlaps)), key=lambda k: overlaps[k])
+                expanded[-(len(cuts_here) - 1) + j][1].append(w)
+                expanded[-(len(cuts_here) - 1) + j][1].sort(
+                    key=lambda x: x["start"])
     if sum(len(seg) for _ab, seg in expanded) != len(candidates):
         raise RuntimeError("a visual split lost a word")
     pairs = expanded

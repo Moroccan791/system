@@ -41,7 +41,7 @@ def main() -> int:
         if "old" not in p:
             continue
         hits = [i for i, w in enumerate(words)
-                if abs(w["start"] - p["at"]) < 0.05
+                if abs(w["start"] - p["at"]) < 0.08
                 and w["text"].lower().strip(".,!?")
                 == p["old"].lower().strip(".,!?")]
         if not hits:
@@ -63,7 +63,7 @@ def main() -> int:
     for p in patches:
         if "set_start" in p:
             for w in words:
-                if (abs(w["start"] - p["at"]) < 0.02
+                if (abs(w["start"] - p["at"]) < 0.09
                         and "text" in p
                         and w["text"].strip(".,!?") == p["text"].strip(".,!?")):
                     w["start"] = round(p["set_start"], 3)

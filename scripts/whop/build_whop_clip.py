@@ -44,7 +44,8 @@ ZONES = {
     "payoff": ([0.73, 0.84], 92),
 }
 SIZES = {"sm": 88, "md": 104, "lg": 118}
-LOOKAHEAD = 1.0   # a caption word is never matched more than a second ahead
+LOOKAHEAD = 1.0        # a caption word is never matched more than a second ahead
+FIRST_LOOKAHEAD = 2.5  # the first word of a caption group may sit a beat later
 
 
 def _norm(tok: str) -> str:
@@ -121,6 +122,25 @@ class Clock:
         self.words = words
         self.i = 0
 
+    def _match(self, tok, anchor, limit):
+        """The word this caption token lands on.
+
+        Case matters where the ASR is consistent ("And" vs "and"), so
+        an exact-case hit wins; otherwise the first case-insensitive
+        hit inside the window does.
+        """
+        key = _norm(tok)
+        first = None
+        j = self.i
+        while j < len(self.words) and self.words[j]["start"] - anchor <= limit:
+            if _norm(self.words[j]["text"]) == key:
+                if self.words[j]["text"] == tok:
+                    return j
+                if first is None:
+                    first = j
+            j += 1
+        return first
+
     def line(self, text):
         """A caption LINE written as prose.
 
@@ -131,14 +151,13 @@ class Clock:
         row = []
         anchor = (self.words[self.i]["start"] if self.i < len(self.words)
                   else 0.0)
-        for tok in text.split():
+        for n, tok in enumerate(text.split()):
             key = _norm(tok)
-            j = self.i
-            while (j < len(self.words)
-                   and _norm(self.words[j]["text"]) != key
-                   and self.words[j]["start"] - anchor <= LOOKAHEAD):
-                j += 1
-            if j < len(self.words) and _norm(self.words[j]["text"]) != key:
+            # the first word of a caption group may sit a beat after the
+            # previous group; every word after it must follow closely
+            limit = FIRST_LOOKAHEAD if n == 0 else LOOKAHEAD
+            j = self._match(tok, anchor, limit)
+            if j is None:
                 j = len(self.words)      # too far ahead: treat as unheard
             if j >= len(self.words):
                 # The ASR sometimes drops a short word ("next to it" ->
@@ -157,6 +176,7 @@ class Clock:
             row.append({"w": w["text"], "at": round(w["start"], 2),
                         "kind": "conn"})
             self.i = j + 1
+            anchor = w["start"]
         return row
 
     def occurrences(self, text):
@@ -208,6 +228,26 @@ def build(plan: dict) -> dict:
     span = plan["span"]
     transcript = plan.get("transcript", EPISODE)
     offset = float(plan.get("offset", 0.0))
+
+    out = ROOT / "work" / "street" / post
+    out.mkdir(parents=True, exist_ok=True)
+
+    # the SPEC comes first: the cut can be built even when a caption
+    # line cannot be matched yet (the words behind a drop are only
+    # reachable on the cut's own clock)
+    spec = {
+        "source": plan.get("source", "work/street/raw/street_full.mp4"),
+        "words": transcript,
+        "offset": offset,
+        "span": list(span),
+        "drops": plan.get("drops", []),
+        "crops": plan.get("crops", []),
+        "out_base": str(out / "base.mp4"),
+        "out_slice": str(out / "slice.json"),
+        "tail_seconds": plan.get("tail_seconds") or 2.2,
+        "splits": plan.get("splits", []),
+    }
+    (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
 
     base_file = ROOT / "work" / "street" / post / "base.mp4"
     auto_face = face_zone(base_file) if base_file.exists() else None
@@ -301,10 +341,13 @@ def build(plan: dict) -> dict:
                 end = start + beat.get("dur", 1.0)
             item = {"type": "vector", "name": beat["name"], "mode": "fullbleed",
                     "at": round(start, 2), "until": round(end, 2), "accent": accent}
-            for k in ("offsetY", "radius", "title", "count", "label",
-                      "word", "bgColor", "sub"):
-                if k in beat:
-                    item[k] = beat[k]
+            # every scene-specific key passes straight through
+            # (word, quoteLines, entries, value, by, ...)
+            for k, v in beat.items():
+                if k in ("type", "name", "trigger", "at", "until", "dur",
+                         "lead", "offset", "zone"):
+                    continue
+                item[k] = v
             items.append(item)
         elif kind == "endcard":
             at, until = beat.get("at"), beat.get("until")
@@ -361,6 +404,12 @@ def build(plan: dict) -> dict:
                           for r in it.get("rows", []) for w in r),
                          default=0.0)
 
+    # the base has to hold the outro: the tail runs from the last
+    # spoken word to the end of the end card (plus a little)
+    spec["tail_seconds"] = plan.get("tail_seconds") or round(
+        max(0.5, duration - last_word_time + 0.10), 2)
+    (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
+
     timeline = {
         "version": 1, "width": 1080, "height": 1920, "fps": 30,
         "duration": round(duration, 2),
@@ -378,26 +427,8 @@ def build(plan: dict) -> dict:
         },
         "items": sorted(items, key=lambda x: x["at"]),
     }
-    out = ROOT / "work" / "street" / post
-    out.mkdir(parents=True, exist_ok=True)
     (out / "timeline.json").write_text(json.dumps(timeline, indent=2) + "\n")
 
-    spec = {
-        "source": plan.get("source", "work/street/raw/street_full.mp4"),
-        "words": transcript,
-        "offset": offset,
-        "span": list(span),
-        "drops": plan.get("drops", []),
-        "crops": plan.get("crops", []),
-        "out_base": str(out / "base.mp4"),
-        "out_slice": str(out / "slice.json"),
-        # the base has to hold the outro: the tail runs from the last
-        # spoken word to the end of the end card (plus a little)
-        "tail_seconds": plan.get("tail_seconds") or round(
-            max(0.5, duration - last_word_time + 0.10), 2),
-        "splits": plan.get("splits", []),
-    }
-    (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
     print(f"{post}: {len(timeline['items'])} items, {timeline['duration']}s, "
           f"accent {accent}, style {style['captionStyle']}")
     for it in timeline["items"]:
