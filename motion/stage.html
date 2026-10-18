@@ -1037,6 +1037,42 @@ function buildScene(svg, V, ac, item, vw, vh) {
       fitSvg(n.qby, 500 * s);
       n.qby.textContent = "— " + item.by.toUpperCase();
     }
+    // A performance cue, drawn for this memory rather than a stock
+    // note icon: a moving record and a hand-built microphone ground the
+    // Selena line in music while the quote stays readable above.
+    const rcx = 452, rcy = H - 308, rr = 74;
+    n.qrcx = rcx; n.qrcy = rcy;
+    n.qDisc = svgEl("g", { opacity: 0 }, svg);
+    svgEl("circle", { cx: rcx * s, cy: rcy * s, r: (rr + 5) * s,
+      fill: "#0B0E13", stroke: "#60718B", "stroke-width": 3 * s }, n.qDisc);
+    [58, 48, 38].forEach(r => svgEl("circle", { cx: rcx * s, cy: rcy * s,
+      r: r * s, fill: "none", stroke: "#46536A", "stroke-width": 2 * s,
+      opacity: .68 }, n.qDisc));
+    svgEl("circle", { cx: rcx * s, cy: rcy * s, r: 25 * s,
+      fill: ac, stroke: "#F2EFE6", "stroke-width": 2 * s }, n.qDisc);
+    const qLabel = svgEl("text", { x: rcx * s, y: (rcy + 5) * s,
+      "text-anchor": "middle", fill: "#101319", "font-size": 13 * s,
+      "font-weight": 900, "font-family": "MontserratX", "letter-spacing": 1.5 * s }, n.qDisc);
+    qLabel.textContent = "SELENA";
+    n.qMic = svgEl("g", { opacity: 0 }, svg);
+    const mx = 142, my = rcy;
+    svgEl("rect", { x: (mx - 19) * s, y: (my - 66) * s,
+      width: 38 * s, height: 78 * s, rx: 19 * s,
+      fill: "#252D3B", stroke: "#E8EDF4", "stroke-width": 3 * s }, n.qMic);
+    for (let i = 0; i < 5; i++) svgEl("line", {
+      x1: (mx - 13) * s, y1: (my - 49 + i * 10) * s,
+      x2: (mx + 13) * s, y2: (my - 49 + i * 10) * s,
+      stroke: ac, "stroke-width": 2 * s, opacity: .82 }, n.qMic);
+    svgEl("line", { x1: mx * s, y1: (my + 12) * s,
+      x2: mx * s, y2: (my + 78) * s,
+      stroke: "#C7CFDD", "stroke-width": 6 * s, "stroke-linecap": "round" }, n.qMic);
+    svgEl("path", { d: `M ${(mx - 34) * s} ${(my + 82) * s} Q ${mx * s} ${(my + 104) * s} ${(mx + 34) * s} ${(my + 82) * s}`,
+      fill: "none", stroke: ac, "stroke-width": 6 * s,
+      "stroke-linecap": "round" }, n.qMic);
+    n.qWaves = [22, 38, 54].map(r => svgEl("path", {
+      d: `M ${(mx + 24) * s} ${(my - r) * s} Q ${(mx + r + 22) * s} ${my * s} ${(mx + 24) * s} ${(my + r) * s}`,
+      fill: "none", stroke: ac, "stroke-width": 3 * s,
+      "stroke-linecap": "round", opacity: 0 }, svg));
   } else if (V.name === "chat") {
     // SHOW a conversation: a phone fills with message bubbles as spoken
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
@@ -1402,9 +1438,22 @@ function buildScene(svg, V, ac, item, vw, vh) {
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     n.rings = [0, 1].map(() => svgEl("circle", { cx: 300 * s, cy: (H / 2) * s, r: 60 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg));
     n.heartG = svgEl("g", {}, svg);
-    const hp = svgEl("path", { d: "M 0 62 C -78 12 -104 -58 -52 -84 C -22 -98 0 -76 0 -48 C 0 -76 22 -98 52 -84 C 104 -58 78 12 0 62 Z", fill: ac }, n.heartG);
+    const hp = svgEl("path", { d: "M 0 62 C -78 12 -104 -58 -52 -84 C -22 -98 0 -76 0 -48 C 0 -76 22 -98 52 -84 C 104 -58 78 12 0 62 Z", fill: ac, stroke: hexA(ac, .72), "stroke-width": 3 * s }, n.heartG);
     hp.setAttribute("transform", `translate(${300 * s} ${(H / 2) * s}) scale(${1.15 * s})`);
-    n.hcx = 300; n.hcy = H / 2;
+    const hcy = H / 2;
+    n.hBeat = svgEl("path", { d: `M ${72 * s} ${(hcy + 212) * s} H ${196 * s} L ${222 * s} ${(hcy + 212) * s} L ${246 * s} ${(hcy + 178) * s} L ${270 * s} ${(hcy + 253) * s} L ${299 * s} ${(hcy + 195) * s} L ${323 * s} ${(hcy + 212) * s} H ${528 * s}`,
+      fill: "none", stroke: "#E8EDF4", "stroke-width": 5 * s,
+      "stroke-linecap": "round", "stroke-linejoin": "round", opacity: .72 }, svg);
+    n.hBeatLen = n.hBeat.getTotalLength();
+    n.hBeat.setAttribute("stroke-dasharray", n.hBeatLen.toFixed(1));
+    n.hBeat.setAttribute("stroke-dashoffset", n.hBeatLen.toFixed(1));
+    n.hParticles = [[166, hcy - 132], [434, hcy - 125], [150, hcy + 46],
+                    [450, hcy + 94], [224, hcy + 166], [375, hcy + 171]].map(([x, y], i) => {
+      const p = svgEl("path", { d: `M ${x * s} ${(y - 9) * s} L ${(x + 4) * s} ${y * s} L ${x * s} ${(y + 9) * s} L ${(x - 4) * s} ${y * s} Z`,
+        fill: i % 2 ? "#F2EFE6" : ac, opacity: 0 }, svg);
+      return { p, x, y, i };
+    });
+    n.hcx = 300; n.hcy = hcy;
   } else if (V.name === "alert") {
     // EMPHASISE a warning: the triangle lands with a shake
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
@@ -1514,11 +1563,33 @@ function buildScene(svg, V, ac, item, vw, vh) {
     });
     n.keycy = cy;
   } else if (V.name === "door") {
-    // SHOW opportunity: the door swings open, light spills out
-    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
+    // A threshold with depth: the door opens onto a lit passage, floor
+    // lines converge, and a quiet figure waits beyond it.
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#10131B" }, svg);
     const cy = H / 2;
+    svgEl("path", { d: `M 0 0 H ${226 * s} V ${(cy + 170) * s} L 0 ${(H * s)} Z M ${374 * s} 0 H ${600 * s} V ${(H * s)} L ${374 * s} ${(cy + 170) * s} Z`,
+      fill: "#161C27" }, svg);
+    n.doorFloor = svgEl("path", { d: `M ${226 * s} ${(cy + 170) * s} H ${374 * s} L ${600 * s} ${H * s} H 0 Z`,
+      fill: "#121822", stroke: "#30394A", "stroke-width": 3 * s }, svg);
+    n.doorLines = [0, 1, 2, 3].map(i => svgEl("path", {
+      d: `M ${((i + 1) * 30) * s} ${H * s} L ${(270 + i * 20) * s} ${(cy + 172) * s}`,
+      fill: "none", stroke: "#30394A", "stroke-width": 2 * s, opacity: .72 }, svg));
     svgEl("rect", { x: 226 * s, y: (cy - 170) * s, width: 148 * s, height: 340 * s, fill: hexA(ac, .34) }, svg);
     n.doorLight = svgEl("path", { d: `M ${374 * s} ${(cy - 170) * s} L ${492 * s} ${(cy + 92) * s} L ${492 * s} ${(cy + 170) * s} L ${374 * s} ${(cy + 170) * s} Z`, fill: hexA(ac, .5), opacity: 0 }, svg);
+    n.doorRays = [0, 1, 2, 3].map(i => svgEl("path", {
+      d: `M ${374 * s} ${(cy - 142 + i * 74) * s} L ${(480 + i * 20) * s} ${(cy + 34 + i * 34) * s}`,
+      fill: "none", stroke: "#F2EFE6", "stroke-width": 2.5 * s,
+      "stroke-linecap": "round", opacity: 0 }, svg));
+    n.doorPerson = svgEl("g", { opacity: 0 }, svg);
+    svgEl("circle", { cx: 310 * s, cy: (cy + 18) * s, r: 14 * s,
+      fill: "#F2EFE6" }, n.doorPerson);
+    svgEl("path", { d: `M ${292 * s} ${(cy + 76) * s} Q ${293 * s} ${(cy + 39) * s} ${310 * s} ${(cy + 39) * s} Q ${327 * s} ${(cy + 39) * s} ${328 * s} ${(cy + 76) * s} L ${326 * s} ${(cy + 142) * s} H ${294 * s} Z`,
+      fill: "#F2EFE6" }, n.doorPerson);
+    n.doorDust = [[418, cy - 90], [446, cy - 12], [455, cy + 72], [408, cy + 118]].map(([x, y], i) => {
+      const dot = svgEl("circle", { cx: x * s, cy: y * s,
+        r: (3 + (i % 2) * 1.2) * s, fill: "#FFF4D6", opacity: 0 }, svg);
+      return { dot, x, y, i };
+    });
     n.doorG = svgEl("g", {}, svg);
     svgEl("rect", { x: 226 * s, y: (cy - 170) * s, width: 148 * s, height: 340 * s, fill: "#1A2230", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
     svgEl("rect", { x: 246 * s, y: (cy - 146) * s, width: 108 * s, height: 128 * s, fill: "none", stroke: "#2b3547", "stroke-width": 3 * s }, n.doorG);
@@ -1556,6 +1627,25 @@ function buildScene(svg, V, ac, item, vw, vh) {
     n.vnTxL = mkT(196, cy + 8, labs[0], "#FFFFFF", 24);
     n.vnTxR = mkT(404, cy + 8, labs[1], "#FFFFFF", 24);
     n.vnTxC = mkT(300, cy + 9, labs[2], "#FFFFFF", 26);
+    // The shared intersection becomes a woven path, not just two circles
+    // touching: a pair of live strokes threads both sides into one knot.
+    n.vnThreads = [
+      svgEl("path", { d: `M ${238 * s} ${(cy - 26) * s} C ${268 * s} ${(cy - 26) * s} ${270 * s} ${(cy + 28) * s} ${300 * s} ${(cy + 28) * s} C ${330 * s} ${(cy + 28) * s} ${332 * s} ${(cy - 26) * s} ${362 * s} ${(cy - 26) * s}`,
+        fill: "none", stroke: ac, "stroke-width": 6 * s,
+        "stroke-linecap": "round", opacity: .95 }, svg),
+      svgEl("path", { d: `M ${238 * s} ${(cy + 26) * s} C ${268 * s} ${(cy + 26) * s} ${270 * s} ${(cy - 28) * s} ${300 * s} ${(cy - 28) * s} C ${330 * s} ${(cy - 28) * s} ${332 * s} ${(cy + 26) * s} ${362 * s} ${(cy + 26) * s}`,
+        fill: "none", stroke: "#F2EFE6", "stroke-width": 4 * s,
+        "stroke-linecap": "round", opacity: .86 }, svg)
+    ];
+    n.vnThreadLens = n.vnThreads.map(path => {
+      const len = path.getTotalLength();
+      path.setAttribute("stroke-dasharray", len.toFixed(1));
+      path.setAttribute("stroke-dashoffset", len.toFixed(1));
+      return len;
+    });
+    n.vnKnot = svgEl("circle", { cx: 300 * s, cy: cy * s,
+      r: 10 * s, fill: ac, stroke: "#F2EFE6", "stroke-width": 3 * s,
+      opacity: 0 }, svg);
     n.vncy = cy;
   } else if (V.name === "rocket") {
     // SHOW takeoff: it launches, stars streak past
@@ -1584,6 +1674,17 @@ function buildScene(svg, V, ac, item, vw, vh) {
     n.shLen = 960 * s;
     n.shPath.setAttribute("stroke-dasharray", n.shLen);
     n.shPath.style.strokeDashoffset = n.shLen;
+    n.shInner = svgEl("path", { d: `M ${300 * s} ${(cy - 105) * s} L ${367 * s} ${(cy - 78) * s} V ${(cy + 14) * s} C ${367 * s} ${(cy + 68) * s} ${335 * s} ${(cy + 97) * s} ${300 * s} ${(cy + 116) * s} C ${265 * s} ${(cy + 97) * s} ${233 * s} ${(cy + 68) * s} ${233 * s} ${(cy + 14) * s} V ${(cy - 78) * s} Z`,
+      fill: hexA(ac, .16), stroke: hexA(ac, .52), "stroke-width": 3 * s,
+      opacity: 0 }, svg);
+    n.shPerson = svgEl("g", { opacity: 0 }, svg);
+    svgEl("circle", { cx: 300 * s, cy: (cy - 43) * s, r: 17 * s,
+      fill: "#F2EFE6" }, n.shPerson);
+    svgEl("path", { d: `M ${268 * s} ${(cy + 4) * s} Q ${271 * s} ${(cy - 24) * s} ${300 * s} ${(cy - 25) * s} Q ${329 * s} ${(cy - 24) * s} ${332 * s} ${(cy + 4) * s} Z`,
+      fill: "#F2EFE6" }, n.shPerson);
+    n.shNodes = [[226, cy - 83], [374, cy - 69], [232, cy + 64], [368, cy + 72]].map(([x, y], i) => svgEl("circle", {
+      cx: x * s, cy: y * s, r: 5 * s, fill: i % 2 ? "#F2EFE6" : ac,
+      opacity: 0 }, svg));
     n.shCheck = svgEl("path", { d: `M ${258 * s} ${(cy + 2) * s} L ${288 * s} ${(cy + 34) * s} L ${344 * s} ${(cy - 30) * s}`, fill: "none", stroke: "#FFFFFF", "stroke-width": 13 * s, "stroke-linecap": "round", "stroke-linejoin": "round" }, svg);
     n.shChkLen = 140 * s;
     n.shCheck.setAttribute("stroke-dasharray", n.shChkLen);
@@ -1614,15 +1715,59 @@ function buildScene(svg, V, ac, item, vw, vh) {
     }
     n.wvcy = cy; n.wvN = count;
   } else if (V.name === "spotlight") {
-    // FEEL attention: a cone of light sweeps the stage
-    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
-    const cy = H / 2;
+    // A full performance space, not a floating cone icon: curtains,
+    // foreshortened boards, footlights, a mic stand and a foreground
+    // audience give the spoken stage moment its own visual world.
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#10131B" }, svg);
+    const cy = H / 2, floorY = H * 0.765;
+    svgEl("path", { d: `M 0 0 H ${64 * s} V ${(floorY - 20) * s} H 0 Z M ${536 * s} 0 H ${600 * s} V ${(floorY - 20) * s} H ${536 * s} Z`,
+      fill: "#171C27" }, svg);
+    for (let i = 0; i < 6; i++) {
+      const lx = 10 + i * 10, rx = 590 - i * 10;
+      svgEl("path", { d: `M ${lx * s} 0 Q ${(lx + 36) * s} ${(floorY * .38) * s} ${(lx + 18) * s} ${floorY * s} M ${rx * s} 0 Q ${(rx - 36) * s} ${(floorY * .38) * s} ${(rx - 18) * s} ${floorY * s}`,
+        fill: "none", stroke: i % 2 ? "#222A39" : "#30384A",
+        "stroke-width": 3 * s, opacity: .72 }, svg);
+    }
+    svgEl("path", { d: `M ${58 * s} ${(floorY - 18) * s} L ${542 * s} ${(floorY - 18) * s} L ${600 * s} ${H * s} H 0 Z`,
+      fill: "#171C26", stroke: "#354158", "stroke-width": 3 * s }, svg);
+    n.spFloorLines = [];
+    for (let i = 0; i < 5; i++) n.spFloorLines.push(svgEl("path", {
+      d: `M ${(110 + i * 95) * s} ${(floorY - 15) * s} L ${(30 + i * 135) * s} ${H * s}`,
+      fill: "none", stroke: "#30394A", "stroke-width": 2 * s, opacity: .72 }, svg));
     n.spG = svgEl("g", {}, svg);
     svgEl("polygon", { points: `${286 * s},${(cy - 264) * s} ${314 * s},${(cy - 264) * s} ${436 * s},${(cy + 182) * s} ${164 * s},${(cy + 182) * s}`, fill: hexA(ac, .16) }, n.spG);
     svgEl("polygon", { points: `${292 * s},${(cy - 264) * s} ${308 * s},${(cy - 264) * s} ${388 * s},${(cy + 182) * s} ${212 * s},${(cy + 182) * s}`, fill: hexA(ac, .14) }, n.spG);
     svgEl("ellipse", { cx: 300 * s, cy: (cy + 184) * s, rx: 138 * s, ry: 25 * s, fill: hexA(ac, .3) }, n.spG);
     svgEl("rect", { x: 282 * s, y: (cy - 282) * s, width: 36 * s, height: 24 * s, rx: 6 * s, fill: "#E8EDF4" }, n.spG);
-    n.spcy = cy;
+    n.spAudience = [64, 142, 220, 380, 458, 536].map((x, i) => {
+      const y = floorY + (i % 2) * 15;
+      const g = svgEl("g", { opacity: .94 }, svg);
+      svgEl("circle", { cx: x * s, cy: (y - 25) * s,
+        r: (i % 3 === 0 ? 19 : 15) * s, fill: "#090C12" }, g);
+      svgEl("path", { d: `M ${(x - 32) * s} ${(y + 60) * s} Q ${(x - 31) * s} ${(y - 7) * s} ${x * s} ${(y - 7) * s} Q ${(x + 31) * s} ${(y - 7) * s} ${(x + 32) * s} ${(y + 60) * s} Z`,
+        fill: i % 2 ? "#111722" : "#0C1017" }, g);
+      return g;
+    });
+    n.spLights = [100, 200, 300, 400, 500].map(x => svgEl("circle", {
+      cx: x * s, cy: (floorY - 18) * s, r: 7 * s, fill: ac,
+      opacity: 0 }, svg));
+    n.spMic = svgEl("g", { opacity: 0 }, svg);
+    svgEl("rect", { x: 286 * s, y: (cy - 92) * s,
+      width: 28 * s, height: 78 * s, rx: 14 * s,
+      fill: "#252D3B", stroke: "#F2EFE6", "stroke-width": 3 * s }, n.spMic);
+    for (let i = 0; i < 5; i++) svgEl("line", {
+      x1: 291 * s, y1: (cy - 76 + i * 10) * s,
+      x2: 309 * s, y2: (cy - 76 + i * 10) * s,
+      stroke: ac, "stroke-width": 2 * s }, n.spMic);
+    svgEl("path", { d: `M ${300 * s} ${(cy - 14) * s} V ${(floorY - 48) * s} M ${300 * s} ${(floorY - 48) * s} L ${270 * s} ${(floorY - 8) * s} M ${300 * s} ${(floorY - 48) * s} L ${330 * s} ${(floorY - 8) * s} M ${279 * s} ${(floorY - 8) * s} H ${321 * s}`,
+      fill: "none", stroke: "#D8DCE5", "stroke-width": 5 * s,
+      "stroke-linecap": "round", "stroke-linejoin": "round" }, n.spMic);
+    n.spDust = [[245, 590, .2], [350, 635, .8], [270, 704, 1.4], [335, 550, 2.0], [300, 745, 2.7]].map(([x, y, ph]) => {
+      const dot = svgEl("circle", { cx: x * s, cy: y * s, r: 3.5 * s,
+        fill: "#F2EFE6", opacity: 0 }, svg);
+      return { dot, x, y, ph };
+    });
+    n.spcy = cy; n.spFloorY = floorY;
   } else if (V.name === "trophy") {
     // PROVE the win: the cup lands, sparks fly
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
@@ -2242,6 +2387,13 @@ function animateVector(b, t, lifeP) {
       tx.style.transform = `translateY(${((1 - q) * 16 * s).toFixed(1)}px)`;
     });
     if (n.qby) n.qby.setAttribute("opacity", clamp01((lt - 0.25 - (n.qlines.length) * 0.16) / 0.4).toFixed(2));
+    const musicIn = easeOut(clamp01((lt - 0.18) / 0.42));
+    n.qDisc.setAttribute("opacity", musicIn.toFixed(2));
+    n.qDisc.setAttribute("transform", `rotate(${(lt * 42).toFixed(1)} ${(n.qrcx * s).toFixed(1)} ${(n.qrcy * s).toFixed(1)})`);
+    n.qMic.setAttribute("opacity", easeOut(clamp01((lt - 0.08) / 0.34)).toFixed(2));
+    n.qMic.setAttribute("transform", `translate(0 ${((1 - musicIn) * 18 * s).toFixed(1)})`);
+    n.qWaves.forEach((w, i) => w.setAttribute("opacity",
+      (musicIn * (0.38 + 0.42 * Math.abs(Math.sin(lt * 5.2 + i * 0.7)))).toFixed(2)));
   } else if (V.name === "chat") {
     // cascade adapts to the window: a scene bound to a short spoken
     // phrase (~1.2s) must still land every bubble before it exits
@@ -2405,6 +2557,15 @@ function animateVector(b, t, lifeP) {
       r.setAttribute("r", ((60 + pq * 150) * s).toFixed(1));
       r.setAttribute("opacity", (lt > 0.2 ? (1 - pq) * 0.65 : 0).toFixed(2));
     });
+    const trace = easeOut(clamp01((lt - 0.16) / 0.52));
+    n.hBeat.setAttribute("stroke-dashoffset", (n.hBeatLen * (1 - trace)).toFixed(1));
+    n.hBeat.setAttribute("opacity", (0.54 + 0.2 * Math.abs(Math.sin(lt * 4.3))).toFixed(2));
+    n.hParticles.forEach(p => {
+      const pulse = 0.5 + 0.5 * Math.sin(lt * 4.5 + p.i * 0.85);
+      p.p.setAttribute("opacity", (trace * (0.25 + 0.66 * pulse)).toFixed(2));
+      p.p.style.transformOrigin = `${p.x * s}px ${p.y * s}px`;
+      p.p.style.transform = `scale(${(0.72 + pulse * 0.55).toFixed(2)}) rotate(${(lt * 18 + p.i * 22).toFixed(1)}deg)`;
+    });
   } else if (V.name === "alert") {
     const dx = Math.sin(lt * 38) * 7 * Math.exp(-lt * 2.6);
     n.alertG.setAttribute("transform", `translate(${(dx * s).toFixed(1)} 0)`);
@@ -2454,6 +2615,14 @@ function animateVector(b, t, lifeP) {
     n.doorG.style.transformOrigin = `${226 * s}px ${n.doorcy * s}px`;
     n.doorG.style.transform = `scaleX(${Math.max(0.14, 1 - q * 0.86).toFixed(3)}) skewY(${(-3.5 * q).toFixed(2)}deg)`;
     n.doorLight.setAttribute("opacity", (q * 0.85).toFixed(2));
+    n.doorRays.forEach((ray, i) => ray.setAttribute("opacity",
+      (q * (0.24 + 0.18 * Math.abs(Math.sin(lt * 3.4 + i * 0.8)))).toFixed(2)));
+    n.doorPerson.setAttribute("opacity", easeOut(clamp01((lt - 0.48) / 0.38)).toFixed(2));
+    n.doorPerson.setAttribute("transform", `translate(${(Math.sin(lt * 1.5) * 3 * s).toFixed(1)} 0)`);
+    n.doorDust.forEach(d => {
+      d.dot.setAttribute("cy", ((d.y - (lt * 11 + d.i * 9) % 34) * s).toFixed(1));
+      d.dot.setAttribute("opacity", (q * (0.25 + 0.32 * Math.abs(Math.sin(lt * 3 + d.i)))).toFixed(2));
+    });
   } else if (V.name === "dice") {
     n.dice.forEach((d, i) => {
       const q = easeOutBack(clamp01((lt - 0.08 - i * 0.15) / 0.55));
@@ -2468,6 +2637,12 @@ function animateVector(b, t, lifeP) {
     n.vnTxL.setAttribute("opacity", oq.toFixed(2));
     n.vnTxR.setAttribute("opacity", oq.toFixed(2));
     n.vnTxC.setAttribute("opacity", clamp01((lt - 0.75) / 0.35).toFixed(2));
+    const threadP = easeOut(clamp01((lt - 0.32) / 0.72));
+    n.vnThreads.forEach((path, i) => path.setAttribute("stroke-dashoffset",
+      (n.vnThreadLens[i] * (1 - threadP)).toFixed(1)));
+    const knotP = easeOutBack(clamp01((lt - 0.82) / 0.32));
+    n.vnKnot.setAttribute("opacity", clamp01(knotP).toFixed(2));
+    n.vnKnot.setAttribute("r", ((9 + Math.sin(lt * 5) * 2.2) * s).toFixed(1));
   } else if (V.name === "rocket") {
     const q = easeInOut(clamp01(lt / 1.05));
     const ty = (1 - q) * 96 - q * 30 + Math.sin(lt * 2.3) * 6 * q;
@@ -2487,6 +2662,14 @@ function animateVector(b, t, lifeP) {
     const pq = clamp01((lt - 0.9) / 0.7);
     n.shRing.setAttribute("r", ((148 + pq * 44) * s).toFixed(1));
     n.shRing.setAttribute("opacity", ((1 - pq) * 0.6 * clamp01((lt - 0.9) * 4)).toFixed(2));
+    const humanIn = easeOut(clamp01((lt - 0.4) / 0.42));
+    n.shInner.setAttribute("opacity", (0.4 + humanIn * 0.46).toFixed(2));
+    n.shPerson.setAttribute("opacity", humanIn.toFixed(2));
+    n.shNodes.forEach((dot, i) => {
+      const pulse = .5 + .5 * Math.sin(lt * 5 + i * 1.1);
+      dot.setAttribute("r", ((4 + pulse * 3) * s).toFixed(1));
+      dot.setAttribute("opacity", (humanIn * (.25 + pulse * .62)).toFixed(2));
+    });
   } else if (V.name === "hourglass") {
     const q = clamp01(lt / Math.min(1.7, dur * 0.75));
     n.hgTop.style.transformOrigin = `${300 * s}px ${(n.hgcy - 16) * s}px`;
@@ -2504,8 +2687,18 @@ function animateVector(b, t, lifeP) {
     });
   } else if (V.name === "spotlight") {
     const q = easeOut(clamp01(lt / 0.7));
-    const ang = -13 * (1 - q) + Math.sin(lt * 0.85) * 8 * q;
+    const ang = -13 * (1 - q) + Math.sin(lt * 1.55) * 8 * q;
     n.spG.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${(n.spcy - 264) * s})`);
+    const micIn = easeOutBack(clamp01((lt - 0.08) / 0.46));
+    n.spMic.setAttribute("opacity", clamp01(micIn).toFixed(2));
+    n.spMic.setAttribute("transform", `translate(0 ${((1 - clamp01(micIn)) * 22 * s).toFixed(1)})`);
+    n.spLights.forEach((light, i) => light.setAttribute("opacity",
+      (0.34 + 0.44 * Math.abs(Math.sin(lt * 4.2 + i * 0.7))).toFixed(2)));
+    n.spDust.forEach((d, i) => {
+      d.dot.setAttribute("cy", ((d.y + Math.sin(lt * 1.7 + d.ph) * 11) * s).toFixed(1));
+      d.dot.setAttribute("cx", ((d.x + Math.cos(lt * 1.2 + d.ph) * 8) * s).toFixed(1));
+      d.dot.setAttribute("opacity", (0.2 + 0.55 * Math.abs(Math.sin(lt * 2.4 + d.ph))).toFixed(2));
+    });
   } else if (V.name === "trophy") {
     const q = easeOutBack(clamp01((lt - 0.08) / 0.55));
     n.trG.style.transformOrigin = `${300 * s}px ${n.trcy * s}px`;

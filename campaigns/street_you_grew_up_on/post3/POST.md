@@ -1,17 +1,23 @@
-# Post 3 — “My Household Was Cowboys All the Way” (Demi Lovato)
+# POST3 - posting pack
 
-- **Video:** `street_post3.mp4` (28.6 s, 1080×1920, 30 fps) — batch template v2: typed hook slate (“MY MOM WAS A COWBOYS CHEERLEADER”), marker captions, green payoff on “cowboys all the way” + camera punch, `bright` music bed ducked under the voices, branded end card. Motion QC v2 PASS required before shipping; loudness −14 LUFS.
-- **Cover:** `cover.jpg` — her mom's Dallas Cowboys cheerleader story (the episode's own archival photo appears in the clip).
-- **Source:** full episode 7:07–7:35. ASR repair: “I held gray out” corrected to “I found out” (what she actually said).
+**File:** `street_post3.mp4`
 
 ## Title
-Demi Lovato: “My Mom Was a Dallas Cowboys Cheerleader”
+
+Demi Lovato Sang Selena in Spanish at Seven
 
 ## Description (copy-paste exactly)
+
 #ad
-“My mom made it very clear that she was a Dallas Cowboys cheerleader. My household was Cowboys all the way.” Demi Lovato on the pictures her mom showed them growing up.
+Demi Lovato wanted to represent her culture. At seven, she sang two songs in Spanish—one was Selena, and the other was a Christina Aguilera Spanish version.
 
 The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms
 
-## Hashtags (8)
-#DemiLovato #DallasCowboys #Cowboys #StreetYouGrewUpOn #podcast #podcastclips #interview #texas
+## Hashtags
+
+#DemiLovato #StreetYouGrewUpOn #Selena #Spanish #PodcastClips #HispanicHeritage #MusicAndLife #PodCulture
+
+## Notes
+
+- Disclosure: #ad
+- Full episode: the podcast is the source; this is a clipped edit.

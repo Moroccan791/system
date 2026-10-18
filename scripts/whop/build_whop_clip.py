@@ -48,6 +48,7 @@ SIZES = {"sm": 88, "md": 104, "lg": 118}
 LOOKAHEAD = 1.0        # a caption word is never matched more than a second ahead
 FIRST_LOOKAHEAD = 2.5  # the first word of a caption group may sit a beat later
 DEFAULT_ENDCARD_GAP = 0.45   # short handoff; no long frozen-speaker hold
+DEFAULT_ENDCARD_DURATION = 1.5  # leaves ~1s readable before a 0.5s fade
 DEFAULT_LAST_CAPTION_TAIL = 0.35
 
 
@@ -192,10 +193,14 @@ class Clock:
             compound = (key == "into" and _norm(w["text"]) == "in"
                         and j + 1 < len(self.words)
                         and _norm(self.words[j + 1]["text"]) == "to")
-            row.append({"w": tok if compound else w["text"],
-                        "at": round(w["start"], 2), "kind": "conn"})
+            # The plan supplies the verbatim caption token (punctuation
+            # included); ASR casing/punctuation is only a timing hint.
+            row.append({"w": tok, "at": round(w["start"], 2), "kind": "conn"})
             self.i = j + 2 if compound else j + 1
-            anchor = w["start"]
+            # Anchor the next token at this word's END, not its onset. A
+            # stretched word such as "negative" can last >1s while the
+            # next spoken word is still contiguous and must not be fused.
+            anchor = self.words[j + 1]["end"] if compound else w["end"]
         return row
 
     def occurrences(self, text):
@@ -263,9 +268,10 @@ def build(plan: dict) -> dict:
         "crops": plan.get("crops", []),
         "out_base": str(out / "base.mp4"),
         "out_slice": str(out / "slice.json"),
-        # the frozen tail that holds the outro: the end card (1.1s) +
-        # the fade (0.45s) + the beat after the last caption
-        "tail_seconds": plan.get("tail_seconds") or 2.7,
+        # A short tail gives the end card and final fade time to land.
+        # The handoff gap/caption hold are bounded below; this is not a
+        # reason to leave a visible speaker freeze on screen.
+        "tail_seconds": plan.get("tail_seconds") or 1.7,
         "splits": plan.get("splits", []),
     }
     (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
@@ -382,12 +388,12 @@ def build(plan: dict) -> dict:
                 endcard_gap = float(beat.get("gap", DEFAULT_ENDCARD_GAP))
                 last_caption_tail = max(0.12, endcard_gap - 0.10)
                 at = round(base_at + endcard_gap, 2)
-                until = round(at + beat.get("dur", 1.1), 2)
+                until = round(at + beat.get("dur", DEFAULT_ENDCARD_DURATION), 2)
                 if base_duration:
                     # The slate runs to the final frame. It may not wait
                     # on a held speaker frame after the closing line.
                     until = round(base_duration, 2)
-                    at = round(until - beat.get("dur", 1.1), 2)
+                    at = round(until - beat.get("dur", DEFAULT_ENDCARD_DURATION), 2)
                     at = round(max(at, base_at + endcard_gap), 2)
             items.append({
                 "type": "endcard", "at": at, "until": until,

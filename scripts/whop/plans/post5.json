@@ -14,23 +14,12 @@
   ],
   "crops": [
     {
-      "until": 3371.45,
+      "until": 3405.45,
       "crop": [
-        770,
-        90,
-        480,
-        854
-      ],
-      "push": 0.05,
-      "anchor": 0.3
-    },
-    {
-      "until": 999999999,
-      "crop": [
-        821,
-        90,
-        480,
-        854
+        773,
+        69,
+        568,
+        1010
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -41,7 +30,7 @@
   "beats": [
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "My worth isn't",
         "in my body."
@@ -57,7 +46,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "My husband doesn't",
         "love me because"
@@ -65,14 +54,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "of my body."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "My family doesn't",
         "love me because"
@@ -80,14 +69,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "of my body."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I'm not sitting",
         "in this chair"
@@ -95,14 +84,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "because of my body."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I am beautiful",
         "as I am."
@@ -110,14 +99,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "But most importantly,"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I'm a good",
         "human."
@@ -132,14 +121,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "And,"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "That's what I",
         "hold true to my"
@@ -147,7 +136,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "heart."
       ]
@@ -157,19 +146,19 @@
       "name": "heart",
       "trigger": "heart.",
       "lead": 0.05,
-      "dur": 1.2
+      "dur": 1.35
     },
     {
       "type": "endcard",
       "after": "last",
-      "gap": 1.0,
-      "dur": 1.1,
-      "title": "STREET YOU GREW UP ON",
+      "gap": 0.45,
+      "dur": 1.5,
+      "title": "FOLLOW FOR MORE",
       "titleLines": [
-        "STREET YOU",
-        "GREW UP ON"
+        "FOLLOW",
+        "FOR MORE"
       ],
-      "sub": "@street_you_grew_up_on",
+      "sub": "",
       "wordSize": 148
     }
   ],
@@ -188,5 +177,6 @@
       "#MusicAndLife",
       "#PodCulture"
     ]
-  }
+  },
+  "tail_seconds": 1.7
 }

@@ -1,17 +1,23 @@
-# Post 5 — “More Than Sound” (Demi Lovato)
+# POST5 - posting pack
 
-- **Video:** `street_post5.mp4` (50.2 s, 1080×1920, 30 fps) — batch template v2: typed hook slate (“WORK HARD AND SACRIFICE”), marker captions, green payoff on “more than sound”, camera punch on “feel it”, `chill` music bed ducked under the voices, branded end card. Motion QC v2 PASS required before shipping; loudness −14 LUFS.
-- **Cover:** `cover.jpg`
-- **Source:** full episode 35:02–35:52. Two-part arc: a kid learning that opportunities cost work and sacrifice — then what her mama taught her about singing: it was never just sound, you had to feel it.
+**File:** `street_post5.mp4`
 
 ## Title
-Demi Lovato: “You Had to Feel It — It Was More Than Sound”
+
+Demi Lovato: ‘My Worth Isn’t in My Body’
 
 ## Description (copy-paste exactly)
+
 #ad
-“I would have to work hard and I would have to sacrifice some things for it.” Demi Lovato on different priorities than other kids — and on singing: “There was more to singing than just putting your voice on it. You had to feel it inside of yourself.”
+Demi Lovato says, ‘My worth isn't in my body.’ She describes her husband's and family's love, then closes with what she holds true to her heart.
 
 The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms
 
-## Hashtags (8)
-#DemiLovato #singing #motivation #StreetYouGrewUpOn #podcast #podcastclips #interview #singer
+## Hashtags
+
+#DemiLovato #StreetYouGrewUpOn #SelfWorth #BodyImage #PodcastClips #MentalHealth #MusicAndLife #PodCulture
+
+## Notes
+
+- Disclosure: #ad
+- Full episode: the podcast is the source; this is a clipped edit.

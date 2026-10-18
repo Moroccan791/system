@@ -64,8 +64,20 @@ def _norm(w: str) -> str:
 
 # ---------------------------------------------------------------- words
 def word_sync(tl: dict, transcript: dict) -> tuple[str, str]:
-    spoken = [(_norm(str(w["text"])), float(w["start"]))
-              for w in transcript.get("words", [])]
+    raw_spoken = transcript.get("words", [])
+    spoken: list[tuple[str, float]] = []
+    for i, word in enumerate(raw_spoken):
+        text = _norm(str(word["text"]))
+        start = float(word["start"])
+        # Match build_whop_clip.Clock: Whisper can split the spoken word
+        # "into" into adjacent "in" + "to" tokens, while the approved
+        # caption correctly renders one verbatim "into" token. Add a
+        # timing alias at the compound's true onset but retain both source
+        # tokens so captions that author them separately still match.
+        if (text == "in" and i + 1 < len(raw_spoken)
+                and _norm(str(raw_spoken[i + 1]["text"])) == "to"):
+            spoken.append(("into", start))
+        spoken.append((text, start))
     authored: list[tuple[str, float]] = []
     for it in tl["items"]:
         for row in (it.get("rows") or it.get("lines") or []):

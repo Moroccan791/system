@@ -16,21 +16,21 @@
     {
       "until": 3369.32,
       "crop": [
-        822,
-        90,
-        480,
-        854
+        776,
+        67,
+        570,
+        1013
       ],
       "push": 0.05,
       "anchor": 0.3
     },
     {
-      "until": 999999999,
+      "until": 3370.1,
       "crop": [
-        822,
-        90,
-        480,
-        854
+        753,
+        148,
+        524,
+        931
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -41,7 +41,7 @@
   "beats": [
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I don't want to",
         "go on stage."
@@ -49,7 +49,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "Like, I'm terrified."
       ]
@@ -63,14 +63,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "People aren't."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "You know, they're going",
         "to say things,"
@@ -78,7 +78,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "they're going to write",
         "online."
@@ -86,7 +86,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I went on stage",
         "anyways."
@@ -94,7 +94,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "No one turned",
         "around."
@@ -102,7 +102,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "No one got up",
         "out of their seats"
@@ -110,7 +110,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "and said, she's not",
         "a size zero."
@@ -118,7 +118,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "You know, they still",
         "loved me and"
@@ -126,7 +126,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "cried tears of joy"
       ]
@@ -136,11 +136,11 @@
       "name": "heart",
       "trigger": "of joy",
       "lead": 0.05,
-      "dur": 1.0
+      "dur": 1.35
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "when I sang for",
         "them."
@@ -149,14 +149,14 @@
     {
       "type": "endcard",
       "after": "last",
-      "gap": 1.0,
-      "dur": 1.1,
-      "title": "STREET YOU GREW UP ON",
+      "gap": 0.45,
+      "dur": 1.5,
+      "title": "FOLLOW FOR MORE",
       "titleLines": [
-        "STREET YOU",
-        "GREW UP ON"
+        "FOLLOW",
+        "FOR MORE"
       ],
-      "sub": "@street_you_grew_up_on",
+      "sub": "",
       "wordSize": 148
     }
   ],
@@ -175,5 +175,6 @@
       "#MusicAndLife",
       "#PodCulture"
     ]
-  }
+  },
+  "tail_seconds": 1.7
 }

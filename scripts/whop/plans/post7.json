@@ -22,10 +22,10 @@
     {
       "until": 3737.4,
       "crop": [
-        651,
+        733,
         0,
-        608,
-        1080
+        428,
+        762
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -33,21 +33,21 @@
     {
       "until": 3745.12,
       "crop": [
-        790,
+        888,
         0,
-        608,
-        1080
+        412,
+        733
       ],
       "push": 0.05,
       "anchor": 0.3
     },
     {
-      "until": 999999999,
+      "until": 3758.96,
       "crop": [
-        846,
-        90,
-        480,
-        854
+        802,
+        71,
+        568,
+        1008
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -58,7 +58,7 @@
   "beats": [
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I will never be",
         "angry for a struggle"
@@ -66,7 +66,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "that you know",
         "that we share."
@@ -74,7 +74,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "We share."
       ]
@@ -88,7 +88,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "Um, and she's",
         "in recovery now,"
@@ -96,15 +96,21 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
-        "and it's beautiful",
+        "and it's beautiful"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
         "because when I went"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "into treatment,",
         "a few months later,"
@@ -112,35 +118,35 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "she went into treatment."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "Oh, wow."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "You know, I'm grateful"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "that I could open"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "that door for her"
       ]
@@ -154,21 +160,21 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "and she's really done"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "the rest of the"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "work."
       ]
@@ -176,16 +182,15 @@
     {
       "type": "endcard",
       "after": "last",
-      "gap": 1.0,
-      "dur": 1.1,
-      "title": "STREET YOU GREW UP ON",
+      "gap": 0.45,
+      "dur": 1.5,
+      "title": "FOLLOW FOR MORE",
       "titleLines": [
-        "STREET YOU",
-        "GREW UP ON"
+        "FOLLOW",
+        "FOR MORE"
       ],
-      "sub": "@street_you_grew_up_on",
-      "wordSize": 148,
-      "lines": []
+      "sub": "",
+      "wordSize": 148
     }
   ],
   "posting": {
@@ -203,5 +208,6 @@
       "#Treatment",
       "#PodCulture"
     ]
-  }
+  },
+  "tail_seconds": 1.7
 }

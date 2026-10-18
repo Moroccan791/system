@@ -28,10 +28,10 @@
     {
       "until": 1997.75,
       "crop": [
-        850,
-        90,
-        480,
-        854
+        806,
+        67,
+        570,
+        1012
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -39,10 +39,10 @@
     {
       "until": 2000.25,
       "crop": [
-        706,
-        90,
-        480,
-        854
+        671,
+        102,
+        550,
+        977
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -50,10 +50,10 @@
     {
       "until": 2008.84,
       "crop": [
-        859,
-        90,
-        480,
-        854
+        810,
+        53,
+        578,
+        1027
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -61,21 +61,21 @@
     {
       "until": 2011.01,
       "crop": [
-        758,
-        90,
-        480,
-        854
+        732,
+        133,
+        532,
+        947
       ],
       "push": 0.05,
       "anchor": 0.3
     },
     {
-      "until": 999999999,
+      "until": 2019.4,
       "crop": [
-        833,
-        90,
-        480,
-        854
+        812,
+        0,
+        520,
+        926
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -86,21 +86,21 @@
   "beats": [
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I'm Hispanic, so"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I wanted to represent"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "my culture."
       ],
@@ -109,7 +109,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "and I was like,",
         "my mom was like,"
@@ -117,7 +117,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "if you want to",
         "do this music festival,"
@@ -125,7 +125,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "they want you",
         "to sing in Spanish,"
@@ -149,14 +149,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "How old?"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I think I was",
         "seven."
@@ -174,35 +174,35 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "And you didn't have."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "You weren't speaking Spanish"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "at home at all."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I sang two songs."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "One was Selena."
       ],
@@ -222,21 +222,21 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "And the other was"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
-        "a Christine Aguilera,"
+        "a Christina Aguilera,"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "Spanish version."
       ],
@@ -246,20 +246,20 @@
     {
       "type": "endcard",
       "after": "last",
-      "gap": 1.0,
-      "dur": 1.1,
-      "title": "STREET YOU GREW UP ON",
+      "gap": 0.45,
+      "dur": 1.5,
+      "title": "FOLLOW FOR MORE",
       "titleLines": [
-        "STREET YOU",
-        "GREW UP ON"
+        "FOLLOW",
+        "FOR MORE"
       ],
-      "sub": "@street_you_grew_up_on",
+      "sub": "",
       "wordSize": 148
     }
   ],
   "posting": {
     "title": "Demi Lovato Sang Selena in Spanish at Seven",
-    "description": "Demi Lovato wanted to represent her culture. At seven, she sang two songs in Spanish\u2014one was Selena, and the other was a Christine Aguilera Spanish version.",
+    "description": "Demi Lovato wanted to represent her culture. At seven, she sang two songs in Spanish\u2014one was Selena, and the other was a Christina Aguilera Spanish version.",
     "disclosure": "#ad",
     "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
     "hashtags": [
@@ -272,5 +272,6 @@
       "#MusicAndLife",
       "#PodCulture"
     ]
-  }
+  },
+  "tail_seconds": 1.7
 }

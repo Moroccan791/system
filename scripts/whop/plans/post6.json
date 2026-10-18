@@ -17,12 +17,12 @@
   "splits": [],
   "crops": [
     {
-      "until": 999999999,
+      "until": 3676.3,
       "crop": [
-        832,
-        90,
-        480,
-        854
+        784,
+        53,
+        578,
+        1026
       ],
       "push": 0.05,
       "anchor": 0.3
@@ -33,7 +33,7 @@
   "beats": [
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "I'm trying to build",
         "a beautiful oak tree."
@@ -49,7 +49,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "That will come from",
         "that soil,"
@@ -57,7 +57,7 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "that will shade and"
       ]
@@ -78,15 +78,21 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
-        "from negative body",
+        "from negative body"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
         "image talk"
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "and outside, um",
         "influence, diet culture,"
@@ -94,14 +100,14 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "things like that."
       ]
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
         "like, I want to",
         "protect my kids,"
@@ -109,23 +115,29 @@
     },
     {
       "type": "caption",
-      "zone": "face",
+      "zone": "low",
       "lines": [
-        "That's a journey I",
+        "That's a journey I"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
         "want to embark on."
       ]
     },
     {
       "type": "endcard",
       "after": "last",
-      "gap": 1.0,
-      "dur": 1.1,
-      "title": "STREET YOU GREW UP ON",
+      "gap": 0.45,
+      "dur": 1.5,
+      "title": "FOLLOW FOR MORE",
       "titleLines": [
-        "STREET YOU",
-        "GREW UP ON"
+        "FOLLOW",
+        "FOR MORE"
       ],
-      "sub": "@street_you_grew_up_on",
+      "sub": "",
       "wordSize": 148
     }
   ],
@@ -144,5 +156,6 @@
       "#MusicAndLife",
       "#PodCulture"
     ]
-  }
+  },
+  "tail_seconds": 1.7
 }
