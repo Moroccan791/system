@@ -1,0 +1,404 @@
+{
+  "post": "whop_v6",
+  "campaign": "street_you_grew_up_on",
+  "source": "work/street/raw/street_full.mp4",
+  "span": [
+    2759.4,
+    2790.235
+  ],
+  "drops": [
+    [
+      2769.2,
+      2769.95
+    ],
+    [
+      2777.63,
+      2777.95
+    ],
+    [
+      2778.3,
+      2779.36
+    ],
+    [
+      2783.15,
+      2784.6
+    ]
+  ],
+  "splits": [
+    2784.78
+  ],
+  "crops": [
+    {
+      "until": 2779.32,
+      "crop": [
+        790,
+        90,
+        480,
+        854
+      ],
+      "push": 0.055,
+      "anchor": 0.3
+    },
+    {
+      "until": 2784.78,
+      "crop": [
+        1080,
+        90,
+        480,
+        854
+      ],
+      "push": 0.04,
+      "anchor": 0.3
+    },
+    {
+      "until": 1000000000,
+      "crop": [
+        790,
+        90,
+        480,
+        854
+      ],
+      "push": 0.055,
+      "anchor": 0.3
+    }
+  ],
+  "tail_seconds": 1.35,
+  "fadeOut": 0.5,
+  "beats": [
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "I'm",
+          "able",
+          "to",
+          "hold"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "space"
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 260
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "because",
+          "my",
+          "my"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "craft"
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 248
+    },
+    {
+      "type": "list",
+      "layout": "diagram",
+      "hold": 1.4,
+      "lead": 0.07,
+      "items": [
+        [
+          "BUSY",
+          "Busy,"
+        ],
+        [
+          "SANE",
+          "sane."
+        ],
+        [
+          "FOCUSED",
+          "focused."
+        ],
+        [
+          "STRUCTURE",
+          "structure."
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "graphic",
+      "lines": [
+        [
+          "keeps",
+          "me."
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "graphic",
+      "lines": [
+        [
+          "it",
+          "keeps",
+          "me"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "graphic",
+      "lines": [
+        [
+          "It",
+          "keeps",
+          "me,"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "graphic",
+      "lines": [
+        [
+          "It",
+          "gives",
+          "me"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "But",
+          "at",
+          "the",
+          "end"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "of",
+          "the",
+          "day,"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "I",
+          "don't",
+          "come",
+          "home"
+        ]
+      ]
+    },
+    {
+      "type": "vector",
+      "name": "noaward",
+      "trigger": "award",
+      "lead": 0.07,
+      "dur": 1.03,
+      "offsetY": 250
+    },
+    {
+      "type": "caption",
+      "zone": "scene",
+      "lines": [
+        [
+          "to",
+          "an"
+        ],
+        [
+          "award"
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 250
+    },
+    {
+      "type": "caption",
+      "zone": "payoff",
+      "lines": [
+        [
+          "I",
+          "come",
+          "to"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "payoff",
+      "lines": [
+        [
+          "my"
+        ],
+        [
+          "dogs"
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 258
+    },
+    {
+      "type": "caption",
+      "zone": "payoff",
+      "lines": [
+        [
+          "and",
+          "my"
+        ],
+        [
+          "husband"
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 225
+    },
+    {
+      "type": "caption",
+      "zone": "payoff",
+      "lines": [
+        [
+          "and",
+          "that's",
+          "what"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "payoff",
+      "lines": [
+        [
+          "brings",
+          "me"
+        ],
+        [
+          "joy."
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 260
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "All",
+          "of",
+          "this"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "can",
+          "go"
+        ],
+        [
+          "away."
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 260
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "What's",
+          "important"
+        ]
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "face",
+      "lines": [
+        [
+          "in",
+          "life",
+          "is"
+        ]
+      ]
+    },
+    {
+      "type": "vector",
+      "name": "network",
+      "trigger": "connection.",
+      "lead": 0.07,
+      "dur": 1.21,
+      "offsetY": 150,
+      "radius": 145,
+      "title": "YOU",
+      "count": 7
+    },
+    {
+      "type": "caption",
+      "zone": "scene",
+      "lines": [
+        [
+          "connection."
+        ]
+      ],
+      "wordKind": "hero",
+      "heroSize": 190
+    },
+    {
+      "type": "endcard",
+      "at": 20.72,
+      "until": 21.79,
+      "title": "STREET YOU GREW UP ON",
+      "titleLines": [
+        "STREET YOU",
+        "GREW UP ON"
+      ],
+      "sub": "@street_you_grew_up_on",
+      "wordSize": 148
+    }
+  ],
+  "posting": {
+    "title": "Demi Lovato: I Don't Come Home to an Award",
+    "description": "Demi Lovato says her craft keeps her busy, sane and focused. But home means her dogs and husband, not an award. What's important in life is connection.",
+    "disclosure": "#ad",
+    "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
+    "hashtags": [
+      "#DemiLovato",
+      "#StreetYouGrewUpOn",
+      "#PodcastClips",
+      "#DemiLovatoInterview",
+      "#PodcastMoments",
+      "#SelfReflection",
+      "#Connection",
+      "#MusicAndLife"
+    ]
+  },
+  "transcript": "campaigns/street_you_grew_up_on/post1/window_transcript_v6.json",
+  "offset": 2752.0
+}

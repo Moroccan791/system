@@ -3041,6 +3041,14 @@ function trackSemi(elx, op) {
 function renderAt(tMs) {
   const t = tMs / 1000;
   stats = { semiFrames: 0, semiMaxRun: 0 };
+  // outro fade to black over the tail of the clip
+  const foEl = document.getElementById("fadeOverlay");
+  if (foEl) {
+    const dur = (TL && TL.duration) || 0;
+    const fo = (TL && TL.fadeOut != null) ? TL.fadeOut : 0.45;
+    const p = (dur > fo && t > dur - fo) ? clamp01((t - (dur - fo)) / fo) : 0;
+    foEl.style.opacity = p.toFixed(3);
+  }
   for (const b of builtItems) {
     const it = b.item;
     const active = t >= it.at - 0.001 - (b.words ? WORD_LEAD : 0) &&
@@ -3121,8 +3129,10 @@ function renderAt(tMs) {
       // hook slate / end card: lines stagger in over ~6f each,
       // slate drifts (idle law), dissolves exactly AT until in 2f
       const until = it.until ?? it.at + 1.2;
-      const op = Math.min(it.type === "endcard" ? (t >= it.at ? 1 : 0)
-                                                    : clamp01((t - it.at) / (2 / FPS)),
+      // the end card dissolves in over ~10 frames: the speaker has
+      // stopped, the picture is allowed to breathe into the outro.
+      const op = Math.min(it.type === "endcard" ? clamp01((t - it.at) / (10 / FPS))
+                                                 : clamp01((t - it.at) / (2 / FPS)),
                           clamp01(1 - (t - until) / (2 / FPS)));
       b.slate.style.opacity = op.toFixed(3);
       b.slate.style.transform = `scale(${(1 + 0.03 * lifeP).toFixed(4)})`;
@@ -3454,6 +3464,13 @@ window.setTimeline = function (tl) {
     // scenes with dark type - the ground is a choice, not a constant).
     roleColorCss();
   stage.innerHTML = "";
+  // fade-to-black overlay: the outro fade lives in the engine so every
+  // clip ends the same way, whatever the timeline asked for.
+  const fo = document.createElement("div");
+  fo.id = "fadeOverlay";
+  fo.style.cssText = "position:absolute;inset:0;background:#000;opacity:0;" +
+                     "z-index:60;pointer-events:none;";
+  stage.appendChild(fo);
   builtItems = [];
   layoutJobs.length = 0;
   const builders = { poster: buildPoster, chip: buildChip, card: buildCard, fx: buildFx,
