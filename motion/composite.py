@@ -71,10 +71,36 @@ def grade_filter(name: str | None, accent: str) -> str:
 POP_BG_FILTER = "eq=saturation=0.52:brightness=-0.075:contrast=1.03"
 
 
+def normalize_png_alpha(frames: Path) -> int:
+    """Normalize every rendered frame to RGBA before FFmpeg sees the sequence.
+
+    Chromium omits the alpha channel on frames that happen to be fully
+    opaque (notably the first hard-in frame of an end card), while earlier
+    frames in the same sequence are RGBA. FFmpeg's image2 input can retain
+    the prior partial alpha when that pixel format changes, making the
+    supposedly opaque slate translucent over the speaker. An explicit 255
+    alpha channel on RGB frames keeps the frame sequence format stable.
+    """
+    from PIL import Image
+
+    converted = 0
+    for path in sorted(frames.glob("*.png")):
+        with Image.open(path) as im:
+            if im.mode == "RGBA":
+                continue
+            rgba = im.convert("RGBA")
+            rgba.save(path, format="PNG", compress_level=1)
+            converted += 1
+    if converted:
+        print(f"normalized {converted} opaque RGB frames to RGBA")
+    return converted
+
+
 def composite(base: Path, frames: Path, tl: dict, out: Path,
               behind_frames: Path | None = None,
               mask: Path | None = None,
               grade: str | None = None) -> Path:
+    normalize_png_alpha(frames)
     fps = int(tl.get("fps") or 30)
     accent = (tl.get("brand") or {}).get("accent") or "#FFC531"
     items = tl.get("items") or []
