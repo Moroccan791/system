@@ -7,7 +7,7 @@ strong-claim word beats a lead-in every time. Dead pauses over the
 threshold are compressed to a breath; word times are remapped so the
 timeline authored afterwards is already tight.
 
-Usage: python motion/prep.py <transcript.json> [--window 28]
+Usage: python motion/prep.py <transcript.json> [--window 28] [--max-pause 0.30] [--keep 0.18]
 """
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def pick_hook(words: list[dict], window: float = 28.0) -> dict:
     return best
 
 
-def tighten(words: list[dict], max_pause: float = 0.55,
+def tighten(words: list[dict], max_pause: float = 0.30,
             keep: float = 0.18) -> tuple[list[dict], list[dict]]:
     """Compress dead air; returns (remapped words, removed intervals)."""
     removed, shift, out = [], 0.0, []
@@ -76,16 +76,29 @@ def tighten(words: list[dict], max_pause: float = 0.55,
 
 
 def main() -> int:
-    words = json.loads(Path(sys.argv[1]).read_text())
-    if isinstance(words, dict):
-        words = words.get("words") or []
-    window = float(sys.argv[sys.argv.index("--window") + 1]) \
-        if "--window" in sys.argv else 28.0
-    tight, removed = tighten(words)
-    print(json.dumps({"hook": pick_hook(words, window),
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("transcript", help="word-level transcript JSON")
+    ap.add_argument("--window", type=float, default=28.0,
+                    help="suggested source-window duration (default: 28s)")
+    ap.add_argument("--max-pause", type=float, default=0.30,
+                    help="compress pauses longer than this (default: 0.30s)")
+    ap.add_argument("--keep", type=float, default=0.18,
+                    help="retain this much breath at each tightened pause (default: 0.18s)")
+    args = ap.parse_args()
+    data = json.loads(Path(args.transcript).read_text())
+    words = data.get("words", []) if isinstance(data, dict) else data
+    if not words:
+        ap.error("transcript contains no words")
+    tight, removed = tighten(words, max_pause=args.max_pause, keep=args.keep)
+    print(json.dumps({"hook": pick_hook(words, args.window),
                       "removed": removed,
-                      "removed_total_s": round(
-                          sum(r["dur"] for r in removed), 2)}, indent=1))
+                      "removed_total_s": round(sum(r["dur"] for r in removed), 2),
+                      "tightened_word_count": len(tight),
+                      "window_s": args.window,
+                      "max_pause_s": args.max_pause,
+                      "kept_breath_s": args.keep}, indent=1))
     return 0
 
 

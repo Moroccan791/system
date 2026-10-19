@@ -9,7 +9,7 @@ Demi Lovato Is Building an Oak Tree to Protect Her Kids
 ## Description (copy-paste exactly)
 
 #ad
-Demi Lovato says she's trying to build a beautiful oak tree that will shade and protect her children from negative body-image talk and outside influence. She calls it a journey she wants to embark on.
+Demi Lovato says she's trying to build a beautiful oak tree that will shade and protect her children from negative body-image talk and outside influence. She calls it a journey she wants to embark on—and says she's excited.
 
 The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms
 

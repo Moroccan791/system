@@ -62,9 +62,9 @@
     flex-direction: column; align-items: center; justify-content: center; }
   .slate .hk-kicker { font-family: "MontserratX"; font-weight: 800; color: #fff;
     opacity: .55; letter-spacing: .35em; font-size: 40px; margin-bottom: 38px; }
-  .slate .hk-line { font-family: "MontserratX"; font-weight: 800; color: #fff;
+  .slate .hk-line { font-family: "MontserratX"; font-weight: 700; color: #fff;
     text-align: center; line-height: 1.05; letter-spacing: .01em; padding: 0 56px;
-    -webkit-text-stroke: 2px rgba(0,0,0,.4); }
+    -webkit-text-stroke: 0; }
   .slate .hk-line .hk-title-line { display: block; white-space: nowrap; }
   .slate .hk-bar { width: 190px; height: 14px; border-radius: 99px; margin-top: 46px; }
   .slate .hk-sub { font-family: "MontserratX"; font-weight: 700; color: #fff;
@@ -139,38 +139,18 @@
                    line-height: 1.12; padding: 18px 26px; border-radius: 30px 30px 6px 30px;
                    box-shadow: 0 12px 30px rgba(0,0,0,.4); will-change: transform, opacity; }
 
-  /* ---- marker captions (captionStyle "marker"): clean rounded ink,
-     a marker bar wiping behind the key word's lower half, a semantic
-     second accent, gradient heroes, sticker glued to a word ---- */
-  .poster .w.mark, .poster .w.pay, .poster .w.grad { position: relative; z-index: 0;
-    -webkit-text-stroke: 2px rgba(0,0,0,.45); }
-  .poster .w .mkbar { position: absolute; left: -8px; right: -8px; bottom: 4%; height: 46%;
-    z-index: -1; border-radius: 6px; transform-origin: 0 50%; will-change: transform, opacity; }
-  .poster .w .sticker { position: absolute; top: -0.62em; right: -0.85em; width: 0.95em; height: 0.95em;
-    z-index: 2; will-change: transform, opacity; pointer-events: none; }
-  .poster .w .sticker img { width: 100%; height: 100%; display: block; }
-
-  /* ---- impact captions (captionStyle "impact"): the reference-edit
-     system (recipes/editing_brain.md) - centred condensed caps, hard
-     black outline, flat colour swaps for keywords. NO marker bars,
-     NO soft radial plate: the type sits on the picture like print. */
-  .poster .stack.impact::before { display: none; }
-  .poster .stack.impact .w { text-transform: uppercase; letter-spacing: .02em;
-    -webkit-text-stroke: 4px rgba(0,0,0,.85); }
-
   /* ---- editorial captions (captionStyle "editorial") -----------------
-     Print type on picture: caps, tight tracking, a THIN hard outline
-     for legibility, no drop shadow, no soft plate, no glow. The
-     keyword swaps to the accent colour - it does not get a plate and
-     it never wipes in. */
+     Sentence-case print type on picture, flat and face-safe: no plate,
+     marker swipe, glow, or heavy offset shadow. A fine edge protects
+     white text on bright footage; selected words use the approved accent. */
   .poster .stack.editorial::before { display: none; }
-  .poster .stack.editorial .w { text-transform: uppercase; letter-spacing: -.005em;
-    -webkit-text-stroke: 2px rgba(0,0,0,.92); paint-order: stroke fill;
-    text-shadow: none; font-weight: 800; }
-  .poster .stack.editorial .w.conn { font-weight: 600; }
+  .poster .stack.editorial .w { text-transform: none; letter-spacing: 0;
+    -webkit-text-stroke: 1px rgba(0,0,0,.6); paint-order: stroke fill;
+    text-shadow: none; font-weight: 500; }
+  .poster .stack.editorial .w.conn { font-weight: 500; }
   .poster .stack.editorial .w.key, .poster .stack.editorial .w.hero {
-    /* Match a Book Italic specimen rather than synthesising bold. */
-    font-weight: 400; letter-spacing: -.025em;
+    /* The approved keyword face gives one restrained editorial accent. */
+    font-weight: 400; letter-spacing: -.015em;
   }
   .poster .stack.editorial .w.serif { text-transform: none; letter-spacing: -.01em; }
 
@@ -189,9 +169,7 @@
   .proof .pfhotbox { position: absolute; border: 5px solid; border-radius: 12px; will-change: opacity, transform; }
   .proof .pfline { font-family: "MontserratX"; font-weight: 700; color: #1B2534; font-size: 50px;
     line-height: 1.22; margin-top: 6px; will-change: transform, opacity; }
-  .proof .pfline .hotwrap { position: relative; z-index: 0; white-space: nowrap; }
-  .proof .pfline .hotbar { position: absolute; left: -5px; right: -5px; bottom: 2%; height: 52%;
-    z-index: -1; border-radius: 5px; transform-origin: 0 50%; will-change: transform; }
+  .proof .pfline .hotwrap { font-weight: 800; white-space: nowrap; }
   .proof .pfval { display: flex; align-items: baseline; gap: 20px; margin-top: 24px; }
   .proof .pfnum { font-family: "MontserratX"; font-weight: 800; font-size: 108px; line-height: 1; }
   .proof .pflab { font-family: "MontserratX"; font-weight: 700; color: #5A6B84; font-size: 38px;
@@ -298,7 +276,7 @@ const PACKS = {
 };
 const ROLE_SEL = {
   caption: ".poster .w.conn, .card .cw, .chip .t1",
-  keyword: ".poster .w.key, .poster .w.hero, .poster .w.pay, .poster .w.grad, .poster .w.neon",
+  keyword: ".poster .w.key, .poster .w.hero, .poster .w.neon",
   serif: ".poster .w.serif",
   endcard: ".slate .hk-line, .slate .hk-sub, .slate .hk-kicker",
   list: ".listp .lhead, .listp .pt1, .listp .pt2, .listp .badge"
@@ -315,7 +293,7 @@ function roleColorCss() {
   const c = THEME.colors || {}, out = [];
   if (c.caption) out.push(`.poster .w.conn, .card .cw, .chip .t1 { color: ${c.caption}; }`);
   if (c.serif) out.push(`.poster .w.serif { color: ${c.serif} !important; }`);
-  if (c.keyword) out.push(`.poster .w.hero, .poster .w.grad, .poster .w.pay { color: ${c.keyword} !important; }`);
+  if (c.keyword) out.push(`.poster .w.hero { color: ${c.keyword} !important; }`);
   // the plate only exists in the plate treatments: the editorial
   // treatment swaps the keyword INK instead, so its plate must not be
   // forced on (that is what turned "editorial" back into "impact").
@@ -352,56 +330,27 @@ function buildPoster(item) {
   wrap.style.cssText = `position:absolute;left:0;right:0;top:${(topFrac * H).toFixed(0)}px;transform:translateY(-50%);display:flex;justify-content:center;`;
   const stack = el("stack", wrap);
   const words = [];
-  const style = item.captionStyle || THEME.captionStyle || "pop";
-  if (style === "impact") stack.classList.add("impact");
+  const style = item.captionStyle || THEME.captionStyle || "editorial";
+  if (style === "marker" || style === "impact")
+    throw new Error(`${style} captions are permanently unavailable`);
   if (style === "editorial") stack.classList.add("editorial");
   const kara = style === "karaoke";
-  const markerStyle = style === "marker";
   (item.rows || []).forEach(row => {
     const r = el("row", stack);
     row.forEach(wd => {
       const s = document.createElement("span");
       const kind = wd.kind || "conn";
       s.className = "w " + (kind === "key" ? "key" : kind === "hero" ? "hero"
-        : kind === "serif" ? "serif" : kind === "neon" ? "neon"
-        : kind === "mark" ? "mark" : kind === "pay" ? "pay"
-        : kind === "grad" ? "grad" : "conn");
+        : kind === "serif" ? "serif" : kind === "neon" ? "neon" : "conn");
       s.textContent = wd.w;
       // an explicit per-word size always wins (a serif hero has to be
       // able to scale to display size); otherwise the kind decides.
       s.style.fontSize = (wd.size
         ? wd.size
         : kind === "hero" ? (item.heroSize || 250)
-        : ["key", "neon", "mark", "pay", "grad"].includes(kind) ? (item.keySize || 118)
-        : markerStyle ? (item.wordSize || 96)
+        : ["key", "neon"].includes(kind) ? (item.keySize || 118)
         : (item.connSize || 58)) + "px";
-      if (markerStyle && !THEME.fontPack) s.style.fontFamily = "\"PackPoppins\"";
-      let mkbar = null, sticker = null;
-      if (kind === "mark") {
-        // marker bar: wipes in behind the word's lower half as the
-        // word lands (the R4 "3 Questions" swipe); white ink on top
-        mkbar = document.createElement("span");
-        mkbar.className = "mkbar";
-        mkbar.style.background = wd.color || item.accent || ACCENT;
-        s.appendChild(mkbar);
-        s.dataset.glowc = wd.color || item.accent || ACCENT;
-      }
-      if (kind === "pay") {
-        // semantic second accent: the payoff voice of the line
-        const c2 = wd.color || item.accent2 || "#2FD574";
-        s.style.color = c2;
-        s.dataset.glowc = c2;
-      }
-      if (kind === "grad") {
-        // gradient hero ink (R2's cyan->pink BECOME)
-        const g = item.gradient || [item.accent || ACCENT, item.accent2 || "#F472B6"];
-        s.style.background = `linear-gradient(92deg, ${g[0]}, ${g[1]})`;
-        s.style.webkitBackgroundClip = "text";
-        s.style.backgroundClip = "text";
-        s.style.color = "transparent";
-        s.style.webkitTextStroke = "2px rgba(0,0,0,.35)";
-        s.dataset.glowc = g[0];
-      }
+      let sticker = null;
       if (wd.emoji) {
         // sticker glued to the word (the 💡 on "ideas."): a Twemoji
         // PNG from assets/icons, popped in as the word lands
@@ -442,18 +391,16 @@ function buildPoster(item) {
         s.style.color = wd.color || ac;
         s.dataset.glowc = ac;
       }
-      if (kind === "neon") s.style.color = wd.color || "#FF3355";
+      if (kind === "neon") s.style.color = wd.color || item.accent || ACCENT;
       if (style === "neon" && kind !== "key" && kind !== "hero" && kind !== "neon")
-        s.style.color = item.accent || ACCENT;   // neon finish: accent ink + glow
+        s.style.color = item.accent || ACCENT;   // neon finish: project ink + glow
       if (wd.glow) s.dataset.glow = "1";
       r.appendChild(s);
       const sp = document.createElement("span");
       sp.style.display = "inline-block"; sp.style.width = (kind === "key" ? 26 : 16) + "px";
       r.appendChild(sp);
-      words.push({ el: s, at: wd.at, kind, kara, mkbar, sticker,
-                   markerStyle, style,
-                   entry: style === "impact" ? "impact"
-                     : style === "editorial" ? "editorial"
+      words.push({ el: s, at: wd.showAt ?? wd.at, kind, kara, sticker, style,
+                   entry: style === "editorial" ? "editorial"
                      : ["stretch", "wiggle", "glide", "bounce"].includes(style)
                      ? style : "pop",
                    finish: style === "neon" ? "neon" : null,
@@ -538,7 +485,7 @@ function buildCard(item) {
         s.style.borderRadius = "16px";
         s.dataset.glowc = ac;
       }
-      if (wd.kind === "neon") s.style.color = wd.color || "#FF3355";
+      if (wd.kind === "neon") s.style.color = wd.color || item.accent || ACCENT;
       if (item.bg === "accent" && wd.kind === "key") s.style.color = "#ffffff";
       ln.appendChild(s);
       const sp = document.createElement("span");
@@ -793,9 +740,9 @@ function svgEl(tag, attrs, parent) {
 }
 
 function buildVector(item) {
-  const ac = item.accent || ACCENT;
+  const ac = item.color || item.accent || ACCENT;
   const full = (item.mode || "card") === "fullbleed";
-  const V = { name: item.name || "burst", n: {} };
+  const V = { name: item.name || "burst", label: item.label || "", n: {} };
   let svg;
   if (full) {
     const root = el("item broll vecfull", stage);
@@ -808,7 +755,7 @@ function buildVector(item) {
     wrap.style.cssText = "position:absolute;inset:0;";
     svg = svgEl("svg", { viewBox: "0 0 1080 1920", preserveAspectRatio: "xMidYMid slice" }, wrap);
     svg.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;";
-    if (item.label) {
+    if (item.label && V.name !== "shield") {
       const lab = el("blab", win);
       const l1 = el("l1", lab); l1.textContent = item.label; l1.style.fontSize = "58px";
       if (item.sub) { const l2 = el("l2", lab); l2.textContent = item.sub; l2.style.fontSize = "58px"; }
@@ -1666,9 +1613,11 @@ function buildScene(svg, V, ac, item, vw, vh) {
     svgEl("circle", { cx: 300 * s, cy: (cy - 52) * s, r: 22 * s, fill: ac, stroke: "#0D0F12", "stroke-width": 5 * s }, n.rkG);
     n.rkcy = cy;
   } else if (V.name === "shield") {
-    // SHOW protection: the shield draws, the check lands
-    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
-    const cy = H / 2;
+    // SHOW protection: the shield draws, the check lands. Keep the symbol
+    // in the upper field so the spoken caption has a clean lower landing.
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh,
+      fill: (THEME.colors || {}).sceneBg || "#14181f" }, svg);
+    const cy = H * 0.36;
     n.shRing = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 148 * s, fill: "none", stroke: ac, "stroke-width": 5 * s, opacity: 0 }, svg);
     const sd = `M ${300 * s} ${(cy - 138) * s} L ${396 * s} ${(cy - 100) * s} V ${(cy + 16) * s} C ${396 * s} ${(cy + 86) * s} ${348 * s} ${(cy + 118) * s} ${300 * s} ${(cy + 140) * s} C ${252 * s} ${(cy + 118) * s} ${204 * s} ${(cy + 86) * s} ${204 * s} ${(cy + 16) * s} V ${(cy - 100) * s} Z`;
     n.shPath = svgEl("path", { d: sd, fill: "#1A2230", stroke: ac, "stroke-width": 6 * s, "stroke-linejoin": "round" }, svg);
@@ -1690,6 +1639,18 @@ function buildScene(svg, V, ac, item, vw, vh) {
     n.shChkLen = 140 * s;
     n.shCheck.setAttribute("stroke-dasharray", n.shChkLen);
     n.shCheck.style.strokeDashoffset = n.shChkLen;
+    const labelInk = (THEME.colors || {}).caption || "#F4F7FC";
+    const labelFace = PACKS[(THEME.fonts || {}).endcard] || "PackGrande";
+    n.shLabel = svgEl("text", { x:300 * s, y:(cy + 220) * s,
+      "text-anchor":"middle", fill:labelInk, "font-size":38 * s,
+      "font-weight":600, "letter-spacing":4 * s,
+      "font-family":labelFace, opacity:0 }, svg);
+    n.shLabel.textContent = V.label || "GOOD HUMAN";
+    n.shLabelRule = svgEl("line", { x1:250 * s, y1:(cy + 250) * s,
+      x2:350 * s, y2:(cy + 250) * s, stroke:ac,
+      "stroke-width":3 * s, "stroke-linecap":"round",
+      "stroke-dasharray":100 * s, "stroke-dashoffset":100 * s,
+      opacity:0 }, svg);
   } else if (V.name === "hourglass") {
     // ORIENT time: the sand runs out while you watch
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
@@ -2258,6 +2219,41 @@ function buildScene(svg, V, ac, item, vw, vh) {
     svgEl("polygon", { points: `${300 * s},${(cy + 92) * s} ${317 * s},${cy * s} ${283 * s},${cy * s}`, fill: "#7E93BC" }, needle);
     n.needle = needle; n.compCy = cy;
     svgEl("circle", { cx: 300 * s, cy: cy * s, r: 13 * s, fill: "#E8EDF4" }, svg);
+  } else if (V.name === "worth") {
+    // The measuring grid assembles, then dissolves; the spoken idea remains.
+    svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#11151A" }, svg);
+    // Keep the graphic in the upper field so the verbatim lower-third
+    // caption has a clean, non-overlapping landing zone.
+    const cy = H * 0.35;
+    n.measure = svgEl("g", { opacity: 0 }, svg);
+    svgEl("line", { x1: 70 * s, y1: (cy + 144) * s, x2: 530 * s,
+      y2: (cy + 144) * s, stroke: "#56606C", "stroke-width": 3 * s }, n.measure);
+    n.ticks = [];
+    for (let i = 0; i <= 24; i++) {
+      const x = 78 + i * 18.5, tall = i % 6 === 0 ? 42 : i % 3 === 0 ? 28 : 15;
+      const tick = svgEl("line", { x1: x * s, y1: (cy + 144) * s,
+        x2: x * s, y2: (cy + 144 - tall) * s, stroke: i % 6 === 0 ? "#98A0A9" : "#56606C",
+        "stroke-width": (i % 6 === 0 ? 3 : 2) * s, "stroke-linecap": "round",
+        opacity: 0 }, n.measure);
+      n.ticks.push(tick);
+    }
+    n.halo = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 170 * s,
+      fill: ac, opacity: 0 }, svg);
+    n.ring = svgEl("circle", { cx: 300 * s, cy: cy * s, r: 136 * s,
+      fill: "none", stroke: ac, "stroke-width": 3 * s, opacity: 0.9,
+      "stroke-dasharray": `${854 * s}`, "stroke-dashoffset": `${854 * s}` }, svg);
+    n.ringLen = 854 * s;
+    n.word = svgEl("text", { x: 300 * s, y: (cy + 28) * s,
+      "text-anchor": "middle", fill: ac, "font-size": 92 * s,
+      "font-weight": 700, "letter-spacing": 5 * s,
+      "font-family": PACKS[(THEME.fonts || {}).keyword] || "PackGrande",
+      opacity: 0, transform: `translate(${300 * s} ${cy * s}) scale(0.72) translate(${-300 * s} ${-cy * s})` }, svg);
+    n.word.textContent = "WORTH";
+    n.cross = svgEl("line", { x1: 64 * s, y1: (cy + 144) * s,
+      x2: 536 * s, y2: (cy + 144) * s, stroke: ac, "stroke-width": 5 * s,
+      "stroke-linecap": "round", "stroke-dasharray": `${472 * s}`,
+      "stroke-dashoffset": `${472 * s}`, opacity: 0 }, svg);
+    n.crossLen = 472 * s; n.worthCy = cy;
   } else {  // burst
     svgEl("rect", { x: 0, y: 0, width: vw, height: vh, fill: "#14181f" }, svg);
     const cy = H / 2;
@@ -2656,14 +2652,20 @@ function animateVector(b, t, lifeP) {
       st.c.setAttribute("cy", (yy * s).toFixed(1));
     });
   } else if (V.name === "shield") {
-    const q = easeOut(clamp01((lt - 0.1) / 0.7));
+    const q = easeOut(clamp01((lt - 0.04) / 0.48));
     n.shPath.style.strokeDashoffset = (n.shLen * (1 - q)).toFixed(1);
-    const cq = easeOutBack(clamp01((lt - 0.55) / 0.35));
+    const cq = easeOutBack(clamp01((lt - 0.42) / 0.34));
     n.shCheck.style.strokeDashoffset = (n.shChkLen * (1 - clamp01(cq))).toFixed(1);
-    const pq = clamp01((lt - 0.9) / 0.7);
-    n.shRing.setAttribute("r", ((148 + pq * 44) * s).toFixed(1));
-    n.shRing.setAttribute("opacity", ((1 - pq) * 0.6 * clamp01((lt - 0.9) * 4)).toFixed(2));
-    const humanIn = easeOut(clamp01((lt - 0.4) / 0.42));
+    const labelIn = easeOut(clamp01((lt - 0.70) / 0.28));
+    n.shLabel.setAttribute("opacity", labelIn.toFixed(2));
+    n.shLabel.setAttribute("transform", `translate(0 ${((1 - labelIn) * 10 * s).toFixed(1)})`);
+    const ruleP = easeOut(clamp01((lt - 0.82) / 0.28));
+    n.shLabelRule.setAttribute("stroke-dashoffset", (100 * s * (1 - ruleP)).toFixed(1));
+    n.shLabelRule.setAttribute("opacity", ruleP.toFixed(2));
+    const pq = clamp01((lt - 0.78) / 0.48);
+    n.shRing.setAttribute("r", ((148 + pq * 38) * s).toFixed(1));
+    n.shRing.setAttribute("opacity", ((1 - pq) * 0.52 * clamp01((lt - 0.78) * 4)).toFixed(2));
+    const humanIn = easeOut(clamp01((lt - 0.18) / 0.38));
     n.shInner.setAttribute("opacity", (0.4 + humanIn * 0.46).toFixed(2));
     n.shPerson.setAttribute("opacity", humanIn.toFixed(2));
     n.shNodes.forEach((dot, i) => {
@@ -2932,6 +2934,24 @@ function animateVector(b, t, lifeP) {
     const ang = 150 * Math.exp(-2.0 * lt) * Math.sin(lt * 4.6);
     n.needle.setAttribute("transform", `rotate(${ang.toFixed(2)} ${300 * s} ${n.compCy * s})`);
     n.compGlow.setAttribute("opacity", (clamp01((p - 0.62) / 0.3) * (0.45 + 0.25 * Math.sin(lt * 4))).toFixed(2));
+  } else if (V.name === "worth") {
+    const assemble = easeOut(clamp01((lt - 0.02) / 0.34));
+    const release = easeIn(clamp01((p - 0.58) / 0.34));
+    n.measure.setAttribute("opacity", (assemble * (1 - release)).toFixed(2));
+    n.ticks.forEach((tick, i) => {
+      const q = easeOut(clamp01((lt - i * 0.012) / 0.24));
+      tick.setAttribute("opacity", (q * (1 - release)).toFixed(2));
+    });
+    const ringP = easeOut(clamp01((lt - 0.18) / 0.72));
+    n.ring.setAttribute("stroke-dashoffset", (n.ringLen * (1 - ringP)).toFixed(1));
+    const pulse = Math.sin(Math.max(0, lt - 0.65) * 4.0);
+    n.halo.setAttribute("opacity", ((0.12 + 0.035 * pulse) * ringP).toFixed(3));
+    const wordP = easeOutBack(clamp01((lt - 0.34) / 0.42));
+    n.word.setAttribute("opacity", clamp01(wordP).toFixed(2));
+    n.word.setAttribute("transform", `translate(${(300 * s).toFixed(1)} ${(n.worthCy * s).toFixed(1)}) scale(${(0.72 + 0.28 * clamp01(wordP)).toFixed(3)}) translate(${(-300 * s).toFixed(1)} ${(-n.worthCy * s).toFixed(1)})`);
+    const crossP = easeInOut(clamp01((lt - 0.72) / 0.34));
+    n.cross.setAttribute("stroke-dashoffset", (n.crossLen * (1 - crossP)).toFixed(1));
+    n.cross.setAttribute("opacity", (crossP * (1 - clamp01((p - 0.52) / 0.25))).toFixed(2));
   } else {
     n.rays.setAttribute("transform", `rotate(${((lt * 14) % 360).toFixed(1)} ${300 * s} ${V.cy * s})`);
     const rq = (lt % 1.6) / 1.6;
@@ -2945,6 +2965,7 @@ function buildProof(item) {
   // the receipt: a testimonial / screenshot card whose hot phrase is
   // highlighted AS it is spoken, with an optional counting number
   const root = el("item proof", stage);
+  const accent = item.accent || ACCENT;
   const zone = item.zone || [0.20, 0.86];
   root.style.paddingTop = Math.round(zone[0] * H) + "px";
   const card = el("pfcard", root);
@@ -2958,7 +2979,7 @@ function buildProof(item) {
     if (item.sub) {
       const rl = el("pfrole", tx);
       rl.textContent = item.sub.toUpperCase();
-      rl.style.color = item.accent2 || "#38B6E3";
+      rl.style.color = accent;
     }
     head.appendChild(tx);
   }
@@ -2974,31 +2995,27 @@ function buildProof(item) {
       const [hx, hy, hw, hh] = item.hotBox;
       hotBoxEl.style.cssText = `left:${(hx * 100).toFixed(1)}%;top:${(hy * 100).toFixed(1)}%;` +
         `width:${(hw * 100).toFixed(1)}%;height:${(hh * 100).toFixed(1)}%;` +
-        `border-color:${item.accent2 || "#38E1FF"};background:${hexA(item.accent2 || "#38E1FF", .18)};opacity:0;`;
+        `border-color:${accent};background:${hexA(accent, .18)};opacity:0;`;
     }
   }
   const phrases = (item.phrases || []).map(ph => {
     const ln = el("pfline", card);
-    let bar = null;
     if (ph.hot) {
       const wrap = document.createElement("span");
       wrap.className = "hotwrap";
       wrap.textContent = ph.text;
-      bar = document.createElement("span");
-      bar.className = "hotbar";
-      bar.style.background = item.accent2 || "#38E1FF";
-      wrap.appendChild(bar);
+      wrap.style.color = accent;
       ln.appendChild(wrap);
     } else {
       ln.textContent = ph.text;
     }
-    return { el: ln, bar, at: ph.at };
+    return { el: ln, at: ph.at };
   });
   let valEl = null;
   if (item.value != null) {
     const row = el("pfval", card);
     valEl = el("pfnum", row);
-    valEl.style.color = item.accent2 || "#1FA855";
+    valEl.style.color = accent;
     valEl.textContent = "0";
     if (item.valueLabel || item.label) {
       const lab = el("pflab", row);
@@ -3302,9 +3319,7 @@ function wordEnter(wd, t) {
   let rot = 1.6 * (1 - easeOut(p));
   const op = clamp01(dt / (2 / FPS));
   let scale = 1, sx = null, sy = null;
-  if (entry === "impact") {          // print pop: sharp, no blur
-    blur = 0; y = 12 * (1 - easeOut(p)); rot = 0;
-  } else if (entry === "editorial") {  // flat print: settle, no pop
+  if (entry === "editorial") {  // flat print: settle, no pop
     blur = 0; y = 7 * (1 - easeOut(p)); rot = 0;
   } else if (entry === "glide") {           // slides in from the left, sharp
     x = -54 * (1 - easeOut(p)); y = 0; blur = 0; rot = 0;
@@ -3318,18 +3333,10 @@ function wordEnter(wd, t) {
   if (entry === "wiggle" && dt > enterF)   // lands, then wiggles off
     rot += Math.sin((dt - enterF) * 22) * 2.6 * Math.exp(-(dt - enterF) * 5);
   if (wd.style !== "editorial"
-      && (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero"
-      || wd.kind === "mark" || wd.kind === "pay" || wd.kind === "grad")) {
+      && (wd.kind === "key" || wd.kind === "neon" || wd.kind === "hero")) {
     const pk = clamp01(dt / ((10 / THEME.speed) / FPS));
     scale = pk < 0.62 ? 0.85 + (1.08 - 0.85) * themeEase(pk / 0.62)
                      : 1.08 - 0.08 * themeEase((pk - 0.62) / 0.38);
-    sx = sy = null;
-  }
-  if (wd.markerStyle && !["mark", "pay", "grad", "hero"].includes(wd.kind)) {
-    // every marker word pops with overshoot, not just the key word:
-    // the line itself performs (R4's word-by-word bounce)
-    const pb = clamp01(dt / (8 / FPS));
-    scale = Math.max(0.05, 0.55 + 0.45 * easeOutBack(pb));
     sx = sy = null;
   }
   return { blur, y, x, rot, op, scale, sx, sy };
@@ -3354,8 +3361,7 @@ function applyWord(wd, t, until) {
   // exit discipline, so the semi-transparent QC is untouched. Key
   // words keep their plate (already the highlight of the stack).
   let karaNow = false;
-  if (wd.kara && wd.kind !== "key" && wd.kind !== "hero"
-      && wd.kind !== "mark" && wd.kind !== "pay" && wd.kind !== "grad") {
+  if (wd.kara && !["key", "hero", "neon"].includes(wd.kind)) {
     // heroes never swell: a hero already fills its row, so the
     // karaoke 13% lean-in pushed MILLIONAIRE off-frame (user-
     // reported on test edit #1). Heroes keep colour + glow only.
@@ -3369,21 +3375,16 @@ function applyWord(wd, t, until) {
   // until its (lead-shifted) pop has finished (blur cross-swap)
   const x = exitFade(Math.max(until, wd.at + 8 / FPS), t);
   const elx = wd.el;
-  if (wd.kara && wd.kind !== "key" && wd.kind !== "neon" && wd.kind !== "hero"
-      && wd.kind !== "mark" && wd.kind !== "pay" && wd.kind !== "grad")
-    elx.style.color = karaNow ? (wd.ac || "#FF3355") : "";
+  if (wd.kara && !["key", "neon", "hero"].includes(wd.kind))
+    elx.style.color = karaNow ? (wd.ac || ACCENT) : "";
   const glow = wd.el.dataset.glow === "1" || wd.kind === "key";
   let shadow = "0 6px 22px rgba(0,0,0,.45)";
   if (karaNow && wd.kind !== "neon")
-    shadow = `0 0 34px ${hexA(wd.ac || "#FF3355", .85)}, 0 6px 22px rgba(0,0,0,.45)`;
-  if (wd.kind === "key" || wd.kind === "hero" || wd.kind === "mark"
-      || wd.kind === "pay" || wd.kind === "grad") {
+    shadow = `0 0 34px ${hexA(wd.ac || ACCENT, .85)}, 0 6px 22px rgba(0,0,0,.45)`;
+  if (wd.kind === "key" || wd.kind === "hero") {
     if (wd.style === "editorial") {
       // flat print: no shadow at all, the thin outline carries it
       shadow = "none";
-    } else if (wd.style === "impact") {
-      // reference print: hard offset shadow, never a coloured glow
-      shadow = "0 5px 0 rgba(0,0,0,.55), 0 10px 24px rgba(0,0,0,.35)";
     } else {
       const dt = t - (wd.at - WORD_LEAD);
       const pulse = dt < 12 / FPS ? (0.55 + 0.45 * Math.sin((dt / (12 / FPS)) * Math.PI)) : 0.5;
@@ -3391,12 +3392,12 @@ function applyWord(wd, t, until) {
       shadow = `0 0 ${26 * pulse + 10}px ${c}, 0 6px 22px rgba(0,0,0,.4)`;
     }
   }
-  if (wd.kind === "neon" || wd.finish === "neon") {
-    // electric glow with a 4-frame flicker at entry (glow only - the
+  if ((wd.kind === "neon" || wd.finish === "neon") && wd.style !== "editorial") {
+    // legacy electric glow with a 4-frame flicker at entry (glow only - the
     // word's opacity curve stays clean for the semi-transparent QC)
     const f = Math.round((t - (wd.at - WORD_LEAD)) * FPS);
     const flick = f >= 3 && f <= 6 ? [0.45, 1, 0.6, 1][f - 3] : 1;
-    const c = wd.el.style.color || wd.ac || "#FF3355";
+    const c = wd.el.style.color || wd.ac || ACCENT;
     shadow = `0 0 ${Math.round(17 * flick)}px ${c}, 0 0 ${Math.round(46 * flick)}px ${c}, 0 6px 22px rgba(0,0,0,.45)`;
   }
   elx.style.opacity = Math.min(e.op, x.op).toFixed(3);
@@ -3405,11 +3406,6 @@ function applyWord(wd, t, until) {
     `rotate(${e.rot.toFixed(2)}deg) ` +
     `scale(${(e.sx != null ? e.sx : e.scale).toFixed(3)}, ${(e.sy != null ? e.sy : e.scale).toFixed(3)})`;
   elx.style.textShadow = shadow;
-  if (wd.mkbar) {
-    const q = easeOut(clamp01((t - (wd.at - WORD_LEAD)) / (6 / FPS)));
-    wd.mkbar.style.transform = `scaleX(${q.toFixed(3)})`;
-    wd.mkbar.style.opacity = Math.min(e.op, x.op).toFixed(3);
-  }
   if (wd.sticker) {
     const q = easeOutBack(clamp01((t - wd.at) / (9 / FPS)));
     wd.sticker.style.transform =
@@ -3751,9 +3747,7 @@ function renderAt(tMs) {
         const dt = t - ph.at;
         ph.el.style.opacity = clamp01(dt / (2 / FPS)).toFixed(3);
         ph.el.style.transform = `translateY(${((1 - easeOut(clamp01(dt / (7 / FPS)))) * 22).toFixed(1)}px)`;
-        // the highlight lands WITH the spoken phrase, then stays
-        if (ph.bar) ph.bar.style.transform =
-          `scaleX(${easeOut(clamp01((t - ph.at) / 0.35)).toFixed(3)})`;
+        // A flat accent-ink swap lands with the spoken phrase; no wipe or bar.
       });
       if (b.proofValEl) {
         const cd = it.countDur || 0.9;

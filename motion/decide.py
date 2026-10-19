@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Decision rules: transcript -> draft motion timeline.
 
-    python motion/decide.py <transcript.json> <out.json> [--accent #9BE82E]
+    python motion/decide.py <transcript.json> <out.json> --accent <approved-hex>
 
 The renderer is deterministic; this is where the editorial grammar of
 the format lives. Each utterance of speech is classified by the first
@@ -19,8 +19,8 @@ matching rule (the order is the priority):
   4. CARD      a short strong claim (never / always / nobody / ...)
                -> full-screen text card
   5. POSTER    everything else -> word-stacked captions; the keyword
-               pops in the accent, an emotional keyword goes neon
-               (hot) or serif-italic (soft)
+               uses the user-approved per-video accent, a reflective
+               word may use serif italics; all captions stay flat
 
 Concrete picturable nouns (TV, car, roof...) are reported as PiP /
 B-roll candidates with their timestamps — media choice stays a human
@@ -56,19 +56,6 @@ VECTOR_SCENES = {"hoop": "hoop", "basketball": "hoop", "lights": "led",
 CLAIM_MARKERS = set("never always nobody everyone everybody nothing everything "
                     "stop truth cannot can't wont won't impossible nobody's "
                     "everyone's".split())
-# marker caption style (eye-catching captions): word ROLES, not one
-# keyword. Structure words earn the marker bar (the red "Step one /
-# 3 Questions" voice), payoff words take the semantic second accent,
-# and a sticker may ride the operative word (Twemoji, assets/icons).
-STRUCTURE = set("first second third fourth step steps question questions "
-                "never always nobody nothing only not no don't cant can't "
-                "wont won't stop".split())
-PAYOFF = NEON_HOT | set("money dollars sales revenue profit followers "
-                        "subscribers growth percent % results win wins".split())
-EMOJI_MAP = {"idea": "thinking", "ideas": "thinking", "think": "thinking",
-             "fire": "fire", "hot": "fire", "money": "chart_up",
-             "growth": "chart_up", "look": "eyes", "watch": "eyes",
-             "love": "smiling_hearts", "angry": "angry", "100": "hundred"}
 SEQ_MARKERS = {"first", "second", "third", "fourth", "then", "next", "finally", "step"}
 NUM_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
              "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11,
@@ -196,73 +183,106 @@ def comma_phrases(u):
     return intro, phrases
 
 
+SEMANTIC_KEYWORDS = {
+    "value": 5.0, "worth": 5.0, "body": 4.6, "beautiful": 4.6,
+    "human": 4.4, "family": 4.2, "love": 4.2, "heart": 4.0,
+    "truth": 4.2, "secret": 4.2, "never": 3.8, "nobody": 3.8,
+    "wrong": 3.6, "best": 3.4, "worst": 3.4, "important": 3.6,
+    "because": 1.2, "isn't": 3.5, "doesn't": 3.2, "not": 3.4,
+}
+
+
 def key_word(u):
-    best, best_score = None, -1
-    for w in u:
+    """Choose the semantic payload, not simply the longest token."""
+    best, best_key = None, (-1.0, -1, 0)
+    for i, w in enumerate(u):
         t = norm(w["text"])
         if t in STOP or not t:
             continue
-        score = len(t) + (3 if t in NEON_HOT or t in SERIF_SOFT else 0)
-        if score > best_score:
-            best, best_score = w, score
+        number = parse_number(u, i)
+        score = SEMANTIC_KEYWORDS.get(t, 0.0)
+        if number and number[4]:
+            score = max(score, 5.2)
+        if t in NEON_HOT:
+            score = max(score, 4.1)
+        if t in SERIF_SOFT:
+            score = max(score, 3.2)
+        # Mild length tiebreak only. Meaning and acoustic emphasis win.
+        stress = 0.35 if w["text"].isupper() else 0.0
+        rank = (score + stress, min(len(t), 12), -i)
+        if rank > best_key:
+            best, best_key = w, rank
     return best
 
 
-def poster_items(u, log, caption_style=None, accent2=None):
+def phrase_rows(words, max_words=4):
+    """Lay captions at phrase/pause boundaries while keeping each line short."""
+    phrases, cur = [], []
+    for w in words:
+        if cur:
+            prev = cur[-1]
+            gap = float(w["start"]) - float(prev.get("end", prev["start"]))
+            punct = str(prev["text"]).rstrip().endswith((",", ";", ":", ".", "?", "!"))
+            if gap >= 0.28 or punct or len(cur) >= max_words:
+                phrases.append(cur)
+                cur = []
+        cur.append(w)
+        if str(w["text"]).rstrip().endswith((".", "?", "!")):
+            phrases.append(cur)
+            cur = []
+    if cur:
+        phrases.append(cur)
+    # A one-word phrase reads better with its neighbour when there is room.
+    packed = []
+    for phrase in phrases:
+        if packed and len(packed[-1]) < 2 and len(packed[-1]) + len(phrase) <= max_words:
+            packed[-1].extend(phrase)
+        else:
+            packed.append(list(phrase))
+    rows = []
+    for phrase in packed:
+        rows.extend(phrase[i:i + max_words] for i in range(0, len(phrase), max_words))
+    return rows
+
+
+def poster_items(u, log, caption_style=None):
+    if caption_style not in (None, "editorial"):
+        raise ValueError("new work requires flat editorial captions; marker-swipe, "
+                         "impact, and kinetic caption treatments are unavailable")
     items, chunk = [], []
-    marker = caption_style == "marker"
     def flush():
         if not chunk:
             return
-        per_row = 3 if marker else 4
-        rows, row = [], []
-        for w in chunk:
-            row.append(w)
-            if len(row) >= per_row:
-                rows.append(row)
-                row = []
-        if row:
-            rows.append(row)
+        rows = phrase_rows(chunk)
+        # The chunk cap is eight; preserve all words in at most two lines.
         rows = rows[:2] + ([[w for r in rows[2:] for w in r]] if len(rows) > 2 else [])
         kw = key_word(chunk)
         out_rows = []
-        for r in rows:
+        for row in rows:
             out = []
-            for w in r:
+            for w in row:
                 t = norm(w["text"])
                 entry = {"w": w["text"], "at": round(w["start"], 3)}
-                if marker:
-                    # roles, sentence case, inline size hierarchy:
-                    # connective ~62, spoken word 96, marked/payoff 124
-                    if w is kw and t in SERIF_SOFT:
-                        entry.update({"kind": "serif", "size": 96})
-                    elif w is kw or t in STRUCTURE:
-                        entry.update({"kind": "mark", "size": 126})
-                    elif t in PAYOFF or parse_number([w], 0):
-                        entry.update({"kind": "pay", "size": 124})
-                    elif t in SERIF_SOFT:
-                        entry.update({"kind": "serif", "size": 96})
-                    elif t in STOP or len(t) <= 2:
-                        entry.update({"kind": "conn", "size": 62})
-                    else:
-                        entry.update({"kind": "word", "size": 96})
-                    if t in EMOJI_MAP and entry.get("kind") in ("mark", "pay"):
-                        entry["emoji"] = EMOJI_MAP[t]
-                elif w is kw:
+                if w is kw:
                     if t in NEON_HOT:
-                        entry.update({"w": w["text"].upper(), "kind": "neon"})
+                        entry.update({"w": w["text"].upper(), "kind": "key"})
                     elif t in SERIF_SOFT:
                         entry.update({"w": w["text"], "kind": "serif"})
                     else:
                         entry.update({"w": w["text"].upper(), "kind": "key"})
+                elif t in SERIF_SOFT:
+                    entry["kind"] = "serif"
+                elif t in STOP or len(t) <= 2:
+                    entry["kind"] = "conn"
+                else:
+                    entry["kind"] = "word"
                 out.append(entry)
             out_rows.append(out)
-        items.append({"type": "poster", "at": round(chunk[0]["start"], 3),
-                      "until": round(chunk[-1]["start"] + 0.55, 3), "rows": out_rows,
-                      **({"captionStyle": caption_style}
-                         if caption_style and caption_style != "pop" else {}),
-                      **({"accent2": accent2}
-                         if marker and accent2 else {})})
+        item = {"type": "poster", "at": round(chunk[0]["start"], 3),
+                "until": round(chunk[-1]["start"] + 0.55, 3), "rows": out_rows}
+        if caption_style:
+            item["captionStyle"] = caption_style
+        items.append(item)
         log.append(f"  poster  @{chunk[0]['start']:6.2f}  "
                    f"{' '.join(w['text'] for w in chunk)[:58]!r}")
         chunk.clear()
@@ -294,7 +314,7 @@ def counter_item(u, i, parsed, log):
     return item
 
 
-def classify(u, log, caption_style=None, accent2=None):
+def classify(u, log, caption_style=None):
     text = " ".join(w["text"] for w in u)
     toks = [norm(w["text"]) for w in u]
     nums = [(i, p) for i in range(len(u)) if (p := parse_number(u, i))]
@@ -370,7 +390,7 @@ def classify(u, log, caption_style=None, accent2=None):
         i, p = strong[0]
         items = []
         if i >= 3:
-            items += poster_items(u[:i], log, caption_style, accent2)
+            items += poster_items(u[:i], log, caption_style)
         items.append(counter_item(u, i, p, log))
         return items
 
@@ -388,7 +408,7 @@ def classify(u, log, caption_style=None, accent2=None):
                  "lines": [line(u[:half]), line(u[half:])]}]
 
     # 5. POSTER
-    return poster_items(u, log, caption_style, accent2)
+    return poster_items(u, log, caption_style)
 
 
 def flat_words(item):
@@ -470,17 +490,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("transcript")
     ap.add_argument("out")
-    ap.add_argument("--accent", default="#9BE82E")
-    ap.add_argument("--caption-style",
-                    choices=["pop", "karaoke", "stretch", "wiggle", "glide",
-                             "bounce", "neon", "marker"],
-                    default="pop",
-                    help="karaoke lights each word as spoken; stretch/wiggle/"
-                         "glide/bounce change word entries; neon = glow finish; "
-                         "marker = eye-catching captions (marker-bar key "
-                         "word, semantic second accent, per-word pop)")
-    ap.add_argument("--accent2", default="#2FD574",
-                    help="semantic second accent for marker payoff words")
+    ap.add_argument("--accent", required=True,
+                    help="required per-video project accent chosen before editing (#RRGGBB)")
+    ap.add_argument("--caption-style", choices=["editorial"],
+                    default="editorial",
+                    help="new work uses flat editorial captions")
     ap.add_argument("--proof", default=None,
                     help="proof assets JSON (motion/proof.py format): "
                          "matched receipts replace the poster stacks "
@@ -512,7 +526,7 @@ def main() -> int:
 
     items, log, suggestions = [], [], {}
     for u in utts:
-        items += classify(u, log, args.caption_style, args.accent2)
+        items += classify(u, log, args.caption_style)
         for w in u:
             t = norm(w["text"])
             if t in CONCRETE and t not in suggestions:

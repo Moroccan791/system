@@ -4,8 +4,8 @@
 The motion system guarantees a video LOOKS right (QC v2); this
 scores whether it is built to be WATCHED to the end:
 
-  hook (25)        a hook slate at frame 0, or a first visual event
-                   inside half a second - the swipe decision window
+  hook (25)        the quality of the actual spoken first seconds;
+                   an opening slate never earns hook points
   pacing (30)      no dead air: a visual event (item start, spoken
                    word onset, panel step) at least every 2.5 s
   open loop (20)   the first 35% of the words plants a question the
@@ -45,6 +45,44 @@ def norm(t: str) -> str:
     return re.sub(r"[^a-z0-9']", "", t.lower())
 
 
+def spoken_hook_score(words: list[dict]) -> tuple[int, list[str]]:
+    """Score the actual spoken open; a title slate never earns hook points."""
+    if not words:
+        return 0, ["no transcript words in the opening"]
+    t0 = float(words[0]["start"])
+    head = []
+    for w in words:
+        if float(w["start"]) - t0 > 2.1 and head:
+            break
+        head.append(w)
+        if str(w["text"]).strip().endswith((".", "?", "!")):
+            break
+    text = " ".join(str(w["text"]) for w in head).strip()
+    toks = [norm(w["text"]) for w in head]
+    score, notes = 0, []
+    filler = {"so", "and", "but", "yeah", "like", "well", "okay", "um", "uh", "basically"}
+    if toks and toks[0] in filler:
+        score -= 5
+        notes.append("spoken open starts with filler")
+    else:
+        score += 4
+    if any(t in TEASERS for t in toks):
+        score += 6
+        notes.append("spoken claim/contrast opens a loop")
+    if "?" in text:
+        score += 4
+        notes.append("spoken question")
+    if any(re.search(r"\d", str(w["text"])) for w in head):
+        score += 5
+        notes.append("spoken number")
+    if 4 <= len(toks) <= 15:
+        score += 3
+    if len(toks) > 22:
+        score -= 3
+        notes.append("spoken opening is long")
+    return max(0, min(25, score)), notes
+
+
 def analyse(tl: dict, tr) -> dict:
     dur = float(tl.get("duration") or 0)
     items = tl.get("items") or []
@@ -60,11 +98,10 @@ def analyse(tl: dict, tr) -> dict:
     ev = sorted(events)
     gaps = [(round(b - a, 2), a) for a, b in zip(ev, ev[1:]) if b - a > 2.5]
 
-    hook_item = any(i["type"] == "hook" and float(i["at"]) <= 0.1
-                    for i in items)
+    hook_slate = any(i["type"] == "hook" and float(i["at"]) <= 0.1
+                     for i in items)
     first_ev = ev[0] if ev else dur
-    hook = 25 if hook_item else 15 if first_ev <= 0.5 else \
-        8 if first_ev <= 1.0 else 0
+    hook, hook_notes = spoken_hook_score(words)
     pacing = max(0, 30 - 6 * len(gaps))
 
     toks = [norm(w["text"]) for w in words]
@@ -84,9 +121,11 @@ def analyse(tl: dict, tr) -> dict:
 
     score = hook + pacing + open_loop + loop_closure + ending
     notes = []
-    if not hook_item and first_ev > 0.5:
-        notes.append(f"first visual event at {first_ev:.2f}s - add a "
-                     f"hook slate or start the first stack sooner")
+    if hook < 12:
+        notes.extend(hook_notes)
+        notes.append("spoken hook is weak or delayed; a title slate earns no hook points")
+    if first_ev > 0.5:
+        notes.append(f"first visual event at {first_ev:.2f}s - start the spoken captions or picture event sooner")
     for g, at in gaps[:4]:
         notes.append(f"pacing gap {g:.1f}s at {at:.1f}s - add a beat "
                      f"(chip / vector card / punch) or extend a hold")
@@ -104,7 +143,8 @@ def analyse(tl: dict, tr) -> dict:
                     "ok" if score >= 55 else "weak",
             "hook": hook, "pacing": pacing, "open_loop": open_loop,
             "loop_closure": loop_closure, "ending": ending,
-            "hook_slate": hook_item, "first_event_s": first_ev,
+            "hook_slate_present": hook_slate, "spoken_hook_notes": hook_notes,
+            "first_event_s": first_ev,
             "gaps_over_2_5s": gaps, "teasers_found": teaser,
             "loop_shared_words": shared, "notes": notes}
 

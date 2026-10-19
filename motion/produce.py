@@ -75,10 +75,13 @@ def load_theme(name: str | None, base: Path, tl: dict,
         except Exception:
             name = "high-energy"
     theme = json.loads((HERE / "themes" / f"{name}.json").read_text())
-    if log.get("auto_brand", {}).get("accent_override"):
+    if log.get("auto_brand", {}).get("accent_override") and not theme.get("styleCard"):
         theme["accent"] = log["auto_brand"]["accent_override"]
-    if (tl.get("brand") or {}).get("accent"):  # campaign brand lock wins
+    if (tl.get("brand") or {}).get("accent") and not theme.get("styleCard"):
         theme["accent"] = tl["brand"]["accent"]
+    if not theme.get("accent"):
+        raise ValueError("theme has no accent: save/approve a per-video style card "
+                         "or supply its selected accent before rendering")
     log["theme"] = theme["name"]
     return theme
 
@@ -94,12 +97,12 @@ def simplify(tl: dict, level: int) -> dict:
                 kept.append(i)
             elif i["type"] == "proof":
                 # the receipt IS the argument: never vanish it in a
-                # fallback - downgrade the proof card to a caption
-                # poster (hot phrases become payoff words)
+                # fallback - downgrade the proof card to editorial captions
+                # (hot phrases become the approved project-accent keyword)
                 rows = []
                 for ph in i.get("phrases") or []:
                     t0 = float(ph.get("at") or i["at"])
-                    kind = "pay" if ph.get("hot") else "word"
+                    kind = "key" if ph.get("hot") else "word"
                     rows.append([{"w": w, "at": round(t0 + 0.22 * k, 2),
                                   "kind": kind}
                                  for k, w in enumerate(
@@ -109,6 +112,22 @@ def simplify(tl: dict, level: int) -> dict:
                                  "until": min(float(i["until"]),
                                               float(i["at"]) + 3.0),
                                  "rows": rows})
+        # A fallback may preserve a rejected legacy timeline only as flat,
+        # user-coloured editorial type. It must never reintroduce a marker
+        # bar, impact shadow, gradient keyword, or second caption accent.
+        for it in kept:
+            if it["type"] not in ("poster", "card"):
+                continue
+            if it.get("captionStyle") and it.get("captionStyle") != "editorial":
+                it["captionStyle"] = "editorial"
+            for row in (it.get("rows") or it.get("lines") or []):
+                for word in row:
+                    if word.get("kind") in {"mark", "pay", "grad"}:
+                        word["kind"] = "key"
+                        word.pop("color", None)
+                        word.pop("emoji", None)
+            for key in ("accent2", "gradient"):
+                it.pop(key, None)
         tl["items"] = kept
     return tl
 
@@ -163,7 +182,6 @@ def main() -> int:
     flag = lambda k: k in sys.argv  # noqa: E731 -- boolean switches
     seed = int(opt("--seed", 7))
     typing = opt("--typing-sound", "on")
-    job.mkdir(parents=True, exist_ok=True)
     tl_src = json.loads(tl_path.read_text())
     transcript = json.loads(tr_path.read_text())
     if isinstance(transcript, dict):
@@ -171,12 +189,38 @@ def main() -> int:
     log: dict = {"seed": seed, "timeline": str(tl_path),
                  "base": str(base), "choices": {}, "levels": []}
 
+    # Resolve and verify the approved video-specific style before creating
+    # outputs or spending time on base treatment. No campaign-default copy.
+    theme = load_theme(opt("--theme"), base, tl_src, log)
+    if theme.get("name") == "whop":
+        card = theme.get("styleCard")
+        if not isinstance(card, dict):
+            raise ValueError("Whop render blocked: theme is missing a valid style-card approval record")
+        if not card.get("approved"):
+            raise ValueError("Whop render blocked: save fonts and colours on this "
+                             "video's style card first")
+        campaign = card.get("campaign")
+        video = card.get("video")
+        if (not isinstance(campaign, str) or not campaign.strip()
+                or not isinstance(video, str) or not video.strip()):
+            raise ValueError("Whop render blocked: approved style theme is missing campaign/video metadata")
+        expected_campaign = opt("--style-campaign")
+        expected_video = opt("--style-video")
+        if expected_campaign and campaign != expected_campaign:
+            raise ValueError("approved style-card campaign does not match this render")
+        if expected_video and video != expected_video:
+            raise ValueError("approved style-card video does not match this render")
+        sys.path.insert(0, str(ROOT))
+        from scripts.whop.style_card import is_style_approved
+        if not card.get("style_sha256") or not is_style_approved(
+                campaign, video, card.get("style_sha256")):
+            raise ValueError("Whop render blocked: theme does not match the approved style-card receipt")
+
+    job.mkdir(parents=True, exist_ok=True)
     if opt("--treat", "on") != "off":
         base = treat_base(base, job)
         log["treatment"] = "B (hqdn3d+unsharp+grain, crf18); base_treated.mp4"
         log["base_treated"] = str(base)
-
-    theme = load_theme(opt("--theme"), base, tl_src, log)
     if opt("--font"):
         # whole-video font pack choice (motion/fonts.py lists them);
         # overrides the theme's pack, never the brand accent

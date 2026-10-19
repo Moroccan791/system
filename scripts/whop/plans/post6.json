@@ -1,23 +1,23 @@
 {
   "post": "post6",
   "campaign": "street_you_grew_up_on",
-  "source": "work/street/raw/street_full.mp4",
-  "transcript": "work/street/asr/episode_transcript.json",
+  "source": "work/street/raw_parts/part_006.mp4",
+  "transcript": "work/street/asr/post6_transcript.json",
   "offset": 0.0,
   "span": [
-    3649.1,
-    3676.3
+    403.98,
+    431.18
   ],
   "drops": [
     [
-      3668.72,
-      3673.2
+      423.6,
+      428.08
     ]
   ],
   "splits": [],
   "crops": [
     {
-      "until": 3676.3,
+      "until": 431.18,
       "crop": [
         784,
         53,
@@ -35,8 +35,43 @@
       "type": "caption",
       "zone": "low",
       "lines": [
-        "I'm trying to build",
-        "a beautiful oak tree."
+        "I'm trying to build"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn",
+          "key"
+        ]
+      ],
+      "reveal": "phrase"
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "a beautiful"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "key"
+        ]
+      ],
+      "reveal": "phrase"
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "oak tree."
+      ],
+      "kinds": [
+        [
+          "key",
+          "key"
+        ]
       ]
     },
     {
@@ -53,6 +88,18 @@
       "lines": [
         "That will come from",
         "that soil,"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn",
+          "conn"
+        ],
+        [
+          "conn",
+          "key"
+        ]
       ]
     },
     {
@@ -67,6 +114,13 @@
       "zone": "scene",
       "lines": [
         "protect my children"
+      ],
+      "kinds": [
+        [
+          "key",
+          "conn",
+          "conn"
+        ]
       ]
     },
     {
@@ -94,7 +148,13 @@
       "type": "caption",
       "zone": "low",
       "lines": [
-        "and outside, um",
+        "and outside, um"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
         "influence, diet culture,"
       ]
     },
@@ -111,6 +171,19 @@
       "lines": [
         "like, I want to",
         "protect my kids,"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn",
+          "conn"
+        ],
+        [
+          "key",
+          "conn",
+          "conn"
+        ]
       ]
     },
     {
@@ -118,13 +191,35 @@
       "zone": "low",
       "lines": [
         "That's a journey I"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "key",
+          "conn"
+        ]
       ]
     },
     {
       "type": "caption",
       "zone": "low",
       "lines": [
-        "want to embark on."
+        "want to embark on,",
+        "and I'm excited."
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "key",
+          "conn"
+        ],
+        [
+          "conn",
+          "conn",
+          "key"
+        ]
       ]
     },
     {
@@ -143,7 +238,7 @@
   ],
   "posting": {
     "title": "Demi Lovato Is Building an Oak Tree to Protect Her Kids",
-    "description": "Demi Lovato says she's trying to build a beautiful oak tree that will shade and protect her children from negative body-image talk and outside influence. She calls it a journey she wants to embark on.",
+    "description": "Demi Lovato says she's trying to build a beautiful oak tree that will shade and protect her children from negative body-image talk and outside influence. She calls it a journey she wants to embark on\u2014and says she's excited.",
     "disclosure": "#ad",
     "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
     "hashtags": [

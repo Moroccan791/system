@@ -69,11 +69,11 @@ def test_short_strong_claim_is_a_card():
     assert "card" in types(items)
 
 
-def test_emotional_keyword_goes_neon():
+def test_emotional_keyword_uses_the_user_accent_flatly():
     items, _ = classify("a@0.1 bunch@0.3 of@0.5 crazy@0.7 led@1.0 lights@1.2 here@1.5")
     flat = [w for i in items for r in (i.get("rows") or []) for w in r]
     crazy = next(w for w in flat if w["w"] == "CRAZY")
-    assert crazy["kind"] == "neon"
+    assert crazy["kind"] == "key"
 
 
 def test_rule_token_is_not_a_number():
@@ -99,8 +99,8 @@ def test_generated_timelines_validate(tmp_path):
     src = tmp_path / "tr.json"
     out = tmp_path / "tl.json"
     src.write_text(json.dumps(transcript))
-    r = subprocess.run([sys.executable, "motion/decide.py", str(src), str(out)],
-                       capture_output=True, text=True)
+    r = subprocess.run([sys.executable, "motion/decide.py", str(src), str(out),
+                        "--accent", "#4D79D1"], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     r = subprocess.run([sys.executable, "motion/validate.py", str(out)],
                        capture_output=True, text=True)

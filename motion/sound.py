@@ -176,7 +176,7 @@ def build_events(tl: dict, cuts: list[dict], typing: bool,
                 for w in words:
                     if not isinstance(w, dict):
                         continue
-                    wt = float(w["at"])
+                    wt = float(w.get("showAt", w["at"]))
                     if typing and (last is None or w.get("kind") == "key"
                                    or wt - last >= 0.45):
                         add(wt, "key", -16, "word")

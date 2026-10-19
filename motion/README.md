@@ -54,7 +54,7 @@ black/white per video). Item types:
 
 | type | what | stage |
 |---|---|---|
-| `poster` | word-stacked kinetic captions (keyword 5–7% of frame height in accent, connectives 2.5–3%, 9-frame pop entries, blur-out) | 1 |
+| `poster` | verbatim word-stacked editorial captions (approved accent keyword, 2–4-word phrases, face-safe placement, flat 7-frame settle) | 1 |
 | `chip` | accent label bar, 8-frame wipe + pop | 1 |
 | `card` | full-screen claim card (serif/sans mixing allowed) | 1 |
 | `fx` | `flare` / `leak` / `edge` light effects, footage-level `opening` (blur-zoom, first 8f) and `bwflash` | 1 |
@@ -64,10 +64,10 @@ black/white per video). Item types:
 | `list` | accumulating plates (title pill + numbered dark plates, 6-frame-min stagger, latest badge lit) | 2 |
 | `process` | step stack (title pill, numbered circles + connector, steps check off as the next one lands) | 2 |
 
-Word kind `neon` (poster/card): hot emotional keywords render in an
-electric red/blue with a 4-frame glow flicker at entry (opacity stays
-clean for the semi-transparent QC); `serif` is the soft/reflective
-variant. Media `src` paths may be repo-root-relative.
+New timelines use the approved per-video accent for every keyword. Editorial
+captions are flat type: no red/blue default, glow flicker, marker bar, or
+colour wipe. `serif` remains available for a deliberately reflective word.
+Media `src` paths may be repo-root-relative.
 
 House rules enforced by `validate.py` + `qc.py`: word starts match
 speech within ±40 ms; a visual change at least every 2.5 s (target
@@ -80,13 +80,14 @@ Authoring rules: never put text across a shot change; don't repeat
 the same component twice in a row; number/% → counter; "first,
 second…" → list plates; process → step stack; strong claim →
 full-screen card; concrete noun → PiP/B-roll (client footage first,
-generated = marked illustrative); emotional word → neon or
-serif-italic variant; default = poster captions.
+generated = marked illustrative); keyword ink follows the approved
+per-video accent, with serif italic reserved for a deliberate reflective
+beat; new captions are flat editorial type.
 
 ## Decision rules (`decide.py`)
 
 ```bash
-.venv/bin/python motion/decide.py <transcript.json> <out.json> [--accent #9BE82E]
+.venv/bin/python motion/decide.py <transcript.json> <out.json> --accent <approved-hex>
 ```
 
 Classifies every utterance by the first matching rule and emits a
@@ -185,13 +186,13 @@ fallback-only with the review flag. Scenes are authored in unit
 width × canvas height — check composited frames, not just the
 overlay stream. Stage D pack: `motion/review_d/`.
 
-**Caption & typography packs** (catalogue in `MOTIONS.md`):
-seven `captionStyle` engines (pop, karaoke, stretch, wiggle,
-glide, bounce, neon-finish) via config or `decide.py
---caption-style`; hero lockups (whole-phrase animated posters,
-one spoken word per beat, always zone-safe) and name-tag
-lower-thirds (1.8–6 s, forbidden over slates). Posters also
-support `behind: true` — the person stands IN FRONT of the
-graphic (MediaPipe matte, `matte.py`, QC face-zone inverted) —
-and `place3d` spatial tilt with an authored zoom-lock ramp.
-Proofs: `demo_library/motions_demo2.mp4`, `behind_demo.mp4`.
+**Caption & typography packs** (catalogue in `MOTIONS.md`): new clips use
+flat editorial captions with verbatim, phrase-aware timing; the per-video
+style card is the only new-work font/colour choice. Marker sweeps and the
+rejected impact treatment are not available for new timelines. Legacy entry
+engines remain renderable only for historical assets. Hero lockups and
+name-tag lower-thirds remain available when they serve the spoken thought.
+Posters also support `behind: true` — the person stands IN FRONT of the
+graphic (MediaPipe matte, `matte.py`, QC face-zone inverted) — and `place3d`
+spatial tilt with an authored zoom-lock ramp. Proofs:
+`demo_library/motions_demo2.mp4`, `behind_demo.mp4`.

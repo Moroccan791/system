@@ -45,8 +45,11 @@ def dominant_palette(video: Path, n: int = 9) -> list[dict]:
 
 
 def pick_theme(palette: list[dict]) -> dict:
-    themes = {p.stem: json.loads(p.read_text())
-              for p in sorted(THEMES.glob("*.json"))}
+    themes = {p.stem: theme for p in sorted(THEMES.glob("*.json"))
+              if isinstance((theme := json.loads(p.read_text())).get("accent"), str)
+              and len(theme["accent"]) == 7 and theme["accent"].startswith("#")}
+    if not themes:
+        raise ValueError("no auto-brand themes with a configured hue")
     # accent candidate: most saturated, reasonably bright, real share
     cand = [c for c in palette if c["sat"] > 0.45 and c["val"] > 0.35
             and c["share"] > 0.02]

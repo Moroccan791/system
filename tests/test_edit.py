@@ -171,10 +171,12 @@ def test_camera_moves_follow_the_profile(dominant, expect):
     assert move["type"] == expect
     if expect == "static":
         assert "to" not in move
-    elif expect == "pull_out":            # starts wide, settles back
-        assert move["from"] == 1.2 and move["to"] == 1.0
+    elif expect == "pull_out":            # slow moves stay within the cap
+        assert move["from"] == plan_mod.SLOW_PUSH_CAP and move["to"] == 1.0
+    elif expect == "slow_push":
+        assert move["from"] == 1.0 and move["to"] == plan_mod.SLOW_PUSH_CAP
     else:
-        assert move["to"] == 1.2
+        assert move["to"] == 1.2  # punch-in uses its requested landing scale
 
 
 def test_slow_push_ramps_across_the_whole_shot():
@@ -560,7 +562,7 @@ def test_zoom_punches_when_the_profile_measured_static():
     assert 0 < kinds.count("punch_in") < len(kinds)  # and the rest breathe
 
     pull = camera_moves(style, [2.0], override="pull")[0]
-    assert pull["from"] == 1.14 and pull["to"] == 1.0  # zoompan never drops below 1.0
+    assert pull["from"] == plan_mod.SLOW_PUSH_CAP and pull["to"] == 1.0  # capped and never below 1.0
 
 
 def test_zoompan_expression_never_goes_below_one():

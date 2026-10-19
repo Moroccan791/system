@@ -1,14 +1,13 @@
 {
   "name": "whop",
-  "accent": "#14E5C5",
   "ink": "#0B0E11",
   "paper": "#FFFFFF",
-  "radius": "round",
-  "glow": 1.0,
-  "speed": 1.15,
-  "easing": "pop",
+  "radius": "sharp",
+  "glow": 0.0,
+  "speed": 1.0,
+  "easing": "soft",
   "fontMode": "sans",
-  "captionStyle": "impact",
+  "captionStyle": "editorial",
   "transitionOrder": [
     "flash",
     "flare",
@@ -16,6 +15,6 @@
     "bwflash"
   ],
   "soundSeedSalt": 77,
-  "fontPack": "anton",
+  "fontPack": "regular",
   "cutTransitions": "hard"
 }

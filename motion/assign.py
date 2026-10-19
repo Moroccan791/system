@@ -255,6 +255,21 @@ def propose(words: list[dict], duration: float) -> list[dict]:
                      "label": t.upper(), "at": s, "until": u},
                     "takeoff/growth - launch it", w["text"])
                 continue
+        # --- personal self-worth, not a financial valuation -----------------
+        if t == "worth":
+            near = set(texts[max(0, i - 6):i + 7])
+            personal = bool(near & {"my", "me", "i", "self", "body", "bodies",
+                                    "beauty", "beautiful", "appearance", "looks",
+                                    "weight", "size", "skin", "mirror", "human"})
+            financial = bool(near & {"money", "dollars", "dollar", "price", "cost",
+                                     "market", "million", "billion", "estate", "net"})
+            s, u = round(max(0.0, at - 0.12), 2), round(min(duration, at + 1.55), 2)
+            if personal and not financial and u - s >= 1.0 and free(s, u) \
+                    and not any(o.get("name") == "worth" for o in out):
+                add({"type": "vector", "name": "worth", "mode": "fullbleed",
+                     "at": s, "until": u},
+                    "personal self-worth/body-image line; exclude financial worth", w["text"])
+                continue
         # --- literal metaphors: show the analogy itself ----------------------
         if t in ("cow", "cows", "sheep", "herd") or \
                 (t in ("stand", "stands") and "out" in ctx):

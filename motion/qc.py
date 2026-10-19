@@ -5,9 +5,10 @@
 
 Hard checks (any fail = exit 1; a render is never called correct
 while one fails):
-  word_sync     every poster/card word's VISUAL appear time (authored
+  word_sync     each poster/card word's VISUAL appear time (authored
                 time minus the engine's 2-frame lead) vs its speech
-                onset - must sit in the -90..+5 ms lead window
+                onset (-90..+5 ms); explicit phrase reveals may lead by
+                up to 1.5s, with that anticipation reported separately
   text_sizes    no text under 3% of frame height anywhere; keywords
                 inside the 5-17% band (engine size table, below)
   text_contrast measured bg luminance behind over-footage text vs the
@@ -81,14 +82,16 @@ def word_sync(tl: dict, transcript: dict) -> tuple[str, str]:
                 and _norm(str(raw_spoken[i + 1]["text"])) == "to"):
             spoken.append(("into", start))
         spoken.append((text, start))
-    authored: list[tuple[str, float]] = []
+    authored: list[tuple[str, float, float | None]] = []
     for it in tl["items"]:
         for row in (it.get("rows") or it.get("lines") or []):
             for w in row:
-                authored.append((_norm(w["w"]), float(w["at"])))
+                authored.append((_norm(w["w"]), float(w["at"]),
+                                 float(w["showAt"]) if w.get("showAt") is not None
+                                 else None))
     si = 0
-    offs, misses = [], []
-    for text, at in authored:
+    offs, phrase_early, misses = [], [], []
+    for text, at, show_at in authored:
         # closest matching occurrence in order: uncaptioned beats
         # (counters, list plates) legitimately skip spoken words, so a
         # repeated word binds to the occurrence nearest its authored
@@ -102,18 +105,38 @@ def word_sync(tl: dict, transcript: dict) -> tuple[str, str]:
         if best is None:
             misses.append(text)
             continue
-        visual_ms = (at - 2 * FRAME - spoken[best][1]) * 1000
-        offs.append(visual_ms)
-        if not -90 <= visual_ms <= 5:
-            misses.append(f"{text} ({visual_ms:+.0f} ms)")
+        start = spoken[best][1]
+        visual_at = at if show_at is None else show_at
+        visual_ms = (visual_at - 2 * FRAME - start) * 1000
+        if show_at is None:
+            offs.append(visual_ms)
+            if not -90 <= visual_ms <= 5:
+                misses.append(f"{text} ({visual_ms:+.0f} ms)")
+        else:
+            # An explicit showAt is the approved phrase-reveal mode: all
+            # words in a short, verbatim hook arrive together, ahead of the
+            # later words. Bound that anticipation rather than treating it
+            # as an accidental late/early word-by-word caption.
+            early_ms = max(0.0, (start - show_at) * 1000)
+            phrase_early.append(early_ms)
+            if early_ms > 1500 or visual_ms > 5:
+                misses.append(f"{text} ({visual_ms:+.0f} ms, phrase reveal)")
         si = best + 1
     if misses:
-        return "fail", f"words out of the -90..+5 ms lead window: " \
+        return "fail", f"words out of the -90..+5 ms lead window or phrase-reveal cap: " \
                        f"{', '.join(misses[:5])}"
-    lo = min(offs) if offs else 0.0
-    hi = max(offs) if offs else 0.0
-    return "pass", f"{len(authored)} words, visual offset {lo:+.0f}..{hi:+.0f} ms " \
-                   f"(2-frame lead = {-LEAD_MS:.0f} ms)"
+    details = []
+    if phrase_early:
+        details.append(f"{len(phrase_early)} phrase-revealed together "
+                       f"(up to {max(phrase_early) / 1000:.1f}s early)")
+    if offs:
+        lo, hi = min(offs), max(offs)
+        details.append(f"{len(offs)} word-timed, visual offset "
+                       f"{lo:+.0f}..{hi:+.0f} ms "
+                       f"(2-frame lead = {-LEAD_MS:.0f} ms)")
+    if not details:
+        details.append("no captioned word events")
+    return "pass", f"{len(authored)} words; " + "; ".join(details)
 
 
 # ---------------------------------------------------------------- sizes
@@ -128,7 +151,7 @@ def _sizes(tl: dict) -> list[tuple[str, float, str]]:
             for row in (it.get("rows") or it.get("lines") or []):
                 for w in row:
                     kind = w.get("kind")
-                    key = kind in ("key", "hero", "neon", "mark", "pay", "grad")
+                    key = kind in ("key", "hero", "neon")
                     # Reflect the engine's actual font-size precedence:
                     # word size > heroSize (hero only) > keySize > connSize.
                     # The old check counted hero words as 58px captions.
@@ -277,7 +300,7 @@ def _events(tl: dict) -> list[float]:
         events.add(round(float(it["at"]), 3))
         for row in (it.get("rows") or it.get("lines") or []):
             for w in row:
-                events.add(round(float(w["at"]), 3))
+                events.add(round(float(w.get("showAt", w["at"])), 3))
         for key in ("items", "steps"):
             for sub in it.get(key) or []:
                 events.add(round(float(sub["at"]), 3))

@@ -1,20 +1,20 @@
 {
   "post": "post4",
   "campaign": "street_you_grew_up_on",
-  "source": "work/street/raw/street_full.mp4",
-  "transcript": "work/street/asr/episode_transcript.json",
+  "source": "work/street/raw_parts/part_006.mp4",
+  "transcript": "work/street/asr/post4_transcript.json",
   "offset": 0.0,
   "span": [
-    3346.81,
-    3370.1
+    101.69,
+    124.98
   ],
   "drops": [],
   "splits": [
-    3369.32
+    124.2
   ],
   "crops": [
     {
-      "until": 3369.32,
+      "until": 124.2,
       "crop": [
         776,
         67,
@@ -25,7 +25,7 @@
       "anchor": 0.3
     },
     {
-      "until": 3370.1,
+      "until": 124.98,
       "crop": [
         753,
         148,
@@ -45,6 +45,20 @@
       "lines": [
         "I don't want to",
         "go on stage."
+      ],
+      "reveal": "phrase",
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn",
+          "conn"
+        ],
+        [
+          "conn",
+          "conn",
+          "key"
+        ]
       ]
     },
     {
@@ -52,6 +66,13 @@
       "zone": "low",
       "lines": [
         "Like, I'm terrified."
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "key"
+        ]
       ]
     },
     {
@@ -81,7 +102,7 @@
       "zone": "low",
       "lines": [
         "they're going to write",
-        "online."
+        "online, and"
       ]
     },
     {
@@ -129,6 +150,14 @@
       "zone": "low",
       "lines": [
         "cried tears of joy"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn",
+          "key"
+        ]
       ]
     },
     {

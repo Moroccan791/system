@@ -65,6 +65,9 @@ def sentences(words, gap=0.32):
             out.append(cur)
             cur = []
         cur.append(w)
+        if str(w.get("text", "")).strip().endswith((".", "?", "!")):
+            out.append(cur)
+            cur = []
     if cur:
         out.append(cur)
     return out
@@ -126,8 +129,9 @@ def score_close(sent):
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--top", type=int, default=18)
-    ap.add_argument("--min", type=float, default=26.0, help="min clip length")
-    ap.add_argument("--max", type=float, default=50.0, help="max clip length")
+    ap.add_argument("--min", type=float, default=25.0, help="min clip length (default: 25s)")
+    ap.add_argument("--max", type=float, default=40.0,
+                    help="max clip length (default: 40s; extend toward 50 only when the payoff warrants it)")
     ap.add_argument("--transcript", default=str(ASR))
     a = ap.parse_args()
 

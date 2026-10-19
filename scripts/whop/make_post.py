@@ -42,27 +42,29 @@ def main() -> int:
     plan = json.loads(plan_path.read_text())
     post = plan["post"]
     campaign = plan.get("campaign", "street_you_grew_up_on")
+    dest = ROOT / "campaigns" / campaign / post
+    theme_file = ROOT / "motion" / "themes" / f"{campaign}__{post}.json"
+
+    # A saved card for this exact video is a hard production prerequisite.
+    # Never copy the campaign palette or another video's theme into this post.
+    sys.path.insert(0, str(ROOT))
+    from scripts.whop.style_card import is_style_approved
+    if not is_style_approved(campaign, post):
+        raise SystemExit(f"EDIT BLOCKED: approve fonts and colours first at "
+                         f"scripts/whop/style_card.py serve --campaign {campaign} "
+                         f"--video {post}")
+    try:
+        approved_theme = json.loads(theme_file.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"EDIT BLOCKED: approved per-video theme missing: {theme_file}") from exc
+    card = approved_theme.get("styleCard") or {}
+    if not (card.get("approved") is True and card.get("campaign") == campaign
+            and card.get("video") == post and card.get("style_sha256")
+            and is_style_approved(campaign, post, card.get("style_sha256"))):
+        raise SystemExit("EDIT BLOCKED: theme does not match this video's approval receipt")
+
     work = ROOT / "work" / "street" / post
     work.mkdir(parents=True, exist_ok=True)
-
-    # 0. the per-post style (the user picks the fonts and the colours
-    #    BEFORE the edit - the style card writes it, we only seed it
-    #    from the campaign style when the post is new)
-    dest = CAMPAIGNS / post
-    dest.mkdir(parents=True, exist_ok=True)
-    style_src = CAMPAIGNS / "style.json"
-    style_dst = dest / "style.json"
-    if not style_dst.exists() and style_src.exists():
-        shutil.copy2(style_src, style_dst)
-        print(f"seeded {style_dst}")
-    theme_file = ROOT / "motion" / "themes" / f"{campaign}__{post}.json"
-    if not theme_file.exists():
-        base_theme = ROOT / "motion" / "themes" / f"{campaign}__post1.json"
-        if not base_theme.exists():
-            base_theme = ROOT / "motion" / "themes" / f"{campaign}.json"
-        if base_theme.exists():
-            shutil.copy2(base_theme, theme_file)
-            print(f"seeded {theme_file}")
 
     # 1. spec
     run([PY, ROOT / "scripts/whop/build_whop_clip.py", plan_path])
@@ -80,16 +82,20 @@ def main() -> int:
     theme = ROOT / "motion" / "themes" / f"{campaign}__{post}"
     music = ROOT / "assets" / "music" / plan.get("music", "chill.wav")
     run([PY, ROOT / "motion/produce.py", work / "timeline.json", work / "base.mp4",
-         work / "slice.json", work / "job", "--theme", theme, "--music", music],
+         work / "slice.json", work / "job", "--theme", theme, "--music", music,
+         "--style-campaign", campaign, "--style-video", post],
         env=env)
 
     # 6. picture QC
     run([PY, ROOT / "scripts/whop/check.py", work / "job" / "final_s.mp4"])
 
-    # 7. ship
+    # 7. deliver without touching another post's shipped folder
+    dest.mkdir(parents=True, exist_ok=True)
     out = dest / f"street_{post}.mp4"
     shutil.copy2(work / "job" / "final_s.mp4", out)
-    print(f"\nshipped {out} ({out.stat().st_size} bytes)")
+    demo_only = post.endswith("_demo")
+    label = "internal demo rendered" if demo_only else "shipped"
+    print(f"\n{label} {out} ({out.stat().st_size} bytes)")
 
     # 8. the posting pack
     post_md = plan.get("posting")
@@ -105,10 +111,11 @@ def main() -> int:
                  post_md.get("requiredLine", ""), "",
                  "## Hashtags", "",
                  " ".join(post_md.get("hashtags", [])), "",
-                 "## Notes", "",
-                 f"- Disclosure: {disclosure}",
-                 "- Full episode: the podcast is the source; this is a clipped edit.",
-                 ""]
+                 "## Notes", ""]
+        if demo_only:
+            lines.append("- Internal demo preview only; not approved to publish.")
+        lines.extend([f"- Disclosure: {disclosure}",
+                      "- Full episode: the podcast is the source; this is a clipped edit.", ""])
         (dest / "POST.md").write_text("\n".join(lines))
         print(f"wrote {dest / 'POST.md'}")
     return 0

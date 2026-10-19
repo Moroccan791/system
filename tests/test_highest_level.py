@@ -1,10 +1,12 @@
-"""Highest-level additions: marker captions, proof, phone, doodle,
+"""Highest-level additions: editorial captions, proof, phone, doodle,
 literal-metaphor scenes, cinematic grades (teardown 2026-10-16)."""
 import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -30,37 +32,17 @@ def words(spec):
     return out
 
 
-# ------------------------------------------------------------- marker
-def test_marker_roles_and_sizes():
+# ------------------------------------------------------ editorial caption ban
+def test_marker_and_impact_authoring_are_refused():
     log = []
-    items = decide.poster_items(
-        words("The@0.1 first@0.3 step@0.5 is@0.7 never@0.9 trust@1.1 "
-              "the@1.3 money@1.5 ideas@1.8"), log, caption_style="marker")
-    posters = [i for i in items if i["type"] == "poster"]
-    assert posters, "marker speech must still caption"
-    flat = [w for i in posters for r in i["rows"] for w in r]
-    kinds = {w["w"].lower(): w for w in flat}
-    assert posters[0]["captionStyle"] == "marker"
-    # structure word carries the marker bar, payoff the second accent
-    assert kinds["never"]["kind"] in ("mark", "pay") or \
-        kinds["first"]["kind"] == "mark"
-    assert any(w.get("kind") == "mark" for w in flat)
-    # inline hierarchy: connectives strictly smaller than marked words
-    conn = [w["size"] for w in flat if w.get("kind") == "conn"]
-    big = [w["size"] for w in flat if w.get("kind") in ("mark", "pay")]
-    assert conn and big and max(conn) < min(big)
-    # sentence case is kept (no shouting caps in the marker voice)
-    assert any(w["w"] == "first" for w in flat)
-
-
-def test_marker_emoji_rides_payoff_word():
-    log = []
-    items = decide.poster_items(
-        words("Your@0.1 ideas@0.4 are@0.7 money@1.0"), log,
-        caption_style="marker")
-    flat = [w for i in items for r in i["rows"] for w in r]
-    assert any(w.get("emoji") for w in flat), \
-        "a mapped keyword must carry its sticker (thinking/chart_up)"
+    for style in ("marker", "impact"):
+        try:
+            decide.poster_items(words("The@0.1 idea@0.4 matters@0.8"), log,
+                                caption_style=style)
+        except ValueError as exc:
+            assert "unavailable" in str(exc) or "banned" in str(exc)
+        else:
+            raise AssertionError(f"{style} captions must be permanently unavailable")
 
 
 def test_pop_style_unchanged():
@@ -119,6 +101,29 @@ def test_assign_literal_metaphors():
             assert 1.0 <= p["until"] - p["at"] <= 1.8
 
 
+def test_worth_scene_is_context_gated_and_not_financial():
+    personal = assign.propose(words(
+        "My@0.1 worth@0.3 isn't@0.5 in@0.7 my@0.9 body@1.1"), 4.0)
+    worth = [p for p in personal if p.get("name") == "worth"]
+    assert len(worth) == 1
+    assert worth[0]["mode"] == "fullbleed"
+    assert 1.0 <= worth[0]["until"] - worth[0]["at"] <= 1.8
+
+    financial = assign.propose(words(
+        "the@0.1 company@0.3 net@0.5 worth@0.7 is@0.9 10@1.1 million@1.3"), 4.0)
+    assert not any(p.get("name") == "worth" for p in financial)
+
+
+def test_worth_scene_has_animated_build_and_release():
+    html = (ROOT / "motion/stage.html").read_text()
+    build = html[html.index('} else if (V.name === "worth") {'):]
+    assert "n.measure" in build and "n.ticks" in build and "n.ring" in build
+    assert "n.cross" in build and "n.word.textContent = \"WORTH\"" in build
+    animate = html[html.index('} else if (V.name === "worth") {',
+                    html.index("function animateVector")):]
+    assert "const assemble" in animate and "const release" in animate
+
+
 # ------------------------------------------------------------ grades
 def test_grade_presets_and_unknown():
     assert "colorbalance" in composite.grade_filter("teal", "#FFC531")
@@ -154,13 +159,11 @@ def _timeline(tmp_path):
         "duration": 25.0, "brand": {"accent": "#E5322D"},
         "items": [
             {"type": "poster", "at": 0.5, "until": 2.3,
-             "captionStyle": "marker", "accent2": "#2FD574",
-             "gradient": ["#22D3EE", "#F472B6"],
-             "rows": [[{"w": "Step", "at": 0.5, "kind": "mark", "size": 126},
+             "captionStyle": "editorial",
+             "rows": [[{"w": "Step", "at": 0.5, "kind": "key", "size": 126},
                        {"w": "one", "at": 0.8, "kind": "word", "size": 96},
-                       {"w": "ideas", "at": 1.2, "kind": "pay", "size": 124,
-                        "emoji": "thinking"}],
-                      [{"w": "become", "at": 1.6, "kind": "grad", "size": 140}]]},
+                       {"w": "ideas", "at": 1.2, "kind": "word", "size": 96}],
+                      [{"w": "become", "at": 1.6, "kind": "key", "size": 140}]]},
             {"type": "doodle", "at": 2.6, "until": 4.2, "x": 0.3, "y": 0.3,
              "title": "THIS ONE"},
             {"type": "proof", "at": 5.0, "until": 9.0,
@@ -190,22 +193,53 @@ def test_new_timeline_validates(tmp_path):
     assert r.returncode == 0, r.stdout + r.stderr
 
 
-def test_marker_without_marked_word_is_rejected(tmp_path):
+def test_phrase_reveal_timeline_accepts_show_at_and_bounds_early_lookahead(tmp_path):
+    tl = {"version": 1, "fps": 30, "width": 1080, "height": 1920,
+          "duration": 3.0, "brand": {"accent": "#4D79D1"},
+          "items": [{"type": "poster", "at": 0.0, "until": 2.4,
+                     "rows": [[{"w": "My", "at": 0.0, "showAt": 0.0},
+                               {"w": "heart.", "at": 1.4, "showAt": 0.0}]]}]}
+    p = tmp_path / "phrase-reveal.json"
+    p.write_text(json.dumps(tl))
+    valid = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
+                            str(p)], capture_output=True, text=True)
+    assert valid.returncode == 0, valid.stdout + valid.stderr
+
+    tl["items"][0]["rows"][0][1].update({"at": 2.0, "showAt": 0.49})
+    p.write_text(json.dumps(tl))
+    early = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
+                            str(p)], capture_output=True, text=True)
+    assert early.returncode == 1 and "revealed" in early.stdout
+
+
+def test_rejected_caption_style_is_invalid_even_without_marker_words(tmp_path):
     p = _timeline(tmp_path)
     tl = json.loads(p.read_text())
-    for w in tl["items"][0]["rows"][0] + tl["items"][0]["rows"][1]:
-        w["kind"] = "word"
+    tl["items"][0]["captionStyle"] = "marker"
     p.write_text(json.dumps(tl))
     r = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
                         str(p)], capture_output=True, text=True)
     assert r.returncode == 1 and "marker" in r.stdout
 
 
-def test_stage_renders_the_new_kinds():
+def test_rejected_marker_word_kind_is_invalid(tmp_path):
+    p = _timeline(tmp_path)
+    tl = json.loads(p.read_text())
+    tl["items"][0]["rows"][0][0]["kind"] = "pay"
+    p.write_text(json.dumps(tl))
+    r = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
+                        str(p)], capture_output=True, text=True)
+    assert r.returncode == 1 and "pay" in r.stdout
+
+
+def test_stage_renders_approved_features_and_has_no_marker_animation():
     html = (ROOT / "motion/stage.html").read_text()
-    for token in ("buildProof", "buildPhone", "buildDoodle", "mkbar",
-                  "cowfield", "roadcar", "syncVideos", "markerStyle"):
+    assert "at: wd.showAt ?? wd.at" in html
+    for token in ("buildProof", "buildPhone", "buildDoodle",
+                  "cowfield", "roadcar", "syncVideos", 'V.name === "worth"'):
         assert token in html, f"stage missing {token}"
+    for forbidden in ("markerStyle", "mkbar", "#FF3355", ".hotbar"):
+        assert forbidden not in html, f"rejected caption effect returned: {forbidden}"
 
 
 # ------------------------------------------- metaphor batch 2 (12 scenes)
@@ -243,10 +277,10 @@ def test_each_new_scene_validates(tmp_path):
     for name in NEW_SCENES:
         tl = {"version": 1, "fps": 30, "width": 1080, "height": 1920,
               "duration": 4.0,
-              "brand": {"accent": "#FF3355", "name": "T"},
+              "brand": {"accent": "#D9824B", "name": "T"},
               "theme": {"radius": "round", "glow": 1.0, "speed": 1.0,
                         "easing": "pop", "fontMode": "sans",
-                        "fontPack": "poppins", "captionStyle": "pop"},
+                        "fontPack": "poppins", "captionStyle": "editorial"},
               "items": [{"type": "vector", "name": name, "mode": "fullbleed",
                          "label": "TEST", "at": 1.0, "until": 2.7}]}
         p = tmp_path / f"{name}.json"
@@ -256,9 +290,100 @@ def test_each_new_scene_validates(tmp_path):
         assert r.returncode == 0, f"{name}: {r.stdout} {r.stderr}"
 
 
+def test_worth_validation_dwell_rule(tmp_path):
+    tl = {"version": 1, "fps": 30, "width": 1080, "height": 1920,
+          "duration": 4.0, "brand": {"accent": "#D9824B"},
+          "items": [{"type": "vector", "name": "worth", "mode": "fullbleed",
+                     "at": 1.0, "until": 2.7}]}
+    p = tmp_path / "worth.json"
+    p.write_text(json.dumps(tl))
+    good = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
+                           str(p)], capture_output=True, text=True)
+    assert good.returncode == 0, good.stdout + good.stderr
+    tl["items"][0]["until"] = 2.9
+    p.write_text(json.dumps(tl))
+    bad = subprocess.run([sys.executable, str(ROOT / "motion/validate.py"),
+                          str(p)], capture_output=True, text=True)
+    assert bad.returncode == 1 and "worth" in bad.stdout
+
+
 # ------------------------------------------- fallback + qc event model
 produce = load("produce", "motion/produce.py")
 qc = load("motionqc", "motion/qc.py")
+tight_base = load("whop_tight_base", "scripts/whop/tight_base.py")
+whop_build = load("whop_build_clip", "scripts/whop/build_whop_clip.py")
+
+
+def test_phrase_reveal_shows_a_hook_together_but_keeps_original_hold_times():
+    first = [{"w": "My", "at": 0.0}, {"w": "worth", "at": 0.22},
+             {"w": "isn't", "at": 0.48}]
+    original, group_at = whop_build.phrase_reveal(first)
+    second = [{"w": "in", "at": 0.75}, {"w": "my", "at": 0.91},
+              {"w": "body.", "at": 1.22}]
+    original += whop_build.phrase_reveal(second, group_at)[0]
+    assert original == pytest.approx([0.0, 0.22, 0.48, 0.75, 0.91, 1.22])
+    assert [w["at"] for w in first + second] == pytest.approx(original)
+    assert {w["showAt"] for w in first + second} == {0.0}
+
+
+def test_tight_base_keeps_a_natural_breath_and_leaves_short_pauses():
+    cuts = tight_base.silence_cuts([(1.0, 1.25), (2.0, 2.3), (3.0, 3.5)])
+    assert len(cuts) == 1
+    assert cuts[0] == pytest.approx((3.09, 3.41))
+    assert 0.18 == pytest.approx(0.5 - (cuts[0][1] - cuts[0][0]))
+
+
+def test_tight_base_allows_gentler_reflective_pause_settings():
+    cuts = tight_base.silence_cuts(
+        [(0.0, 0.66), (1.0, 1.90)], max_gap=0.68, keep=0.32)
+    assert len(cuts) == 1
+    assert cuts[0] == pytest.approx((1.16, 1.74))
+    with pytest.raises(ValueError, match="keep <= max_gap"):
+        tight_base.silence_cuts([(0.0, 1.0)], max_gap=0.3, keep=0.4)
+
+
+def test_editorial_caption_style_is_sentence_case_and_flat():
+    html = (ROOT / "motion/stage.html").read_text()
+    editorial = html.split('/* ---- editorial captions', 1)[1].split(
+        '/* ---- proof card', 1)[0]
+    assert "text-transform: none" in editorial
+    assert "font-weight: 500" in editorial
+    assert "text-shadow: none" in editorial
+    assert "marker swipe" in editorial
+
+
+def test_shield_scene_labels_the_spoken_idea_and_draws_the_check():
+    html = (ROOT / "motion/stage.html").read_text()
+    shield = html.split('} else if (V.name === "shield") {', 1)[1].split(
+        '} else if (V.name === "hourglass") {', 1)[0]
+    assert 'V.label || "GOOD HUMAN"' in shield
+    assert "n.shCheck" in shield and "n.shLabelRule" in shield
+    builder = html.split("function buildVector(item)", 1)[1].split(
+        "function buildScene", 1)[0]
+    assert 'label: item.label || ""' in builder
+    assert 'if (item.label && V.name !== "shield")' in builder
+
+
+@pytest.mark.parametrize("card", [
+    {"approved": True, "video": "post5_demo", "style_sha256": "abc"},
+    {"approved": True, "campaign": "street_you_grew_up_on", "style_sha256": "abc"},
+])
+def test_whop_render_rejects_missing_campaign_or_video_metadata(
+        tmp_path, monkeypatch, card):
+    timeline = tmp_path / "timeline.json"
+    transcript = tmp_path / "transcript.json"
+    job = tmp_path / "job"
+    timeline.write_text(json.dumps({"items": []}))
+    transcript.write_text("[]")
+    monkeypatch.setattr(produce, "load_theme", lambda *_args: {
+        "name": "whop", "styleCard": card})
+    monkeypatch.setattr(sys, "argv", [
+        str(ROOT / "motion/produce.py"), str(timeline), str(tmp_path / "base.mp4"),
+        str(transcript), str(job), "--theme", "whop"])
+
+    with pytest.raises(ValueError, match="missing campaign/video metadata"):
+        produce.main()
+    assert not job.exists()  # refuse before creating render outputs
 
 
 def test_simplify_downgrades_proof_to_poster():
@@ -275,14 +400,15 @@ def test_simplify_downgrades_proof_to_poster():
     conv = out["items"][0]                            # proof kept its slot
     assert conv["until"] <= conv["at"] + 3.0          # poster dwell cap
     kinds = [w["kind"] for row in conv["rows"] for w in row]
-    assert kinds == ["word", "word", "word", "pay", "pay", "pay"], kinds
+    assert kinds == ["word", "word", "word", "key", "key", "key"], kinds
     assert out["items"][1]["rows"][0][0]["w"] == "hi"  # original kept
+    assert out["items"][1]["rows"][0][0]["kind"] == "key"
 
 
 def test_qc_pacing_counts_continuous_motion_as_change():
     tl = {"items": [
         {"type": "poster", "at": 0.2, "until": 1.4,
-         "rows": [[{"w": "go", "at": 0.3, "kind": "pay"}]]},
+         "rows": [[{"w": "go", "at": 0.3, "kind": "key"}]]},
         {"type": "phone", "at": 2.0, "until": 6.0, "src": "x.png",
          "scroll": 0.4},
         {"type": "doodle", "at": 7.0, "until": 8.6, "x": 0.4, "y": 0.3,

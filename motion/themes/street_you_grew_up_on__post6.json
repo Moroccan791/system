@@ -1,12 +1,11 @@
 {
   "name": "whop",
-  "accent": "#14E5C5",
   "ink": "#0B0E11",
   "paper": "#FFFFFF",
   "radius": "sharp",
-  "glow": 1.0,
-  "speed": 1.15,
-  "easing": "pop",
+  "glow": 0.0,
+  "speed": 1.0,
+  "easing": "soft",
   "fontMode": "sans",
   "captionStyle": "editorial",
   "transitionOrder": [
@@ -26,17 +25,24 @@
     "endcard": "grande"
   },
   "colors": {
-    "accent": "#14E5C5",
-    "caption": "#FFFFFF",
-    "keyword": "#14E5C5",
-    "serif": "#FFFFFF",
-    "endcard": "#14E5C5",
-    "plate": "#14E5C5",
-    "plateInk": "#0B0E11",
-    "listHead": "#14E5C5",
-    "listBg": "rgba(9,11,15,0.90)",
-    "listText": "#FFFFFF",
-    "sceneBg": "#101319",
-    "sceneInk": "#FFFFFF"
+    "accent": "#78A974",
+    "caption": "#F5F3EA",
+    "keyword": "#78A974",
+    "serif": "#F5F3EA",
+    "endcard": "#78A974",
+    "plate": "#78A974",
+    "plateInk": "#111710",
+    "listHead": "#78A974",
+    "listBg": "#151A14",
+    "listText": "#F5F3EA",
+    "sceneBg": "#111611",
+    "sceneInk": "#F5F3EA"
+  },
+  "accent": "#78A974",
+  "styleCard": {
+    "approved": true,
+    "campaign": "street_you_grew_up_on",
+    "video": "post6",
+    "style_sha256": "b82f364a5fd2e7ceace9ea9e0ad4a59f47eeef7e318f9bf81b4020cdf42b2529"
   }
 }

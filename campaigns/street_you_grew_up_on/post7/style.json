@@ -5,16 +5,19 @@
   "list": "sansitalic",
   "endcard": "grande",
   "captionStyle": "editorial",
+  "radius": "sharp",
   "colors": {
-    "accent": "#14E5C5",
-    "caption": "#FFFFFF",
-    "keyword": "#14E5C5",
-    "plate": "#14E5C5",
-    "plateInk": "#0B0E11",
-    "listHead": "#14E5C5",
-    "listBg": "rgba(9,11,15,0.90)",
-    "listText": "#FFFFFF",
-    "sceneBg": "#101319",
-    "sceneInk": "#FFFFFF"
+    "accent": "#C7654E",
+    "caption": "#F7F0E9",
+    "keyword": "#C7654E",
+    "serif": "#F7F0E9",
+    "endcard": "#C7654E",
+    "plate": "#C7654E",
+    "plateInk": "#211512",
+    "listHead": "#C7654E",
+    "listBg": "#1C1413",
+    "listText": "#F7F0E9",
+    "sceneBg": "#181110",
+    "sceneInk": "#F7F0E9"
   }
 }

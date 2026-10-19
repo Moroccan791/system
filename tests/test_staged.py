@@ -32,6 +32,14 @@ def test_hook_prefers_the_number_sentence():
     assert h["start"] == 2.6 and "$2,500" in h["opener"]
 
 
+def test_hook_review_is_verbatim_and_not_a_rewrite():
+    from scripts.whop.review_hooks import shortlist
+    options = shortlist(WORDS, limit=8)
+    chosen = next(item for item in options if "$2,500" in item["verbatim"])
+    assert chosen["verbatim"] == "We have $2,500 today."
+    assert chosen["start"] == 2.6 and chosen["end"] == 4.1
+
+
 def test_tighten_compresses_dead_air_and_remaps():
     tight, removed = prep.tighten(WORDS)
     assert removed and removed[0]["dur"] > 0.9
@@ -48,6 +56,10 @@ def test_themes_include_per_video_choices_and_are_complete():
             "street_you_grew_up_on__post1"} <= names
     for p in themes:
         t = json.loads(p.read_text())
+        if p.stem == "whop":
+            # Whop has no universal palette; the exact video's approved card supplies it.
+            assert "accent" not in t
+            continue
         for k in ("accent", "radius", "glow", "speed", "easing",
                   "fontMode", "transitionOrder"):
             assert k in t, (p.name, k)

@@ -1,26 +1,26 @@
 {
   "post": "post7",
   "campaign": "street_you_grew_up_on",
-  "source": "work/street/raw/street_full.mp4",
-  "transcript": "work/street/asr/episode_transcript.json",
+  "source": "work/street/raw_parts/part_006.mp4",
+  "transcript": "work/street/asr/post7_transcript.json",
   "offset": 0.0,
   "span": [
-    3736.86,
-    3758.96
+    491.74,
+    513.84
   ],
   "drops": [
     [
-      3751.6,
-      3752.78
+      506.48,
+      507.65
     ]
   ],
   "splits": [
-    3737.4,
-    3745.12
+    492.28,
+    500.0
   ],
   "crops": [
     {
-      "until": 3737.4,
+      "until": 492.28,
       "crop": [
         733,
         0,
@@ -31,7 +31,7 @@
       "anchor": 0.3
     },
     {
-      "until": 3745.12,
+      "until": 500.0,
       "crop": [
         888,
         0,
@@ -42,7 +42,7 @@
       "anchor": 0.3
     },
     {
-      "until": 3758.96,
+      "until": 513.84,
       "crop": [
         802,
         71,
@@ -60,8 +60,31 @@
       "type": "caption",
       "zone": "low",
       "lines": [
-        "I will never be",
+        "I will never be"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "key",
+          "conn"
+        ]
+      ],
+      "reveal": "phrase"
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
         "angry for a struggle"
+      ],
+      "kinds": [
+        [
+          "key",
+          "conn",
+          "conn",
+          "key"
+        ]
       ]
     },
     {
@@ -70,6 +93,16 @@
       "lines": [
         "that you know",
         "that we share."
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn"
+        ],
+        [
+          "conn",
+          "key"
+        ]
       ]
     },
     {
@@ -92,6 +125,17 @@
       "lines": [
         "Um, and she's",
         "in recovery now,"
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn"
+        ],
+        [
+          "key",
+          "conn"
+        ]
       ]
     },
     {
@@ -169,14 +213,21 @@
       "type": "caption",
       "zone": "low",
       "lines": [
-        "the rest of the"
-      ]
-    },
-    {
-      "type": "caption",
-      "zone": "low",
-      "lines": [
-        "work."
+        "the rest of the",
+        "work, you know."
+      ],
+      "kinds": [
+        [
+          "conn",
+          "conn",
+          "conn",
+          "conn"
+        ],
+        [
+          "key",
+          "conn",
+          "conn"
+        ]
       ]
     },
     {

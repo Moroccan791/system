@@ -2,9 +2,9 @@
 """Tight-cut vertical base builder (Whop editor, brain rule #1/#3).
 
 Takes a horizontal source + word-level transcript and produces a vertical
-1080x1920 base where every pause longer than --max-gap is CUT (jump cuts on
-word boundaries), filler ranges listed in the spec are dropped, each kept
-segment is reframed with its spec crop and given a gentle push-in.
+1080x1920 base where acoustic pauses over MAX_GAP are compressed to KEEP_GAP,
+filler ranges listed in the spec are dropped, each kept segment is reframed
+with its spec crop and given a gentle push-in.
 
 Also writes the remapped transcript (slice) whose word times match the base,
 which is what produce.py/QC consume.
@@ -17,6 +17,8 @@ Spec JSON:
   "span": [2759.6, 2790.4],             // keep words inside (source seconds)
   "drops": [[2769.2, 2770.05]],         // source-second ranges to delete
   "splits": [2784.78],                  // camera cuts (keep both halves)
+  "max_gap": 0.30,                      // optional per-clip silence threshold
+  "keep_gap": 0.18,                     // optional per-clip retained breath
   "crops": [                            // first matching rule wins
     {"until": 2779.3, "crop": [790, 90, 480, 854], "push": 0.055},
     {"until": 2784.78,"crop": [1080, 90, 480, 854], "push": 0.04},
@@ -36,8 +38,25 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from clipper.ffmpeg import ffmpeg_exe  # noqa: E402
 
-MAX_GAP = 0.15   # brain: no pause > ~0.25s survives (incl. decay tails)
+MAX_GAP = 0.30   # match motion/prep.py: remove only genuinely long silences
+KEEP_GAP = 0.18  # preserve a short natural breath at each cut
 PAD_L, PAD_R = 0.04, 0.03
+
+
+def silence_cuts(silences, max_gap: float = MAX_GAP,
+                 keep: float = KEEP_GAP) -> list[tuple[float, float]]:
+    """Compress only long silences, retaining the same natural gap as prep.py."""
+    if max_gap < 0 or keep < 0 or keep > max_gap:
+        raise ValueError("pause thresholds must be non-negative and keep <= max_gap")
+    cuts = []
+    for start, end in silences:
+        duration = float(end) - float(start)
+        if duration > max_gap:
+            # Keep half of the natural gap at each edge; the silence between
+            # those retained breaths becomes the removed interval.
+            cuts.append((float(start) + keep / 2,
+                         float(end) - keep / 2))
+    return cuts
 
 
 def main(spec_path: str) -> int:
@@ -60,8 +79,8 @@ def main(spec_path: str) -> int:
                    max(0.05, dur * 0.5) for a, b in drops)
 
     # Cut on ACOUSTICS, not ASR timestamps: find true silences in the source
-    # span and delete every one longer than MAX_GAP (keeping a few frames of
-    # each edge so word attacks/tails are not clipped).
+    # span and compress only pauses longer than MAX_GAP, retaining KEEP_GAP
+    # of natural breath. The silencedetect edges stay at source-time scale.
     ff0 = ffmpeg_exe()
     probe = subprocess.run(
         [ff0, "-ss", f"{lo - 1:.2f}", "-t", f"{hi - lo + 2:.2f}", "-i",
@@ -76,7 +95,9 @@ def main(spec_path: str) -> int:
         elif "silence_end:" in line and cur is not None:
             end = float(line.split("silence_end:")[1].split("|")[0].strip()) + lo - 1
             sils.append((cur, end)); cur = None
-    cuts = [(a + 0.03, b - 0.02) for a, b in sils if b - a > 0.12]
+    max_gap = float(spec.get("max_gap", MAX_GAP))
+    keep_gap = float(spec.get("keep_gap", KEEP_GAP))
+    cuts = silence_cuts(sils, max_gap=max_gap, keep=keep_gap)
     cuts += [(a, b) for a, b in drops]
     ranges: list[tuple[float, float]] = [(lo, hi)]
     for a, b in sorted(cuts):
@@ -88,7 +109,8 @@ def main(spec_path: str) -> int:
             if b < e0: nxt.append((b, e0))
         ranges = nxt
     ranges = [(a, b) for a, b in ranges if b - a > 0.09]
-    print(f"acoustic cuts: {len(cuts)} -> {len(ranges)} ranges")
+    print(f"acoustic cuts: {len(cuts)} -> {len(ranges)} ranges "
+          f"(compress >{max_gap:.2f}s, keep {keep_gap:.2f}s)")
 
     pairs: list[tuple[tuple[float, float], list[dict]]] = []
     for a, b in ranges:

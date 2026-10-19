@@ -241,13 +241,35 @@ class Clock:
         return round(self.words[i]["start"], 2)
 
 
+def phrase_reveal(row: list[dict], group_at: float | None = None):
+    """Show a verbatim caption phrase at its first word while retaining
+    original word times for sync, hold, and exit. Optional group_at lets
+    multiple caption rows arrive together as one hook."""
+    word_times = [float(w["at"]) for w in row]
+    if not word_times:
+        return [], group_at
+    onset = min(word_times) if group_at is None else float(group_at)
+    for word in row:
+        word["showAt"] = onset
+    return word_times, onset
+
+
 def build(plan: dict) -> dict:
     campaign = plan.get("campaign", "street_you_grew_up_on")
     post = plan["post"]
-    style_file = CAMPAIGNS / post / "style.json"
-    if not style_file.exists():
-        style_file = CAMPAIGNS / "style.json"
+    sys.path.insert(0, str(ROOT))
+    from scripts.whop.style_card import is_style_approved
+    if not is_style_approved(campaign, post):
+        raise RuntimeError(f"style-card approval required for {campaign}/{post} before editing")
+    style_file = ROOT / "campaigns" / campaign / post / "style.json"
+    theme_file = ROOT / "motion" / "themes" / f"{campaign}__{post}.json"
     style = json.loads(style_file.read_text())
+    theme = json.loads(theme_file.read_text())
+    card = theme.get("styleCard") or {}
+    if not (card.get("approved") is True and card.get("campaign") == campaign
+            and card.get("video") == post and card.get("style_sha256")
+            and is_style_approved(campaign, post, card.get("style_sha256"))):
+        raise RuntimeError(f"approved style theme/receipt mismatch for {campaign}/{post}")
     accent = style["colors"]["accent"]
     span = plan["span"]
     transcript = plan.get("transcript", EPISODE)
@@ -273,6 +295,8 @@ def build(plan: dict) -> dict:
         # reason to leave a visible speaker freeze on screen.
         "tail_seconds": plan.get("tail_seconds") or 1.7,
         "splits": plan.get("splits", []),
+        **({"max_gap": float(plan["max_gap"])} if "max_gap" in plan else {}),
+        **({"keep_gap": float(plan["keep_gap"])} if "keep_gap" in plan else {}),
     }
     (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
 
@@ -306,14 +330,23 @@ def build(plan: dict) -> dict:
             rows = []
             ats = []
             kinds = beat.get("kinds")
+            reveal_group_at = None
             for li, line in enumerate(beat["lines"]):
                 if isinstance(line, str):
                     row = clock.line(line)
+                    word_times = [w["at"] for w in row]
+                    if beat.get("reveal") == "phrase" and row:
+                        # A hook may appear as a complete, verbatim phrase on
+                        # its first spoken onset instead of trickling in one
+                        # isolated word at a time. Keep original word times for
+                        # the caption's exit/hold calculation.
+                        word_times, reveal_group_at = phrase_reveal(
+                            row, reveal_group_at)
+                    ats.extend(word_times)
                     for wi, w in enumerate(row):
                         w["kind"] = beat.get("wordKind", "conn")
                         if kinds and li < len(kinds) and wi < len(kinds[li]):
                             w["kind"] = kinds[li][wi]
-                        ats.append(w["at"])
                     rows.append(row)
                     continue
                 row = []
@@ -427,6 +460,8 @@ def build(plan: dict) -> dict:
         for r in it.get("rows", []):
             for w in r:
                 w["at"] = max(0.0, round(float(w["at"]), 3))
+                if w.get("showAt") is not None:
+                    w["showAt"] = max(0.0, round(float(w["showAt"]), 3))
 
     duration = base_duration or max(it.get("until", it["at"]) for it in items)
     last_word_time = max((w["at"] for it in items

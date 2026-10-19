@@ -77,7 +77,7 @@ presented as proof.
 | First / second / third… | list plates | ORIENT |
 | Exact words matter ("she literally said…") | **quote** (verbatim only) | PROVE |
 | A strong claim, the thesis of the clip | card (≤3 lines) or poster | EMPHASISE |
-| One emotional word | poster with neon/serif word, fx flare | EMPHASISE / FEEL |
+| One emotional word | poster with the approved accent keyword or deliberate serif word, plus an authored picture/flare if it clarifies | EMPHASISE / FEEL |
 | It happened over text ("group chat", "she texted…") | **chat** bubbles filling a phone | SHOW |
 | A circle / network / team ("his circle", "connections") | **network** nodes linking to a hub | SHOW |
 | Intensity or certainty ("100%", "how serious", effort) | **gauge** needle sweep | SHOW / EMPHASISE |
@@ -111,7 +111,7 @@ presented as proof.
 | Time running out (felt, not stated) | **hourglass** | ORIENT |
 | Podcast / voice-note moment | **wave** | SHOW |
 | Speaker or guest needs naming | **lowerthird** (name + role) | ORIENT |
-| Dense fast speech, eye must track the line | poster `captionStyle: "karaoke"` | EMPHASISE |
+| Dense fast speech, eye must track the line | split the thought into short verbatim editorial phrases; do not switch to karaoke | EMPHASISE |
 | A lockup with one payoff word | poster hero word (`kind: "hero"`) | EMPHASISE |
 | All eyes on them / famous moment | **spotlight** | FEEL |
 | A win is claimed ("he won…") | **trophy** | PROVE |
@@ -312,6 +312,7 @@ trigger rules. Use only when the speech itself establishes the object:
 |---|---|---|
 | `scriptcue` | script / pictures / ice-cream cue | A page of script lines is written in; margin doodles appear; the ice-cream cone is drawn and linked to a CUE tag. |
 | `oaktree` | oak tree / shade / protect children | Trunk and roots draw in; a wide canopy grows above two small figures, creating a visible pool of shade. |
+| `worth` | personal worth in a body-image/self-worth context only | A measuring grid assembles, then dissolves while the spoken idea “WORTH” remains; never use for financial worth. |
 
 Both are bespoke SVG motion scenes (not generated raster inserts),
 full-bleed for 1.0–1.8s, and count as picture inserts for the 6s
@@ -509,44 +510,26 @@ Heating up, tension rising. (A dial is `gauge`, a charge is
 ### Typography (over the speaker; does not cost face time)
 
 #### poster — EMPHASISE the spoken words
-2–4-word chunks of the actual speech, huge, lower-third zone; key word in
-accent (kind `key`), emotional word neon (`neon`), soft/reflective words
-serif italic (`serif`). This is the system's backbone — most sentences live
-here. Words appear on their real spoken onsets.
+2–4-word chunks of the actual speech, huge, lower-third zone; the key word
+uses the user-approved per-video accent (kind `key`), and a deliberately
+reflective word may use serif italic (`serif`). This is the system's
+backbone — most sentences live here. Words appear on their real spoken
+onsets, in flat editorial type for new work.
 
-**Caption modes** (`captionStyle` on the poster, or per-theme): `pop` is
-the house default (words pop in as spoken). `karaoke` keeps that rhythm
-but the word being spoken *right now* lights up in the accent and leans
-in 13%, settling back to white when the next word starts — the eye is
-pulled along the line exactly at speech speed. Key words keep their
-plate (already the highlight). Use karaoke for fast/dense delivery and
-younger-skewing edits; pop for slower, weightier pieces. One mode per
-clip — never mix within a video. `decide.py --caption-style karaoke`
-authors it across a transcript.
+**New-work caption treatment: `editorial`.** Flat print type, verbatim
+word timing, phrase-aware breaks (normally 2–4 spoken words per line),
+semantic size hierarchy, and a keyword ink chosen by the user for that video.
+No plate, coloured wipe, marker bar or heavy offset shadow. The style card
+keeps new clips on this approved treatment; a saved per-video font/colour
+choice is a production prerequisite.
 
-**Dynamic entries + finishes** (same `captionStyle` field): `stretch`
-(rubber-band wide→true), `wiggle` (lands, then wiggles off), `glide`
-(slides in sharp from the left), `bounce` (drops in big, settles) —
-how words ARRIVE. `neon` is a finish: accent ink with an electric
-glow + entry flicker on every word. All entry styles are pure
-functions of the frame clock and never touch the opacity curve, so
-the QC discipline is identical across styles. Theme packs ship the
-combinations: `karaoke-bold`, `bounce-party`, `neon-nights`
-(motion/themes/) — a theme sets the caption style for the whole
-clip unless a poster overrides it.
-
-**`marker` — the semantic marker-bar mode** (theme `marker-bold`):
-sentence-case rounded ExtraBold, clean white ink, NO plate. The key
-word gets a marker stroke behind its lower half instead: kind `mark`
-= structure word in the primary accent, kind `pay` = payoff word in
-the semantic second accent (`accent2`, e.g. red structure / green
-payoff), kind `grad` = gradient-ink shout word (poster `gradient`
-pair). Inline size hierarchy does the emphasis: connectives shrink
-(`conn`), keywords swell to the 115–154px band, one word per line
-can carry an emoji sticker (`emoji`, glued top-right of the word).
-`decide.py --caption-style marker` tags the roles from the speech
-itself (structure vs payoff vocabularies); a marker poster with no
-marked word is a validator error — the bar is the point.
+Other entry engines (`pop`, `karaoke`, `stretch`, `wiggle`, `glide`,
+`bounce`, `neon`) remain renderer capabilities for historical timelines.
+They are not the per-video style-card choice. **Marker-swipe captions and
+the rejected impact treatment (heavy condensed caps + hard offset shadow)
+are banned for new work.** The renderer retains legacy parsing so historical
+assets can still be inspected, but the authoring API, CLI and timeline schema
+reject those treatments.
 
 #### hero lockup — EMPHASISE with one giant word
 A poster whose middle row is a single `kind: "hero"` word at

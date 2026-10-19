@@ -1,0 +1,193 @@
+{
+  "post": "post5_demo",
+  "campaign": "street_you_grew_up_on",
+  "source": "work/street/raw_parts/part_006.mp4",
+  "transcript": "work/street/asr/post5_demo_transcript.json",
+  "offset": 0.0,
+  "span": [
+    137.88,
+    159.55
+  ],
+  "drops": [],
+  "splits": [],
+  "crops": [
+    {
+      "until": 159.55,
+      "crop": [
+        773,
+        69,
+        568,
+        1010
+      ],
+      "push": 0.05,
+      "anchor": 0.3
+    }
+  ],
+  "fadeOut": 0.5,
+  "music": "chill.wav",
+  "beats": [
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "My worth isn't",
+        "in my body."
+      ],
+      "kinds": [
+        [
+          "conn",
+          "key",
+          "conn"
+        ],
+        [
+          "conn",
+          "conn",
+          "conn"
+        ]
+      ],
+      "reveal": "phrase",
+      "size": "sm"
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "My husband doesn't",
+        "love me because"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "of my body."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "My family doesn't",
+        "love me because"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "of my body."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "I'm not sitting",
+        "in this chair"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "because of my body."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "I am beautiful"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "as I am."
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "But most importantly,"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "I'm a good",
+        "human."
+      ]
+    },
+    {
+      "type": "vector",
+      "name": "shield",
+      "trigger": "I'm a good",
+      "lead": 0.0,
+      "dur": 1.2,
+      "label": "GOOD HUMAN"
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "And,"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "That's what I",
+        "hold true to my"
+      ]
+    },
+    {
+      "type": "caption",
+      "zone": "low",
+      "lines": [
+        "heart."
+      ],
+      "kinds": [
+        [
+          "key"
+        ]
+      ]
+    },
+    {
+      "type": "endcard",
+      "after": "last",
+      "gap": 0.45,
+      "dur": 1.5,
+      "title": "FOLLOW FOR MORE",
+      "titleLines": [
+        "FOLLOW",
+        "FOR MORE"
+      ],
+      "sub": "",
+      "wordSize": 148
+    }
+  ],
+  "posting": {
+    "title": "Demi Lovato: ‘My Worth Isn’t in My Body’",
+    "description": "Demi Lovato says, ‘My worth isn't in my body.’ She describes her husband's and family's love, then closes with what she holds true to her heart.",
+    "disclosure": "#ad",
+    "requiredLine": "The podcast name is Street You Grew Up On - full episode is available on YT and other podcast platforms",
+    "hashtags": [
+      "#DemiLovato",
+      "#StreetYouGrewUpOn",
+      "#SelfWorth",
+      "#BodyImage",
+      "#PodcastClips",
+      "#MentalHealth",
+      "#MusicAndLife",
+      "#PodCulture"
+    ]
+  },
+  "tail_seconds": 1.5,
+  "max_gap": 0.68,
+  "keep_gap": 0.32
+}

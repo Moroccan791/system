@@ -46,6 +46,21 @@ def test_typing_flag_gates_keystrokes():
     assert len(on) == 2 and off == []  # first word + keyword word only
 
 
+def test_phrase_reveal_typing_sound_uses_group_display_time():
+    tl = {"items": [{
+        "type": "poster", "at": 0.0, "until": 1.5,
+        "rows": [[
+            {"w": "My", "at": 0.0, "showAt": 0.0},
+            {"w": "worth", "at": 0.22, "showAt": 0.0, "kind": "key"},
+            {"w": "isn't", "at": 0.48, "showAt": 0.0},
+        ]],
+    }]}
+    events = sound.build_events(tl, [], True, np.random.default_rng(7))
+    keys = [event for event in events if event["kind"] == "key"]
+    assert len(keys) == 2
+    assert [event["t"] for event in keys] == [0.0, 0.0]
+
+
 def test_synthesis_is_finite_and_bounded():
     rng = np.random.default_rng(7)
     for kind in ("key", "pop", "pop_low", "tick", "land", "whoosh",

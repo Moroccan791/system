@@ -51,6 +51,17 @@ def main(path: str) -> int:
             if not (it["at"] - 0.05 <= w["at"] <= until + 0.05):
                 problems.append(f"{it['type']} word {w['w']!r} at {w['at']} "
                                 f"outside item window {it['at']}..{until}")
+            show_at = w.get("showAt")
+            if show_at is not None:
+                if not (it["at"] - 0.05 <= show_at <= until + 0.05):
+                    problems.append(f"{it['type']} word {w['w']!r} showAt {show_at} "
+                                    f"outside item window {it['at']}..{until}")
+                if show_at > w["at"] + 0.005:
+                    problems.append(f"{it['type']} word {w['w']!r} showAt {show_at} "
+                                    f"is after its spoken time {w['at']}")
+                if w["at"] - show_at > 1.5:
+                    problems.append(f"{it['type']} word {w['w']!r} is revealed "
+                                    f"{w['at'] - show_at:.2f}s early (cap 1.5s)")
         if words and it["type"] in ("poster", "card"):
             last = max(w["at"] for w in words)
             # Speech has some <250ms handoffs. A hard-out caption can
@@ -109,13 +120,12 @@ def main(path: str) -> int:
             if not 0.6 <= dwell <= 3.5:
                 problems.append(f"doodle at {it['at']}: dwell {dwell:.2f}s "
                                 f"outside 0.6-3.5s (point, then vanish)")
-        if it.get("captionStyle") == "marker" and it["type"] == "poster":
-            kinds = {w.get("kind") for r in (it.get("rows") or [])
-                     for w in r}
-            if not kinds & {"mark", "pay", "grad", "hero"}:
-                problems.append(f"marker poster at {it['at']}: no marked "
-                                f"word (mark/pay/grad) - a marker line "
-                                f"without a swipe is just small karaoke")
+        marker_kinds = {"mark", "pay", "grad"}
+        if it["type"] in ("poster", "card") and (
+                it.get("captionStyle") in ("marker", "impact")
+                or any(w.get("kind") in marker_kinds for w in words)):
+            problems.append(f"{it['type']} at {it['at']}: marker-swipe and "
+                            "rejected impact captions are unavailable for new work")
         if it["type"] == "counter":
             if until - it["at"] < float(it.get("countDur") or 0.9) + 0.3:
                 problems.append(f"counter at {it['at']}: until {until} leaves no "
@@ -166,9 +176,6 @@ def main(path: str) -> int:
             sizes = {"hero": float(it.get("heroSize") or 250),
                      "key": float(it.get("keySize") or 118),
                      "neon": float(it.get("keySize") or 118),
-                     "mark": float(it.get("keySize") or 118),
-                     "pay": float(it.get("keySize") or 118),
-                     "grad": float(it.get("keySize") or 118),
                      "word": float(it.get("wordSize") or 96),
                      "conn": float(it.get("connSize") or 58)}
             row_est = []
@@ -253,11 +260,15 @@ def main(path: str) -> int:
                 "anchor", "balloon", "redflag", "ghost", "wall", "compass",
                 "bars", "line", "versus", "people", "stack", "timeline", "quote",
                 "chat", "network", "gauge", "map",
-                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "noaward", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo", "scriptcue", "oaktree"):
+                "calendar", "clock", "price", "checklist", "magnet", "funnel", "pyramid", "target", "podium", "beforeafter", "battery", "proscons", "chapter", "bigword", "heart", "alert", "phone", "scale", "brain", "bell", "key", "door", "dice", "venn", "rocket", "shield", "hourglass", "wave", "spotlight", "trophy", "noaward", "ladder", "stars", "countdown", "search", "cash", "crown", "bridge", "puzzle", "cycle", "thermo", "scriptcue", "oaktree", "worth"):
             problems.append(f"vector at {it['at']}: unknown scene "
                             f"{it.get('name')!r} (see motion/MOTIONS.md)")
         if it["type"] == "vector":
             nm = it.get("name")
+            if nm == "worth" and not 1.0 <= dwell <= 1.8:
+                problems.append(f"worth at {it['at']}: dwell {dwell:.2f}s "
+                                "outside 1.0-1.8s (let the measuring grid "
+                                "dissolve, then leave the spoken idea)")
             if nm == "bars" and not 2 <= len(it.get("values") or []) <= 7:
                 problems.append(f"bars at {it['at']}: needs 2-7 values")
             if nm == "line" and not 2 <= len(it.get("points") or []) <= 8:
