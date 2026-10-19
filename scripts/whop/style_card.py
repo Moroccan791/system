@@ -55,6 +55,8 @@ PACKS = [
     ("regular", "Inter Regular", "regular", "PackRegular"),
     ("displaybook", "Newsreader Book Italic", "display book italic", "PackDisplayBook"),
     ("grande", "Outfit Semibold", "grande semibold", "PackGrande"),
+    ("cabinet", "Cabinet Grotesk", "user grotesk", "PackCabinet"),
+    ("jasper", "Jasper", "user display cut", "PackJasper"),
 ]
 
 ROLES = [

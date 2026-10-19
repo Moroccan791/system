@@ -272,7 +272,9 @@ const PACKS = {
   sansitalic: "PackSansItalic",      // sans italic
   regular: "PackRegular",            // regular (neutral grotesk)
   displaybook: "PackDisplayBook",    // display book italic
-  grande: "PackGrande"               // grande semibold
+  grande: "PackGrande",              // grande semibold
+  cabinet: "PackCabinet",            // user grotesk (Cabinet Grotesk)
+  jasper: "PackJasper"               // user display cut (Jasper)
 };
 const ROLE_SEL = {
   caption: ".poster .w.conn, .card .cw, .chip .t1",
@@ -2372,6 +2374,18 @@ function animateVector(b, t, lifeP) {
       // un-normalised, a dot at x=0.94 would freeze mid-overshoot and its
       // label would cap at ~75% opacity
       const prog = e.x >= 1 ? 1 : clamp01((q - e.x) / (1 - e.x));
+      const pq = easeOutBack(clamp01(prog / 0.35));
+      e.dot.setAttribute("r", (12 * Math.max(0, pq) * s).toFixed(1));
+      const o = clamp01(prog / 0.3).toFixed(2);
+      e.tl.setAttribute("opacity", o); e.ts.setAttribute("opacity", o);
+    });
+  } else if (V.name === "quote") {
+    n.qlines.forEach((tx, i) => {
+      const q = easeOut(clamp01((lt - 0.25 - i * 0.16) / 0.4));
+      tx.setAttribute("opacity", q.toFixed(2));
+      tx.style.transform = `translateY(${((1 - q) * 16 * s).toFixed(1)}px)`;
+    });
+    if (n.qby) n.qby.setAttribute("opacityrog = e.x >= 1 ? 1 : clamp01((q - e.x) / (1 - e.x));
       const pq = easeOutBack(clamp01(prog / 0.35));
       e.dot.setAttribute("r", (12 * Math.max(0, pq) * s).toFixed(1));
       const o = clamp01(prog / 0.3).toFixed(2);

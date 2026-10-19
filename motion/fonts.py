@@ -61,6 +61,14 @@ PACKS = [
     ("grande", "Outfit Semibold",
      "grande semibold: geometric display semibold - big, clean, "
      "confident; the keyword face in the editorial treatment"),
+    # ---- the user's own faces (uploaded to this repo) --------------
+    ("cabinet", "Cabinet Grotesk (user-supplied)",
+     "the user's grotesk: clean medium for caption text, bold in the "
+     "accent for key words. Keeps lowercase, reads like edited film "
+     "titles rather than a caption-tool preset"),
+    ("jasper", "Jasper (user-supplied)",
+     "the user's chunky display cut: hero words and end cards only "
+     "(it has no period glyph, so it never carries a full sentence)"),
 ]
 
 

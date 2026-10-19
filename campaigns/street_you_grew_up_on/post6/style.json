@@ -1,9 +1,9 @@
 {
-  "caption": "regular",
-  "keyword": "displaybook",
-  "serif": "serifbi",
-  "list": "sansitalic",
-  "endcard": "grande",
+  "caption": "cabinet",
+  "keyword": "cabinet",
+  "serif": "jasper",
+  "list": "cabinet",
+  "endcard": "jasper",
   "captionStyle": "editorial",
   "radius": "sharp",
   "colors": {
