@@ -4,19 +4,20 @@
     .venv/bin/python scripts/whop/font_refresh.py post4
 
 The shipped cuts for posts 4/6/7 were rendered before the user supplied
-their own faces (Cabinet Grotesk + Jasper, now vendored in
-assets/fonts/). The clean source part and its per-post transcript were
-never committed, so this pass works from the shipped cut itself:
+their own faces (now vendored in assets/fonts/). The clean source part
+and its per-post transcript were never committed, so this pass works
+from the shipped cut itself:
 
 * the plan (scripts/whop/plans/postN.json) is still the verbatim
   caption text, with the same key-word emphasis;
 * word timings are recovered from the shipped cut's own audio
   (Moonshine + energy alignment, work/street/postN/font_words.json);
-* the old burned-in caption band is covered by one flat editorial
-  matte panel and the caption is redrawn in Cabinet Grotesk
-  (Medium for connective words, Bold in the post's accent for keys);
+* the old burned-in captions are ERASED (bright-stroke detection +
+  inpainting, softened) and the caption is redrawn straight on the
+  picture the old way - no matte panel, no black layer - in the
+  user's Flaviotte serif, key words in the post's accent;
 * the full-screen hero (post6 "OAK TREE") and every end card
-  ("FOLLOW FOR MORE") are redrawn full-frame in Jasper;
+  ("FOLLOW FOR MORE") are redrawn full-frame in the user's Shawkind;
 * everything else - the cut, the vector scenes, the music, the mix -
   is left frame-identical. Audio is copied untouched.
 
@@ -41,9 +42,8 @@ sys.path.insert(0, str(ROOT))
 
 W, H = 1080, 1920
 FONTS = ROOT / "assets" / "fonts"
-CAB_M = str(FONTS / "CabinetGrotesk-Medium.otf")
-CAB_B = str(FONTS / "CabinetGrotesk-Bold.otf")
-JASPER = str(FONTS / "Jasper.otf")
+FLAVIOTTE = str(FONTS / "Flaviotte.ttf")
+SHAWKIND = str(FONTS / "Shawkind.ttf")
 
 # measured on the shipped cuts (brightness/texture steps + OCR)
 WINDOWS = {
@@ -51,8 +51,8 @@ WINDOWS = {
     "post6": {"bigword": (2.18, 3.97), "endcard": 21.50},
     "post7": {"endcard": 20.38},
 }
-PANEL = (58, 1496, 1022, 1794)          # x0, y0, x1, y1
-SCENE_COVER = (0, 545, 1080, 735)       # post6 oak-tree scene caption
+BAND = (1480, 1805)                     # burned-in caption band (y0, y1)
+SCENE_BAND = (540, 740)                 # post6 oak-tree scene caption
 
 
 def hex_rgb(h: str) -> tuple[int, int, int]:
@@ -167,48 +167,48 @@ class Typesetter:
     def endcard_image(self) -> np.ndarray:
         img = Image.new("RGB", (W, H), (11, 14, 17))
         d = ImageDraw.Draw(img)
-        size = 150
+        size = 170
         while size > 60:
-            f = self.font(JASPER, size)
+            f = self.font(SHAWKIND, size)
             if max(d.textlength("FOLLOW", font=f),
-                   d.textlength("FOR MORE", font=f)) <= 900:
+                   d.textlength("FOR MORE", font=f)) <= 920:
                 break
             size -= 6
-        f = self.font(JASPER, size)
-        y = 800
+        f = self.font(SHAWKIND, size)
+        y = 790
         for line in ("FOLLOW", "FOR MORE"):
             tw = d.textlength(line, font=f)
             d.text(((W - tw) / 2, y), line, font=f, fill=self.accent)
-            y += int(size * 1.18)
-        d.rounded_rectangle((470, y + 26, 610, y + 38), radius=6,
+            y += int(size * 1.12)
+        d.rounded_rectangle((470, y + 30, 610, y + 42), radius=6,
                             fill=self.accent)
         return np.asarray(img)
 
     def bigword_image(self) -> np.ndarray:
         img = Image.new("RGB", (W, H), self.scene_bg)
         d = ImageDraw.Draw(img)
-        size = 190
-        while size > 60 and d.textlength("OAK TREE", font=self.font(JASPER, size)) > 920:
+        size = 200
+        while size > 60 and d.textlength("OAK TREE", font=self.font(SHAWKIND, size)) > 940:
             size -= 6
-        f = self.font(JASPER, size)
+        f = self.font(SHAWKIND, size)
         tw = d.textlength("OAK TREE", font=f)
         d.text(((W - tw) / 2, 830), "OAK TREE", font=f, fill=(245, 243, 234))
         d.rounded_rectangle((150, 830 + size + 42, 930, 830 + size + 60),
                             radius=9, fill=self.accent)
         return np.asarray(img)
 
-    # -- caption overlays (RGBA) --------------------------------------
+    # -- caption overlays (RGBA, text only - no plate) -----------------
     def _fit_size(self, cap: dict) -> int:
         probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
-        size = 62
-        while size > 42:
-            fm, fb = self.font(CAB_M, size), self.font(CAB_B, size)
-            space = probe.textlength(" ", font=fm)
+        size = 90
+        while size > 44:
+            f = self.font(FLAVIOTTE, size)
+            space = probe.textlength(" ", font=f)
             ok = True
             for line in cap["lines"]:
-                width = sum(probe.textlength(c["w"], font=fb if c["kind"] == "key" else fm)
+                width = sum(probe.textlength(c["w"], font=f)
                             + space for c in line) - space
-                if width > 884:
+                if width > 980:
                     ok = False
                     break
             if ok:
@@ -223,50 +223,65 @@ class Typesetter:
         if key in self._cache:
             return self._cache[key]
         size = self._fit_size(cap)
-        fm, fb = self.font(CAB_M, size), self.font(CAB_B, size)
+        f = self.font(FLAVIOTTE, size)
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
+        space = d.textlength(" ", font=f)
+
+        def draw_word(x, y, cell):
+            col = self.accent if cell["kind"] == "key" else self.ink
+            d.text((x, y), cell["w"], font=f, fill=col + (255,),
+                   stroke_width=3, stroke_fill=(0, 0, 0, 150))
+            return d.textlength(cell["w"], font=f)
+
         if cap["zone"] == "scene":
-            x0, y0, x1, y1 = SCENE_COVER
-            d.rectangle((x0, y0, x1, y1), fill=self.scene_bg + (255,))
-            line = cap["lines"][0]
-            space = d.textlength(" ", font=fm)
             x = 64.0
-            for ci, cell in enumerate(line):
+            for ci, cell in enumerate(cap["lines"][0]):
                 if ci >= revealed[0]:
                     break
-                f = fb if cell["kind"] == "key" else fm
-                col = self.accent if cell["kind"] == "key" else self.ink
-                d.text((x, 596), cell["w"], font=f, fill=col + (255,))
-                x += d.textlength(cell["w"], font=f) + space
+                x += draw_word(x, 596, cell) + space
         else:
-            x0, y0, x1, y1 = PANEL
-            # fully opaque: a translucent matte lets the old burned-in
-            # white caption ghost through at phone brightness
-            d.rounded_rectangle((x0, y0, x1, y1), radius=28,
-                                fill=(13, 16, 19, 255))
-            d.rounded_rectangle((x0 + 38, y0 + 22, x1 - 38, y0 + 30),
-                                radius=4, fill=self.accent + (255,))
-            advance = int(size * 1.34)
-            block_h = advance * len(cap["lines"]) - int(size * 0.34)
-            y = (y0 + y1) / 2 - block_h / 2 + 10
-            space = d.textlength(" ", font=fm)
+            advance = int(size * 1.42)
+            total_h = advance * (len(cap["lines"]) - 1) + int(size * 1.05)
+            y = 1652 - total_h / 2
             for li, line in enumerate(cap["lines"]):
-                widths = [d.textlength(c["w"], font=fb if c["kind"] == "key" else fm)
-                          for c in line]
-                total = sum(widths) + space * max(0, len(line) - 1)
+                total = sum(d.textlength(c["w"], font=f) for c in line) \
+                    + space * max(0, len(line) - 1)
                 x = (W - total) / 2
                 for ci, cell in enumerate(line):
                     if ci >= revealed[li]:
                         break
-                    f = fb if cell["kind"] == "key" else fm
-                    col = self.accent if cell["kind"] == "key" else self.ink
-                    d.text((x, y), cell["w"], font=f, fill=col + (255,))
-                    x += widths[ci] + space
+                    x += draw_word(x, y, cell) + space
                 y += advance
         arr = np.asarray(img)
         self._cache[key] = arr
         return arr
+
+
+def erase_captions(frame: np.ndarray, y0: int, y1: int) -> np.ndarray:
+    """Remove burned-in caption strokes from a band of the frame.
+
+    Captions are thin bright strokes over a much smoother picture, so a
+    white top-hat finds them without touching skin or jacket. Inpaint,
+    then soften the rebuilt patch so it reads as defocus, not a smear.
+    """
+    roi = frame[y0:y1]
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    kern = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    top = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, kern)
+    mask = (top > 20).astype(np.uint8) * 255
+    if not mask.any():
+        return frame
+    mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
+                      iterations=1)
+    fixed = cv2.inpaint(roi, mask, 4, cv2.INPAINT_TELEA)
+    soft = cv2.GaussianBlur(fixed, (0, 0), 2.2)
+    a = cv2.GaussianBlur(mask, (0, 0), 2).astype(np.float32) / 255.0
+    a = np.clip(a * 1.5, 0, 1)[:, :, None]
+    out = frame.copy()
+    out[y0:y1] = (fixed.astype(np.float32) * (1 - a)
+                  + soft.astype(np.float32) * a).astype(np.uint8)
+    return out
 
 
 def ensure_words(post: str, src: Path) -> list[dict]:
@@ -289,7 +304,7 @@ def main() -> int:
     src = folder / f"street_{post}.mp4"
     plan = json.loads((ROOT / "scripts" / "whop" / "plans" / f"{post}.json").read_text())
     style = json.loads((folder / "style.json").read_text())
-    assert style["caption"] == "cabinet" and style["endcard"] == "jasper", \
+    assert style["caption"] == "flaviotte" and style["endcard"] == "shawkind", \
         "style card is not on the user's fonts yet"
 
     words = ensure_words(post, src)
@@ -339,6 +354,8 @@ def main() -> int:
             frame = cv2.cvtColor(bigword_img, cv2.COLOR_RGB2BGR)
         cap = active_cap(t)
         if cap is not None and t < endcard_at:
+            band = SCENE_BAND if cap["zone"] == "scene" else BAND
+            frame = erase_captions(frame, *band)
             ov = typer.overlay(cap, t)
             alpha = ov[:, :, 3:4].astype(np.float32) / 255.0
             if alpha.any():

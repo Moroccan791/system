@@ -15,14 +15,14 @@
     "bwflash"
   ],
   "soundSeedSalt": 77,
-  "fontPack": "cabinet",
+  "fontPack": "flaviotte",
   "cutTransitions": "hard",
   "fonts": {
-    "caption": "cabinet",
-    "keyword": "cabinet",
-    "serif": "jasper",
-    "list": "cabinet",
-    "endcard": "jasper"
+    "caption": "flaviotte",
+    "keyword": "flaviotte",
+    "serif": "flaviotte",
+    "list": "shawkind",
+    "endcard": "shawkind"
   },
   "colors": {
     "accent": "#C7654E",
@@ -43,6 +43,6 @@
     "approved": true,
     "campaign": "street_you_grew_up_on",
     "video": "post7",
-    "style_sha256": "b153e1b2e86f0691b82cadf310ba132fdf6c461c54805eaecd6ecbf464e2ff90"
+    "style_sha256": "1d8fc9ca3bfc805988bc090da70284beaaed6033c5943edc271a17a3f52be66d"
   }
 }

@@ -69,6 +69,13 @@ PACKS = [
     ("jasper", "Jasper (user-supplied)",
      "the user's chunky display cut: hero words and end cards only "
      "(it has no period glyph, so it never carries a full sentence)"),
+    ("flaviotte", "Flaviotte (user-supplied)",
+     "the user's elegant high-contrast serif: full caption sentences "
+     "set like film titles - complete punctuation, thin horizontals, "
+     "needs its dark stroke at caption sizes"),
+    ("shawkind", "Shawkind (user-supplied)",
+     "the user's bold condensed cut: hero words and end cards. "
+     "Renders caps, so it never carries a lowercase sentence"),
 ]
 
 

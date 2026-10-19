@@ -57,6 +57,8 @@ PACKS = [
     ("grande", "Outfit Semibold", "grande semibold", "PackGrande"),
     ("cabinet", "Cabinet Grotesk", "user grotesk", "PackCabinet"),
     ("jasper", "Jasper", "user display cut", "PackJasper"),
+    ("flaviotte", "Flaviotte", "user serif", "PackFlaviotte"),
+    ("shawkind", "Shawkind", "user condensed display", "PackShawkind"),
 ]
 
 ROLES = [

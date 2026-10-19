@@ -30,6 +30,12 @@
   @font-face { font-family: "PackRegular"; src: url("file:///home/user/system/assets/fonts/Inter-Regular.woff2"); font-weight: 400; }
   @font-face { font-family: "PackDisplayBook"; src: url("file:///home/user/system/assets/fonts/Newsreader-BookItalic.woff2"); font-weight: 400; font-style: italic; }
   @font-face { font-family: "PackGrande"; src: url("file:///home/user/system/assets/fonts/Outfit-Semibold.woff2"); font-weight: 600; }
+  /* the user's own faces, uploaded to this repo (assets/fonts/) */
+  @font-face { font-family: "PackCabinet"; src: url("file:///home/user/system/assets/fonts/CabinetGrotesk-Medium.otf"); font-weight: 500; }
+  @font-face { font-family: "PackCabinet"; src: url("file:///home/user/system/assets/fonts/CabinetGrotesk-Bold.otf"); font-weight: 700; }
+  @font-face { font-family: "PackJasper"; src: url("file:///home/user/system/assets/fonts/Jasper.otf"); font-weight: 400; }
+  @font-face { font-family: "PackFlaviotte"; src: url("file:///home/user/system/assets/fonts/Flaviotte.ttf"); font-weight: 400; }
+  @font-face { font-family: "PackShawkind"; src: url("file:///home/user/system/assets/fonts/Shawkind.ttf"); font-weight: 400; }
   html, body { margin: 0; padding: 0; width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
   #stage { position: absolute; inset: 0; }
   .item { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
@@ -274,7 +280,9 @@ const PACKS = {
   displaybook: "PackDisplayBook",    // display book italic
   grande: "PackGrande",              // grande semibold
   cabinet: "PackCabinet",            // user grotesk (Cabinet Grotesk)
-  jasper: "PackJasper"               // user display cut (Jasper)
+  jasper: "PackJasper",              // user display cut (Jasper)
+  flaviotte: "PackFlaviotte",        // user serif (Flaviotte)
+  shawkind: "PackShawkind"           // user condensed display (Shawkind)
 };
 const ROLE_SEL = {
   caption: ".poster .w.conn, .card .cw, .chip .t1",
