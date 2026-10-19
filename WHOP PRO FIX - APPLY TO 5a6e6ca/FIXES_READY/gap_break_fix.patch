@@ -1,0 +1,40 @@
+diff --git a/clipper/captions/cues.py b/clipper/captions/cues.py
+--- a/clipper/captions/cues.py
++++ b/clipper/captions/cues.py
+-def group_words(words: list[Word], *, max_words: int = 4, max_chars: int = 22,
+-                max_lines: int = 1, max_duration: float = 2.6,
+-                gap_break: float = 0.45, min_duration: float = 0.6,
++def group_words(words: list[Word], *, max_words: int = 4, max_chars: int = 22,
++                max_lines: int = 1, max_duration: float = 2.6,
++                gap_break: float = 0.60, min_duration: float = 0.6,
+                 split_on_sentence: bool = True) -> list[Cue]:
+     """Timed words -> caption cues."""
+     clean = [w for w in words if w.text and w.text.strip()]
+@@ -115,15 +115,20 @@ def group_words(words: list[Word], *, max_words: int = 4, max_chars: int = 22,
+     flush()
+ 
+-    # absorb orphan single-word cues (unless they end a sentence or say a lot)
++    # absorb orphan single-word cues (WHOP FIX 2026-10-19: Demi pauses 0.5s+ on emotional beats,
++    # old 0.45 split left "image"/"We"/"OF MY" alone. Merge any 1-word cue <0.7s into neighbor.)
+     merged: list[Cue] = []
+     for cue in cues:
+         orphan = (
+             len(cue.words) == 1
+             and merged
+             and len(merged[-1].words) < max_words
+             and not merged[-1].words[-1].text.rstrip().endswith(SENTENCE_END)
+             and _char_len(merged[-1].words) + 1 + len(cue.words[0].text) <= max_chars * max_lines
+             and (cue.end - merged[-1].start) <= max_duration * 1.25
+-            and cue.duration >= min_duration * 0.4
++            and cue.duration >= min_duration * 0.25  # was 0.4 — Demi's "image" was 0.5s and got stranded
+         )
+         if orphan:
+             merged[-1].words.extend(cue.words)
+             merged[-1].end = cue.words[-1].end
++        elif len(cue.words) == 1 and cue.duration < 0.7 and merged and not cue.text.strip().endswith(SENTENCE_END):
++            # extra safety: any remaining <0.7s single-word non-sentence-end gets merged back
++            merged[-1].words.extend(cue.words)
++            merged[-1].end = cue.words[-1].end
+         else:
+             merged.append(cue)
+ 

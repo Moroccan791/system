@@ -1,0 +1,56 @@
+diff --git a/motion/themes/whop.json b/motion/themes/whop.json
+--- a/motion/themes/whop.json
++++ b/motion/themes/whop.json
+-  "transitionOrder": [
+-    "flash",
+-    "flare",
+-    "leak",
+-    "bwflash"
+-  ],
++  "transitionOrder": [
++    "cut"
++  ],
++  "comment": "WHOP FIX 2026-10-19: flash/flare/leak = cheap template for intimate podcast. Hard cut only; fade_black 0.25s only on story beats (timeline/chapter) via decide.py",
+   "soundSeedSalt": 77,
+diff --git a/campaigns/street_you_grew_up_on/style_theme.json b/campaigns/street_you_grew_up_on/style_theme.json
+--- a/campaigns/street_you_grew_up_on/style_theme.json
++++ b/campaigns/street_you_grew_up_on/style_theme.json
+-  "transitionOrder": [
+-    "flash",
+-    "flare",
+-    "leak",
+-    "bwflash"
+-  ],
++  "transitionOrder": [
++    "cut"
++  ],
+diff --git a/campaigns/street_you_grew_up_on/post4/style_theme.json b/campaigns/street_you_grew_up_on/post4/style_theme.json
+--- a/campaigns/street_you_grew_up_on/post4/style_theme.json
++++ b/campaigns/street_you_grew_up_on/post4/style_theme.json
+-  "transitionOrder": [
+-    "flash",
+-    "flare",
+-    "leak",
+-    "bwflash"
+-  ],
++  "transitionOrder": ["cut"],
+diff --git a/campaigns/street_you_grew_up_on/post6/style_theme.json b/campaigns/street_you_grew_up_on/post6/style_theme.json
+--- a/campaigns/street_you_grew_up_on/post6/style_theme.json
++++ b/campaigns/street_you_grew_up_on/post6/style_theme.json
+-  "transitionOrder": [
+-    "flash",
+-    "flare",
+-    "leak",
+-    "bwflash"
+-  ],
++  "transitionOrder": ["cut"],
+diff --git a/campaigns/street_you_grew_up_on/post7/style_theme.json b/campaigns/street_you_grew_up_on/post7/style_theme.json
+--- a/campaigns/street_you_grew_up_on/post7/style_theme.json
++++ b/campaigns/street_you_grew_up_on/post7/style_theme.json
+-  "transitionOrder": [
+-    "flash",
+-    "flare",
+-    "leak",
+-    "bwflash"
+-  ],
++  "transitionOrder": ["cut"],
