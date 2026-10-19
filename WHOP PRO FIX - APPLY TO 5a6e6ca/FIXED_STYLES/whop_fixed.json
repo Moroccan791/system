@@ -1,0 +1,17 @@
+{
+  "name": "whop",
+  "ink": "#0B0E11",
+  "paper": "#FFFFFF",
+  "radius": "sharp",
+  "glow": 0.0,
+  "speed": 1.0,
+  "easing": "soft",
+  "fontMode": "sans",
+  "captionStyle": "editorial",
+  "transitionOrder": [
+    "cut"
+  ],
+  "soundSeedSalt": 77,
+  "fontPack": "regular",
+  "cutTransitions": "hard"
+}

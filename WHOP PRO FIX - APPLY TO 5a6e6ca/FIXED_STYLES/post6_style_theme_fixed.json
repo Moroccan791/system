@@ -1,0 +1,45 @@
+{
+  "name": "whop",
+  "ink": "#0B0E11",
+  "paper": "#FFFFFF",
+  "radius": "sharp",
+  "glow": 0.0,
+  "speed": 1.0,
+  "easing": "soft",
+  "fontMode": "sans",
+  "captionStyle": "editorial",
+  "transitionOrder": [
+    "cut"
+  ],
+  "soundSeedSalt": 77,
+  "fontPack": "regular",
+  "cutTransitions": "hard",
+  "fonts": {
+    "caption": "regular",
+    "keyword": "displaybook",
+    "serif": "serifbi",
+    "list": "sansitalic",
+    "endcard": "grande"
+  },
+  "colors": {
+    "accent": "#78A974",
+    "caption": "#F5F3EA",
+    "keyword": "#78A974",
+    "serif": "#F5F3EA",
+    "endcard": "#78A974",
+    "plate": "#78A974",
+    "plateInk": "#111710",
+    "listHead": "#78A974",
+    "listBg": "#151A14",
+    "listText": "#F5F3EA",
+    "sceneBg": "#111611",
+    "sceneInk": "#F5F3EA"
+  },
+  "accent": "#78A974",
+  "styleCard": {
+    "approved": true,
+    "campaign": "street_you_grew_up_on",
+    "video": "post6",
+    "style_sha256": "b82f364a5fd2e7ceace9ea9e0ad4a59f47eeef7e318f9bf81b4020cdf42b2529"
+  }
+}
