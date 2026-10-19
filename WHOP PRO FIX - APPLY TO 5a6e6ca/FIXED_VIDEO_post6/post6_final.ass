@@ -1,0 +1,23 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Hook,Montserrat Extra Bold,84,&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,1,0,0,0,100,100,0,0,1,4,0,5,80,80,420,1
+Style: Main,Montserrat Extra Bold,62,&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,1,0,0,0,100,100,0,0,1,4,0,2,80,80,140,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:01.15,Hook,,0,0,0,,{\an8\pos(540,300)}OAK TREE
+Dialogue: 0,0:00:01.20,0:00:02.80,Main,,0,0,0,,I'm trying to {\c&H74A978&}build{\c}
+Dialogue: 0,0:00:02.90,0:00:05.80,Main,,0,0,0,,that will shade and {\c&H74A978&}protect{\c} my image
+Dialogue: 0,0:00:05.90,0:00:09.20,Main,,0,0,0,,like, I want to {\c&H74A978&}protect{\c} my kids,
+Dialogue: 0,0:00:09.30,0:00:11.00,Main,,0,0,0,,from outside influence
+Dialogue: 0,0:00:11.10,0:00:14.00,Main,,0,0,0,,and negative body image talk
+Dialogue: 0,0:00:14.10,0:00:17.30,Main,,0,0,0,,it's a journey I want to embark on
+Dialogue: 0,0:00:17.40,0:00:22.00,Main,,0,0,0,,and I'm {\c&H74A978&}excited{\c}
