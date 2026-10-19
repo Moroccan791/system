@@ -1,0 +1,27 @@
+{
+  "name": "sartain_pro",
+  "accent": "#14E5C5",
+  "ink": "#0B0E11",
+  "paper": "#FFFFFF",
+  "radius": "sharp",
+  "glow": 0.0,
+  "speed": 1.0,
+  "easing": "soft",
+  "fontMode": "sans",
+  "captionStyle": "editorial",
+  "fontPack": "sartain_pro",
+  "cutTransitions": "hard",
+  "transitionOrder": ["cut", "fade_black"],
+  "soundSeedSalt": 42,
+  "fonts": {
+    "body": "Montserrat Extra Bold",
+    "body_file": "Montserrat-ExtraBold.ttf",
+    "display": "Archivo Black",
+    "display_file": "ArchivoBlack.woff2",
+    "serif": "Playfair Display",
+    "serif_file": "PlayfairDisplay-BoldItalic.woff2",
+    "fallback": "Inter",
+    "fallback_file": "Inter-Regular.woff2"
+  },
+  "notes": "PRO LOCK 2026-10-19: replaces whop.json generic pack. Body=Montserrat ExtraBold for captions (96px white/black), Display=Archivo Black for hero numbers (140px accent plate), Serif=Playfair for quotes. Convert woff2 to ttf via woff2_to_ttf.sh before ffmpeg render — libass fontsdir needs ttf. Apply: cp motion/themes/sartain_pro.json motion/themes/michael_sartain.json && commit"
+}

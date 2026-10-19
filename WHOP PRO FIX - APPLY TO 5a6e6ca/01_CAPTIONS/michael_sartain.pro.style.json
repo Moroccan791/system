@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "campaign": "michael_sartain",
+  "source": {
+    "references": [
+      "80pct-men-wont-succeed.mp4",
+      "being-called-a-player.mp4",
+      "society-going-downhill.mp4"
+    ],
+    "notes": "PRO OVERRIDE 2026-10-19: learned style (152px/1word/8chars/blue outline/mid-frame) caused AI slop on Sartain explanatory sentences. This pro profile clamps to sane values while keeping Hormozi punch where appropriate. Original learned values preserved in michael_sartain.style.json; this .pro file takes precedence via clipper/config.py patch. See WHOP PRO FIX 01_CAPTIONS/README.md",
+    "extracted_at": "2026-10-19T00:00:00",
+    "original_learned": {
+      "font_size_ass": 152,
+      "primary_color": "#FDFCFD",
+      "outline_color": "#275B77",
+      "outline_width": 7,
+      "position_cy": 0.6756,
+      "max_words_per_cue": 1,
+      "max_chars_per_line": 8,
+      "karaoke_enabled": false,
+      "animation": "none"
+    },
+    "sample": {
+      "fps": 6.0,
+      "width": 480
+    }
+  },
+  "pacing": {
+    "avg_shot_len": 1.6,
+    "cuts_per_minute": 32.0,
+    "confidence": 0.85,
+    "median_shot_len": 1.4
+  },
+  "zoom": {
+    "dominant": "punch_in",
+    "punch_in_scale": 1.08,
+    "punch_in_duration": 0.35,
+    "confidence": 0.8
+  },
+  "transitions": {
+    "in": "cut",
+    "duration": 0.0,
+    "confidence": 1.0
+  },
+  "captions": {
+    "present": true,
+    "font_family": "Montserrat-ExtraBold",
+    "font_weight": "bold",
+    "italic": false,
+    "casing": "upper",
+    "font_size_ass": 96,
+    "cap_height_ratio": 0.045,
+    "primary_color": "#FFFFFF",
+    "outline_color": "#000000",
+    "outline_width": 6,
+    "shadow": 1,
+    "position": {
+      "anchor": "bottom_center",
+      "cx": 0.5,
+      "cy": 0.86,
+      "margin_v": 180
+    },
+    "karaoke": {
+      "enabled": true,
+      "highlight_color": "#FFE14D",
+      "scale_pop": 1.06
+    },
+    "animation": {
+      "in": "pop",
+      "duration": 0.12
+    },
+    "max_lines": 1,
+    "max_words_per_cue": 3,
+    "max_chars_per_line": 22,
+    "confidence": 0.92,
+    "evidence": {
+      "cue_count": 12,
+      "frames": []
+    },
+    "font_size_uncertainty": 0.12
+  },
+  "audio": {
+    "music_bed": false,
+    "target_lufs": -14.0,
+    "speech_ratio": 0.997,
+    "confidence": 0.52,
+    "ducking": false
+  },
+  "confidence": 0.88
+}

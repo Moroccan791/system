@@ -1,0 +1,43 @@
+{
+  "name": "sartain_pro_motion",
+  "version": 1,
+  "source": "WHOP PRO FIX 03_MOTION — less is pro. Overrides MOTIONS.md defaults for talking-head WHOP clips.",
+  "rules": {
+    "max_graphics_per_clip": 3,
+    "min_gap_seconds": 8.0,
+    "fullbleed_min_gap": 8.0,
+    "picture_min_gap": 8.0,
+    "data_scene_min_gap": 8.0,
+    "transitions": {
+      "default": "cut",
+      "allowed": ["cut", "fade_black"],
+      "fade_black_duration": 0.25,
+      "fade_black_only_on": ["timeline", "chapter", "process"],
+      "banned": ["flash", "flare", "leak", "bwflash", "zoomin", "pixelize"]
+    },
+    "data_gate": {
+      "people": "\\b(\\d+)\\s+(men|women|people|users)\\b",
+      "bars": "\\b(\\d+[\\d,]*)(?:\\D+)(\\d+[\\d,]*)\\b",
+      "counter": "\\b\\d+\\s*%|\\b\\d+\\s*percent\\b",
+      "line": "\\b(growing|growth|increase|decline|over time)\\b",
+      "stack": "\\b(most of|\\d+/\\d+|split|share)\\b",
+      "note": "Only assign data motion if its trigger regex matches the sentence at that timestamp. Otherwise, caption alone does the job. Prevents 12-graphic spam."
+    },
+    "mode_policy": {
+      "default": "card",
+      "fullbleed_only_for": ["people", "bars", "line"],
+      "fullbleed_requires": "number is thumbnail hook (e.g. 68%)",
+      "card_uses": "blurpad behind plate, not transparent over face (QC face_zone must pass)"
+    },
+    "variety_rule": {
+      "original": "never same motion twice in a row",
+      "pro_override": "allow data motion to repeat if numbers demand; only enforce variety for FEEL motions (flare/heart/burst)",
+      "code": "if motion == last_motion and last_motion_job == 'FEEL': skip else: allow"
+    },
+    "easing": {
+      "inside_graphic": "drift 100→103% + shine 1.2s (AUDIT 1.15) — motion lives INSIDE graphic, not as transition FX",
+      "external_transitions": "none — hard cuts only"
+    }
+  },
+  "notes": "Apply: import in motion/validate.py and motion/decide.py. See README.md for patches. Expected: 28s clip drops from 12→3 graphics, render time 90s→25s, retention up (viewer watches face, not slides)."
+}
