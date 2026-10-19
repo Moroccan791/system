@@ -1,0 +1,26 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Hook,Cabinet Grotesk Black,96,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,5,0,8,80,80,300,1
+Style: Main,Cabinet Grotesk Extrabold,64,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,4,0,2,80,80,90,1
+Style: Accent,Cabinet Grotesk Extrabold,64,&H0078A974,&H0078A974,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,4,0,2,80,80,90,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:01.20,Hook,,0,0,0,,{\an8\pos(540,310)}OAK TREE
+Dialogue: 0,0:00:00.00,0:00:01.55,Main,,0,0,0,,I'm trying to build
+Dialogue: 0,0:00:01.57,0:00:04.04,Main,,0,0,0,,a beautiful oak tree
+Dialogue: 0,0:00:04.06,0:00:06.88,Main,,0,0,0,,that will shade and protect my
+Dialogue: 0,0:00:06.97,0:00:08.13,Main,,0,0,0,,image like
+Dialogue: 0,0:00:08.15,0:00:11.14,Main,,0,0,0,,I want to protect my kids
+Dialogue: 0,0:00:11.49,0:00:13.99,Main,,0,0,0,,from outside influence
+Dialogue: 0,0:00:14.73,0:00:17.45,Main,,0,0,0,,and negative body image talk
+Dialogue: 0,0:00:17.47,0:00:21.04,Main,,0,0,0,,it's a journey I want to embark on
+Dialogue: 0,0:00:21.06,0:00:22.55,Main,,0,0,0,,and I'm excited
