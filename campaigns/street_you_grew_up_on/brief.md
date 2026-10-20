@@ -221,3 +221,35 @@ USER: "do all of them ... we need to make our clips the best to get views."
    one question - does the hook score predict retention? With no numbers it
    says so rather than inventing a story.
 
+## Phase 1-3: retention steps (2026-10-20)
+
+USER: "do all of them which u mentioned rn."
+
+1. **Lead-in** - clips open 0.12s before the first word (`tighten.lead_in`) so
+   frame 1 is speech, not a beat. Deliberately *not* trimming into the first
+   word: on post 7 that would clip "I".
+2. **Re-hook** - the director picks the strongest emphasised word nearest the
+   centre (40-62% of the clip) and adds a punch, a framing tick and an audio
+   tick. On post 7 it declines: the key words sit at 0.3-5.8s and 18.8s, so a
+   mid-clip re-hook would be arbitrary. The rule fires on raws that have one.
+3. **Crossfades at joins** - 40ms equal-power fade at every tightening join, so
+   a cut at a silence cannot click. A true L-cut was measured and rejected:
+   moving audio earlier than picture shifts every word 250ms from its caption.
+4. **Speed ramp** - 0.94x over the payoff, applied to the finished clip so the
+   picture, the burned-in captions and the audio slow together, then the
+   manifest is remapped through `retime.map_time`. Post 7: 20.63 -> 20.71s.
+5. **Card hold** - CTA holds 0.85s (`card_hold`) instead of running to the end
+   of the source; post 7 lost 0.4s of dead card.
+6. **Caption drift** - the band drifts +/-6px with the camera push instead of
+   sitting dead still.
+7. **Emphasis ticks** - a 2.4kHz 45ms tick on the re-hook word, far below the
+   voice.
+8. **Batch** - `batch.py` renders every post in one command and prints a table
+   instead of dying on the first failure.
+9. **Pre-flight** - `preflight.py` checks resolution, clipping, face time,
+   shot count and (with a transcript) the best hook before anyone edits. Run on
+   post 7's source: all PASS, face in 80% of samples.
+10. **Results loop** - `results_tracker.py --add post7 5.0 120000 0.61` writes
+    the row; `analyse` answers whether hook score predicts retention, and says
+    so honestly when there are fewer than three posts.
+

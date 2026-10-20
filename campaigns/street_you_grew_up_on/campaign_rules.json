@@ -81,7 +81,8 @@
     "gap": 0.55,
     "pad": 0.12,
     "keep_air": 0.28,
-    "note": "Remove pauses longer than 0.55s, keep 0.12s of air around words, never leave less than 0.28s of a cut. Captions, punches, bed and manifest are all remapped to the new clock."
+    "note": "Remove pauses >0.55s, keep 0.12s of air; open 0.12s before the first word so frame 1 is speech, not a beat. Captions, punches, bed and manifest remapped.",
+    "lead_in": 0.12
   },
   "roto": {
     "lift": 0.14,
@@ -93,5 +94,13 @@
     "kind": "whip",
     "window": 0.2,
     "note": "Applied only at detected shot changes, never in the first 1.5s, never within 0.6s of the end card, at most one per 0.9s."
+  },
+  "card_hold": 0.85,
+  "caption_drift_px": 6,
+  "ramp": {
+    "enabled": true,
+    "factor": 0.94,
+    "window": 1.1,
+    "note": "6% slow-down over the payoff, applied to the finished clip so captions and audio stay in sync; manifest times are remapped."
   }
 }

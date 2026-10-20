@@ -119,8 +119,14 @@ def cut_audio(src: Path, segments: list[tuple[float, float]], out: Path,
     which is audible on plosives long before it is visible.
     """
     parts, labels = [], []
-    for i, (a, b) in enumerate(segments):
-        parts.append(f"[0:a]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS[a{i}]")
+    fade = 0.04          # equal-power 40 ms: a join at a silence should be
+    for i, (a, b) in enumerate(segments):   # inaudible, not a click
+        chain = f"[0:a]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS"
+        if i:
+            chain += f",afade=t=in:d={fade}"
+        if i < len(segments) - 1:
+            chain += f",afade=t=out:st={max(0.0, b - a - fade):.3f}:d={fade}"
+        parts.append(chain + f"[a{i}]")
         labels.append(f"[a{i}]")
     graph = ";".join(parts) + ";" + "".join(labels) + \
         f"concat=n={len(segments)}:v=0:a=1[out]"

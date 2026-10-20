@@ -73,6 +73,7 @@ import timeline as TL                          # dead-air cuts, and the clock th
 import body_mask as BM                         # person roto: lift, wrap, parallax
 import motion_kit as MK                        # whip/zoom transitions between shots
 import cover as CV                             # the frame the grid actually shows
+import retime as RT                            # speed ramp, applied to the finished clip
 import caption_rules as CR                     # 14-char lines, fillers, card timing
 
 W, H = FR.W, FR.H
@@ -533,6 +534,11 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                                 gap=float(tight_cfg["gap"]),
                                 pad=float(tight_cfg["pad"]),
                                 keep_air=float(tight_cfg["keep_air"]))
+    lead = float(tight_cfg.get("lead_in", 0.12))
+    if segments and segments[0][0] > 0:
+        # A clip that opens on a static beat loses the first half-second to
+        # nothing. Start a beat before the first word instead.
+        segments[0] = (max(0.0, segments[0][0] - lead), segments[0][1])
     tl = TL.Timeline(segments)
     if not tl.is_identity:
         # captions, words, punches and the end card all live on the old clock
@@ -569,9 +575,14 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
          "lines": [[cell["w"] for cell in line] for line in c["lines"]]}
         for c in caps], words=[{"at": cell["at"], "end": cell["end"]}
                                for cap in caps for line in cap["lines"] for cell in line],
-        key_words=len(key_times))
+        key_words=len(key_times), key_times=key_times)
     punch_spec = {**PUNCH, **(cfg.get("punch") or {})}
     punches = punch_events(key_times, punch_spec) if direction["punches"]["use"] else []
+    rehook_t = direction.get("rehook", {}).get("where")
+    if direction.get("rehook", {}).get("use") and rehook_t is not None:
+        # the re-hook must actually land, even if the spacing rule skipped it
+        if all(abs(rehook_t - t) >= 0.9 for t, _ in punches):
+            punches = sorted(punches + [(round(float(rehook_t), 3), float(punch_spec["amount"]))])
     cuts = framing_cuts(caps) if direction["ab_framing"]["use"] else []
     # The opening line is also set as a title in the top third, where the
     # platform UI does not sit, and the band starts on the next card so the
@@ -592,6 +603,10 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     if end_mode == "peak":
         # cut on the peak: last spoken word, a beat of air, fade. No CTA card.
         duration = min(duration, endcard_at + 0.35)
+    else:
+        # The CTA is read in under a second; every extra frame of card is
+        # drop-off at the end, which is the completion signal.
+        duration = min(duration, endcard_at + float(rules_doc.get("card_hold", 0.85)))
 
     grade_cfg = dict(DEFAULT_GRADE)
     grade_cfg.update(rules_doc.get("grade") or {})
@@ -682,6 +697,10 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                     frame = BM.parallax(frame, mask, depth=float(ROTO["depth"]) * (0.4 + t / max(duration, 0.1)))
             if cap is not None:
                 ov = typer.overlay(cap, t)
+                drift = int(round(float(rules_doc.get("caption_drift_px", 6))
+                                  * math.sin(2 * math.pi * t / max(duration, 1.0))))
+                if drift:
+                    ov = np.roll(ov, drift, axis=1)
                 a = ov[:, :, 3:4].astype(np.float32) / 255.0
                 if a.any():
                     frame = (frame.astype(np.float32) * (1 - a)
@@ -758,15 +777,49 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         except Exception:
             voice_rms = 0.0
         target = SD.bed_target(voice_rms) if voice_rms else None
+        ticks = []
+        if direction.get("rehook", {}).get("use") and rehook_t is not None:
+            ticks = [float(rehook_t)]
         track = SD.build_track(duration, intervals,
                                [t for t, _ in punches] if sound_cfg.get("hits") else [],
                                int(sound_cfg.get("rate") or 48000),
-                               target_rms=target)
+                               target_rms=target, ticks=ticks)
         if not sound_cfg.get("bed"):
             track = np.zeros_like(track)
         mixed = final.with_name(final.stem + "_bed.mp4")
         SD.mix_into(final, mixed, track, int(sound_cfg.get("rate") or 48000), ff)
         mixed.replace(final)
+
+    # -- speed ramp on the payoff: the finished clip is retimed, so the picture
+    # and its burned-in captions slow together and nothing drifts
+    ramp_cfg = {"enabled": False, "factor": 0.94, "window": 1.1}
+    ramp_cfg.update(rules_doc.get("ramp") or {})
+    ramp_cfg.update(cfg.get("ramp") or {})
+    ramp_info = None
+    if ramp_cfg.get("enabled") and key_times:
+        payoff = float(max(key_times))
+        a = max(0.0, payoff - 0.25)
+        b = min(duration, payoff + float(ramp_cfg["window"]))
+        if b - a > 0.4:
+            clean, new_duration = RT.plan([(a, b, float(ramp_cfg["factor"]))], duration)
+            if clean:
+                RT.ramp(final, final.with_name(final.stem + "_ramp.mp4"),
+                        [(a, b, float(ramp_cfg["factor"]))], duration)
+                ramped = final.with_name(final.stem + "_ramp.mp4")
+                ramped.replace(final)
+                for cap in caps:
+                    cap["show_from"] = RT.map_time(float(cap["show_from"]), clean)
+                    cap["show_until"] = RT.map_time(float(cap["show_until"]), clean)
+                    for line in cap["lines"]:
+                        for cell in line:
+                            cell["at"] = RT.map_time(float(cell["at"]), clean)
+                            cell["end"] = RT.map_time(float(cell["end"]), clean)
+                endcard_at = RT.map_time(endcard_at, clean)
+                duration = new_duration
+                ramp_info = {"window": [round(a, 2), round(b, 2)],
+                             "factor": float(ramp_cfg["factor"]),
+                             "duration_before": round(new_duration - (b - a) * (1 / float(ramp_cfg["factor"]) - 1), 3),
+                             "duration_after": round(duration, 3)}
 
     name = f"street_{post}{'_preview' if not ship else ''}.mp4"
     dest = (folder / name) if ship else (ROOT / "work" / "street" / post / name)
@@ -837,6 +890,8 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "key_words": len(key_times),
         "direction": {k: v for k, v in direction.items() if not k.startswith("_")},
         "tighten": tighten_info,
+        "rehook": direction.get("rehook"),
+        "ramp": ramp_info,
         "transitions_at": [round(c, 2) for c in trans_at],
         "roto": need_roto,
         "cover": cover_info,

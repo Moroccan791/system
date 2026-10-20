@@ -157,9 +157,24 @@ def bed_target(voice_rms: float, *, under_db: float = 18.0) -> float:
     return max(1e-5, float(voice_rms) * (10 ** (-under_db / 20.0)))
 
 
+def tick(rate: int = RATE, *, freq: float = 2400.0, seconds: float = 0.045,
+         level: float = 0.05) -> np.ndarray:
+    """A very quiet high tick on the strongest words.
+
+    The ear should agree with the eye. It has to be under the voice to be
+    pleasant - the gate fails a render whose voice is not 12 dB clear, and
+    this sits far below that.
+    """
+    n = int(seconds * rate)
+    t = np.arange(n, dtype=np.float32) / rate
+    env = np.exp(-t / 0.010).astype(np.float32)
+    return (level * env * np.sin(2 * math.pi * freq * t).astype(np.float32)).astype(np.float32)
+
+
 def build_track(seconds: float, intervals: list[tuple[float, float]],
                 hits: list[float], rate: int = RATE,
-                target_rms: float | None = None) -> np.ndarray:
+                target_rms: float | None = None,
+                ticks: list[float] | None = None) -> np.ndarray:
     """Full bed: pad, ducking, and a hit on each punch.
 
     `target_rms` should come from `bed_target(speech_level(...))` so the bed
@@ -185,6 +200,12 @@ def build_track(seconds: float, intervals: list[tuple[float, float]],
         i1 = min(len(bed), i0 + len(hit))
         if i1 > i0:
             bed[i0:i1] += hit[: i1 - i0, None]
+    tk = tick(rate)
+    for at in ticks or []:
+        i0 = int(at * rate)
+        i1 = min(len(bed), i0 + len(tk))
+        if i1 > i0:
+            bed[i0:i1] += tk[: i1 - i0, None]
     return np.clip(bed, -0.99, 0.99)
 
 

@@ -185,7 +185,8 @@ def filter_transitions(cuts: list[float], *, duration: float, endcard: float,
 
 
 def decide(meas: dict, *, duration: float, cards: list[dict], words: list[dict],
-           key_words: int, rules: dict | None = None) -> dict:
+           key_words: int, key_times: list[float] | None = None,
+           rules: dict | None = None) -> dict:
     """The rulebook. Every entry: use / why / confidence / where."""
     plan: dict[str, dict] = {}
     speeds = len(words) / max(duration, 0.1)
@@ -258,6 +259,22 @@ def decide(meas: dict, *, duration: float, cards: list[dict], words: list[dict],
         "confidence": min(1.0, 0.4 + 0.05 * key_words),
     }
 
+    # A second hook in the back half: retention sags around the middle and
+    # nothing currently happens there. Pick the strongest emphasised word
+    # nearest the centre, and only if it is genuinely central.
+    times = sorted(float(t) for t in (key_times or []))
+    mid = duration / 2
+    near = min(times, key=lambda t: abs(t - mid)) if times else None
+    centre = near is not None and 0.40 * duration <= near <= 0.62 * duration
+    plan["rehook"] = {
+        "use": bool(centre),
+        "why": (f"strongest back-half word at {near:.2f}s is near the centre"
+                if centre else
+                "no emphasised word near the middle - a re-hook there would be arbitrary"),
+        "where": round(near, 2) if centre else None,
+        "confidence": 0.7 if centre else 0.2,
+    }
+
     opening = cards[0] if cards else None
     n_open = len(opening["lines"][0]) if opening and opening.get("lines") else 0
     plan["kinetic_type"] = {
@@ -271,7 +288,7 @@ def decide(meas: dict, *, duration: float, cards: list[dict], words: list[dict],
 
 def plan_for(video: Path, *, cards: list[dict], words: list[dict],
              key_words: int = 0, rules: dict | None = None,
-             every: float = 0.25) -> dict:
+             every: float = 0.25, key_times: list[float] | None = None) -> dict:
     frames = _sample(video, every)
     duration = frames[-1][0] if frames else 0.0
     meas = {
@@ -281,7 +298,7 @@ def plan_for(video: Path, *, cards: list[dict], words: list[dict],
         "sampled": len(frames),
     }
     plan = decide(meas, duration=duration, cards=cards, words=words,
-                  key_words=key_words, rules=rules)
+                  key_words=key_words, key_times=key_times, rules=rules)
     plan["_measured"] = meas
     return plan
 

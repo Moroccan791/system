@@ -141,13 +141,52 @@ def analyse(rows: list[dict], floor: float = 4.0) -> dict:
     return out
 
 
+def append_row(path: Path, *, post: str, hook: float, views: int,
+               watched_3s: float, duration: float) -> Path:
+    """Add one measured post to the table, so the loop can start.
+
+    Writing the row is the hard part in practice - it is the step that gets
+    skipped - so it takes one command and refuses to double-add a post.
+    """
+    text = path.read_text() if path.exists() else "# Results\n\n"
+    lines = text.splitlines()
+    header_at = next((i for i, ln in enumerate(lines)
+                      if ln.strip().startswith("|") and "post" in ln.lower()
+                      and "hook" in ln.lower()), None)
+    if header_at is None:
+        while lines and not lines[-1].strip():
+            lines.pop()
+        lines += ["", "| post | hook_score | views | watched_3s | duration |",
+                  "|---|---|---|---|---|"]
+        header_at = len(lines) - 2
+    if any(ln.split("|")[1].strip() == post for ln in lines[header_at:]
+           if ln.strip().startswith("|") and len(ln.split("|")) > 1):
+        raise SystemExit(f"{post} is already in {path} - edit the row instead")
+    row = f"| {post} | {hook:g} | {views} | {watched_3s:g} | {duration:g} |"
+    insert_at = header_at + 2
+    while insert_at < len(lines) and lines[insert_at].strip().startswith("|"):
+        insert_at += 1
+    lines.insert(insert_at, row)
+    path.write_text("\n".join(lines) + "\n")
+    return path
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("results", help="RESULTS.md or a .csv")
     ap.add_argument("--floor", type=float, default=4.0)
     ap.add_argument("--json", help="write the analysis here")
+    ap.add_argument("--add", nargs=4, metavar=("POST", "HOOK", "VIEWS", "WATCHED_3S"),
+                    help="append a measured post, e.g. --add post7 5.0 120000 0.61")
+    ap.add_argument("--duration", type=float, default=22.0)
     args = ap.parse_args()
+    if args.add:
+        post, hook, views, watched = args.add
+        append_row(Path(args.results), post=post, hook=float(hook),
+                   views=int(float(views)), watched_3s=float(watched),
+                   duration=args.duration)
+        print(f"added {post} to {args.results}")
     rows = parse_table(Path(args.results))
     out = analyse(rows, args.floor)
     print(json.dumps(out, indent=1))
