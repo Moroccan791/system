@@ -1,0 +1,57 @@
+{
+  "campaign": "street_you_grew_up_on",
+  "clip": {
+    "hard_min_seconds": 12.0,
+    "hard_max_seconds": 60.0,
+    "preferred_min_seconds": 25.0,
+    "preferred_max_seconds": 40.0,
+    "note": "The brief asks for hook-first 30-40 s shorts (up to 50 s); the clipping course says short and powerful beats long. The hard window is what the platform tolerates, the preferred band is what we aim at, and leaving the band is a warning that has to be answered in the pack, not a silent choice."
+  },
+  "hook": {
+    "within_seconds": 2.0,
+    "max_lead_in_words": 0,
+    "ban_first_words": [
+      "so",
+      "and",
+      "but",
+      "yeah",
+      "like",
+      "um",
+      "uh",
+      "well",
+      "okay",
+      "ok",
+      "right",
+      "basically",
+      "literally",
+      "now",
+      "see"
+    ],
+    "min_strength": 4.0,
+    "note": "Hook strength is scored 0-10 on the first 2 s by scripts/whop/hook_lab.py, calibrated on this campaign's reference clips (defiance 8.0, number 6.0, setup-first 0.6). Floor 4.0 = at least one concrete element (number, contrast, stakes, curiosity) before the preamble can eat it."
+  },
+  "captions": {
+    "max_lines": 2,
+    "target_chars": 14,
+    "max_chars": 17,
+    "forbid_fillers": true
+  },
+  "audio": {
+    "min_lufs": -17.0,
+    "max_lufs": -14.0,
+    "max_true_peak_dbtp": -1.3,
+    "voice_over_bed_db": 12.0
+  },
+  "picture": {
+    "max_top_bar_rows": 12,
+    "max_frozen_seconds": 3.0,
+    "caption_band": [
+      1480,
+      1805
+    ]
+  },
+  "ending": {
+    "max_tail_seconds": 2.0,
+    "note": "The course: cut at the emotional peak so the viewer taps before scrolling. The tail is the distance from the last spoken word to the end of the file; a CTA card plus fade over 2 s is a deliberate exception and must be recorded in the pack."
+  }
+}

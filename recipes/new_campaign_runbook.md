@@ -134,9 +134,15 @@ Anything missing is a question I ask before rendering, not a guess I bake in.
 1. `bash scripts/bootstrap.sh` if the sandbox was rebuilt.
 2. Write `campaigns/<campaign>/campaign_rules.json` and `brief.md` from the doc
    (numbers, never vibes), then `RESULTS.md` with an empty table.
-3. Transcribe the raw once (background), then shortlist moments with
-   `pick_clips.py` / `review_hooks.py` and pick hooks by the course's test:
-   would *I* stop scrolling in the first 2 seconds?
+3. Transcribe the raw once (background), then shortlist moments. Two tools:
+   `pick_clips.py` ranks by topic words (cheap, broad) and
+   `scripts/whop/hook_lab.py` ranks the *opening* itself - it prints, for
+   every plausible entry point, the card a viewer reads in the first 2 s and
+   a 0-10 score calibrated on the campaign's reference clips (defiance 8.0,
+   number 6.0, setup-first 0.6). Pick the entry whose 2 s card already lands
+   a claim, a number or a contrast; if the best line needs its sentence for
+   context, start later and cut into it. The same score is a warning on every
+   render (`qc_gate.py: hook_strength`).
 4. For each post: plan -> `make_post.py`. That chain now runs `check.py`
    **and** `qc_gate.py` on the finished file, so caption length, fillers,
    hook, loudness, true peak, voice-over-bed, bars, caption-over-face, frozen

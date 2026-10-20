@@ -88,3 +88,17 @@ Fetched 2026-10-17.
   the peak, the **last spoken line has to be the payoff itself** - no clip
   should end on a trailing "you know" or a filler, since that is the beat the
   viewer is left with before the card.
+
+## Hook selection (2026-10-20)
+
+- USER NOTE: "make sure we get the best hooks to keep users retention - that's
+  the best way to keep views."
+- Implemented as `scripts/whop/hook_lab.py`: every plausible entry point is
+  scored 0-10 on what a viewer sees in the first 2 s, calibrated on this
+  campaign's reference clips - defiance 8.0 (opens on its strongest line),
+  number 6.0 (same), setup-first 0.6 (reaches its number at 6.2 s; the clip
+  starts too early). The score is a gate warning on every render
+  (`hook_strength`, floor 4.0).
+- Rule of thumb the calibration produced: **open on the line that would work
+  as a caption on its own.** If the opening only makes sense with the
+  sentence that follows, trim into it.

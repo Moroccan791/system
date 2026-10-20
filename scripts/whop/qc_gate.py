@@ -34,6 +34,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 import caption_rules as CR                      # noqa: E402
+import hook_lab as HL                          # noqa: E402
 
 PASS, WARN, FAIL = "pass", "warn", "fail"
 
@@ -185,6 +186,30 @@ def check_hook(rows: list[dict], words: list[dict], rules: dict) -> None:
         add(rows, "hook", PASS, f"first {within:.0f}s: {line!r}")
 
 
+def check_hook_strength(rows: list[dict], words: list[dict], rules: dict) -> None:
+    """How strong is the thing a viewer meets in the first two seconds.
+
+    `check_hook` above only asks whether the opening is legible and not a
+    lead-in. This asks whether it is worth stopping for: the rubric is
+    calibrated on the campaign's own reference clips (defiance 8.0, number
+    6.0, setup-first 0.6), and it is a warning on purpose - picking the moment
+    is an editorial call, but a render that opens on "I'm trying to build"
+    should say so out loud rather than quietly ship.
+    """
+    heard = [w for w in words if float(w.get("at", 0)) < HL.WINDOW]
+    if not heard:
+        add(rows, "hook_strength", WARN, "no words inside the hook window")
+        return
+    text = " ".join(str(w.get("w") or w.get("text")) for w in heard)
+    score, why = HL.classify(text, [{"text": str(w.get("w") or w.get("text")),
+                                     "start": float(w.get("at", 0)),
+                                     "end": float(w.get("end", 0))} for w in heard])
+    floor = float(rules.get("hook", {}).get("min_strength", 4.0))
+    add(rows, "hook_strength", PASS if score >= floor else WARN,
+        f"{score:.1f}/10 (floor {floor:.0f}) - {'; '.join(why) or 'nothing concrete'} "
+        f"| {text!r}")
+
+
 def check_audio(rows: list[dict], path: Path, audio: np.ndarray, rules: dict) -> None:
     conf = rules.get("audio", {})
     info = measure(path)
@@ -327,6 +352,7 @@ def gate(video: Path, manifest: dict, rules: dict) -> dict:
     check_captions(rows, cards, rules)
     check_fillers(rows, [str(w.get("w") or w.get("text")) for w in words], rules)
     check_hook(rows, words, rules)
+    check_hook_strength(rows, words, rules)
     check_duration(rows, duration, rules)
     check_audio(rows, video, audio, rules)
     check_picture(rows, video, cards, rules, manifest.get("endcard"))
