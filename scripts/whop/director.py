@@ -164,6 +164,26 @@ def silence_windows(cards: list[dict], min_gap: float | None = None) -> list[tup
     return out
 
 
+def filter_transitions(cuts: list[float], *, duration: float, endcard: float,
+                       start: float = 1.5, tail: float = 0.6,
+                       min_gap: float = 0.9) -> list[float]:
+    """Keep only the cuts worth putting a transition on.
+
+    Three rules, each learned from the first render: never smear the opening
+    (it is the hook), never smear into or out of the end card (it is a designed
+    plate, not a shot), and never stack two inside a second - a clip with three
+    whips in 1.1 s reads as broken rather than as edited.
+    """
+    out: list[float] = []
+    for c in sorted(cuts):
+        if c < start or c > endcard - tail:
+            continue
+        if out and c - out[-1] < min_gap:
+            continue
+        out.append(round(c, 2))
+    return out
+
+
 def decide(meas: dict, *, duration: float, cards: list[dict], words: list[dict],
            key_words: int, rules: dict | None = None) -> dict:
     """The rulebook. Every entry: use / why / confidence / where."""
@@ -171,12 +191,17 @@ def decide(meas: dict, *, duration: float, cards: list[dict], words: list[dict],
     speeds = len(words) / max(duration, 0.1)
 
     cuts = meas.get("cuts", [])
+    endcard = max((float(c.get("show_until", 0)) for c in cards), default=duration)
+    usable = filter_transitions(cuts, duration=duration, endcard=endcard)
     plan["transition"] = {
-        "use": len(cuts) >= 1,
-        "why": (f"{len(cuts)} shot change(s) at {cuts[:4]}" if cuts else
+        "use": len(usable) >= 1,
+        "why": (f"{len(usable)} usable shot change(s) at {usable[:4]}"
+                + (f" ({len(cuts) - len(usable)} skipped: too early, into the card, "
+                   f"or too close to another)" if len(cuts) > len(usable) else "")
+                if cuts else
                 "one continuous shot - a whip or zoom has nothing to cut between"),
-        "where": cuts,
-        "confidence": min(1.0, 0.5 + 0.3 * len(cuts)),
+        "where": usable,
+        "confidence": min(1.0, 0.5 + 0.3 * len(usable)),
     }
 
     face = meas.get("face", {})
@@ -189,6 +214,20 @@ def decide(meas: dict, *, duration: float, cards: list[dict], words: list[dict],
                 if face.get("found") else "no steady face found"),
         "where": "face edge, all shots with a face",
         "confidence": 0.75 if wrap_ok else 0.25,
+    }
+
+    # A dark room has no spill to wrap - but it does leave the subject flat
+    # against it, which is what a subject lift is for. One or the other,
+    # decided by the same measurement.
+    lift_ok = (face.get("found", 0) > 0.6 and face.get("area", 0) > T["face_area"]
+               and face.get("bg_vs_face", 0) <= T["bg_lift"])
+    plan["subject_lift"] = {
+        "use": bool(lift_ok),
+        "why": (f"background sits {face.get('bg_vs_face', 0) * 100:+.0f}% vs skin - "
+                f"a dark room needs the subject separated, not wrapped"
+                if lift_ok else "background is bright enough that the subject already separates"),
+        "where": "subject matte",
+        "confidence": 0.75 if lift_ok else 0.3,
     }
 
     moving = meas.get("motion", 0.0)

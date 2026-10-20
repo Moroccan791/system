@@ -76,5 +76,22 @@
     "highpass": 90,
     "highpass_stages": 2,
     "note": "Rumble/mud out, presence in, gentle peak compression, limiter. No FFT denoise (watery tails on breaths). Loudness target is set by settle_audio (-16 LUFS, TP -1.3)."
+  },
+  "tighten": {
+    "gap": 0.55,
+    "pad": 0.12,
+    "keep_air": 0.28,
+    "note": "Remove pauses longer than 0.55s, keep 0.12s of air around words, never leave less than 0.28s of a cut. Captions, punches, bed and manifest are all remapped to the new clock."
+  },
+  "roto": {
+    "lift": 0.14,
+    "wrap": 0.6,
+    "depth": 0.05,
+    "note": "GrabCut matte seeded by the face box. Lift on a dark room, wrap on a bright one - the director picks, never both."
+  },
+  "transition": {
+    "kind": "whip",
+    "window": 0.2,
+    "note": "Applied only at detected shot changes, never in the first 1.5s, never within 0.6s of the end card, at most one per 0.9s."
   }
 }

@@ -199,3 +199,25 @@ Fetched 2026-10-17.
   (`bed_target(speech_level(...))`) instead of at a constant, so no audio
   change can silently make the music louder than intended.
 
+## The five builds (2026-10-20)
+
+USER: "do all of them ... we need to make our clips the best to get views."
+
+1. **Dead-air tightening** (`timeline.py`). Pauses over 0.55 s are removed,
+   keeping 0.12 s of air around each word; picture, audio, captions, punches,
+   the bed and the gate manifest all move together through one mapping.
+   Post 7 lost 0.61 s (21.63 -> 21.03).
+2. **Person roto** (`body_mask.py`). GrabCut seeded by the face box, refreshed
+   five times a second, feathered. Drives subject lift on a dark room and
+   edge light wrap on a bright one - the director picks one, never both.
+   LIMIT: fails on a busy background or a fast subject.
+3. **Transitions at real cuts** (`motion_kit.whip_pan` / `zoom_blur`, filtered
+   by `director.filter_transitions`). Never in the first 1.5 s, never within
+   0.6 s of the end card, at most one per 0.9 s. Post 7 gets 4.
+4. **Cover selection** (`cover.py`). Scores frames on sharpness, face size and
+   exposure and scans the clip instead of taking a timestamp. On post 7 it
+   picked 13.2 s over the old fixed 2.26 s.
+5. **Results loop** (`results_tracker.py`). Reads RESULTS.md/CSV and answers
+   one question - does the hook score predict retention? With no numbers it
+   says so rather than inventing a story.
+

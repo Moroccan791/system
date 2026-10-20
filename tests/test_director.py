@@ -131,3 +131,16 @@ def test_shot_detection_separates_a_hard_cut_from_a_head_turn() -> None:
     frames = [(0.0, a), (0.25, turn), (0.5, b)]
     cuts = D.shot_cuts(frames, threshold=0.5)
     assert cuts == [0.5], cuts
+
+
+def test_transitions_never_touch_the_opening_or_the_card() -> None:
+    cuts = [0.53, 5.33, 6.67, 16.8, 20.72, 21.0]
+    kept = D.filter_transitions(cuts, duration=21.6, endcard=20.38)
+    assert 0.53 not in kept, "the hook must not be smeared"
+    assert all(c < 20.38 for c in kept), "no whip into the end card"
+
+
+def test_transitions_are_thinned_out() -> None:
+    cuts = [4.0, 4.2, 4.4, 8.0]
+    kept = D.filter_transitions(cuts, duration=12.0, endcard=11.0)
+    assert len(kept) == 2 and kept[0] == 4.0 and kept[1] == 8.0

@@ -69,6 +69,10 @@ import font_refresh as FR                     # Typesetter, erase_captions, buil
 import sound_design as SD                      # synthesised bed + hits we own outright
 import director as DIR                         # which move this shot needs, and which it does not
 import voice_finish as VF                      # rumble/mud out, presence in, before the bed
+import timeline as TL                          # dead-air cuts, and the clock they move
+import body_mask as BM                         # person roto: lift, wrap, parallax
+import motion_kit as MK                        # whip/zoom transitions between shots
+import cover as CV                             # the frame the grid actually shows
 import caption_rules as CR                     # 14-char lines, fillers, card timing
 
 W, H = FR.W, FR.H
@@ -493,6 +497,8 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     style = json.loads((folder / "style.json").read_text())
     style["colors"]["keyword"] = cfg["emphasis"]     # emphasis ink (see module doc)
     plan = json.loads((ROOT / "scripts" / "whop" / "plans" / f"{post}.json").read_text())
+    rules_path = ROOT / "campaigns" / CAMPAIGN / "campaign_rules.json"
+    rules_doc = json.loads(rules_path.read_text()) if rules_path.exists() else {}
 
     words = FR.ensure_words(post, src)
     win = FR.WINDOWS[post]
@@ -510,6 +516,36 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     if end_mode == "peak":
         last_end = max(float(c.get("end") or 0) for cap in caps for line in cap["lines"] for c in line)
         endcard_at = last_end + 0.25
+
+    cap_v = cv2.VideoCapture(str(src))
+    fps = cap_v.get(cv2.CAP_PROP_FPS) or 30.0
+    n_frames = int(cap_v.get(cv2.CAP_PROP_FRAME_COUNT))
+    duration = n_frames / fps
+
+    # -- dead air: cut it, and move every other clock with it
+    tight_cfg = {"gap": 0.55, "pad": 0.12, "keep_air": 0.28}
+    tight_cfg.update(rules_doc.get("tighten") or {})
+    tight_cfg.update(cfg.get("tighten") or {})
+    src_duration = duration
+    word_spans = [{"at": cell["at"], "end": cell["end"]}
+                  for cap in caps for line in cap["lines"] for cell in line]
+    segments = TL.keep_segments(word_spans, duration=src_duration,
+                                gap=float(tight_cfg["gap"]),
+                                pad=float(tight_cfg["pad"]),
+                                keep_air=float(tight_cfg["keep_air"]))
+    tl = TL.Timeline(segments)
+    if not tl.is_identity:
+        # captions, words, punches and the end card all live on the old clock
+        for cap in caps:
+            cap["show_from"] = tl.map(float(cap["show_from"]))
+            cap["show_until"] = tl.map(float(cap["show_until"]))
+            for line in cap["lines"]:
+                for cell in line:
+                    cell["at"] = tl.map(float(cell["at"]))
+                    cell["end"] = tl.map(float(cell["end"]))
+        endcard_at = tl.map(endcard_at)
+    duration = tl.duration
+    tighten_info = tl.preview()
 
     at_word = {}
     for cap in caps:
@@ -540,23 +576,25 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     # The opening line is also set as a title in the top third, where the
     # platform UI does not sit, and the band starts on the next card so the
     # same words are never on screen twice.
+    ROTO = {"lift": 0.14, "wrap": 0.6, "depth": 0.05}
+    ROTO.update(rules_doc.get("roto") or {})
+    TRANS = {"kind": "whip", "window": 0.20}
+    TRANS.update(rules_doc.get("transition") or {})
+    need_roto = direction["subject_lift"]["use"] or direction["light_wrap"]["use"]
+    tracker = MK.FaceTracker(ROOT / "assets" / "models" / "face_detection_yunet_2023mar.onnx")
+    masker = BM.PersonMasker({"refresh": 5})
+    trans_at = [tl.map(c) for c in direction["transition"]["where"]] \
+        if direction["transition"]["use"] else []
     hook_cells = [cell for line in caps[0]["lines"] for cell in line] if caps else []
     hook_until = (min(1.60, float(caps[1]["show_from"]) + 0.10)
                   if len(caps) > 1 else min(1.60, duration))
 
-    cap_v = cv2.VideoCapture(str(src))
-    fps = cap_v.get(cv2.CAP_PROP_FPS) or 30.0
-    n_frames = int(cap_v.get(cv2.CAP_PROP_FRAME_COUNT))
-    duration = n_frames / fps
     if end_mode == "peak":
         # cut on the peak: last spoken word, a beat of air, fade. No CTA card.
-        n_frames = max(1, int(round(min(duration, endcard_at + 0.35) * fps)))
-        duration = n_frames / fps
+        duration = min(duration, endcard_at + 0.35)
 
     grade_cfg = dict(DEFAULT_GRADE)
-    rules_path = ROOT / "campaigns" / CAMPAIGN / "campaign_rules.json"
-    if rules_path.exists():
-        grade_cfg.update(json.loads(rules_path.read_text()).get("grade") or {})
+    grade_cfg.update(rules_doc.get("grade") or {})
     grade_cfg.update(cfg.get("grade") or {})
     vig_mask = None
     typer = FR.Typesetter(style)
@@ -582,11 +620,20 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     prev_bar = 0
     bars: list[int] = []
     plates = 0
+    written = 0
     for fi in range(n_frames):
         ok, frame = cap_v.read()
         if not ok:
             break
-        t = fi / fps
+        t_src = fi / fps
+        # A frame inside a removed gap is never written: the picture and the
+        # cut audio then share one timeline, which is what makes the joins
+        # land on the same sample as the caption.
+        if not tl.kept(t_src):
+            continue
+        t = tl.map(t_src)
+        if t >= duration:
+            continue
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         std = float(cv2.resize(gray, (108, 192)).std())
         bar = bar_rows(gray)
@@ -624,6 +671,15 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
             # type but does not tint it, so this order keeps both.
             if std >= PLATE_STD:
                 frame = grade_frame(frame, grade_cfg, vig_mask)
+            if need_roto and std >= PLATE_STD:
+                fbox = tracker.update(frame)
+                mask = masker.mask(frame, fbox)
+                if direction["subject_lift"]["use"]:
+                    frame = BM.subject_lift(frame, mask, float(ROTO["lift"]))
+                if direction["light_wrap"]["use"]:
+                    frame = MK.light_wrap(frame, mask, strength=float(ROTO["wrap"]))
+                if direction["dolly"]["use"]:
+                    frame = BM.parallax(frame, mask, depth=float(ROTO["depth"]) * (0.4 + t / max(duration, 0.1)))
             if cap is not None:
                 ov = typer.overlay(cap, t)
                 a = ov[:, :, 3:4].astype(np.float32) / 255.0
@@ -639,6 +695,14 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                 z = (zoom_at(t, keys) * punch_at(t, punches, punch_spec)
                      * segment_scale(t, cuts))
                 out = camera_frame(frame, bar, min(1.10, z), dx, dy)
+                if trans_at:
+                    near = min(trans_at, key=lambda c: abs(t - c))
+                    dist = abs(t - near)
+                    if dist <= TRANS["window"]:
+                        amt = (1.0 - dist / TRANS["window"]) ** 1.4
+                        idx = trans_at.index(near)
+                        out = (MK.whip_pan(out, amt, direction=1 if idx % 2 == 0 else -1)
+                               if TRANS["kind"] == "whip" else MK.zoom_blur(out, amt * 3.0))
                 if hook_cells and t < hook_until:
                     ov = typer.hook_image(hook_cells, t, y=int(cfg.get("hook_y", 300)))
                     fade = min(1.0, max(0.0, (hook_until - t) / 0.16))
@@ -651,13 +715,19 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
             out = (out.astype(np.float32)
                    * (1 - 0.92 * (t - (duration - 0.5)) / 0.5)).astype(np.uint8)
         enc.stdin.write(out.tobytes())
+        written += 1
     cap_v.release()
     enc.stdin.close()
     if enc.wait() != 0:
         raise SystemExit(f"{post}: video encode failed")
 
     final = ROOT / "work" / "street" / post / "tight.mp4"
-    mux(out_video, src, final, with_audio=True)       # sound copied, never re-timed
+    if tl.is_identity:
+        mux(out_video, src, final, with_audio=True)   # sound copied, never re-timed
+    else:
+        cut_audio = ROOT / "work" / "street" / post / "tight_audio.m4a"
+        TL.cut_audio(src, tl.segments, cut_audio, ff)
+        mux(out_video, cut_audio, final, with_audio=True)
     if end_mode == "peak":
         trimmed = ROOT / "work" / "street" / post / "tight_peak.mp4"
         subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
@@ -667,16 +737,14 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         final = trimmed
     # -- voice first: the bed is mixed under what the EQ and compressor leave
     voice_cfg = dict(VF.DEFAULT)
-    if rules_path.exists():
-        voice_cfg.update(json.loads(rules_path.read_text()).get("voice") or {})
+    voice_cfg.update(rules_doc.get("voice") or {})
     voice_cfg.update(cfg.get("voice") or {})
     if voice_cfg.get("enabled"):
         VF.finish(final, voice_cfg)
 
     # -- sound design: synthesised, so nothing to license and nothing to claim
     sound_cfg = dict(DEFAULT_SOUND)
-    if rules_path.exists():
-        sound_cfg.update(json.loads(rules_path.read_text()).get("sound") or {})
+    sound_cfg.update(rules_doc.get("sound") or {})
     sound_cfg.update(cfg.get("sound") or {})
     if sound_cfg.get("enabled"):
         intervals = SD.word_intervals(
@@ -708,6 +776,10 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     # cover: a frame where a key word is fully typed and the face is on screen
     cover_t = float(cfg.get("cover")
                     or at_word.get(FR.norm(cfg.get("cover_word", "")), 1.3) + 0.30)
+    cover_info = None
+    if ship:
+        cover_info = CV.best_frame(dest, start=1.0, end=max(1.2, duration - 1.0))
+        cover_t = float(cover_info.get("at", cover_t))
     cap_v = cv2.VideoCapture(str(dest))
     cap_v.set(cv2.CAP_PROP_POS_MSEC, cover_t * 1000)
     ok, frame = cap_v.read()
@@ -752,7 +824,7 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "source": str(src),
         "emphasis": cfg["emphasis"],
         "duration": round(duration, 2),
-        "frames": n_frames,
+        "frames": written,
         "sizes": {"bytes": dest.stat().st_size},
         "camera_keys": [[round(t, 2), round(z, 3)] for t, z in keys],
         "bar_rows_seen": sorted(set(bars)),
@@ -764,6 +836,10 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "voice_chain": VF.chain(voice_cfg) if voice_cfg.get("enabled") else None,
         "key_words": len(key_times),
         "direction": {k: v for k, v in direction.items() if not k.startswith("_")},
+        "tighten": tighten_info,
+        "transitions_at": [round(c, 2) for c in trans_at],
+        "roto": need_roto,
+        "cover": cover_info,
         "hook_title": {"until": round(hook_until, 2),
                        "words": [c["w"] for c in hook_cells]},
         "punches": [[round(t, 2), round(a, 3)] for t, a in punches],
