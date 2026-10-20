@@ -64,6 +64,40 @@
   denoise + cas sharpen. The biggest quality lever left is the user's:
   raws downloaded at the highest quality available (1080p+).
 
+## The course rules, now enforced (2026-10-20)
+
+The campaign supplied a clipping course ("Clipping 101"). Its editorial rules
+are now code, not intentions - they were applied by hand before, which is how
+shipped files ended up with 24-character caption lines and a visible "um":
+
+| Rule (course wording) | Where it lives | Fails the render? |
+|---|---|---|
+| "1-2 lines max, ~14 characters per line" | `scripts/whop/caption_rules.py` (`wrap_cells`, `card_report`) | yes, over 17 chars or 3+ lines; warns when >25% of lines exceed 14 |
+| "Trim uh, um, you know, like" | `caption_rules.filler_words` | yes, any filler left in the kept speech |
+| "Hook in the first 2 seconds, never a throwaway lead-in" | `qc_gate.py:check_hook` + `campaign_rules.json` | yes |
+| "Cut at the emotional peak" | `tight_posts.py --end=peak` (cuts on the last word, no CTA card) + `ending_tail` check | warns over 2 s of tail |
+| "Voice is always the loudest element" | `qc_gate.py:check_audio`, measured in the 250-3500 Hz voice band | yes, under 12 dB over the bed |
+| "No black bars" | `qc_gate.check_picture`, footage frames only, end card exempt | yes |
+| "Never over the face" | `qc_gate.check_picture`, YuNet score >= 0.62 and >35% of the box in the band | yes |
+| "No static visuals" | `qc_gate.check_picture`, frozen stretch > 3 s | yes |
+| Duration window | `campaign_rules.json` (hard 12-60 s, preferred 25-40 s) | hard fail outside, warn outside preferred |
+
+Run it after every render:
+
+    .venv/bin/python scripts/whop/qc_gate.py <video> --manifest work/street/<post>/tight_cards.json
+
+The report lands next to the video as `<video>.qc.json`. Per-campaign numbers
+live in `campaigns/<campaign>/campaign_rules.json` - never hard-code them in a
+script, and never lower a limit to make a render pass.
+
+Two habits the course is really about, which no gate can do:
+- **`RESULTS.md`** in the campaign folder: every post's views, watch time,
+  first cliff and US%, plus a verbatim "mistake list" of every note. Fill it
+  48 h after posting; the next batch is cut against it.
+- **`recipes/distribution_playbook.md`**: the Tier-1/US account setup and the
+  80%-US check. A clip that holds watch time and gets no reach is a
+  distribution problem, not an editing one.
+
 ## The fast path
 
 Everything below is one command per step; the slow one-off work

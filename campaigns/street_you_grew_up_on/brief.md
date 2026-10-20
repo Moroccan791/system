@@ -62,3 +62,18 @@ Fetched 2026-10-17.
   untouched (no cut, no stretch, no re-mix - the keyboard is already in it),
   rebuild picture only, and apply one constant gain so the true peak lands at
   -1.3 dBTP. See `scripts/whop/tight_posts.py`.
+
+## Course rules adopted (2026-10-20)
+
+- The campaign's "Clipping 101" is now enforced by
+  `scripts/whop/caption_rules.py` + `scripts/whop/qc_gate.py`, with the
+  numbers in `campaign_rules.json`: 1-2 caption lines, ~14 chars (17 ceiling),
+  no fillers left in the kept speech, hook inside 2 s, voice at least 12 dB
+  over the bed, no black bars, no caption over a face, nothing frozen over 3 s,
+  25-40 s preferred (12-60 s hard).
+- Ending has two modes: the branded CTA card, or `--end=peak`, which cuts on
+  the last spoken word because the course says to cut at the emotional peak.
+  Whichever is used must be recorded in the post's pack.
+- Results loop: `RESULTS.md` in this folder, one row per post 48 h after it
+  goes up (views, watch time, first cliff, US%). Distribution:
+  `recipes/distribution_playbook.md`.

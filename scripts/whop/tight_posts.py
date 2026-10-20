@@ -35,6 +35,20 @@ What it does change:
 
 Everything is still the user's Shawkind, still verbatim, still no plate
 behind the caption.
+
+How the render relates to the rules in `caption_rules.py` and the campaign
+gate (`qc_gate.py`): captions are re-wrapped here to short lines, the camera
+supports a *release* key (zoom back down on a punchline, not only push in),
+and the ending has two modes - the branded CTA card, or a hard cut on the
+last spoken word for when the peak is the point. The gate then grades the
+file; nothing here decides on its own that a clip is good.
+
+    # preview only: never touches the shipped file
+    .venv/bin/python scripts/whop/tight_posts.py post7 --preview
+    .venv/bin/python scripts/whop/qc_gate.py <preview.mp4> --manifest <...>
+
+    # deliver (replaces campaigns/<c>/<post>/<file>.mp4)
+    .venv/bin/python scripts/whop/tight_posts.py post7 --ship
 """
 from __future__ import annotations
 
@@ -52,6 +66,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 import font_refresh as FR                     # Typesetter, erase_captions, build_captions
+import caption_rules as CR                     # 14-char lines, fillers, card timing
 
 W, H = FR.W, FR.H
 CAMPAIGN = "street_you_grew_up_on"
@@ -86,6 +101,7 @@ POSTS: dict[str, dict] = {
     },
 }
 
+END_MODES = ("card", "peak")   # "card" = branded CTA, "peak" = cut on the word
 BAR_MIN = 20            # a top strip shorter than this is picture, not a bar
 PLATE_STD = 42.0        # frame std below this = vector plate, not footage
 
@@ -283,7 +299,10 @@ def probe(path: Path) -> dict:
 
 
 # ------------------------------------------------------------------- render
-def build(post: str) -> dict:
+def build(post: str, *, ship: bool = False, end_mode: str = "card",
+          master: bool = False) -> dict:
+    if end_mode not in END_MODES:
+        raise SystemExit(f"end_mode must be one of {END_MODES}")
     cfg = POSTS[post]
     folder = ROOT / "campaigns" / CAMPAIGN / post
     src = folder / f"street_{post}.mp4"
@@ -292,10 +311,15 @@ def build(post: str) -> dict:
     plan = json.loads((ROOT / "scripts" / "whop" / "plans" / f"{post}.json").read_text())
 
     words = FR.ensure_words(post, src)
-    caps = FR.build_captions(plan, words)
     win = FR.WINDOWS[post]
+    # 1-2 lines, ~14 characters: the plan's own lines ran to 24, so the
+    # blocks are re-wrapped here and re-timed from the same word cells.
+    caps = CR.time_cards(CR.rewrap(FR.build_captions(plan, words)),
+                         win["endcard"])
     endcard_at = win["endcard"]
-    FR.caption_windows(caps, endcard_at)
+    if end_mode == "peak":
+        last_end = max(float(c.get("end") or 0) for cap in caps for line in cap["lines"] for c in line)
+        endcard_at = last_end + 0.25
 
     at_word = {}
     for cap in caps:
@@ -303,12 +327,20 @@ def build(post: str) -> dict:
             for cell in line:
                 at_word.setdefault(FR.norm(cell["w"]), float(cell["at"]))
     keys = keyed_keys(cfg["zoom"], lambda w: at_word.get(FR.norm(w), 0.0))
+    # a "release" key zooms back down on a punchline; below 1.0 would letterbox,
+    # so the floor is the full frame
+    keys = [(t, min(1.10, max(1.0, z))) for t, z in keys]
     shakes = [(at_word.get(FR.norm(w), 0.0), amp, dur) for w, amp, dur in cfg["shake"]]
 
     cap_v = cv2.VideoCapture(str(src))
     fps = cap_v.get(cv2.CAP_PROP_FPS) or 30.0
     n_frames = int(cap_v.get(cv2.CAP_PROP_FRAME_COUNT))
     duration = n_frames / fps
+    if end_mode == "peak":
+        # cut on the peak: last spoken word, a beat of air, fade. No CTA card.
+        n_frames = max(1, int(round(min(duration, endcard_at + 0.35) * fps)))
+        duration = n_frames / fps
+
     typer = FR.Typesetter(style)
     endcard_img = typer.endcard_image()
     bigword_img = typer.bigword_image() if "bigword" in win else None
@@ -347,7 +379,7 @@ def build(post: str) -> dict:
         prev_bar = bar
         bars.append(bar)
 
-        if t >= endcard_at:
+        if t >= endcard_at and end_mode == "card":
             out = cv2.cvtColor(endcard_img, cv2.COLOR_RGB2BGR)
         elif bigword_img is not None and win["bigword"][0] <= t < win["bigword"][1]:
             out = cv2.cvtColor(bigword_img, cv2.COLOR_RGB2BGR)
@@ -387,7 +419,16 @@ def build(post: str) -> dict:
 
     final = ROOT / "work" / "street" / post / "tight.mp4"
     mux(out_video, src, final, with_audio=True)       # sound copied, never re-timed
-    dest = folder / f"street_{post}.mp4"
+    if end_mode == "peak":
+        trimmed = ROOT / "work" / "street" / post / "tight_peak.mp4"
+        subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
+                        "-i", str(final), "-t", f"{duration:.3f}",
+                        "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+                        str(trimmed)], check=True)
+        final = trimmed
+    name = f"street_{post}{'_preview' if not ship else ''}.mp4"
+    dest = (folder / name) if ship else (ROOT / "work" / "street" / post / name)
+    dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(final.read_bytes())
 
     # cover: a frame where a key word is fully typed and the face is on screen
@@ -397,12 +438,41 @@ def build(post: str) -> dict:
     cap_v.set(cv2.CAP_PROP_POS_MSEC, cover_t * 1000)
     ok, frame = cap_v.read()
     cap_v.release()
-    if ok:
+    if ok and ship:
         cv2.imwrite(str(folder / "cover.jpg"),
                     cv2.resize(frame, (540, 960), interpolation=cv2.INTER_AREA),
                     [cv2.IMWRITE_JPEG_QUALITY, 92])
 
     info = settle_audio(dest, out_video)
+    manifest = {
+        "post": post,
+        "campaign": CAMPAIGN,
+        "duration": round(duration, 3),
+        "end_mode": end_mode,
+        "endcard": round(float(endcard_at), 3),
+        "caption_band": list(FR.BAND),
+        "cards": [
+            {"show_from": round(c["show_from"], 3),
+             "show_until": round(c["show_until"], 3),
+             "lines": [[c["w"] for c in line] for line in c["lines"]]}
+            for c in caps
+        ],
+        "words_kept": [
+            {"w": c["w"], "at": round(float(c["at"]), 3), "end": round(float(c["end"]), 3)}
+            for c in sorted((cell for cap in caps for line in cap["lines"] for cell in line),
+                            key=lambda x: x["at"])
+        ],
+    }
+    (ROOT / "work" / "street" / post / "tight_cards.json").write_text(
+        json.dumps(manifest, indent=1) + "\n")
+    if master:
+        master_path = ROOT / "work" / "street" / post / f"master_{post}.mp4"
+        subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
+                        "-i", str(dest), "-c:v", "libx264", "-crf", "14",
+                        "-preset", "medium", "-pix_fmt", "yuv420p",
+                        "-c:a", "copy", str(master_path)], check=True)
+        print(f"master: {master_path} ({master_path.stat().st_size} bytes)")
+
     report = {
         "post": post,
         "source": str(src),
@@ -414,6 +484,8 @@ def build(post: str) -> dict:
         "bar_rows_seen": sorted(set(bars)),
         "plate_frames": plates,
         "caption_cards": len(caps),
+        "end_mode": end_mode,
+        "manifest": "work/street/%s/tight_cards.json" % post,
         "cover_at": round(cover_t, 2),
         **info,
     }
@@ -424,10 +496,18 @@ def build(post: str) -> dict:
 
 
 def main() -> int:
-    posts = sys.argv[1:] or ["post6", "post7"]
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    ship = "--ship" in sys.argv
+    master = "--master" in sys.argv
+    end_mode = "card"
+    for a in sys.argv[1:]:
+        if a.startswith("--end="):
+            end_mode = a.split("=", 1)[1]
+    posts = args or ["post6", "post7"]
     for post in posts:
-        print(f"\n=== {post} ===", flush=True)
-        build(post)
+        print(f"\n=== {post} ({'ship' if ship else 'preview'}, end={end_mode}) ===",
+              flush=True)
+        build(post, ship=ship, end_mode=end_mode, master=master)
     return 0
 
 
