@@ -29,6 +29,12 @@ ROOT = Path(__file__).resolve().parents[2]
 KEY_WAV = ROOT / "assets" / "sfx" / "keyboard_typing.wav"
 SR = 48000
 
+# Loudest key, as a fraction of full scale, before the program headroom.
+# The first keyboard pass shipped at 0.85; the campaign owner heard it as a
+# touch too loud and asked for -20% on everything from the next clips on, so
+# 0.85 * 0.8 = 0.68 is the default. Posts 4/6/7 keep their shipped 0.85 mix.
+KEY_PEAK = 0.68
+
 _BANK: list[np.ndarray] | None = None
 
 
@@ -198,7 +204,7 @@ def typing_track(caps: list[dict], duration: float, endcard: float,
     return track, log
 
 
-def mix_into(bed: np.ndarray, track: np.ndarray, peak: float = 0.85,
+def mix_into(bed: np.ndarray, track: np.ndarray, peak: float = KEY_PEAK,
              knee: float = 0.95, headroom: float = 0.89
              ) -> tuple[np.ndarray, float]:
     """Add the keyboard over the shipped mix and keep the result legal.
