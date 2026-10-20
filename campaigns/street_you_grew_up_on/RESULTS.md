@@ -39,6 +39,7 @@ pipeline. This is the file that stops a note from being re-learned.
 | 2026-10-20 | emphasis words bigger, in yellow/red/green | `Typesetter.KEY_SCALE` / `key_ink` |
 | 2026-10-20 | don't leave "um"/"you know" in | `caption_rules.filler_words` + gate |
 | 2026-10-20 | caption lines too long | `caption_rules.wrap_cells` + gate |
+| 2026-10-20 | ending: card over peak cut | brief.md "Ending decision"; `tight_posts.py` default `--end=card` |
 
 ## Reading the numbers
 

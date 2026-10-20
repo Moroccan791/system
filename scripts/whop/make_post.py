@@ -89,6 +89,20 @@ def main() -> int:
     # 6. picture QC
     run([PY, ROOT / "scripts/whop/check.py", work / "job" / "final_s.mp4"])
 
+    # 6b. campaign gate: the rules from the clipping course, judged on the
+    # rendered file itself (caption length, fillers, hook, loudness, true
+    # peak, voice over the bed, bars, caption over a face, frozen frames,
+    # tail). It reads the job's own timeline/slice, so it grades what is on
+    # screen, not what the plan intended. A demo render may only warn.
+    gate_manifest = work / "gate_manifest.json"
+    run([PY, ROOT / "scripts/whop/manifest_from_timeline.py", work,
+         "--video", work / "job" / "final_s.mp4", "--out", gate_manifest])
+    gate_cmd = [PY, ROOT / "scripts/whop/qc_gate.py", work / "job" / "final_s.mp4",
+                "--manifest", gate_manifest, "--campaign", campaign]
+    if post.endswith("_demo"):
+        gate_cmd.append("--warn-only")
+    run(gate_cmd)
+
     # 7. deliver without touching another post's shipped folder
     dest.mkdir(parents=True, exist_ok=True)
     out = dest / f"street_{post}.mp4"

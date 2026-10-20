@@ -108,6 +108,46 @@ first (rebuilds `.venv` + the face model), then
 checkout rolled back — work is always committed before delivery, so
 nothing is ever lost, only scratch (`work/`, `output/`) is rebuilt.
 
+## The night drop (what to send, so the first render is not a guess)
+
+When a new campaign's videos arrive, this is everything the pipeline needs.
+Anything missing is a question I ask before rendering, not a guess I bake in.
+
+**Must have**
+- [ ] the raw footage (highest quality available - 1080p+, no re-uploads)
+- [ ] the campaign doc / Clipping 101 text, verbatim (it becomes
+      `campaigns/<campaign>/campaign_rules.json` + the brief)
+- [ ] payout + eligibility terms (CPM, pool, T1 %, view threshold, approval
+      route) - the pack has to match what gets paid
+- [ ] required tags/handles, mandatory description line, disclosure wording
+- [ ] banned topics and banned claims
+- [ ] duration window (hard and preferred) and hook window
+- [ ] reference clips the client considers good, if any
+
+**Nice to have**
+- [ ] watermark PNG if the brand requires one (otherwise we pin a text handle)
+- [ ] accent/emphasis colour preference; otherwise I pick one per post and say why
+- [ ] the handle(s) to tag per platform
+- [ ] whether cross-posting to Shorts/Reels is expected
+
+**What I do with it, in order**
+1. `bash scripts/bootstrap.sh` if the sandbox was rebuilt.
+2. Write `campaigns/<campaign>/campaign_rules.json` and `brief.md` from the doc
+   (numbers, never vibes), then `RESULTS.md` with an empty table.
+3. Transcribe the raw once (background), then shortlist moments with
+   `pick_clips.py` / `review_hooks.py` and pick hooks by the course's test:
+   would *I* stop scrolling in the first 2 seconds?
+4. For each post: plan -> `make_post.py`. That chain now runs `check.py`
+   **and** `qc_gate.py` on the finished file, so caption length, fillers,
+   hook, loudness, true peak, voice-over-bed, bars, caption-over-face, frozen
+   frames and the tail are judged before you see it.
+5. Deliver `campaigns/<campaign>/post<N>/`: video, cover, `POST.md`, and the
+   gate report next to the video.
+
+**Do not** re-litigate the standing decisions: card ending by default,
+captions 1-2 short lines, emphasis words bigger and in colour, sound never
+re-timed on a shipped master, and no note gets applied by hand twice.
+
 ## 0. Intake
 
 - Media arrives as commits on `main` (or a folder the user names, e.g.

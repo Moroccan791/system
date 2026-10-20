@@ -25,6 +25,18 @@ The podcast name is Street You Grew Up On - full episode is available on YT and 
 
 #DemiLovato #StreetYouGrewUpOn #Recovery #Family #PodcastClips #MentalHealth #Treatment #PodCulture
 
+## Review cuts
+
+- [`street_post7_new_card.mp4`](street_post7_new_card.mp4) — short-line
+  captions, branded card ending. **This is the approved format** (user
+  picked card over peak, 2026-10-20).
+- [`street_post7_new_peak.mp4`](street_post7_new_peak.mp4) — same captions,
+  no card, picture ends on the last spoken word. Kept for comparison.
+
+Both still carry the spoken "um" and three "you know"s; those are in the
+audio and cannot be removed without the raw take
+(`part_006.mp4`, release `footage-demi-1`).
+
 ## Notes
 
 - Disclosure: #ad

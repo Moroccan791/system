@@ -77,3 +77,14 @@ Fetched 2026-10-17.
 - Results loop: `RESULTS.md` in this folder, one row per post 48 h after it
   goes up (views, watch time, first cliff, US%). Distribution:
   `recipes/distribution_playbook.md`.
+
+## Ending decision (2026-10-20)
+
+- USER DECISION: the **branded card ending** ("FOLLOW FOR MORE" + fade) is
+  the default, chosen after watching both cuts of post7 side by side
+  (`street_post7_new_card.mp4` vs `street_post7_new_peak.mp4`). `--end=peak`
+  stays available and is the exception, not the default.
+- Consequence for selection: because the clip lands on a card rather than on
+  the peak, the **last spoken line has to be the payoff itself** - no clip
+  should end on a trailing "you know" or a filler, since that is the beat the
+  viewer is left with before the card.
