@@ -7,6 +7,10 @@ The shipped cut was assembled before the campaign brief landed. This pass
 keeps the same footage, the same look and the same captions, and fixes the
 things the brief grades us on:
 
+* **Captions land on the words.** Word times come from the cut's own
+  transcript (Moonshine + energy alignment), matched to the plan text - not
+  from a proportional spread across speech intervals, which creeps later and
+  later as the speaker repeats himself.
 * **Fillers and dead air out.** "um / uh / like, / you know," are cut from
   the audio *and* the picture, and every pause longer than 200 ms is trimmed
   back to 200 ms. Nothing is muted over the top of a gap - the timeline is
@@ -327,18 +331,33 @@ def main() -> int:
          "-ac", "1", "-ar", "16000", "-f", "f32le", "-"],
         capture_output=True, check=True).stdout
     a16 = np.frombuffer(raw16, dtype="<f4").astype(np.float32)
-    from clipper.align.energy_align import align_words
-    from clipper.align.vad import speech_intervals
-    # VAD-localised alignment: the aligner distributes words inside detected
-    # speech intervals, which tracked the sliding-window ASR far better than
-    # a single unbroken interval (which drifted ~600 ms by mid-clip).
-    aligned = align_words(" ".join(t["w"] for t in tokens), a16, 16000,
-                          intervals=speech_intervals(a16, 16000, min_speech=0.15))
-    if len(aligned) != len(tokens):
-        raise SystemExit(f"alignment gave {len(aligned)} words for {len(tokens)} tokens")
-    for tok, w in zip(tokens, aligned):
-        tok["at"], tok["end"] = float(w.start), float(w.end)
     duration = len(a16) / 16000.0
+
+    # Word times come from the speech itself: Moonshine's own word timestamps
+    # on this cut, matched onto the plan's verbatim lines. That is the same
+    # path font_refresh uses, and the one whose sync was signed off.
+    #
+    # The previous version instead distributed the whole plan proportionally
+    # across VAD intervals. That has no idea where any word actually is: the
+    # speaker repeats "People aren't" seven times while the plan writes it
+    # once, so every later word is pushed further late and never recovers -
+    # measured +0.9 s on average and +2.3 s by "their seats". That is exactly
+    # the "captions come late" creep this pass had.
+    cache = ROOT / "work" / "street" / post / "font_words.json"
+    if cache.exists():
+        try:
+            cached = json.loads(cache.read_text())
+        except Exception:
+            cached = {}
+        if abs(float(cached.get("duration") or 0) - duration) > 0.3:
+            cache.unlink()          # cache belongs to a different cut
+    words = FR.ensure_words(post, src)
+    timed = FR.build_captions(plan, words)
+    flat = [cell for cap in timed for line in cap["lines"] for cell in line]
+    if len(flat) != len(tokens):
+        raise SystemExit(f"timing gave {len(flat)} words for {len(tokens)} tokens")
+    for tok, cell in zip(tokens, flat):
+        tok["at"], tok["end"] = float(cell["at"]), float(cell["end"])
 
     # ---- cut list ---------------------------------------------------------
     cuts = build_cuts(tokens, duration, a16, 16000, post)
