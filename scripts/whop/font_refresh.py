@@ -18,8 +18,9 @@ from the shipped cut itself:
   user's Shawkind (all-caps display sans), key words in the post's accent;
 * the full-screen hero (post6 "OAK TREE") and every end card
   ("FOLLOW FOR MORE") are redrawn full-frame in the user's Shawkind;
-* everything else - the cut, the vector scenes, the music, the mix -
-  is left frame-identical. Audio is copied untouched.
+* the caption type-on is sounded with the user's own recorded keyboard
+  (assets/sfx/keyboard_typing.wav), gated to caption windows - see
+  keyboard_sfx.py. The music bed and the voice are left exactly as mixed.
 
 Scene/end-card windows below were measured off the shipped cuts
 (frame brightness/texture steps), not guessed.
@@ -39,6 +40,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 W, H = 1080, 1920
 FONTS = ROOT / "assets" / "fonts"
@@ -371,10 +373,25 @@ def main() -> int:
     enc.wait()
     if enc.returncode != 0:
         raise SystemExit("encode failed")
+    # audio: the shipped mix, plus the recorded keyboard on the caption
+    # reveal grid. Video is stream-copied, so the pictures stay identical.
+    import keyboard_sfx
+    track, log = keyboard_sfx.typing_track(caps, duration, endcard_at, post)
+    bed_raw = subprocess.run(
+        [ff, "-hide_banner", "-loglevel", "error", "-i", str(src),
+         "-vn", "-ac", "1", "-ar", "48000", "-f", "f32le", "-"],
+        capture_output=True, check=True).stdout
+    bed = np.frombuffer(bed_raw, dtype="<f4").astype(np.float32)
+    mixed, key_gain = keyboard_sfx.mix_into(bed, track)
+    mixed = mixed[:len(bed)]
+    print(f"  keyboard: {len(log)} keys on {len(caps)} captions, "
+          f"gain {key_gain:.2f}, peak {float(np.abs(mixed).max()):.3f}")
     subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y",
-                    "-i", str(out_path), "-i", str(src),
-                    "-map", "0:v:0", "-map", "1:a:0", "-c", "copy",
-                    "-shortest", str(mux_path)], check=True)
+                    "-i", str(out_path), "-f", "f32le", "-ar", "48000",
+                    "-ac", "1", "-i", "-",
+                    "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy",
+                    "-c:a", "aac", "-b:a", "192k", "-shortest", str(mux_path)],
+                   input=mixed.astype("<f4").tobytes(), check=True)
     dest = folder / f"street_{post}.mp4"
     dest.write_bytes(mux_path.read_bytes())
     print(f"shipped {dest} ({dest.stat().st_size} bytes)")

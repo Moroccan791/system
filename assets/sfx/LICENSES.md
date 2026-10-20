@@ -25,3 +25,12 @@ python -m clipper.captions.keysfx
 
 If a recorded sample is ever added, it must be CC0 (e.g. Freesound CC0)
 and its source URL + license must be recorded in this file before use.
+
+## Recorded keyboard (user-supplied)
+
+| File | Source | Licence |
+| --- | --- | --- |
+| `keyboard_typing.wav` | Mixkit, "Keyboard typing" (file supplied by the campaign owner, uploaded to the repo) | Mixkit Free License: free for commercial and non-commercial use, no attribution required; may not be redistributed as a standalone sound file. |
+
+Used by `scripts/whop/keyboard_sfx.py`, which cuts individual keystrokes out of
+the recording and lays them on the caption reveal grid.
