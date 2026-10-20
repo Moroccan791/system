@@ -102,3 +102,22 @@ Fetched 2026-10-17.
 - Rule of thumb the calibration produced: **open on the line that would work
   as a caption on its own.** If the opening only makes sense with the
   sentence that follows, trim into it.
+- USER CORRECTION (2026-10-20): "why do u need me to pick the hook" - so
+  selection is **ours to make**. `scripts/whop/auto_pick.py` chooses the clip
+  and its opening (hook 45% / payoff 25% / density 20% / length 10%, filler
+  penalty, no mid-sentence cuts) and reports the pick with its reasoning. The
+  user sees a finished decision they can veto; they are never asked to choose
+  between candidates.
+
+## Grade (2026-10-20)
+
+- USER NOTE: "could we add colour grading, viewers really like that."
+- Implemented in `tight_posts.py:grade_frame` and applied to footage only -
+  never to vector plates, the end card, or the caption, whose colours are
+  approved in the style card. Defaults: S-curve 0.30, saturation 1.05,
+  warmth 0.010, cool 0.008, vignette 0.12, lift 0.005, skin guard 0.55.
+- Tuned on a face, not a colour chart: the first pass (warmth 0.022) turned
+  her skin orange, so the warm lift is now small, capped, and skipped where
+  pixels are already saturated. Measured on a post7 frame: skin BGR 90/92/109
+  -> 88/91/109 (unchanged), frame contrast +1.5, saturation +24.
+- Per-campaign overrides live in `campaign_rules.json` under `grade`.

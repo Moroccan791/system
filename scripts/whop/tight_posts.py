@@ -102,6 +102,77 @@ POSTS: dict[str, dict] = {
 }
 
 END_MODES = ("card", "peak")   # "card" = branded CTA, "peak" = cut on the word
+
+#: The finish. Everything here is deliberately small: a grade you can name from
+#: a still is a grade turned up too far on a talking-head clip. In order - a
+#: filmic S-curve for contrast that does not crush blacks, a touch of
+#: saturation so skin and set dressing read on a phone, warm highlights and
+#: cool shadows (the "shot on a real camera" cue), and a soft vignette that
+#: pulls the eye to the face. The caption is drawn *after* this, so the type
+#: stays the exact approved ivory and emphasis ink.
+#: Tuned on a face, not on a colour chart. The first pass at warmth 0.022
+#: pushed skin orange - skin lives in the highlights, which is exactly where
+#: the amber was going - so the warm lift is now small, capped, and skipped
+#: where the pixels are already highly saturated (i.e. on skin). A grade
+#: should make the shot look shot-better, never tanned.
+DEFAULT_GRADE = {
+    "curve": 0.30,          # 0 = linear, 1 = hard S
+    "saturation": 1.05,
+    "warmth": 0.010,        # highlights toward amber (skin-safe ceiling)
+    "cool": 0.008,          # shadows toward teal
+    "vignette": 0.12,
+    "lift": 0.005,          # raise the floor a hair so blacks are not dead
+    "skin_guard": 0.55,     # warmth fades out as saturation rises
+}
+
+
+def grade_frame(frame: np.ndarray, g: dict, mask: np.ndarray | None = None) -> np.ndarray:
+    """Apply the finish to footage.
+
+    Vector plates and the end card are skipped by the caller: their colours are
+    brand colours, approved in the style card, and a grade over them would move
+    the ink the user signed off on.
+    """
+    curve = float(g.get("curve", 0.0))
+    sat = float(g.get("saturation", 1.0))
+    warm = float(g.get("warmth", 0.0))
+    cool = float(g.get("cool", 0.0))
+    lift = float(g.get("lift", 0.0))
+    vig = float(g.get("vignette", 0.0))
+    if not curve and abs(sat - 1) < 1e-3 and not warm and not cool and not vig and not lift:
+        return frame
+
+    # 1. tone: a 256-entry curve applied as a LUT, so the per-frame cost is nil
+    x = np.linspace(0.0, 1.0, 256, dtype=np.float32)
+    s_curve = x * x * (3.0 - 2.0 * x)                 # smoothstep
+    tone = (x * (1.0 - curve) + s_curve * curve) + lift * (1.0 - x)
+    lut = np.clip(tone * 255.0, 0, 255).astype(np.uint8)
+    out = cv2.LUT(frame, lut)
+
+    if abs(sat - 1.0) > 1e-3 or warm or cool:
+        f = out.astype(np.float32) / 255.0
+        luma = (f[:, :, 0] * 0.114 + f[:, :, 1] * 0.587 + f[:, :, 2] * 0.299)
+        f = luma[:, :, None] + (f - luma[:, :, None]) * sat
+        if warm or cool:
+            guard = float(g.get("skin_guard", 0.55))
+            sat_map = (f.max(axis=2) - f.min(axis=2))          # 0 grey .. ~1 vivid
+            skin = np.clip((sat_map - 0.18) / max(1e-3, guard), 0.0, 1.0)[:, :, None]
+            hi = np.clip((luma - 0.55) / 0.45, 0.0, 1.0)[:, :, None] * (1.0 - skin)
+            lo = np.clip((0.45 - luma) / 0.45, 0.0, 1.0)[:, :, None] * (1.0 - skin)
+            f = f + hi * np.array([-0.30, 0.50, 1.00], np.float32) * warm   # amber
+            f = f + lo * np.array([0.75, 0.20, -0.50], np.float32) * cool   # teal
+        out = np.clip(f * 255.0, 0, 255).astype(np.uint8)
+
+    if vig > 0.01:
+        if mask is None:
+            h, w = out.shape[:2]
+            yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+            cy, cx = h * 0.46, w * 0.5
+            r = np.sqrt(((xx - cx) / (w * 0.62)) ** 2 + ((yy - cy) / (h * 0.62)) ** 2)
+            mask = np.clip(1.0 - vig * np.clip(r - 0.45, 0, None) ** 1.4 * 2.2, 0.0, 1.0)
+            mask = mask[:, :, None].astype(np.float32)
+        out = (out.astype(np.float32) * mask).astype(np.uint8)
+    return out
 BAR_MIN = 20            # a top strip shorter than this is picture, not a bar
 PLATE_STD = 42.0        # frame std below this = vector plate, not footage
 
@@ -341,6 +412,12 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         n_frames = max(1, int(round(min(duration, endcard_at + 0.35) * fps)))
         duration = n_frames / fps
 
+    grade_cfg = dict(DEFAULT_GRADE)
+    rules_path = ROOT / "campaigns" / CAMPAIGN / "campaign_rules.json"
+    if rules_path.exists():
+        grade_cfg.update(json.loads(rules_path.read_text()).get("grade") or {})
+    grade_cfg.update(cfg.get("grade") or {})
+    vig_mask = None
     typer = FR.Typesetter(style)
     endcard_img = typer.endcard_image()
     bigword_img = typer.bigword_image() if "bigword" in win else None
@@ -404,10 +481,11 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                              ).astype(np.uint8)
             if std < PLATE_STD:                       # vector plate: hold it still
                 plates += 1
-                out = camera_frame(frame, 0, 1.0)
+                out = camera_frame(frame, 0, 1.0)     # brand colours stay exact
             else:
                 dx, dy = shake_at(t, shakes)
                 out = camera_frame(frame, bar, zoom_at(t, keys), dx, dy)
+                out = grade_frame(out, grade_cfg, vig_mask)
         if t > duration - 0.5:                        # keep the shipped fade
             out = (out.astype(np.float32)
                    * (1 - 0.92 * (t - (duration - 0.5)) / 0.5)).astype(np.uint8)
@@ -485,6 +563,7 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "plate_frames": plates,
         "caption_cards": len(caps),
         "end_mode": end_mode,
+        "grade": grade_cfg,
         "manifest": "work/street/%s/tight_cards.json" % post,
         "cover_at": round(cover_t, 2),
         **info,

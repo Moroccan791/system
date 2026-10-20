@@ -53,5 +53,15 @@
   "ending": {
     "max_tail_seconds": 2.0,
     "note": "The course: cut at the emotional peak so the viewer taps before scrolling. The tail is the distance from the last spoken word to the end of the file; a CTA card plus fade over 2 s is a deliberate exception and must be recorded in the pack."
+  },
+  "grade": {
+    "curve": 0.3,
+    "saturation": 1.05,
+    "warmth": 0.01,
+    "cool": 0.008,
+    "vignette": 0.12,
+    "lift": 0.005,
+    "skin_guard": 0.55,
+    "note": "Footage only - plates, end card and captions keep their approved colours. Tuned on a face; warmth is capped and skipped on saturated pixels so skin does not go orange."
   }
 }
