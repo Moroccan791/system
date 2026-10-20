@@ -70,5 +70,11 @@
     "hits": true,
     "rate": 48000,
     "note": "Bed and hits are synthesised in scripts/whop/sound_design.py - no third-party master, so nothing to claim, mute or block. Level is measured on the finished file; qc_gate voice_over_bed requires the voice to sit >=12 dB over it."
+  },
+  "voice": {
+    "enabled": true,
+    "highpass": 90,
+    "highpass_stages": 2,
+    "note": "Rumble/mud out, presence in, gentle peak compression, limiter. No FFT denoise (watery tails on breaths). Loudness target is set by settle_audio (-16 LUFS, TP -1.3)."
   }
 }

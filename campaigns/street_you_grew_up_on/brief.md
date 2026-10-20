@@ -180,3 +180,22 @@ Fetched 2026-10-17.
 - Transitions are detected and recommended but not yet applied by the renderer;
   that is the next build, and it will only fire where the detector finds a cut.
 
+## Voice finish (2026-10-20)
+
+- `voice_finish.py`: highpass 90 Hz x2 (one stage measured only -4 dB on a
+  55 Hz tone; ffmpeg caps highpass at 2 poles, so it is cascaded), -1.5 dB mud
+  at 250, +2 dB presence at 3.2k, +0.8 dB air, de-ess, gentle compression,
+  limiter. No FFT denoise - it leaves watery tails on breaths.
+- Measured on post 7's voice: rumble share 23.1% -> 18.1% of band energy,
+  presence 13.3% -> 14.9%, 2.6-4.5k 5.7% -> 7.2%.
+- Two things this exposed, both fixed:
+  - `settle_audio` only ever normalised the *peak*, so the new chain left
+    post 7 at -17.6 LUFS, outside its own window. Level is now set by
+    loudness (-16 LUFS) with the true peak as a ceiling.
+  - compression narrows the voice-to-room gap: at -20 dB / 2.5:1 the gate's
+    voice-over-bed fell from 19.0 dB to 13.5. At -14 dB / 2.0:1 it stays
+    17.2 dB while still taming peaks.
+- The bed is now placed relative to the measured speech level
+  (`bed_target(speech_level(...))`) instead of at a constant, so no audio
+  change can silently make the music louder than intended.
+

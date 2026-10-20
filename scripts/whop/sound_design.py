@@ -132,16 +132,47 @@ def thump(rate: int = RATE, *, freq: float = 58.0, seconds: float = 0.22,
     return (level * (body * env + click)).astype(np.float32)
 
 
+def speech_level(audio) -> float:
+    """RMS of the speech, not of the file.
+
+    A fixed bed level is the wrong instrument: compress the voice and the bed
+    creeps up relative to it, silently. Measuring the speech and placing the
+    bed a fixed number of dB under it keeps the relationship stable no matter
+    what the voice chain does.
+    """
+    import numpy as np
+    x = np.asarray(audio, dtype=np.float32)
+    if not len(x):
+        return 0.0
+    win = 320                                    # 20 ms at 16 kHz
+    n = len(x) // win
+    if n < 2:
+        return float(np.sqrt((x.astype(np.float64) ** 2).mean()))
+    frames = np.sqrt((x[: n * win].reshape(n, win).astype(np.float64) ** 2).mean(axis=1))
+    return float(np.percentile(frames, 60))      # speech body, not the peaks
+
+
+def bed_target(voice_rms: float, *, under_db: float = 18.0) -> float:
+    """The bed level that sits `under_db` below the measured voice."""
+    return max(1e-5, float(voice_rms) * (10 ** (-under_db / 20.0)))
+
+
 def build_track(seconds: float, intervals: list[tuple[float, float]],
-                hits: list[float], rate: int = RATE) -> np.ndarray:
-    """Full bed: pad, ducking, and a hit on each punch."""
+                hits: list[float], rate: int = RATE,
+                target_rms: float | None = None) -> np.ndarray:
+    """Full bed: pad, ducking, and a hit on each punch.
+
+    `target_rms` should come from `bed_target(speech_level(...))` so the bed
+    tracks the voice; the constant is only a fallback.
+    """
     bed = synth_bed(seconds, rate)
     gain = speech_gain(seconds, intervals, rate)
     bed = bed * gain[:, None]
     # normalise to the target RMS *after* ducking, so the level is what the
     # gate will measure rather than what the raw pad happened to produce
+    target = BED_RMS if target_rms is None else float(target_rms)
     rms = float(np.sqrt(np.mean(bed.astype(np.float64) ** 2))) or 1.0
-    bed = (bed * (BED_RMS / rms)).astype(np.float32)
+    bed = (bed * (target / rms)).astype(np.float32)
     # fade in under the first word and out with the picture: a bed that stops
     # dead at the last frame sounds like the file was cut, not ended
     fin = min(n_bed := len(bed), int(0.45 * rate))

@@ -68,6 +68,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 import font_refresh as FR                     # Typesetter, erase_captions, build_captions
 import sound_design as SD                      # synthesised bed + hits we own outright
 import director as DIR                         # which move this shot needs, and which it does not
+import voice_finish as VF                      # rumble/mud out, presence in, before the bed
 import caption_rules as CR                     # 14-char lines, fillers, card timing
 
 W, H = FR.W, FR.H
@@ -409,37 +410,50 @@ def mux(video: Path, src: Path, out: Path, with_audio: bool) -> None:
 
 
 PEAK_TARGET = -1.3      # dBTP: AAC inter-sample overs must not clip on playback
+LOUD_TARGET = -16.0     # LUFS: the campaign window is -17..-14; aim at the middle
 
 
 def settle_audio(path: Path, video: Path) -> dict:
-    """Bring the shipped mix to the campaign's true-peak ceiling.
+    """Set the level: loudness to target, true peak as the ceiling.
 
-    The sound is never re-timed here - no cut, no stretch, no re-mix, so the
-    keyboard that is already in it stays on its keystrokes. Only the level
-    moves: the whole program takes one constant gain so its true peak sits at
-    -1.3 dBTP, which is where post4 was normalised to. Posts 6 and 7 shipped
-    at +0.7 and +0.3 dBTP, i.e. hard against the codec's ceiling, and that is
-    the one audio fault the brief still finds in them.
+    Previous versions only normalised the peak, which broke the moment the
+    voice chain arrived: compression and EQ change the peak-to-loudness ratio,
+    so pinning the peak at -1.3 dBTP left post 7 at -17.6 LUFS - outside its
+    own campaign window. Loudness is what a viewer experiences; the peak is a
+    ceiling, not a target.
+
+    Gain first, then limit, then repeat once: the limiter shaves a little
+    loudness back off, so the second pass tops it up.
     """
     info = probe(path)
-    tp = info.get("dbtp", 0.0)
-    # Encoder margin: AAC puts the decoded true peak a few tenths above the
-    # float mix that went in, so the gain is measured on the encoded file and
-    # corrected, never assumed.
     for _ in range(3):
-        gain = PEAK_TARGET - tp
-        if gain > -0.10:
+        lufs = info.get("lufs")
+        if lufs is None:
             break
-        apply_gain(path, video, gain)
-        info = probe(path)
-        tp = info.get("dbtp", 0.0)
-    # One correction the other way: AAC lands the decoded peak a few tenths
-    # below the float mix it came from, and post6 came out a touch quiet
-    # against post7. Only ever inside the ceiling, and only once.
-    if PEAK_TARGET - tp > 0.25:
-        apply_gain(path, video, PEAK_TARGET - tp)
-        info = probe(path)
+        need = LOUD_TARGET - lufs
+        if abs(need) >= 0.2:
+            apply_gain(path, video, need)
+            info = probe(path)
+        if (info.get("dbtp") if info.get("dbtp") is not None else -99) > PEAK_TARGET:
+            apply_limiter(path, video, PEAK_TARGET)
+            info = probe(path)
+        lufs = info.get("lufs")
+        tp = info.get("dbtp")
+        if lufs is not None and tp is not None and abs(lufs - LOUD_TARGET) < 0.3 and tp <= PEAK_TARGET + 0.05:
+            break
     return info
+
+
+def apply_limiter(path: Path, video: Path, ceiling_db: float) -> None:
+    linear = 10 ** (ceiling_db / 20.0)
+    tmp = path.with_name(path.stem + "_lim.mp4")
+    subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
+                    "-i", str(path), "-i", str(video),
+                    "-map", "1:v:0", "-map", "0:a:0", "-c:v", "copy",
+                    "-af", f"alimiter=limit={linear:.4f}:level=0",
+                    "-c:a", "aac", "-b:a", "192k",
+                    "-shortest", str(tmp)], check=True)
+    tmp.replace(path)
 
 
 def apply_gain(path: Path, video: Path, gain: float) -> None:
@@ -651,6 +665,14 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                         str(trimmed)], check=True)
         final = trimmed
+    # -- voice first: the bed is mixed under what the EQ and compressor leave
+    voice_cfg = dict(VF.DEFAULT)
+    if rules_path.exists():
+        voice_cfg.update(json.loads(rules_path.read_text()).get("voice") or {})
+    voice_cfg.update(cfg.get("voice") or {})
+    if voice_cfg.get("enabled"):
+        VF.finish(final, voice_cfg)
+
     # -- sound design: synthesised, so nothing to license and nothing to claim
     sound_cfg = dict(DEFAULT_SOUND)
     if rules_path.exists():
@@ -660,9 +682,18 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         intervals = SD.word_intervals(
             [{"at": c["at"], "end": c["end"]}
              for cap in caps for line in cap["lines"] for c in line])
+        # place the bed relative to the voice that is actually in this file,
+        # not at a fixed level: the voice chain changes the ratio silently
+        try:
+            from clipper.ffmpeg import decode_audio
+            voice_rms = SD.speech_level(decode_audio(final))
+        except Exception:
+            voice_rms = 0.0
+        target = SD.bed_target(voice_rms) if voice_rms else None
         track = SD.build_track(duration, intervals,
                                [t for t, _ in punches] if sound_cfg.get("hits") else [],
-                               int(sound_cfg.get("rate") or 48000))
+                               int(sound_cfg.get("rate") or 48000),
+                               target_rms=target)
         if not sound_cfg.get("bed"):
             track = np.zeros_like(track)
         mixed = final.with_name(final.stem + "_bed.mp4")
@@ -730,6 +761,7 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "end_mode": end_mode,
         "grade": grade_cfg,
         "sound": sound_cfg,
+        "voice_chain": VF.chain(voice_cfg) if voice_cfg.get("enabled") else None,
         "key_words": len(key_times),
         "direction": {k: v for k, v in direction.items() if not k.startswith("_")},
         "hook_title": {"until": round(hook_until, 2),
