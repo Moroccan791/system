@@ -260,26 +260,77 @@ class Typesetter:
         return arr
 
 
+def _erase_flat(roi: np.ndarray) -> np.ndarray:
+    """Rebuild caption rows on a flat plate from the clean rows around them.
+
+    On a vector scene the lower third is a smooth gradient, so the honest
+    reconstruction of the caption's rows is the interpolation between the
+    first clean row above and the first clean row below. Nothing from the
+    source glyph survives, which is what a normal inpaint kept leaking on the
+    dark outline.
+    """
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    top = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT,
+                           cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25)))
+    rows = np.where((top > 9).sum(1) > 8)[0]
+    if len(rows) == 0:
+        return roi
+    r0 = max(2, int(rows.min()) - 8)
+    r1 = min(roi.shape[0] - 3, int(rows.max()) + 9)
+    if r1 - r0 < 6:
+        return roi
+    out = roi.copy()
+    up = roi[r0 - 2].astype(np.float32)
+    dn = roi[r1 + 1].astype(np.float32)
+    span = r1 - r0 + 1
+    for i, r in enumerate(range(r0, r1 + 1)):
+        w = (i + 1) / (span + 1)
+        out[r] = (up * (1 - w) + dn * w).astype(np.uint8)
+    mask = np.zeros(roi.shape[:2], np.uint8)
+    mask[r0:r1 + 1] = 255
+    a = (cv2.GaussianBlur(mask, (0, 0), 6).astype(np.float32) / 255.0)[:, :, None]
+    return (out.astype(np.float32) * a + roi.astype(np.float32) * (1 - a)).astype(np.uint8)
+
+
 def erase_captions(frame: np.ndarray, y0: int, y1: int) -> np.ndarray:
     """Remove burned-in caption strokes from a band of the frame.
 
-    Captions are thin bright strokes over a much smoother picture, so a
-    white top-hat finds them without touching skin or jacket. Inpaint,
-    then soften the rebuilt patch so it reads as defocus, not a smear.
+    Two plates, two methods - both measured on the shipped footage:
+
+    * flat plate (dark vector scene over a smooth gradient): the caption is a
+      white face with a dark outline, and the outline survives a tight inpaint
+      as faint grey type. The rows are rebuilt from the clean rows above and
+      below instead, so nothing can ghost.
+    * busy plate (face, hair, jacket): only the bright stroke core is safe.
+      A wide mask there drags the skin/jacket edge in and smears the neck, so
+      this stays tight and inpaints.
     """
     roi = frame[y0:y1]
     gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    if float(gray.std()) < 45.0:                     # flat vector plate
+        out = frame.copy()
+        out[y0:y1] = _erase_flat(roi)
+        return out
+
     kern = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
     top = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, kern)
-    mask = (top > 20).astype(np.uint8) * 255
+    mask = (top > 14.0).astype(np.uint8) * 255
     if not mask.any():
         return frame
-    mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)),
-                      iterations=1)
-    fixed = cv2.inpaint(roi, mask, 4, cv2.INPAINT_TELEA)
+    mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13)))
+    # Telea costs ~1.3 s per frame at full resolution with a 13 px mask and a
+    # 325-row band; at half resolution it is 90 ms and the result is
+    # indistinguishable, because the patch is softened straight afterwards.
+    small = cv2.resize(roi, (roi.shape[1] // 2, roi.shape[0] // 2),
+                       interpolation=cv2.INTER_AREA)
+    small_mask = cv2.resize(mask, (mask.shape[1] // 2, mask.shape[0] // 2),
+                            interpolation=cv2.INTER_NEAREST)
+    fixed = cv2.inpaint(small, small_mask, 7, cv2.INPAINT_TELEA)
+    fixed = cv2.resize(fixed, (roi.shape[1], roi.shape[0]),
+                       interpolation=cv2.INTER_LINEAR)
     soft = cv2.GaussianBlur(fixed, (0, 0), 2.2)
-    a = cv2.GaussianBlur(mask, (0, 0), 2).astype(np.float32) / 255.0
-    a = np.clip(a * 1.5, 0, 1)[:, :, None]
+    a = cv2.GaussianBlur(mask, (0, 0), 2.5).astype(np.float32) / 255.0
+    a = np.clip(a * 1.4, 0, 1)[:, :, None]
     out = frame.copy()
     out[y0:y1] = (fixed.astype(np.float32) * (1 - a)
                   + soft.astype(np.float32) * a).astype(np.uint8)
