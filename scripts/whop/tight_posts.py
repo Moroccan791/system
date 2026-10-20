@@ -1,0 +1,435 @@
+#!/usr/bin/env python3
+"""Campaign pass for a shipped clip: bars out, camera in, emphasis words up.
+
+    .venv/bin/python scripts/whop/tight_posts.py post6 post7
+
+`retighten.py` does this for post4, where the audio could be rebuilt from the
+raw take (its source part was still on disk). Posts 6 and 7 are different:
+the only master we have is the shipped cut itself, with the music bed and the
+keyboard already mixed in. So this pass leaves the sound **bit for bit**
+alone and rebuilds the picture around it. That has three useful properties:
+
+* the caption reveal grid is unchanged, so the keyboard that is already in
+  the mix still lands on the same keystrokes - nothing to re-time;
+* sync cannot regress: the captions keep the exact word times the approved
+  render had (measured off this same audio);
+* the mix keeps its loudness and true peak instead of being re-encoded.
+
+What it does change:
+
+* **Black bars.** The interview plates carry a black strip across the top -
+  137 px on post6, 105 px on post7, and on post7 it only appears from the
+  second shot on. The bar is measured per frame and cropped, so the picture
+  is re-fitted to a full 1080x1920 and the strip is gone; because the strip
+  starts and stops exactly on a shot change, the re-fit is invisible.
+* **Camera.** A slow push through the hook, a release on the turn, a punch-in
+  on the impact word, another push on the emotional close - the same idea as
+  post4, keyed to the words rather than to fixed seconds.
+* **Emphasis.** Key words are set 16% larger than the words around them
+  (1.16x, baseline aligned so the line still sits level) and take the post's
+  emphasis ink - yellow on post6, red on post7 - as the user asked. The
+  stroke goes 3 px -> 4 px on those words so the bigger glyphs stay clean
+  over skin and hair. Caption ink stays the approved ivory.
+* **End card and the Oak Tree plate** are redrawn from the same typesetter,
+  so they follow the new emphasis colour too.
+
+Everything is still the user's Shawkind, still verbatim, still no plate
+behind the caption.
+"""
+from __future__ import annotations
+
+import json
+import math
+import subprocess
+import sys
+from pathlib import Path
+
+import cv2
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts" / "whop"))
+
+import font_refresh as FR                     # Typesetter, erase_captions, build_captions
+
+W, H = FR.W, FR.H
+CAMPAIGN = "street_you_grew_up_on"
+
+#: Per-post direction. `zoom` is (anchor, zoom): an anchor is either a spoken
+#: word (taken from the clip's own transcript, so it survives any re-cut) or a
+#: number of seconds. `shake` is (anchor, amplitude px, duration s).
+POSTS: dict[str, dict] = {
+    "post6": {
+        "emphasis": "#FFC83D",           # warm yellow - pops on sage + ivory
+        "zoom": [
+            (0.00, 1.000), ("build", 1.030), ("oak", 1.048),
+            ("soil", 1.010), ("protect", 1.040), ("children", 1.048),
+            ("influence", 1.004), ("kids", 1.026), ("journey", 1.044),
+            ("excited", 1.018),
+        ],
+        "shake": [("protect", 2.2, 0.30)],
+        "cover": None,                   # filled in from a key caption
+        "cover_word": "beautiful",
+    },
+    "post7": {
+        "emphasis": "#E23B2F",           # red - the clip's warm palette, turned up
+        "zoom": [
+            (0.00, 1.000), ("never", 1.024), ("angry", 1.052),
+            ("struggle", 1.012), ("share", 1.040), ("beautiful", 1.014),
+            ("treatment", 1.006), ("open", 1.030), ("door", 1.052),
+            ("work", 1.016),
+        ],
+        "shake": [("angry", 1.8, 0.28)],
+        "cover": None,
+        "cover_word": "struggle",
+    },
+}
+
+BAR_MIN = 20            # a top strip shorter than this is picture, not a bar
+PLATE_STD = 42.0        # frame std below this = vector plate, not footage
+
+
+# ------------------------------------------------------------------- erase
+def erase_plate(frame: np.ndarray, y0: int, y1: int) -> np.ndarray:
+    """Take a burned-in caption off a flat (vector) plate.
+
+    `font_refresh.erase_captions` rebuilds whole rows for this case, but it
+    finds them from a bright top-hat: on a dark plate the caption's black
+    outline scores below the threshold, the rebuilt range comes up short and
+    the outline survives as a ghost of the old words next to the new ones
+    (measured on post6's Oak Tree plate). A caption row is simply much noisier
+    across x than the plate it sits on, so the rows are found from that
+    instead - bright glyph and dark outline both raise the row's variance -
+    and the block is rebuilt column-by-column between the clean rows above
+    and below it, then blended with a narrow feather.
+    """
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    band = gray[y0:y1]
+    ground = float(np.median(band))
+    # Three cues, because the two shipped plates fail in different ways. The
+    # glyph core is bright (>238). The outline is dark, so it only shows up as
+    # a row that is noisier across x than the plate around it. And on post7's
+    # last plate the shipped caption had already faded to ~10% white before the
+    # cut, so the only trace left of the old words is a faint mid-grey - caught
+    # here as pixels well above the plate's own level. Every cue is measured
+    # against the plate, never against a fixed grey level.
+    rows_std = band.astype(np.float32).std(axis=1)
+    base = float(np.median(rows_std))
+    bright = (band > 238).sum(axis=1)
+    raised = (band > ground + 16).sum(axis=1)
+    hot = np.where((bright > 3) | (raised > 6) | (rows_std > base * 1.30 + 0.5))[0]
+    if len(hot) == 0:
+        return frame
+    strong = bool((bright > 3).any() or (raised > 6).any())
+    pad = 12 if strong else 6
+    r0 = max(1, int(hot.min()) - pad)
+    r1 = min(len(band) - 2, int(hot.max()) + pad)
+    if r1 - r0 < 4:
+        return frame
+    out = frame.copy()
+    up = frame[y0 + r0 - 1].astype(np.float32)
+    dn = frame[y0 + r1 + 1].astype(np.float32)
+    span = r1 - r0 + 1
+    for i in range(span):
+        w = (i + 1) / (span + 1)
+        out[y0 + r0 + i] = (up * (1 - w) + dn * w).astype(np.uint8)
+    mask = np.zeros(frame.shape[:2], np.uint8)
+    mask[y0 + r0:y0 + r1 + 1] = 255
+    a = (cv2.GaussianBlur(mask, (0, 0), 3).astype(np.float32) / 255.0)[:, :, None]
+    return (out.astype(np.float32) * a + frame.astype(np.float32) * (1 - a)).astype(np.uint8)
+
+
+def clean_caption_band(frame: np.ndarray, y0: int, y1: int,
+                       plate: bool) -> np.ndarray:
+    return erase_plate(frame, y0, y1) if plate else FR.erase_captions(frame, y0, y1)
+
+
+# ------------------------------------------------------------------ camera
+def bar_rows(gray: np.ndarray) -> int:
+    """Height of the black strip across the top of an interview plate."""
+    dark = gray.mean(axis=1) < 14
+    rows = 0
+    while rows < 240 and rows < len(dark) and dark[rows]:
+        rows += 1
+    return rows if rows >= BAR_MIN else 0
+
+
+def camera_frame(frame: np.ndarray, bar: int, z: float,
+                 dx: float = 0.0, dy: float = 0.0) -> np.ndarray:
+    """Crop the strip, fit the rest to 1080x1920, then zoom/shake."""
+    src = frame[bar:] if bar else frame
+    sh, sw = src.shape[:2]
+    if bar == 0 and abs(z - 1.0) < 1e-6 and not dx and not dy:
+        return frame
+    scale = max(W / sw, H / sh) * z
+    cw, ch = W / scale, H / scale
+    cx = sw / 2.0 + dx / scale
+    cy = sh * 0.44 + dy / scale
+    x0 = min(max(0.0, cx - cw / 2), sw - cw)
+    y0 = min(max(0.0, cy - ch / 2), sh - ch)
+    return cv2.resize(src[int(round(y0)):int(round(y0 + ch)),
+                         int(round(x0)):int(round(x0 + cw))],
+                      (W, H), interpolation=cv2.INTER_CUBIC)
+
+
+def zoom_at(t: float, keys: list[tuple[float, float]]) -> float:
+    if t <= keys[0][0]:
+        return keys[0][1]
+    for (t0, z0), (t1, z1) in zip(keys, keys[1:]):
+        if t0 <= t <= t1:
+            u = 0.0 if t1 == t0 else (t - t0) / (t1 - t0)
+            u = 0.5 - 0.5 * math.cos(math.pi * u)
+            return z0 + (z1 - z0) * u
+    return keys[-1][1]
+
+
+def shake_at(t: float, events: list[tuple[float, float, float]]
+             ) -> tuple[float, float]:
+    ox = oy = 0.0
+    for at, amp, dur in events:
+        d = t - at
+        if 0.0 <= d <= dur:
+            k = (1.0 - d / dur) ** 2
+            ox += amp * k * math.sin(d * 68.0)
+            oy += amp * 0.6 * k * math.cos(d * 41.0)
+    return ox, oy
+
+
+# ------------------------------------------------------------------ helpers
+def keyed_keys(spec: list[tuple[object, float]], at_word) -> list[tuple[float, float]]:
+    out: list[tuple[float, float]] = []
+    last = 0.0
+    for anchor, z in spec:
+        t = float(anchor) if isinstance(anchor, (int, float)) else at_word(str(anchor))
+        last = max(t, last + 0.05)
+        out.append((last, z))
+    return out
+
+
+def ffmpeg() -> str:
+    return subprocess.run(
+        [sys.executable, "-c", "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"],
+        capture_output=True, text=True).stdout.strip()
+
+
+def mux(video: Path, src: Path, out: Path, with_audio: bool) -> None:
+    ff = ffmpeg()
+    cmd = [ff, "-hide_banner", "-loglevel", "error", "-y", "-i", str(video)]
+    if with_audio:
+        cmd += ["-i", str(src), "-map", "0:v:0", "-map", "1:a:0", "-c:a", "copy"]
+    cmd += ["-c:v", "copy", "-shortest", str(out)]
+    subprocess.run(cmd, check=True)
+
+
+PEAK_TARGET = -1.3      # dBTP: AAC inter-sample overs must not clip on playback
+
+
+def settle_audio(path: Path, video: Path) -> dict:
+    """Bring the shipped mix to the campaign's true-peak ceiling.
+
+    The sound is never re-timed here - no cut, no stretch, no re-mix, so the
+    keyboard that is already in it stays on its keystrokes. Only the level
+    moves: the whole program takes one constant gain so its true peak sits at
+    -1.3 dBTP, which is where post4 was normalised to. Posts 6 and 7 shipped
+    at +0.7 and +0.3 dBTP, i.e. hard against the codec's ceiling, and that is
+    the one audio fault the brief still finds in them.
+    """
+    info = probe(path)
+    tp = info.get("dbtp", 0.0)
+    # Encoder margin: AAC puts the decoded true peak a few tenths above the
+    # float mix that went in, so the gain is measured on the encoded file and
+    # corrected, never assumed.
+    for _ in range(3):
+        gain = PEAK_TARGET - tp
+        if gain > -0.10:
+            break
+        apply_gain(path, video, gain)
+        info = probe(path)
+        tp = info.get("dbtp", 0.0)
+    # One correction the other way: AAC lands the decoded peak a few tenths
+    # below the float mix it came from, and post6 came out a touch quiet
+    # against post7. Only ever inside the ceiling, and only once.
+    if PEAK_TARGET - tp > 0.25:
+        apply_gain(path, video, PEAK_TARGET - tp)
+        info = probe(path)
+    return info
+
+
+def apply_gain(path: Path, video: Path, gain: float) -> None:
+    tmp = path.with_name(path.stem + "_lvl.mp4")
+    subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
+                    "-i", str(path), "-i", str(video),
+                    "-map", "1:v:0", "-map", "0:a:0", "-c:v", "copy",
+                    "-af", f"volume={gain:.2f}dB", "-c:a", "aac", "-b:a", "192k",
+                    "-shortest", str(tmp)], check=True)
+    tmp.replace(path)
+
+
+def probe(path: Path) -> dict:
+    ff = ffmpeg()
+    r = subprocess.run([ff, "-hide_banner", "-i", str(path), "-af",
+                        "loudnorm=print_format=summary", "-f", "null", "-"],
+                       capture_output=True, text=True).stderr
+    out = {}
+    for line in r.splitlines():
+        if "Input Integrated" in line:
+            out["lufs"] = float(line.split(":")[1].split()[0])
+        if "Input True Peak" in line:
+            out["dbtp"] = float(line.split(":")[1].split()[0])
+        if "Input LRA" in line:
+            out["lra"] = float(line.split(":")[1].split()[0])
+    return out
+
+
+# ------------------------------------------------------------------- render
+def build(post: str) -> dict:
+    cfg = POSTS[post]
+    folder = ROOT / "campaigns" / CAMPAIGN / post
+    src = folder / f"street_{post}.mp4"
+    style = json.loads((folder / "style.json").read_text())
+    style["colors"]["keyword"] = cfg["emphasis"]     # emphasis ink (see module doc)
+    plan = json.loads((ROOT / "scripts" / "whop" / "plans" / f"{post}.json").read_text())
+
+    words = FR.ensure_words(post, src)
+    caps = FR.build_captions(plan, words)
+    win = FR.WINDOWS[post]
+    endcard_at = win["endcard"]
+    FR.caption_windows(caps, endcard_at)
+
+    at_word = {}
+    for cap in caps:
+        for line in cap["lines"]:
+            for cell in line:
+                at_word.setdefault(FR.norm(cell["w"]), float(cell["at"]))
+    keys = keyed_keys(cfg["zoom"], lambda w: at_word.get(FR.norm(w), 0.0))
+    shakes = [(at_word.get(FR.norm(w), 0.0), amp, dur) for w, amp, dur in cfg["shake"]]
+
+    cap_v = cv2.VideoCapture(str(src))
+    fps = cap_v.get(cv2.CAP_PROP_FPS) or 30.0
+    n_frames = int(cap_v.get(cv2.CAP_PROP_FRAME_COUNT))
+    duration = n_frames / fps
+    typer = FR.Typesetter(style)
+    endcard_img = typer.endcard_image()
+    bigword_img = typer.bigword_image() if "bigword" in win else None
+
+    out_video = ROOT / "work" / "street" / post / "tight_video.mp4"
+    out_video.parent.mkdir(parents=True, exist_ok=True)
+    ff = ffmpeg()
+    enc = subprocess.Popen(
+        [ff, "-hide_banner", "-loglevel", "error", "-y",
+         "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{W}x{H}",
+         "-r", f"{fps:.3f}", "-i", "-", "-an",
+         "-c:v", "libx264", "-preset", "medium", "-crf", "17",
+         "-pix_fmt", "yuv420p", str(out_video)], stdin=subprocess.PIPE)
+
+    def active(t: float):
+        for cap in caps:
+            if cap["show_from"] <= t < cap["show_until"]:
+                return cap
+        return None
+
+    prev_bar = 0
+    bars: list[int] = []
+    plates = 0
+    for fi in range(n_frames):
+        ok, frame = cap_v.read()
+        if not ok:
+            break
+        t = fi / fps
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        std = float(cv2.resize(gray, (108, 192)).std())
+        bar = bar_rows(gray)
+        # A bar only ever changes at a hard cut, and the two plateaus are
+        # >100 px apart: adopt a jump at once, ignore small noise.
+        if abs(bar - prev_bar) < 60 and abs(bar - prev_bar) > 6:
+            bar = prev_bar
+        prev_bar = bar
+        bars.append(bar)
+
+        if t >= endcard_at:
+            out = cv2.cvtColor(endcard_img, cv2.COLOR_RGB2BGR)
+        elif bigword_img is not None and win["bigword"][0] <= t < win["bigword"][1]:
+            out = cv2.cvtColor(bigword_img, cv2.COLOR_RGB2BGR)
+            cap = active(t)
+            if cap is not None:                       # type-on over the fresh plate
+                ov = typer.overlay(cap, t)
+                a = ov[:, :, 3:4].astype(np.float32) / 255.0
+                if a.any():
+                    out = (out.astype(np.float32) * (1 - a)
+                           + ov[:, :, :3][:, :, ::-1].astype(np.float32) * a
+                           ).astype(np.uint8)
+        else:
+            cap = active(t)
+            if cap is not None:
+                band = FR.SCENE_BAND if cap["zone"] == "scene" else FR.BAND
+                frame = clean_caption_band(frame, band[0], band[1], std < PLATE_STD)
+                ov = typer.overlay(cap, t)
+                a = ov[:, :, 3:4].astype(np.float32) / 255.0
+                if a.any():
+                    frame = (frame.astype(np.float32) * (1 - a)
+                             + ov[:, :, :3][:, :, ::-1].astype(np.float32) * a
+                             ).astype(np.uint8)
+            if std < PLATE_STD:                       # vector plate: hold it still
+                plates += 1
+                out = camera_frame(frame, 0, 1.0)
+            else:
+                dx, dy = shake_at(t, shakes)
+                out = camera_frame(frame, bar, zoom_at(t, keys), dx, dy)
+        if t > duration - 0.5:                        # keep the shipped fade
+            out = (out.astype(np.float32)
+                   * (1 - 0.92 * (t - (duration - 0.5)) / 0.5)).astype(np.uint8)
+        enc.stdin.write(out.tobytes())
+    cap_v.release()
+    enc.stdin.close()
+    if enc.wait() != 0:
+        raise SystemExit(f"{post}: video encode failed")
+
+    final = ROOT / "work" / "street" / post / "tight.mp4"
+    mux(out_video, src, final, with_audio=True)       # sound copied, never re-timed
+    dest = folder / f"street_{post}.mp4"
+    dest.write_bytes(final.read_bytes())
+
+    # cover: a frame where a key word is fully typed and the face is on screen
+    cover_t = float(cfg.get("cover")
+                    or at_word.get(FR.norm(cfg.get("cover_word", "")), 1.3) + 0.30)
+    cap_v = cv2.VideoCapture(str(dest))
+    cap_v.set(cv2.CAP_PROP_POS_MSEC, cover_t * 1000)
+    ok, frame = cap_v.read()
+    cap_v.release()
+    if ok:
+        cv2.imwrite(str(folder / "cover.jpg"),
+                    cv2.resize(frame, (540, 960), interpolation=cv2.INTER_AREA),
+                    [cv2.IMWRITE_JPEG_QUALITY, 92])
+
+    info = settle_audio(dest, out_video)
+    report = {
+        "post": post,
+        "source": str(src),
+        "emphasis": cfg["emphasis"],
+        "duration": round(duration, 2),
+        "frames": n_frames,
+        "sizes": {"bytes": dest.stat().st_size},
+        "camera_keys": [[round(t, 2), round(z, 3)] for t, z in keys],
+        "bar_rows_seen": sorted(set(bars)),
+        "plate_frames": plates,
+        "caption_cards": len(caps),
+        "cover_at": round(cover_t, 2),
+        **info,
+    }
+    (ROOT / "work" / "street" / post / "tight_report.json").write_text(
+        json.dumps(report, indent=1) + "\n")
+    print(json.dumps(report, indent=1))
+    return report
+
+
+def main() -> int:
+    posts = sys.argv[1:] or ["post6", "post7"]
+    for post in posts:
+        print(f"\n=== {post} ===", flush=True)
+        build(post)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

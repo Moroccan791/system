@@ -49,3 +49,16 @@ Fetched 2026-10-17.
 - Each post gets its own `style.json` before the edit, using the campaign's user-approved font roles and colours unless the user changes them in the style card.
 - Captions stay verbatim and engine-synced; use full-bleed, story-specific vector motion graphics plus a low-volume music bed. No marker swipes, hot pink, or captions-only edits.
 - Finish each post with the last complete spoken thought, a fade, and the branded end card; ship the video and a posting pack with `#ad`, the exact required description line, and 7–8 hashtags.
+
+## Current workflow authorization (2026-10-20)
+- USER RULE: emphasis words are set a step larger than the words around them
+  (1.16x, baseline aligned so the line stays level) and take the post's
+  emphasis ink - the user asked for "yellow, red or green" on the words that
+  attract the eye. Accent ink stays on plates and the end card; caption ink
+  stays the approved ivory. Implemented once in the typesetter
+  (`scripts/whop/font_refresh.py`, `Typesetter.KEY_SCALE` / `key_ink`) so every
+  post and the next campaign inherit it.
+- Tightening pass for a shipped clip with no raw source left: leave the sound
+  untouched (no cut, no stretch, no re-mix - the keyboard is already in it),
+  rebuild picture only, and apply one constant gain so the true peak lands at
+  -1.3 dBTP. See `scripts/whop/tight_posts.py`.

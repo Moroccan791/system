@@ -151,10 +151,20 @@ def caption_windows(caps: list[dict], endcard: float) -> None:
 
 
 class Typesetter:
+    #: emphas* words are set this much larger than the words around them.
+    #: 1.16 reads as deliberate emphasis at 1080 wide without pushing a
+    #: two-line card past the safe width (measured on posts 6 and 7).
+    KEY_SCALE = 1.16
+
     def __init__(self, style: dict):
         colors = style["colors"]
         self.ink = hex_rgb(colors["caption"])
         self.accent = hex_rgb(colors["accent"])
+        # Emphasis ink is its own slot: the accent stays on plates and the
+        # end card, the key words get the colour the user picked for them
+        # ("yellow, red or green ... to attract viewer"). Falls back to the
+        # accent, so every existing style card keeps rendering as before.
+        self.key_ink = hex_rgb(colors.get("keyword") or colors["accent"])
         self.scene_bg = hex_rgb(colors["sceneBg"])
         self._fonts: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
         self._cache: dict[tuple, np.ndarray] = {}
@@ -200,23 +210,21 @@ class Typesetter:
         return np.asarray(img)
 
     # -- caption overlays (RGBA, text only - no plate) -----------------
+    def _word_size(self, size: int, cell: dict) -> int:
+        return int(round(size * self.KEY_SCALE)) if cell["kind"] == "key" else size
+
+    def _line_width(self, line: list[dict], size: int) -> float:
+        space = self.font(SHAWKIND, size).getlength(" ")
+        total = space * max(0, len(line) - 1)
+        for c in line:
+            total += self.font(SHAWKIND, self._word_size(size, c)).getlength(c["w"])
+        return total
+
     def _fit_size(self, cap: dict) -> int:
-        probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
-        size = 84
-        while size > 40:
-            f = self.font(SHAWKIND, size)
-            space = probe.textlength(" ", font=f)
-            ok = True
-            for line in cap["lines"]:
-                width = sum(probe.textlength(c["w"], font=f)
-                            + space for c in line) - space
-                if width > 980:
-                    ok = False
-                    break
-            if ok:
+        for size in range(84, 39, -2):
+            if all(self._line_width(line, size) <= 1000 for line in cap["lines"]):
                 return size
-            size -= 2
-        return size
+        return 40
 
     def overlay(self, cap: dict, t: float) -> np.ndarray:
         revealed = tuple(
@@ -226,15 +234,24 @@ class Typesetter:
             return self._cache[key]
         size = self._fit_size(cap)
         f = self.font(SHAWKIND, size)
+        base_ascent = f.getmetrics()[0]
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
         space = d.textlength(" ", font=f)
 
         def draw_word(x, y, cell):
-            col = self.accent if cell["kind"] == "key" else self.ink
-            d.text((x, y), cell["w"], font=f, fill=col + (255,),
-                   stroke_width=3, stroke_fill=(0, 0, 0, 150))
-            return d.textlength(cell["w"], font=f)
+            """Draw one word, baseline-aligned with the words around it.
+
+            Emphasis words are set larger, so they grow up and down from the
+            same baseline instead of sitting low like a different font.
+            """
+            wf = self.font(SHAWKIND, self._word_size(size, cell))
+            is_key = cell["kind"] == "key"
+            col = self.key_ink if is_key else self.ink
+            ty = y + (base_ascent - wf.getmetrics()[0])
+            d.text((x, ty), cell["w"], font=wf, fill=col + (255,),
+                   stroke_width=4 if is_key else 3, stroke_fill=(0, 0, 0, 150))
+            return wf.getlength(cell["w"])
 
         if cap["zone"] == "scene":
             x = 64.0
@@ -247,8 +264,7 @@ class Typesetter:
             total_h = advance * (len(cap["lines"]) - 1) + int(size * 0.86)
             y = 1652 - total_h / 2
             for li, line in enumerate(cap["lines"]):
-                total = sum(d.textlength(c["w"], font=f) for c in line) \
-                    + space * max(0, len(line) - 1)
+                total = self._line_width(line, size)
                 x = (W - total) / 2
                 for ci, cell in enumerate(line):
                     if ci >= revealed[li]:
