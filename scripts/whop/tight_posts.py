@@ -116,12 +116,12 @@ END_MODES = ("card", "peak")   # "card" = branded CTA, "peak" = cut on the word
 #: where the pixels are already highly saturated (i.e. on skin). A grade
 #: should make the shot look shot-better, never tanned.
 DEFAULT_GRADE = {
-    "curve": 0.30,          # 0 = linear, 1 = hard S
+    "curve": 0.26,          # 0 = linear, 1 = hard S
     "saturation": 1.05,
     "warmth": 0.010,        # highlights toward amber (skin-safe ceiling)
     "cool": 0.008,          # shadows toward teal
-    "vignette": 0.12,
-    "lift": 0.005,          # raise the floor a hair so blacks are not dead
+    "vignette": 0.10,
+    "lift": 0.008,          # raise the floor a hair so blacks are not dead
     "skin_guard": 0.55,     # warmth fades out as saturation rises
 }
 
@@ -260,6 +260,94 @@ def camera_frame(frame: np.ndarray, bar: int, z: float,
                       (W, H), interpolation=cv2.INTER_CUBIC)
 
 
+#: Punch-ins. The authored `zoom` keys are a slow push across the whole clip;
+#: they never react to a single word. These do: a 3.5% bump that lands on the
+#: emphasised word, holds while it is read, and is gone before the next one.
+#: It is the cheapest thing in an edit that reads as "someone is cutting this".
+PUNCH = {"amount": 0.035, "attack": 0.07, "hold": 0.20, "release": 0.38,
+         "min_gap": 0.90, "max": 9}
+
+
+def _smooth(x: float) -> float:
+    x = min(1.0, max(0.0, x))
+    return x * x * (3.0 - 2.0 * x)
+
+
+def punch_events(times: list[float], spec: dict | None = None) -> list[tuple[float, float]]:
+    """Turn emphasised-word times into (start, amount) punches, spaced out.
+
+    Emphasis is already decided by the caption engine (the words it sets in
+    the key ink, 1.16x); the camera should agree with it rather than carry a
+    second, hand-maintained list of "important" words that drifts from the
+    captions.
+    """
+    sp = {**PUNCH, **(spec or {})}
+    out: list[tuple[float, float]] = []
+    for t in sorted(times):
+        if out and t - out[-1][0] < float(sp["min_gap"]):
+            continue
+        if len(out) >= int(sp["max"]):
+            break
+        out.append((round(float(t), 3), float(sp["amount"])))
+    return out
+
+
+def punch_at(t: float, events: list[tuple[float, float]],
+             spec: dict | None = None) -> float:
+    """Scale multiplier at time t: 1.0 everywhere except on a punch."""
+    if not events:
+        return 1.0
+    sp = {**PUNCH, **(spec or {})}
+    attack, hold = float(sp["attack"]), float(sp["hold"])
+    release = float(sp["release"])
+    z = 1.0
+    for start, amount in events:
+        dt = t - start
+        if dt < 0.0 or dt > hold + release:
+            continue
+        env = _smooth(dt / max(attack, 1e-3)) * (1.0 - _smooth((dt - hold) / max(release, 1e-3)))
+        z = max(z, 1.0 + amount * env)
+    return z
+
+
+def framing_cuts(caps: list[dict], *, silence: float = 0.30,
+                 min_gap: float = 3.5, max_cuts: int = 4) -> list[float]:
+    """Where to change framing: only where the edit already stops.
+
+    A card boundary is not a beat - these cards tile the speech back to back,
+    so cutting framing at each one changes the shot every 1.3 s and reads as a
+    twitch. A *silence* between cards is a beat, and those are rare (post 7
+    has one in 21 s). Spacing and a cap keep it to a couple of changes a clip,
+    which is what the eye reads as a second camera rather than as a glitch.
+    """
+    ordered = sorted(caps, key=lambda c: float(c["show_from"]))
+    out: list[float] = []
+    prev_until = None
+    for cap in ordered:
+        start = float(cap["show_from"])
+        if start < 1.2:
+            prev_until = float(cap["show_until"])
+            continue
+        if prev_until is not None and start - prev_until >= silence:
+            if not out or start - out[-1] >= min_gap:
+                out.append(round(start, 3))
+        prev_until = max(prev_until or 0.0, float(cap["show_until"]))
+        if len(out) >= max_cuts:
+            break
+    return out
+
+
+def segment_scale(t: float, cuts: list[float], amount: float = 0.016) -> float:
+    """A/B framing across a long take.
+
+    A talking head with one framing for 20 seconds reads as a static zoom
+    call; alternating a 1.6% push at card boundaries reads as two cameras,
+    without touching the audio or re-timing a word.
+    """
+    n = sum(1 for c in cuts if t >= c)
+    return 1.0 + amount * (n % 2)
+
+
 def zoom_at(t: float, keys: list[tuple[float, float]]) -> float:
     if t <= keys[0][0]:
         return keys[0][1]
@@ -387,6 +475,12 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     # blocks are re-wrapped here and re-timed from the same word cells.
     caps = CR.time_cards(CR.rewrap(FR.build_captions(plan, words)),
                          win["endcard"])
+    # A caption card whose window runs backwards (seen on post 7: 4.37 -> 4.09)
+    # can never be active - `show_from <= t < show_until` is false for it - so
+    # it is dead weight that also puts the list out of time order. Drop those
+    # and order the rest once, here, rather than trusting every consumer.
+    caps = sorted((c for c in caps if float(c["show_until"]) > float(c["show_from"])),
+                  key=lambda c: float(c["show_from"]))
     endcard_at = win["endcard"]
     if end_mode == "peak":
         last_end = max(float(c.get("end") or 0) for cap in caps for line in cap["lines"] for c in line)
@@ -402,6 +496,11 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     # so the floor is the full frame
     keys = [(t, min(1.10, max(1.0, z))) for t, z in keys]
     shakes = [(at_word.get(FR.norm(w), 0.0), amp, dur) for w, amp, dur in cfg["shake"]]
+    key_times = [float(cell["at"]) for cap in caps for line in cap["lines"]
+                 for cell in line if cell["kind"] == "key"]
+    punch_spec = {**PUNCH, **(cfg.get("punch") or {})}
+    punches = punch_events(key_times, punch_spec)
+    cuts = framing_cuts(caps)
 
     cap_v = cv2.VideoCapture(str(src))
     fps = cap_v.get(cv2.CAP_PROP_FPS) or 30.0
@@ -473,6 +572,13 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
             if cap is not None:
                 band = FR.SCENE_BAND if cap["zone"] == "scene" else FR.BAND
                 frame = clean_caption_band(frame, band[0], band[1], std < PLATE_STD)
+            # The grade goes on the *footage*, before any type is drawn: the
+            # caption ink was approved on a swatch, and a warm highlight pass
+            # over ivory is a different colour. Scaling (camera/zoom) moves
+            # type but does not tint it, so this order keeps both.
+            if std >= PLATE_STD:
+                frame = grade_frame(frame, grade_cfg, vig_mask)
+            if cap is not None:
                 ov = typer.overlay(cap, t)
                 a = ov[:, :, 3:4].astype(np.float32) / 255.0
                 if a.any():
@@ -484,8 +590,9 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                 out = camera_frame(frame, 0, 1.0)     # brand colours stay exact
             else:
                 dx, dy = shake_at(t, shakes)
-                out = camera_frame(frame, bar, zoom_at(t, keys), dx, dy)
-                out = grade_frame(out, grade_cfg, vig_mask)
+                z = (zoom_at(t, keys) * punch_at(t, punches, punch_spec)
+                     * segment_scale(t, cuts))
+                out = camera_frame(frame, bar, min(1.10, z), dx, dy)
         if t > duration - 0.5:                        # keep the shipped fade
             out = (out.astype(np.float32)
                    * (1 - 0.92 * (t - (duration - 0.5)) / 0.5)).astype(np.uint8)
@@ -564,6 +671,8 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "caption_cards": len(caps),
         "end_mode": end_mode,
         "grade": grade_cfg,
+        "punches": [[round(t, 2), round(a, 3)] for t, a in punches],
+        "ab_cuts": [round(c, 2) for c in cuts],
         "manifest": "work/street/%s/tight_cards.json" % post,
         "cover_at": round(cover_t, 2),
         **info,

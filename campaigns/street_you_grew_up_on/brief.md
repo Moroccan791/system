@@ -114,10 +114,24 @@ Fetched 2026-10-17.
 - USER NOTE: "could we add colour grading, viewers really like that."
 - Implemented in `tight_posts.py:grade_frame` and applied to footage only -
   never to vector plates, the end card, or the caption, whose colours are
-  approved in the style card. Defaults: S-curve 0.30, saturation 1.05,
-  warmth 0.010, cool 0.008, vignette 0.12, lift 0.005, skin guard 0.55.
+  approved in the style card. Defaults: S-curve 0.26, saturation 1.05,
+  warmth 0.010, cool 0.008, vignette 0.10, lift 0.008, skin guard 0.55.
+  Measured on post 7: caption ink identical to the shipped master
+  (230/238/244 BGR), frame mean -6%, skin within 2 points.
 - Tuned on a face, not a colour chart: the first pass (warmth 0.022) turned
   her skin orange, so the warm lift is now small, capped, and skipped where
   pixels are already saturated. Measured on a post7 frame: skin BGR 90/92/109
   -> 88/91/109 (unchanged), frame contrast +1.5, saturation +24.
 - Per-campaign overrides live in `campaign_rules.json` under `grade`.
+
+## Motion (2026-10-20)
+
+- Punches: 3.5% zoom bump on each emphasised word (the words the caption
+  engine already sets in key ink at 1.16x), 70 ms in, 200 ms hold, 380 ms out,
+  at least 0.9 s apart, max 9. Post 7 fires 5. This is the layer that makes
+  the cut feel like someone is reacting to the words rather than a slow push.
+- A/B framing: a 1.6% scale change, but only at a real silence between cards
+  (not at every card boundary - the cards tile the speech, so that would
+  twitch every 1.3 s). Post 7 has no internal silences, so it gets none; the
+  tool exists for raws that do.
+- Both are asserted by `tests/test_punch.py`.
