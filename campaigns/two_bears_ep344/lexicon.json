@@ -1,0 +1,23 @@
+{
+  "categories": {
+    "slur": {
+      "severity": "block",
+      "text": true,
+      "terms": [
+        "faggot", "fag", "retard", "retarded", "nigger", "nigga", "tranny",
+        "chink", "spic", "kike", "wetback", "gook", "dyke", "homo", "shemale",
+        "midget", "cripple", "autistic"
+      ],
+      "note": "Extend this list for anything the episode actually uses. The brief bans slurs even bleeped and never in text, so this category is a hard block on both speech and copy."
+    },
+    "kids_sexual": {
+      "severity": "block",
+      "text": true,
+      "terms": ["baby bit", "the baby bit", "kid bit", "little girl", "little boy", "schoolgirl", "underage"]
+    }
+  },
+  "notes": [
+    "Bleeped slurs leave no word in the transcript. This campaign bans them; they must be caught by ear before shipping.",
+    "terms are matched at token starts: nazi hits nazis and nazi's, not snazzy."
+  ]
+}

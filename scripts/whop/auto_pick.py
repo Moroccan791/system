@@ -39,6 +39,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 import caption_rules as CR                      # noqa: E402
 import hook_lab as HL                          # noqa: E402
+import topic_guard as TG                       # noqa: E402
 
 PAYOFF = re.compile(
     r"\b(so|because|that's why|which means|turns out|the point|in the end|"
@@ -168,6 +169,23 @@ def windows(words: list[dict], lo: float, hi: float, ideal: float) -> list[dict]
     return out
 
 
+def drop_banned(cands: list[dict], hits: list[dict]) -> tuple[list[dict], int]:
+    """Remove every window that overlaps a hard-blocked moment.
+
+    This runs on the *window*, not on the final cut: a candidate whose span
+    contains the taboo line is not a clip we can trim our way out of, because
+    the line is usually the punchline.
+    """
+    safe, dropped = [], 0
+    for c in cands:
+        ok, _ = TG.window_ok(c["start"], c["end"], hits)
+        if ok:
+            safe.append(c)
+        else:
+            dropped += 1
+    return safe, dropped
+
+
 def choose(cands: list[dict], count: int) -> list[dict]:
     """Best first, then best that does not overlap something already chosen."""
     picked: list[dict] = []
@@ -187,6 +205,8 @@ def main() -> int:
     ap.add_argument("--min", type=float, default=25.0)
     ap.add_argument("--max", type=float, default=40.0)
     ap.add_argument("--ideal", type=float, default=32.0)
+    ap.add_argument("--campaign", default="two_bears_ep344",
+                    help="campaign whose lexicon filters banned moments")
     ap.add_argument("--json", help="write the picks here")
     args = ap.parse_args()
 
@@ -195,6 +215,15 @@ def main() -> int:
         print("no words in transcript", file=sys.stderr)
         return 2
     cands = windows(words, args.min, args.max, args.ideal)
+    lex = TG.load_lexicon(ROOT / "campaigns" / args.campaign) if args.campaign else None
+    hits = TG.scan_words(words, lexicon=lex) if lex else []
+    if hits:
+        cands, dropped = drop_banned(cands, hits)
+        blocked = sum(1 for h in hits if h["severity"] == "block")
+        print(f"\nTOPIC GUARD — {blocked} blocking moment(s), "
+              f"{dropped} candidate window(s) removed")
+        for h in [h for h in hits if h["severity"] == "block"][:12]:
+            print(f"   {h['start']:7.2f}s  {h['category']:12s} {h['term']}")
     picks = choose(cands, args.count)
     if not picks:
         print(f"no window between {args.min:.0f}-{args.max:.0f}s ends on a "

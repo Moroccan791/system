@@ -1,0 +1,77 @@
+{
+  "campaign": "two_bears_ep344",
+  "source_show": "2 Bears 1 Cave Ep. 344",
+  "required": {
+    "mention": "2 Bears 1 Cave Ep. 344",
+    "hashtag": "#2BearsWeekly",
+    "bio_link": "https://youtu.be/3pDAyRLPO58",
+    "platforms": ["tiktok", "instagram_reels", "youtube_shorts", "x"],
+    "note": "Missing any of the three (mention, hashtag, bio link) means no payout. The bio link is account-level, not per post."
+  },
+  "payout": {
+    "cpm_usd": 1.0,
+    "max_per_video_usd": 200,
+    "paid_view_cap": 200000,
+    "monthly_pool_usd": 5000,
+    "audience_us_min_pct": 60,
+    "review": "manual review + bot screening; first-come"
+  },
+  "duration": {
+    "min": 20.0,
+    "max": 45.0,
+    "preferred": 30.0,
+    "note": "Comedy needs its setup. Shorter than 20s usually drops the premise; past 45s the punchline is too far from the hook."
+  },
+  "hook": {
+    "min_strength": 4.0,
+    "note": "Same calibration as before: open on the line that works as a caption by itself."
+  },
+  "caption_rules": {
+    "verbatim": true,
+    "no_added_claims": true,
+    "must_include": ["2 Bears 1 Cave Ep. 344", "#2BearsWeekly"],
+    "max_chars_per_line": 14,
+    "note": "Captions are the spoken words only. Nothing invented, no editorialising, no claim the guest did not make."
+  },
+  "banned": {
+    "source": "campaigns/two_bears_ep344/lexicon.json",
+    "hard_block_categories": ["slur", "sexual", "self_harm", "drugs", "nazi", "kids_sexual"],
+    "warn_categories": ["accusation", "brand", "politics", "sponsor", "network", "divorce"],
+    "text_never": ["slur", "nazi"],
+    "rules": [
+      "A banned moment invalidates every candidate window that overlaps it - cut around it or pick another moment.",
+      "Slurs and Nazi/Hitler references must never appear in titles, captions or on-screen text, even if the speech is cut.",
+      "Bleeped slurs are banned and invisible to a transcript-based guard: review by ear."
+    ]
+  },
+  "rejection_reasons": [
+    "no 2 Bears footage or context",
+    "missing #2BearsWeekly",
+    "footage not from Ep. 344",
+    "no episode link in bio",
+    "slop reposting (identical clip, minimal variation)",
+    "story boosting",
+    "fake or botted views/likes",
+    "content from the DO NOT CLIP list"
+  ],
+  "audio": {"min_lufs": -17.0, "max_lufs": -13.0, "voice_over_bed_db": 12.0},
+  "picture": {"max_top_bar_rows": 12},
+  "grade": {
+    "curve": 0.26,
+    "saturation": 1.05,
+    "warmth": 0.010,
+    "cool": 0.008,
+    "vignette": 0.10,
+    "lift": 0.008,
+    "skin_guard": 0.55,
+    "note": "Footage only; plates, end card and caption ink stay exact."
+  },
+  "sound": {"enabled": true, "bed": true, "hits": true, "rate": 48000},
+  "voice": {"enabled": true, "highpass": 90, "highpass_stages": 2},
+  "tighten": {"gap": 0.55, "pad": 0.12, "keep_air": 0.28, "lead_in": 0.12},
+  "card_hold": 0.85,
+  "caption_drift_px": 6,
+  "ramp": {"enabled": true, "factor": 0.94, "window": 1.1},
+  "transition": {"kind": "whip", "window": 0.20},
+  "roto": {"lift": 0.14, "wrap": 0.6, "depth": 0.05}
+}

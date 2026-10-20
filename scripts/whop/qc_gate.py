@@ -210,6 +210,35 @@ def check_hook_strength(rows: list[dict], words: list[dict], rules: dict) -> Non
         f"| {text!r}")
 
 
+def check_topic(rows: list[dict], words: list[dict], rules: dict,
+                title: str | None = None) -> None:
+    """Re-check the finished cut against the campaign's DO NOT CLIP list.
+
+    Selection already filters candidates, but a cut is assembled from words
+    the selector did not necessarily see as one span (a tightening join can
+    pull two moments together), so the finished manifest gets its own check -
+    and the title gets the stricter text rules.
+    """
+    import topic_guard as TG
+    campaign = rules.get("campaign") or rules.get("_campaign")
+    lex = TG.load_lexicon(ROOT / "campaigns" / campaign) if campaign else TG.DEFAULT
+    hits = TG.scan_words(words, lexicon=lex)
+    blocked = [h for h in hits if h["severity"] == "block"]
+    warns = [h for h in hits if h["severity"] != "block"]
+    if blocked:
+        detail = ", ".join(f"{h['category']}:{h['term']}@{h['start']:.1f}s"
+                           for h in blocked[:4])
+        add(rows, "topic_safety", FAIL, f"{len(blocked)} blocked moment(s): {detail}")
+    else:
+        add(rows, "topic_safety", PASS,
+            f"no blocked moments" + (f" ({len(warns)} to review)" if warns else ""))
+    if title:
+        thits = TG.scan_text(title, lexicon=lex, strict=True)
+        add(rows, "title_safety", FAIL if thits else PASS,
+            ("banned in copy: " + ", ".join(f"{h['category']}:{h['term']}" for h in thits[:3]))
+            if thits else "title/caption clean")
+
+
 def check_audio(rows: list[dict], path: Path, audio: np.ndarray, rules: dict) -> None:
     conf = rules.get("audio", {})
     info = measure(path)
@@ -370,6 +399,9 @@ def gate(video: Path, manifest: dict, rules: dict) -> dict:
     check_audio(rows, video, audio, rules)
     check_picture(rows, video, cards, rules, manifest.get("endcard"))
     check_ending(rows, manifest, duration, rules)
+    check_topic(rows, [{"text": w.get("w") or w.get("text"), "start": w.get("at", 0),
+                        "end": w.get("end", 0)} for w in words],
+                rules, title=manifest.get("title"))
     ok = all(r["status"] != FAIL for r in rows)
     return {"video": str(video), "ok": ok, "checks": rows}
 
@@ -386,6 +418,7 @@ def main() -> int:
     video = Path(args.video)
     manifest = json.loads(Path(args.manifest).read_text())
     rules = json.loads((ROOT / "campaigns" / args.campaign / "campaign_rules.json").read_text())
+    rules.setdefault("_campaign", args.campaign)
     report = gate(video, manifest, rules)
     if args.warn_only:
         for row in report["checks"]:
