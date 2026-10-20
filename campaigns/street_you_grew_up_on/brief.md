@@ -135,3 +135,27 @@ Fetched 2026-10-17.
   twitch every 1.3 s). Post 7 has no internal silences, so it gets none; the
   tool exists for raws that do.
 - Both are asserted by `tests/test_punch.py`.
+
+## Hook title + sound (2026-10-20)
+
+- **Hook title.** The opening line is set large in the top third for its first
+  beat (post 7: 0-1.12 s, "I WILL NEVER" with NEVER in the emphasis ink), then
+  the band starts on the next card so the same words are never on screen
+  twice. Same words, no new claim. Reason: autoplay is muted and the band sits
+  in the bottom third where platform chrome covers it.
+- Bug found by this: the band is only erased when one of our cards is up, so
+  the archive's own burned-in subtitles were showing through underneath the
+  title (post 7, 0-0.4 s). The band is now cleaned during the title too.
+- **Sound.** `sound_design.py` synthesises an A-minor pad + a sub pulse on the
+  beat, ducked under the voice from the transcript's own word times, plus a
+  sub hit on each punch. Everything is generated here - no licensed master, so
+  no Content ID claim, no mute, no territory block, nothing to expire.
+- Bed level is measured, not assumed: the first pass landed at -24.9 dBFS in
+  the quiet moments (audible "thinking pad"), so it was cut to 0.012 and now
+  sits near -30 dBFS with 18.6 dB of clearance under the voice, against the
+  gate's 12 dB requirement.
+- **Gate fix.** `black_bars` used a fixed brightness cut, so the grade (which
+  darkens by 6%) pushed a textured dark wall under it and failed post 7 at
+  4.0 s. A bar is now dark *and flat* (row std < 2.5): content rows measure
+  ~30, a real bar ~0.
+

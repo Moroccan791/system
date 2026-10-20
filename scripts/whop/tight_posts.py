@@ -66,6 +66,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 import font_refresh as FR                     # Typesetter, erase_captions, build_captions
+import sound_design as SD                      # synthesised bed + hits we own outright
 import caption_rules as CR                     # 14-char lines, fillers, card timing
 
 W, H = FR.W, FR.H
@@ -76,6 +77,7 @@ CAMPAIGN = "street_you_grew_up_on"
 #: number of seconds. `shake` is (anchor, amplitude px, duration s).
 POSTS: dict[str, dict] = {
     "post6": {
+        "hook_y": 296,
         "emphasis": "#FFC83D",           # warm yellow - pops on sage + ivory
         "zoom": [
             (0.00, 1.000), ("build", 1.030), ("oak", 1.048),
@@ -88,6 +90,7 @@ POSTS: dict[str, dict] = {
         "cover_word": "beautiful",
     },
     "post7": {
+        "hook_y": 292,
         "emphasis": "#E23B2F",           # red - the clip's warm palette, turned up
         "zoom": [
             (0.00, 1.000), ("never", 1.024), ("angry", 1.052),
@@ -100,6 +103,13 @@ POSTS: dict[str, dict] = {
         "cover_word": "struggle",
     },
 }
+
+#: The bed. Off in the rules only if a campaign explicitly says so; on by
+#: default because a bare talking head has no floor under it. Level is applied
+#: inside `sound_design` (BED_RMS) and then verified by the gate's
+#: voice-over-bed check, which fails a render where the voice is not 12 dB
+#: clear of it.
+DEFAULT_SOUND = {"enabled": True, "bed": True, "hits": True, "rate": 48000}
 
 END_MODES = ("card", "peak")   # "card" = branded CTA, "peak" = cut on the word
 
@@ -501,6 +511,12 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     punch_spec = {**PUNCH, **(cfg.get("punch") or {})}
     punches = punch_events(key_times, punch_spec)
     cuts = framing_cuts(caps)
+    # The opening line is also set as a title in the top third, where the
+    # platform UI does not sit, and the band starts on the next card so the
+    # same words are never on screen twice.
+    hook_cells = [cell for line in caps[0]["lines"] for cell in line] if caps else []
+    hook_until = (min(1.60, float(caps[1]["show_from"]) + 0.10)
+                  if len(caps) > 1 else min(1.60, duration))
 
     cap_v = cv2.VideoCapture(str(src))
     fps = cap_v.get(cv2.CAP_PROP_FPS) or 30.0
@@ -568,9 +584,13 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                            + ov[:, :, :3][:, :, ::-1].astype(np.float32) * a
                            ).astype(np.uint8)
         else:
-            cap = active(t)
-            if cap is not None:
-                band = FR.SCENE_BAND if cap["zone"] == "scene" else FR.BAND
+            cap = None if t < hook_until - 0.02 else active(t)
+            # The band is cleaned whenever a card is up *and* while the hook
+            # title is up: the archive footage already carries burned-in
+            # subtitles, so the moment we stop drawing our own, theirs shows
+            # through underneath the title (seen on post 7 at 0-0.4 s).
+            if cap is not None or t < hook_until:
+                band = FR.SCENE_BAND if (cap and cap["zone"] == "scene") else FR.BAND
                 frame = clean_caption_band(frame, band[0], band[1], std < PLATE_STD)
             # The grade goes on the *footage*, before any type is drawn: the
             # caption ink was approved on a swatch, and a warm highlight pass
@@ -593,6 +613,14 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                 z = (zoom_at(t, keys) * punch_at(t, punches, punch_spec)
                      * segment_scale(t, cuts))
                 out = camera_frame(frame, bar, min(1.10, z), dx, dy)
+                if hook_cells and t < hook_until:
+                    ov = typer.hook_image(hook_cells, t, y=int(cfg.get("hook_y", 300)))
+                    fade = min(1.0, max(0.0, (hook_until - t) / 0.16))
+                    a = ov[:, :, 3:4].astype(np.float32) / 255.0 * fade
+                    if a.any():
+                        out = (out.astype(np.float32) * (1 - a)
+                               + ov[:, :, :3][:, :, ::-1].astype(np.float32) * a
+                               ).astype(np.uint8)
         if t > duration - 0.5:                        # keep the shipped fade
             out = (out.astype(np.float32)
                    * (1 - 0.92 * (t - (duration - 0.5)) / 0.5)).astype(np.uint8)
@@ -611,6 +639,24 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
                         str(trimmed)], check=True)
         final = trimmed
+    # -- sound design: synthesised, so nothing to license and nothing to claim
+    sound_cfg = dict(DEFAULT_SOUND)
+    if rules_path.exists():
+        sound_cfg.update(json.loads(rules_path.read_text()).get("sound") or {})
+    sound_cfg.update(cfg.get("sound") or {})
+    if sound_cfg.get("enabled"):
+        intervals = SD.word_intervals(
+            [{"at": c["at"], "end": c["end"]}
+             for cap in caps for line in cap["lines"] for c in line])
+        track = SD.build_track(duration, intervals,
+                               [t for t, _ in punches] if sound_cfg.get("hits") else [],
+                               int(sound_cfg.get("rate") or 48000))
+        if not sound_cfg.get("bed"):
+            track = np.zeros_like(track)
+        mixed = final.with_name(final.stem + "_bed.mp4")
+        SD.mix_into(final, mixed, track, int(sound_cfg.get("rate") or 48000), ff)
+        mixed.replace(final)
+
     name = f"street_{post}{'_preview' if not ship else ''}.mp4"
     dest = (folder / name) if ship else (ROOT / "work" / "street" / post / name)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -671,6 +717,9 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "caption_cards": len(caps),
         "end_mode": end_mode,
         "grade": grade_cfg,
+        "sound": sound_cfg,
+        "hook_title": {"until": round(hook_until, 2),
+                       "words": [c["w"] for c in hook_cells]},
         "punches": [[round(t, 2), round(a, 3)] for t, a in punches],
         "ab_cuts": [round(c, 2) for c in cuts],
         "manifest": "work/street/%s/tight_cards.json" % post,

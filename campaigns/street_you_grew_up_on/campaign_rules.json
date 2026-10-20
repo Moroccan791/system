@@ -63,5 +63,12 @@
     "lift": 0.008,
     "skin_guard": 0.55,
     "note": "Footage only - plates, end card and captions keep their approved colours. Tuned on a face; warmth is capped and skipped on saturated pixels so skin does not go orange."
+  },
+  "sound": {
+    "enabled": true,
+    "bed": true,
+    "hits": true,
+    "rate": 48000,
+    "note": "Bed and hits are synthesised in scripts/whop/sound_design.py - no third-party master, so nothing to claim, mute or block. Level is measured on the finished file; qc_gate voice_over_bed requires the voice to sit >=12 dB over it."
   }
 }

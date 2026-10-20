@@ -28,6 +28,7 @@ Scene/end-card windows below were measured off the shipped cuts
 from __future__ import annotations
 
 import difflib
+import math
 import json
 import re
 import subprocess
@@ -225,6 +226,75 @@ class Typesetter:
             if all(self._line_width(line, size) <= 1000 for line in cap["lines"]):
                 return size
         return 40
+
+    def hook_image(self, cells: list[dict], t: float, *, y: int = 300,
+                   max_w: int = 900, max_size: int = 138,
+                   min_size: int = 84) -> np.ndarray:
+        """The opening line, set large in the top third, revealed word by word.
+
+        Why it exists: the first thing a viewer sees is an autoplaying, often
+        muted video, and the caption band sits in the bottom third where the
+        platform's own UI covers it. So the opening claim is also set up here,
+        from the same words and therefore with no added claim - it is the
+        caption, moved and enlarged, not a new sentence.
+
+        Returns a full-frame RGBA layer, empty before its first word is due.
+        """
+        revealed = sum(1 for c in cells if t >= float(c["at"]) - 0.02)
+        key = ("hook", tuple(id(c) for c in cells), revealed, y, max_w, max_size)
+        if key in self._cache:
+            return self._cache[key]
+        img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        if revealed == 0:
+            self._cache[key] = (arr := np.asarray(img))
+            return arr
+
+        words = cells[:revealed]
+        probe = self.font(SHAWKIND, max_size)
+        space = d.textlength(" ", font=probe)
+
+        def line_width(items, size):
+            f = self.font(SHAWKIND, size)
+            return sum(f.getlength(c["w"]) for c in items) + space * (len(items) - 1)
+
+        def split(items, n):
+            per = math.ceil(len(items) / n)
+            return [items[i:i + per] for i in range(0, len(items), per)] or [items]
+
+        # Fit honestly: shrink, and if the floor is reached before it fits,
+        # take another line rather than let the type run into the frame edge.
+        # (A 15-character opening is fine; a long one must still fit.)
+        floor = 56
+        lines, size = [words], max_size
+        for n in (1, 2, 3):
+            lines = split(words, n) if n > 1 else [words]
+            size = max_size
+            while size > floor and max(line_width(ln, size) for ln in lines) > max_w:
+                size -= 4
+            if max(line_width(ln, size) for ln in lines) <= max_w:
+                break
+
+        f = self.font(SHAWKIND, size)
+        ascent = f.getmetrics()[0]
+        advance = int(size * 1.12)
+        total_h = advance * (len(lines) - 1) + int(size * 0.86)
+        top = y - total_h / 2
+        for li, line in enumerate(lines):
+            total = line_width(line, size)
+            x = (W - total) / 2
+            yy = top + li * advance
+            for cell in line:
+                wf = self.font(SHAWKIND, self._word_size(size, cell))
+                is_key = cell["kind"] == "key"
+                col = self.key_ink if is_key else self.ink
+                ty = yy + (ascent - wf.getmetrics()[0])
+                d.text((x, ty), cell["w"], font=wf, fill=col + (255,),
+                       stroke_width=5, stroke_fill=(0, 0, 0, 165))
+                x += wf.getlength(cell["w"]) + space
+        arr = np.asarray(img)
+        self._cache[key] = arr
+        return arr
 
     def overlay(self, cap: dict, t: float) -> np.ndarray:
         revealed = tuple(

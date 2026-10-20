@@ -238,6 +238,20 @@ def check_audio(rows: list[dict], path: Path, audio: np.ndarray, rules: dict) ->
             f"speech {voice:.1f} dB, bed {bed:.1f} dB)")
 
 
+def bar_mask(gray: np.ndarray, *, max_mean: float = 10.0,
+             max_std: float = 2.5) -> np.ndarray:
+    """Which rows are letterbox bars.
+
+    A bar is not "a dark row" - a dark wall, a black shirt or a night shot all
+    produce those, and a grade that darkens the image by 6% can push ordinary
+    footage under any fixed brightness cut (this gate failed post 7 at 4.0 s
+    for exactly that reason: the top rows were a textured wall at 13.5). A bar
+    is dark *and flat*: no texture at all, because there is nothing there.
+    Measured on real footage, content rows carried std ~30 against a bar's ~0.
+    """
+    return (gray.mean(axis=1) < max_mean) & (gray.std(axis=1) < max_std)
+
+
 def check_picture(rows: list[dict], path: Path, cards: list[dict], rules: dict,
                   manifest_endcard: float | None = None) -> None:
     conf = rules.get("picture", {})
@@ -262,11 +276,10 @@ def check_picture(rows: list[dict], path: Path, cards: list[dict], rules: dict,
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if float(cv2.resize(gray, (108, 192)).std()) < 42.0:
             continue                        # vector plate, not footage
-        dark = gray.mean(axis=1) < 14
-        rows_dark, k = 0, 0
-        while k < len(dark) and dark[k]:
+        dark = bar_mask(gray)
+        rows_dark = 0
+        while rows_dark < len(dark) and dark[rows_dark]:
             rows_dark += 1
-            k += 1
         if rows_dark > worst:
             worst, worst_t = rows_dark, i / fps
     add(rows, "black_bars", PASS if worst <= max_bar else FAIL,
