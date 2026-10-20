@@ -15,7 +15,7 @@ from the shipped cut itself:
 * the old burned-in captions are ERASED (bright-stroke detection +
   inpainting, softened) and the caption is redrawn straight on the
   picture the old way - no matte panel, no black layer - in the
-  user's Flaviotte serif, key words in the post's accent;
+  user's Shawkind (all-caps display sans), key words in the post's accent;
 * the full-screen hero (post6 "OAK TREE") and every end card
   ("FOLLOW FOR MORE") are redrawn full-frame in the user's Shawkind;
 * everything else - the cut, the vector scenes, the music, the mix -
@@ -200,9 +200,9 @@ class Typesetter:
     # -- caption overlays (RGBA, text only - no plate) -----------------
     def _fit_size(self, cap: dict) -> int:
         probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
-        size = 90
-        while size > 44:
-            f = self.font(FLAVIOTTE, size)
+        size = 84
+        while size > 40:
+            f = self.font(SHAWKIND, size)
             space = probe.textlength(" ", font=f)
             ok = True
             for line in cap["lines"]:
@@ -223,7 +223,7 @@ class Typesetter:
         if key in self._cache:
             return self._cache[key]
         size = self._fit_size(cap)
-        f = self.font(FLAVIOTTE, size)
+        f = self.font(SHAWKIND, size)
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
         space = d.textlength(" ", font=f)
@@ -241,8 +241,8 @@ class Typesetter:
                     break
                 x += draw_word(x, 596, cell) + space
         else:
-            advance = int(size * 1.42)
-            total_h = advance * (len(cap["lines"]) - 1) + int(size * 1.05)
+            advance = int(size * 1.26)
+            total_h = advance * (len(cap["lines"]) - 1) + int(size * 0.86)
             y = 1652 - total_h / 2
             for li, line in enumerate(cap["lines"]):
                 total = sum(d.textlength(c["w"], font=f) for c in line) \
@@ -304,8 +304,8 @@ def main() -> int:
     src = folder / f"street_{post}.mp4"
     plan = json.loads((ROOT / "scripts" / "whop" / "plans" / f"{post}.json").read_text())
     style = json.loads((folder / "style.json").read_text())
-    assert style["caption"] == "flaviotte" and style["endcard"] == "shawkind", \
-        "style card is not on the user's fonts yet"
+    assert style["caption"] == "shawkind" and style["endcard"] == "shawkind", \
+        "style card is not on Shawkind yet"
 
     words = ensure_words(post, src)
     caps = build_captions(plan, words)
