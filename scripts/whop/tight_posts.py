@@ -67,6 +67,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 import font_refresh as FR                     # Typesetter, erase_captions, build_captions
 import sound_design as SD                      # synthesised bed + hits we own outright
+import director as DIR                         # which move this shot needs, and which it does not
 import caption_rules as CR                     # 14-char lines, fillers, card timing
 
 W, H = FR.W, FR.H
@@ -508,9 +509,20 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
     shakes = [(at_word.get(FR.norm(w), 0.0), amp, dur) for w, amp, dur in cfg["shake"]]
     key_times = [float(cell["at"]) for cap in caps for line in cap["lines"]
                  for cell in line if cell["kind"] == "key"]
+    # The director decides which moves this shot actually needs. It is not a
+    # switchboard of "everything on": on post 7 it skips the light wrap (the
+    # room behind her is darker than her skin, so there is no spill to wrap)
+    # and skips the dolly (the clip already cuts, so the movement belongs on
+    # the cut, not on the camera).
+    direction = DIR.plan_for(src, cards=[
+        {"show_from": c["show_from"], "show_until": c["show_until"],
+         "lines": [[cell["w"] for cell in line] for line in c["lines"]]}
+        for c in caps], words=[{"at": cell["at"], "end": cell["end"]}
+                               for cap in caps for line in cap["lines"] for cell in line],
+        key_words=len(key_times))
     punch_spec = {**PUNCH, **(cfg.get("punch") or {})}
-    punches = punch_events(key_times, punch_spec)
-    cuts = framing_cuts(caps)
+    punches = punch_events(key_times, punch_spec) if direction["punches"]["use"] else []
+    cuts = framing_cuts(caps) if direction["ab_framing"]["use"] else []
     # The opening line is also set as a title in the top third, where the
     # platform UI does not sit, and the band starts on the next card so the
     # same words are never on screen twice.
@@ -718,6 +730,8 @@ def build(post: str, *, ship: bool = False, end_mode: str = "card",
         "end_mode": end_mode,
         "grade": grade_cfg,
         "sound": sound_cfg,
+        "key_words": len(key_times),
+        "direction": {k: v for k, v in direction.items() if not k.startswith("_")},
         "hook_title": {"until": round(hook_until, 2),
                        "words": [c["w"] for c in hook_cells]},
         "punches": [[round(t, 2), round(a, 3)] for t, a in punches],

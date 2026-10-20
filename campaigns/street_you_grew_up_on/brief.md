@@ -159,3 +159,24 @@ Fetched 2026-10-17.
   4.0 s. A bar is now dark *and flat* (row std < 2.5): content rows measure
   ~30, a real bar ~0.
 
+## Direction: which move, when (2026-10-20)
+
+- USER NOTE: "all of these is important at times and i need u to figure out
+  when is which one thing needed." Answered in `scripts/whop/director.py`,
+  which measures the clip and returns use/skip + reason for each move, and is
+  consulted by `tight_posts.py` on every render.
+- Rules (each from what the effect is for, not from what is available):
+  - **transition** only with >= 1 shot change; one continuous shot gets none.
+  - **light wrap** only when a steady face fills >= 1.5% of frame *and* the
+    background is at least 6% brighter than the skin.
+  - **dolly** only on a static clip (< 22 px/s) with no cuts.
+  - **A/B framing** only at a real gap (>= 0.30 s) between cards.
+  - **punches** only with >= 2 emphasised words and >= 2.5 words/s.
+  - **kinetic type** on the opening line, always.
+- Post 7 verdict: transition USE (8 changes - the source is itself an edited
+  multi-shot), light_wrap SKIP (background 61% below skin - nothing to wrap),
+  dolly SKIP (has cuts, so movement belongs on the cut), ab_framing SKIP
+  (continuous speech), punches USE (6 key words at 2.9 w/s), title USE.
+- Transitions are detected and recommended but not yet applied by the renderer;
+  that is the next build, and it will only fire where the detector finds a cut.
+
