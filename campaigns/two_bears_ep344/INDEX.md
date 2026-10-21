@@ -8,8 +8,8 @@ WARN are listed per post and are judgement calls, not defects.
 |---|---|---|---|
 | [What did you do?](what_did_you_do/POST.md) | [`what_did_you_do.mp4`](what_did_you_do/what_did_you_do.mp4) | 44.9 s | The plane seatmate who finds the hit piece about him and asks what he did |
 | [I took some awesome pictures of me](awesome_pictures_of_me/POST.md) | [`awesome_pictures_of_me.mp4`](awesome_pictures_of_me/awesome_pictures_of_me.mp4) | 44.9 s | 54 years old, alone in the gym, caught by the maintenance guy |
-| [Are you with this evil-minded peasant?](evil_minded_peasant/POST.md) | [`evil_minded_peasant.mp4`](evil_minded_peasant/evil_minded_peasant.mp4) | 40.6 s | A Paris perfume shop reverses every word the second it recognises him |
-| [Honey, you're fucked](honey_youre_fucked/POST.md) | [`honey_youre_fucked.mp4`](honey_youre_fucked/honey_youre_fucked.mp4) | 23.1 s | The one-line verdict on caring what people say |
+| [Please, leave. I can smell you from here](evil_minded_peasant/POST.md) | [`evil_minded_peasant.mp4`](evil_minded_peasant/evil_minded_peasant.mp4) | 20.8 s | A Paris perfume shop reverses every word the second it recognises him |
+| [Honey, you're fucked](honey_youre_fucked/POST.md) | [`honey_youre_fucked.mp4`](honey_youre_fucked/honey_youre_fucked.mp4) | 24.5 s | The one-line verdict on caring what people say |
 
 Every file: 1080×1920, 29.97 fps, H.264 + AAC 192k, −16 LUFS, −1.3 dBTP.
 
@@ -44,6 +44,10 @@ level: https://youtu.be/3pDAyRLPO58
 - The show's own burned-in subtitles sit in the bottom ~180 px of the panel, so
   the panel is cropped 12% at the bottom before it is placed. Nothing else is
   cropped; nobody is cut out of frame.
+- The recogniser's own errors were repaired before the captions were set, not
+  after: `caption_corrections.json` lists all six, each one a run of words
+  nobody said ("are you dead machine?" -> "are you Bert Kreischer?"). Nothing
+  was added or reworded; times do not move.
 - Captions are the spoken words only. Fillers are reported by the gate and kept,
   because verbatim is a harder rule than tidy.
 - The grade moves the picture 0.9 code values from the reference implementation

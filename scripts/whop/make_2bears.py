@@ -70,7 +70,8 @@ def snap(words: list[dict], start: float, end: float, *,
             if start - float(w["start"]) > sentence_lead:
                 break
             if _terminal(w):
-                s = float(w["end"])
+                if max_len is None or end - float(w["end"]) <= max_len:
+                    s = float(w["end"])
                 break
 
     up_to = [w for w in words if float(w["end"]) <= end + 0.05]
@@ -175,7 +176,15 @@ def main() -> int:
                          out=video, transcript=Path(args.transcript),
                          source=Path(args.source))
 
-        best = COV.best_frame(video, start=0.6)
+        # A cover with a caption across it is a screenshot of subtitles. The
+        # card times are known, so scan the clearest gap between them.
+        lanes = json.loads(Path(info["manifest"]).read_text())["cards"]
+        edges = [0.0] + [v for c in lanes for v in (c["show_from"], c["show_until"])] \
+            + [info["duration"]]
+        gaps = [(edges[i], edges[i + 1]) for i in range(0, len(edges) - 1, 2)]
+        gaps = [g for g in gaps if g[1] - g[0] >= 0.7 and g[0] >= 0.5]
+        best = (COV.best_frame(video, start=gaps[0][0] + 0.03, end=gaps[0][1] - 0.03)
+                if gaps else COV.best_frame(video, start=0.6))
         cap = cv2.VideoCapture(str(video))
         cap.set(cv2.CAP_PROP_POS_MSEC, float(best["at"]) * 1000)
         ok, frame = cap.read()
