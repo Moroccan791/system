@@ -43,5 +43,5 @@ of the three means the post is not paid, however it performs.
 ## Files
 
 - `awesome_pictures_of_me.mp4` — 1080x1920, 29.97 fps, H.264 + AAC, -16 LUFS
-- `cover.jpg` — 13.6s, chosen on sharpness/face/exposure
+- `cover.jpg` — 22.42s, chosen on sharpness/face/exposure
 - `cards.json` — the captions that were drawn, with their times

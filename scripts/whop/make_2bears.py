@@ -177,14 +177,19 @@ def main() -> int:
                          source=Path(args.source))
 
         # A cover with a caption across it is a screenshot of subtitles. The
-        # card times are known, so scan the clearest gap between them.
+        # card times are known, so scan the widest gap between them; on a
+        # densely captioned cut every gap is short, and the widest is still the
+        # cleanest frame available.
         lanes = json.loads(Path(info["manifest"]).read_text())["cards"]
         edges = [0.0] + [v for c in lanes for v in (c["show_from"], c["show_until"])] \
             + [info["duration"]]
         gaps = [(edges[i], edges[i + 1]) for i in range(0, len(edges) - 1, 2)]
-        gaps = [g for g in gaps if g[1] - g[0] >= 0.7 and g[0] >= 0.5]
-        best = (COV.best_frame(video, start=gaps[0][0] + 0.03, end=gaps[0][1] - 0.03)
-                if gaps else COV.best_frame(video, start=0.6))
+        gaps = [g for g in gaps if g[0] >= 0.4 and g[1] - g[0] > 0.25]
+        if gaps:
+            lo, hi = max(gaps, key=lambda g: g[1] - g[0])
+            best = COV.best_frame(video, start=max(lo + 0.02, 0.2), end=max(hi - 0.02, 0.3))
+        else:
+            best = COV.best_frame(video, start=0.6)
         cap = cv2.VideoCapture(str(video))
         cap.set(cv2.CAP_PROP_POS_MSEC, float(best["at"]) * 1000)
         ok, frame = cap.read()

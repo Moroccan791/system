@@ -15,12 +15,12 @@
   {
    "name": "hook",
    "status": "pass",
-   "detail": "first 2s: 'She goes, Are you on Youtube?'"
+   "detail": "first 2s: 'Are you on Youtube? And I said,'"
   },
   {
    "name": "hook_strength",
-   "status": "warn",
-   "detail": "2.0/10 (floor 4) - speaks to the viewer (+2.0) | 'She goes, Are you on Youtube?'"
+   "status": "pass",
+   "detail": "4.0/10 (floor 4) - first-person admission (+2.0); speaks to the viewer (+2.0); the 2 s window ends mid-word | 'Are you on Youtube? And I said,'"
   },
   {
    "name": "duration",
@@ -40,7 +40,7 @@
   {
    "name": "voice_over_bed",
    "status": "pass",
-   "detail": "voice sits 23.3 dB over the bed (needs 12; speech 12.8 dB, bed -10.5 dB)"
+   "detail": "voice sits 22.9 dB over the bed (needs 12; speech 12.9 dB, bed -10.1 dB)"
   },
   {
    "name": "black_bars",
@@ -55,12 +55,12 @@
   {
    "name": "frozen",
    "status": "pass",
-   "detail": "longest unchanged stretch 1.5s (limit 3s)"
+   "detail": "longest unchanged stretch 1.2s (limit 3s)"
   },
   {
    "name": "ending_tail",
    "status": "pass",
-   "detail": "-0.23s after the last spoken word"
+   "detail": "-0.01s after the last spoken word"
   },
   {
    "name": "topic_safety",

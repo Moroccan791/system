@@ -1,11 +1,133 @@
 [
- {"find": ["dead", "machine?"], "replace": ["Bert", "Kreischer?"]},
- {"find": ["this,", "this", "feeble-minded,", "Evil-minded"],
-  "replace": ["this", "feeble-minded,", "evil-minded,"]},
- {"find": ["he", "elevated", "door", "open."], "replace": ["the", "elevator", "door", "open."]},
- {"find": ["and", "he", "was", "and", "he", "the", "door", "the", "elevator", "door", "just", "opened"],
-  "replace": ["and", "he", "was,", "and", "the", "elevator", "door", "just", "opened"]},
- {"find": ["she's", "a", "kid."], "replace": ["she's", "like,"]},
- {"find": ["She", "Look", "goes,", "to", "me", "she", "goes", "honey", "you're", "Your", "fucked"],
-  "replace": ["She", "looks", "at", "me", "and", "goes,", "honey,", "you're", "fucked"]}
+ {
+  "find": [
+   "dead",
+   "machine?"
+  ],
+  "replace": [
+   "Bert",
+   "Kreischer?"
+  ]
+ },
+ {
+  "find": [
+   "this,",
+   "this",
+   "feeble-minded,",
+   "Evil-minded"
+  ],
+  "replace": [
+   "this",
+   "feeble-minded,",
+   "evil-minded,"
+  ]
+ },
+ {
+  "find": [
+   "he",
+   "elevated",
+   "door",
+   "open."
+  ],
+  "replace": [
+   "the",
+   "elevator",
+   "door",
+   "open."
+  ]
+ },
+ {
+  "find": [
+   "and",
+   "he",
+   "was",
+   "and",
+   "he",
+   "the",
+   "door",
+   "the",
+   "elevator",
+   "door",
+   "just",
+   "opened"
+  ],
+  "replace": [
+   "and",
+   "he",
+   "was,",
+   "and",
+   "the",
+   "elevator",
+   "door",
+   "just",
+   "opened"
+  ]
+ },
+ {
+  "find": [
+   "she's",
+   "a",
+   "kid."
+  ],
+  "replace": [
+   "she's",
+   "like,"
+  ]
+ },
+ {
+  "find": [
+   "She",
+   "Look",
+   "goes,",
+   "to",
+   "me",
+   "she",
+   "goes",
+   "honey",
+   "you're",
+   "Your",
+   "fucked"
+  ],
+  "replace": [
+   "She",
+   "looks",
+   "at",
+   "me",
+   "and",
+   "goes,",
+   "honey,",
+   "you're",
+   "fucked"
+  ]
+ },
+ {
+  "find": [
+   "and",
+   "goes,,",
+   "what",
+   "did",
+   "you",
+   "do?"
+  ],
+  "replace": [
+   "and",
+   "goes,",
+   "what",
+   "did",
+   "you",
+   "do?"
+  ]
+ },
+ {
+  "find": [
+   "elevator",
+   "door",
+   "open."
+  ],
+  "replace": [
+   "elevator",
+   "door",
+   "opened."
+  ]
+ }
 ]

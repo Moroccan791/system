@@ -5,32 +5,32 @@
   {
    "name": "caption_lines",
    "status": "pass",
-   "detail": "17 cards, 34 lines, median 12 chars, max 14"
+   "detail": "18 cards, 35 lines, median 12 chars, max 14"
   },
   {
    "name": "fillers",
    "status": "warn",
-   "detail": "2 in the kept speech: like,, like, - verbatim captions cannot drop them"
+   "detail": "3 in the kept speech: like,, like,, like, - verbatim captions cannot drop them"
   },
   {
    "name": "hook",
    "status": "pass",
-   "detail": "first 2s: 'woman, she saw me on Instagram,'"
+   "detail": "first 2s: 'was this older black woman, she'"
   },
   {
    "name": "hook_strength",
    "status": "warn",
-   "detail": "2.0/10 (floor 4) - first-person admission (+2.0) | 'woman, she saw me on Instagram,'"
+   "detail": "0.5/10 (floor 4) - nothing concrete | 'was this older black woman, she'"
   },
   {
    "name": "duration",
    "status": "pass",
-   "detail": "23.1s inside 20-45s"
+   "detail": "24.5s inside 20-45s"
   },
   {
    "name": "loudness",
    "status": "pass",
-   "detail": "-16.1 LUFS (window -17..-13)"
+   "detail": "-16.0 LUFS (window -17..-13)"
   },
   {
    "name": "true_peak",
@@ -40,7 +40,7 @@
   {
    "name": "voice_over_bed",
    "status": "pass",
-   "detail": "voice sits 25.1 dB over the bed (needs 12; speech 12.9 dB, bed -12.2 dB)"
+   "detail": "voice sits 26.5 dB over the bed (needs 12; speech 13.1 dB, bed -13.4 dB)"
   },
   {
    "name": "black_bars",
