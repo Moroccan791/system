@@ -1,0 +1,54 @@
+name: fetch-footage
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag holding the parts"
+        required: true
+        default: "footage-demi-2"
+      pattern:
+        description: "Asset glob"
+        required: true
+        default: "gillis_*.mp4"
+      out_dir:
+        description: "Where to put them on this branch"
+        required: true
+        default: "work/two_bears/src"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${{ inputs.out_dir }}"
+          gh release download "${{ inputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "${{ inputs.pattern }}" \
+            --dir "${{ inputs.out_dir }}" --clobber
+          ls -l "${{ inputs.out_dir }}"
+      - name: Verify and merge
+        run: |
+          set -euo pipefail
+          cd "${{ inputs.out_dir }}"
+          echo "parts: $(ls *.mp4 | wc -l)"
+          du -sh .
+      - name: Commit
+        run: |
+          set -euo pipefail
+          git config user.name "footage-bot"
+          git config user.email "footage-bot@users.noreply.github.com"
+          git add -f "${{ inputs.out_dir }}"
+          git commit -m "footage: ${{ inputs.tag }} (${{ inputs.pattern }})" || echo "nothing to commit"
+          git push origin HEAD:"${{ github.ref_name }}"
