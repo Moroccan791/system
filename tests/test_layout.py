@@ -35,8 +35,10 @@ def test_output_is_the_campaign_frame() -> None:
 
 def test_the_whole_panel_survives() -> None:
     """Both halves of a two-camera broadcast must still be in the frame."""
-    out = L.Layout().compose(panel())
-    band = out[L.Layout().top: L.Layout().top + L.Layout().panel_h]
+    lay = L.Layout()
+    out = lay.compose(panel())
+    ph = lay.panel_of(panel()).shape[0]
+    band = out[lay.panel_y(ph): lay.panel_y(ph) + ph]
     left = band[:, :L.W // 4]
     right = band[:, -L.W // 4:]
     assert np.abs(left.astype(int) - right.astype(int)).mean() > 2, \
@@ -44,9 +46,12 @@ def test_the_whole_panel_survives() -> None:
 
 
 def test_no_black_void_above_or_below() -> None:
-    out = L.Layout().compose(panel())
-    assert out[:L.Layout().top - 4].mean() > 3, "top is a black bar"
-    assert out[L.Layout().top + L.Layout().panel_h + 4:].mean() > 3, "bottom is a black bar"
+    lay = L.Layout()
+    out = lay.compose(panel())
+    ph = lay.panel_of(panel()).shape[0]
+    y = lay.panel_y(ph)
+    assert out[:y - 4].mean() > 3, "top is a black bar"
+    assert out[y + ph + 4:].mean() > 3, "bottom is a black bar"
 
 
 def test_a_non_16_9_frame_still_fits() -> None:
@@ -56,7 +61,37 @@ def test_a_non_16_9_frame_still_fits() -> None:
 
 
 def test_oversized_source_is_scaled_not_cropped_away() -> None:
+    lay = L.Layout()
     big = panel(3840, 2160)
-    out = L.Layout().compose(big)
-    band = out[L.Layout().top: L.Layout().top + L.Layout().panel_h]
+    out = lay.compose(big)
+    ph = lay.panel_of(big).shape[0]
+    band = out[lay.panel_y(ph): lay.panel_y(ph) + ph]
     assert band.std() > 1, "panel is blank after scaling"
+
+
+def test_burned_in_subtitles_are_cropped_off() -> None:
+    """The broadcast burns its own captions into the bottom ~18% of the panel.
+
+    Two sets of subtitles on screen at once is the failure this guards: the
+    source's own words must not reach the canvas, while the faces above them
+    must.
+    """
+    src = panel()
+    cv2.rectangle(src, (600, 980), (1320, 1050), (255, 255, 255), -1)   # fake caption
+    lay = L.Layout()
+    panel_img = lay.panel_of(src)
+    assert panel_img.shape[0] == 534
+    # the bottom rows of the source are gone, the middle of the picture is not
+    src_bottom = src[1000:1060, 600:1320].mean()
+    assert src_bottom > 200
+    assert panel_img.std() > 1
+
+
+def test_backdrop_is_reused_inside_a_bucket() -> None:
+    """Refreshing the 1/8-scale blur every frame costs more than it shows."""
+    lay = L.Layout()
+    a = lay.backdrop(panel(), slot=0)
+    b = lay.backdrop(panel(w=1280, h=720), slot=3)
+    assert a is b, "backdrop was rebuilt inside the same 10-frame bucket"
+    c = lay.backdrop(panel(w=1280, h=720), slot=20)
+    assert c is not a

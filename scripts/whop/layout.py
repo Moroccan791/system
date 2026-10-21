@@ -97,30 +97,72 @@ class Layout:
     """
 
     wide: bool = True
-    top: int = 392              # where the 16:9 panel sits
-    panel_h: int = 608          # 1080 * 9/16
+    top: int | None = None      # None = centre the panel above the caption band
+    crop_bottom: float = 0.12   # the broadcast burns its own subtitles in
+                                # around y=960-1040 of 1080; cropping the
+                                # bottom 12% removes them without touching
+                                # anyone's face
 
-    def compose(self, frame: np.ndarray) -> np.ndarray:
+    def __post_init__(self) -> None:
+        # the backdrop is a heavily blurred, dimmed copy of the picture, so it
+        # is built at 1/8 size and scaled up: at the size it is ever seen the
+        # result is identical and it costs a tenth of the time.
+        self._bg: np.ndarray | None = None
+        self._bg_slot: int | None = None
+
+    # -- pieces ------------------------------------------------------
+    def panel_of(self, frame: np.ndarray) -> np.ndarray:
+        """The picture itself, at the size it will occupy on the canvas."""
         h, w = frame.shape[:2]
-        aspect = w / max(h, 1)
-        canvas = _fit(frame, W, H)
-        canvas = cv2.GaussianBlur(canvas, (0, 0), 34)
-        canvas = (canvas.astype(np.float32) * 0.42).astype(np.uint8)
+        if w / max(h, 1) <= 1.45:
+            return _fit(frame, W, int(W * h / max(w, 1)))
+        keep = frame[: int(frame.shape[0] * (1.0 - self.crop_bottom))]
+        ph = int(round(W * keep.shape[0] / max(keep.shape[1], 1)))
+        return _fit(keep, W, ph)
 
-        if aspect > 1.45:
-            ph = self.panel_h
-            panel = _fit(frame, W, ph)
-            y = self.top
-            canvas[y:y + ph, :] = panel
-            # a one-pixel rule keeps the panel from floating
-            canvas[y - 2:y, :] = (30, 32, 36)
-            canvas[y + ph:y + ph + 2, :] = (30, 32, 36)
-            return canvas
+    def backdrop(self, frame: np.ndarray, *, slot: int | None = None) -> np.ndarray:
+        """Blurred, dimmed fill behind the panel.
 
-        fg = _fit(frame, W, int(W * h / max(w, 1)))
-        y = max(0, (H - fg.shape[0]) // 2)
-        canvas[y:y + fg.shape[0], :] = fg
+        Refreshed only when `slot` moves to a new bucket: at 10 frames a
+        bucket the fill still follows a camera cut within a third of a second,
+        and nothing about a 1/8-scale blur changes inside a bucket.
+        """
+        if slot is not None and self._bg is not None and self._bg_slot == slot // 10:
+            return self._bg
+        small = cv2.resize(frame, (W // 8, H // 8), interpolation=cv2.INTER_AREA)
+        small = cv2.GaussianBlur(small, (0, 0), 4.0)
+        bg = cv2.resize(small, (W, H), interpolation=cv2.INTER_LINEAR)
+        bg = (bg.astype(np.float32) * 0.42).astype(np.uint8)
+        if slot is not None:
+            self._bg, self._bg_slot = bg, slot // 10
+        return bg
+
+    def panel_y(self, ph: int) -> int:
+        """Where the panel sits.
+
+        Centred in the space above the caption band rather than pinned to a
+        constant: the source is 16:9, so the panel is a thin band on a tall
+        canvas and the gaps either side of it should look equal, not like a
+        panel that slid down.
+        """
+        if self.top is not None:
+            return self.top
+        zone = BAND[0] - 40
+        return max(48, (zone - ph) // 2)
+
+    def compose_panel(self, panel: np.ndarray, frame: np.ndarray,
+                      *, slot: int | None = None) -> np.ndarray:
+        """Backdrop + panel on the canvas. `frame` is only used for the fill."""
+        canvas = self.backdrop(frame, slot=slot).copy()
+        ph = panel.shape[0]
+        y = self.panel_y(ph)
+        canvas[y:y + ph, :] = panel
+        canvas[y - 2:y, :] = (30, 32, 36)
+        canvas[y + ph:y + ph + 2, :] = (30, 32, 36)
         return canvas
+
+    def compose(self, frame: np.ndarray, *, slot: int | None = None) -> np.ndarray:
+        return self.compose_panel(self.panel_of(frame), frame, slot=slot)
 
 
 def side_split(frame: np.ndarray, seam: int | None) -> int | None:
