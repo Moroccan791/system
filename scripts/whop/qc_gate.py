@@ -389,7 +389,13 @@ def check_picture(rows: list[dict], path: Path, cards: list[dict], rules: dict,
                     if score < 0.62:
                         continue
                     overlap = max(0.0, (y + fh) - band[0]) / max(fh, 1.0)
-                    if overlap > 0.35 and fw > 90:
+                    # A caption is "on" a face when part of the face sits
+                    # ABOVE the text and the text runs into it. A wrist, a
+                    # phone or a watch that merely ends inside the band is
+                    # not a covered face - one framed at 0.65 confidence
+                    # below the band failed this check on a hand.
+                    above = max(0.0, band[0] - y) / max(fh, 1.0)
+                    if overlap > 0.35 and above > 0.25 and fw > 90:
                         bad.append(round(t, 2))
                         break
     if model.exists():

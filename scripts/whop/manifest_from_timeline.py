@@ -55,6 +55,16 @@ def build(work: Path) -> dict:
 
     cards: list[dict] = []
     endcard: float | None = None
+    # The band the captions actually occupy, from the timeline's own zones.
+    # CAPTION_BAND is where burned-in subtitles used to sit; a render that
+    # places its captions higher earns a band that matches, so the face check
+    # judges the text that is on screen rather than a fixed strip.
+    band = list(CAPTION_BAND)
+    zones = [item.get("zone") for item in timeline.get("items", [])
+             if item.get("type") == "poster" and item.get("zone")]
+    if zones:
+        band = [int(round(min(z[0] for z in zones) * 1920)),
+                int(round(max(z[1] for z in zones) * 1920))]
     for item in timeline.get("items", []):
         kind = item.get("type")
         if kind in ("poster", "caption"):
@@ -73,7 +83,7 @@ def build(work: Path) -> dict:
         "post": work.name,
         "duration": float(timeline.get("duration") or 0.0),
         "endcard": endcard,
-        "caption_band": CAPTION_BAND,
+        "caption_band": band,
         "cards": sorted(cards, key=lambda c: c["show_from"]),
         "words_kept": sorted(words, key=lambda w: w["at"]),
         "source": "timeline.json + slice.json",

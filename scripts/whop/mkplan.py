@@ -59,11 +59,23 @@ def content_score(cell: dict) -> int:
 
 
 def cells_for(words: list[dict], span: tuple[float, float],
-              emphasis: list[str]) -> list[dict]:
+              emphasis: list[str], drops: list[list[float]] | None = None) -> list[dict]:
+    """Caption cells for the span, minus anything the cut deletes.
+
+    A `drops` entry removes a stretch of source (a stammered repeat, a stumble
+    the speaker made and then made again), and tight_base cuts it out - so the
+    caption must not author the words that are no longer in the audio.
+    """
     emph = {CR.bare(e) for e in emphasis}
+    gone = [(float(a), float(b)) for a, b in (drops or [])]
+
+    def dropped(t: float) -> bool:
+        return any(a <= t < b for a, b in gone)
+
     return [{"w": w["text"], "at": w["start"], "end": w["end"],
              "kind": "key" if CR.bare(w["text"]) in emph else "conn"}
-            for w in words if span[0] - 0.01 <= w["start"] <= span[1] + 0.01]
+            for w in words if span[0] - 0.01 <= w["start"] <= span[1] + 0.01
+            and not dropped(w["start"])]
 
 
 def caption_beat(lines: list[list[dict]]) -> dict:
@@ -72,10 +84,10 @@ def caption_beat(lines: list[list[dict]]) -> dict:
             "kinds": [[c["kind"] for c in l] for l in lines]}
 
 
-def build(words, span, emphasis, hero_words) -> list[dict]:
+def build(words, span, emphasis, hero_words, drops=None) -> list[dict]:
     """Cards for one span, with the picks' emphasis on the green words."""
     hero_set = {CR.bare(h) for h in hero_words}
-    cards = CR.wrap_cells(cells_for(words, span, emphasis))
+    cards = CR.wrap_cells(cells_for(words, span, emphasis, drops))
 
     def next_at(ci: int, wi: int) -> float | None:
         """The next spoken word after (card, index) - the card's hard exit."""
@@ -135,7 +147,8 @@ def main() -> int:
     plan = json.loads(base.read_text())
     plan["post"] = args.slug                     # the style-card video key
     plan["beats"] = build(words, plan["span"], pick["emphasis"],
-                          [h for h in args.hero.split(",") if h])
+                          [h for h in args.hero.split(",") if h],
+                          plan.get("drops"))
     plan["posting"]["title"] = censor_text(pick["title"])
     plan["posting"]["disclosure"] = ""           # the show's own channel: not an ad
     plan["posting"]["requiredLine"] = (
