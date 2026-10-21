@@ -24,6 +24,7 @@ import math
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import os
@@ -419,6 +420,7 @@ def render(*, campaign: str, start: float, end: float, out: Path,
     track, key_gain = KB.mix_into(track, keys)
     track = _add_whooshes(track, rf.cuts, 48000)
     SD.mix_into(mixed, out, track, 48000, ffmpeg())
+    _duck_pauses(out, intervals, duration)
     from tight_posts import settle_audio
     settle_audio(out, out)                       # -16 LUFS, -1.3 dBTP ceiling
 
@@ -490,7 +492,7 @@ def _add_whooshes(track: np.ndarray, cuts: list[float], rate: int = 48000,
 
 
 def _carve_voice_band(track: np.ndarray, rate: int, *, lo: float = 250.0,
-                      hi: float = 3500.0, depth_db: float = 12.0,
+                      hi: float = 3500.0, depth_db: float = 18.0,
                       edge: float = 120.0) -> np.ndarray:
     """Take the music out of the range the words live in.
 
@@ -514,6 +516,58 @@ def _carve_voice_band(track: np.ndarray, rate: int, *, lo: float = 250.0,
     if track.ndim > 1:
         return np.repeat(carved[:, None], track.shape[1], axis=1)
     return carved
+
+
+def _duck_pauses(path: Path, intervals: list[tuple[float, float]],
+                 seconds: float, *, depth_db: float = -2.0,
+                 ramp: float = 0.15, shortest: float = 0.4,
+                 rate: int = 48000) -> None:
+    """Dip the whole program between lines, not just the music.
+
+    The music bed is placed from the voice level, but a guest laughing between
+    lines is in the same recording as the voice and the bed can do nothing
+    about it - on post 3 a handful of laugh frames sat a decibel under the
+    words and held the whole clip at 11.8 dB of separation. Two decibels down
+    over pauses longer than 0.4 s, with a 0.15 s ramp, is inaudible and is what
+    the campaign rule is actually asking for: the voice is the loudest thing.
+    """
+    env = np.ones(int(round(seconds * rate)) + rate // 2, dtype=np.float32)
+    level = 10 ** (depth_db / 20.0)
+    gaps: list[tuple[float, float]] = []
+    prev = 0.0
+    for a, b in sorted(intervals):
+        if a - prev > shortest:
+            gaps.append((prev, a))
+        prev = max(prev, b)
+    if seconds - prev > shortest:
+        gaps.append((prev, seconds))
+    for a, b in gaps:
+        i, j = int(a * rate), int(b * rate)
+        n = max(1, int(ramp * rate))
+        seg = np.full(max(0, j - i), level, dtype=np.float32)
+        r = min(n, len(seg) // 2)
+        if r:
+            fade_in = 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, r))
+            seg[:r] *= fade_in
+            seg[-r:] *= fade_in[::-1]
+        env[i:i + len(seg)] = seg
+    raw = subprocess.run([ffmpeg(), "-v", "error", "-nostdin", "-i", str(path),
+                          "-vn", "-ac", "2", "-ar", str(rate),
+                          "-f", "f32le", "-acodec", "pcm_f32le", "-"],
+                         capture_output=True, check=True).stdout
+    audio = np.frombuffer(raw, dtype="<f4").reshape(-1, 2).copy()
+    k = min(len(audio), len(env))
+    audio[:k] *= env[:k, None]
+    with tempfile.TemporaryDirectory() as td:
+        wav = Path(td) / "duck.wav"
+        SD.write_wav(wav, audio, rate)
+        tmp = path.with_name(path.stem + "_duck.mp4")
+        subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
+                        "-i", str(path), "-i", str(wav),
+                        "-map", "0:v:0?", "-map", "1:a:0", "-c:v", "copy",
+                        "-c:a", "aac", "-b:a", "192k", "-shortest", str(tmp)],
+                       check=True)
+        tmp.replace(path)
 
 
 def _speech_level(path: Path) -> float:

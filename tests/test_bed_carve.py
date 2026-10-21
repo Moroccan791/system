@@ -27,9 +27,9 @@ def _level(freq: float) -> tuple[float, float]:
     return float(np.sqrt((x ** 2).mean())), float(np.sqrt((y ** 2).mean()))
 
 
-def test_the_speech_band_comes_down_twelve_db() -> None:
+def test_the_speech_band_comes_down_eighteen_db() -> None:
     a, b = _level(1000.0)
-    assert 20 * np.log10(b / a) == pytest.approx(-12.0, abs=1.0)
+    assert 20 * np.log10(b / a) == pytest.approx(-18.0, abs=1.0)
 
 
 def test_the_bass_and_the_air_are_untouched() -> None:
