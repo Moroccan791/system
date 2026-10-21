@@ -46,20 +46,31 @@ T = {
 }
 
 
-def _sample(path: Path, every: float = 0.25) -> list[tuple[float, np.ndarray]]:
+def _sample(path: Path, every: float = 0.25, *,
+            budget: int = 900) -> list[tuple[float, np.ndarray]]:
+    """Grab frames at `every` seconds, by seeking.
+
+    Reading every frame is fine for a 20 s clip and hopeless for a 66 minute
+    episode, which is what the pre-flight has to look at. Seeking costs a
+    decode per sample instead of a decode per frame, and `budget` caps how
+    many samples a long file gives up: past ~15 minutes the interval widens
+    rather than the run taking four times as long.
+    """
     cap = cv2.VideoCapture(str(path))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    out = []
-    step = max(1, int(round(fps * every)))
-    i = 0
-    while True:
+    frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    total = frames / fps if fps else 0.0
+    if total and total / max(every, 1e-3) > budget:
+        every = total / budget
+    out: list[tuple[float, np.ndarray]] = []
+    t = 0.0
+    while t < (total or 1e18):
+        cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
         ok, frame = cap.read()
         if not ok:
             break
-        if i % step == 0:
-            t = i / fps
-            out.append((t, cv2.resize(frame, (270, 480), interpolation=cv2.INTER_AREA)))
-        i += 1
+        out.append((t, cv2.resize(frame, (270, 480), interpolation=cv2.INTER_AREA)))
+        t += max(every, 1e-3)
     cap.release()
     return out
 
