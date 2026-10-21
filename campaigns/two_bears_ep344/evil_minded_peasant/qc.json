@@ -5,42 +5,42 @@
   {
    "name": "caption_lines",
    "status": "pass",
-   "detail": "15 cards, 30 lines, median 12 chars, max 14"
+   "detail": "15 cards, 29 lines, median 13 chars, max 15 | over 14: 'Bert Kreischer?' (15); 'wife.\" And they' (15); 'no, no, no, no,' (15)"
   },
   {
    "name": "fillers",
    "status": "warn",
-   "detail": "2 in the kept speech: like..., like, - verbatim captions cannot drop them"
+   "detail": "4 in the kept speech: like,, like,, uh, uh - verbatim captions cannot drop them"
   },
   {
    "name": "hook",
    "status": "pass",
-   "detail": "first 2s: 'leave Please, mama, leave'"
+   "detail": "first 2s: 'Please leave, mama, please, mama, mama, leave'"
   },
   {
    "name": "hook_strength",
    "status": "warn",
-   "detail": "0.5/10 (floor 4) - slow delivery 2.0 w/s (-1.0) | 'leave Please, mama, leave'"
+   "detail": "0.5/10 (floor 4) - nothing concrete | 'Please leave, mama, please, mama, mama, leave'"
   },
   {
    "name": "duration",
    "status": "pass",
-   "detail": "20.8s inside 20-45s"
+   "detail": "21.6s inside 20-45s"
   },
   {
    "name": "loudness",
    "status": "pass",
-   "detail": "-16.1 LUFS (window -17..-13)"
+   "detail": "-14.0 LUFS (window -17..-13)"
   },
   {
    "name": "true_peak",
    "status": "pass",
-   "detail": "-1.8 dBTP (ceiling -1.3)"
+   "detail": "-2.8 dBTP (ceiling -1.3)"
   },
   {
    "name": "voice_over_bed",
    "status": "pass",
-   "detail": "voice sits 15.1 dB over the bed (needs 12; speech 11.2 dB, bed -3.9 dB)"
+   "detail": "voice sits 16.4 dB over the bed (needs 12; speech 14.5 dB, bed -1.9 dB)"
   },
   {
    "name": "black_bars",
@@ -55,27 +55,17 @@
   {
    "name": "frozen",
    "status": "pass",
-   "detail": "longest unchanged stretch 0.4s (limit 3s)"
+   "detail": "longest unchanged stretch 0.3s (limit 3s)"
   },
   {
    "name": "ending_tail",
    "status": "pass",
-   "detail": "0.15s after the last spoken word"
+   "detail": "1.83s after the last spoken word"
   },
   {
    "name": "topic_safety",
    "status": "pass",
    "detail": "no blocked moments"
-  },
-  {
-   "name": "title_safety",
-   "status": "pass",
-   "detail": "title/caption clean"
-  },
-  {
-   "name": "required_features",
-   "status": "pass",
-   "detail": "13 required, all present"
   }
  ]
 }

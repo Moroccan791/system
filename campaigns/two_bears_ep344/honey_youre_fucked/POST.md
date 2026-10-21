@@ -1,48 +1,45 @@
-# Honey, you're fucked
+# Honey, you're f*cked
 
-**Honey, you're fucked.**
+`honey_youre_fucked.mp4` - 1080x1920, 24.3s, white captions, green emphasis.
 
-## Why this moment
+## Caption to post
 
-A woman at a party tells him what people say about you only matters as much as how you feel about yourself; he asks the obvious follow-up; she delivers the verdict and walks away. Twenty-four seconds, one idea, and the button is somebody else's line - which is why it works as a short.
+```
+Honey, you're f*cked
 
-Window: 2558.1s → 2582.6s of the episode
-(24.5s cut, 18 caption cards).
+A woman at a party tells him what people say about you only matters as much as how you feel about yourself. He asks the obvious follow-up. She delivers the verdict and walks away.
 
-## Copy — post as-is
+2 Bears 1 Cave Ep. 344 - full episode in the bio.
 
-> Honey, you're fucked.
->
-> 2 Bears 1 Cave Ep. 344 is out — full episode in my bio.
->
-> #2BearsWeekly #2Bears1Cave #TomSegura #BertKreischer #Comedy #PodcastClips #StandUpComedy #Funny
+#2BearsWeekly #2Bears1Cave #TomSegura #BertKreischer #Comedy #PodcastClips #StandUpComedy #Funny
+```
 
-Required and non-negotiable: the words **2 Bears 1 Cave Ep. 344**, the tag
-**#2BearsWeekly**, and https://youtu.be/3pDAyRLPO58 in the **bio**. Missing any
-of the three means the post is not paid, however it performs.
+## Required by the brief
+
+- `2 Bears 1 Cave Ep. 344` in the copy and on the end card
+- `#2BearsWeekly` in the hashtags
+- `https://youtu.be/3pDAyRLPO58` in the account bio (account-level, not per post)
 
 ## Gate
 
-`PASS` — 0 failure(s).
+`PASS` - 0 failure(s)
 
-- `pass` **caption_lines** — 18 cards, 35 lines, median 12 chars, max 14
-- `warn` **fillers** — 3 in the kept speech: like,, like,, like, - verbatim captions cannot drop them
-- `pass` **hook** — first 2s: 'was this older black woman, she'
-- `warn` **hook_strength** — 0.5/10 (floor 4) - nothing concrete | 'was this older black woman, she'
-- `pass` **duration** — 24.5s inside 20-45s
-- `pass` **loudness** — -16.2 LUFS (window -17..-13)
-- `pass` **true_peak** — -1.4 dBTP (ceiling -1.3)
-- `pass` **voice_over_bed** — voice sits 12.6 dB over the bed (needs 12; speech 10.7 dB, bed -1.9 dB)
-- `pass` **black_bars** — worst top bar 0 px at 0.0s (limit 12)
-- `pass` **caption_face** — no face behind a caption
-- `pass` **frozen** — longest unchanged stretch 0.5s (limit 3s)
-- `pass` **ending_tail** — 0.53s after the last spoken word
-- `pass` **topic_safety** — no blocked moments
-- `pass` **title_safety** — title/caption clean
-- `pass` **required_features** — 13 required, all present
+- `pass` caption_lines - 17 cards, 33 lines, median 12 chars, max 15 | over 14: 'f*cked and just' (15)
+- `warn` fillers - 4 in the kept speech: uh, like, like, like - verbatim captions cannot drop them
+- `pass` hook - first 2s: 'there was this older black woman. She'
+- `warn` hook_strength - 0.5/10 (floor 4) - nothing concrete | 'there was this older black woman. She'
+- `pass` duration - 24.3s inside 20-45s
+- `pass` loudness - -14.1 LUFS (window -17..-13)
+- `pass` true_peak - -1.7 dBTP (ceiling -1.3)
+- `pass` voice_over_bed - voice sits 15.2 dB over the bed (needs 12; speech 14.6 dB, bed -0.6 dB)
+- `pass` black_bars - worst top bar 0 px at 0.0s (limit 12)
+- `pass` caption_face - no face behind a caption
+- `pass` frozen - longest unchanged stretch 0.3s (limit 3s)
+- `warn` ending_tail - 2.37s after the last spoken word - cut closer to the peak, or record the CTA card as the reason
+- `pass` topic_safety - no blocked moments
 
 ## Files
 
-- `honey_youre_fucked.mp4` — 1080x1920, 29.97 fps, H.264 + AAC, -16 LUFS
-- `cover.jpg` — 1.6s, chosen on sharpness/face/exposure
-- `cards.json` — the captions that were drawn, with their times
+- `honey_youre_fucked.mp4` - the master that ships
+- `cover.jpg` - 540x960 grid cover, from the clean graded base
+- `qc.json` - the gate's full report

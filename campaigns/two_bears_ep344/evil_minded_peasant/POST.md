@@ -1,48 +1,45 @@
 # Please, leave. I can smell you from here
 
-**Please, leave. I can smell you from here.**
+`evil_minded_peasant.mp4` - 1080x1920, 21.7s, white captions, green emphasis.
 
-## Why this moment
+## Caption to post
 
-A Paris perfume shop: the assistant tries to throw Leanne out, then recognises Bert and reverses every word - 'are you with this evil-minded peasant?' becomes 'come in, this door is open to you'. Twenty seconds, one reversal, and the last line is the shop's, not his. Nothing in it is political, sexual or about anybody real except the two of them, which is what makes it usable when most of this episode is not.
+```
+Please, leave. I can smell you from here
 
-Window: 2026.5s → 2047.3s of the episode
-(20.8s cut, 15 caption cards).
+A Paris perfume shop tries to throw his wife out, then recognises him and reverses every word: from "are you with this evil-minded peasant?" to "come in, this door is open to you."
 
-## Copy — post as-is
+2 Bears 1 Cave Ep. 344 - full episode in the bio.
 
-> Please, leave. I can smell you from here.
->
-> 2 Bears 1 Cave Ep. 344 is out — full episode in my bio.
->
-> #2BearsWeekly #2Bears1Cave #TomSegura #BertKreischer #Comedy #PodcastClips #StandUpComedy #Funny
+#2BearsWeekly #2Bears1Cave #TomSegura #BertKreischer #Comedy #PodcastClips #StandUpComedy #Funny
+```
 
-Required and non-negotiable: the words **2 Bears 1 Cave Ep. 344**, the tag
-**#2BearsWeekly**, and https://youtu.be/3pDAyRLPO58 in the **bio**. Missing any
-of the three means the post is not paid, however it performs.
+## Required by the brief
+
+- `2 Bears 1 Cave Ep. 344` in the copy and on the end card
+- `#2BearsWeekly` in the hashtags
+- `https://youtu.be/3pDAyRLPO58` in the account bio (account-level, not per post)
 
 ## Gate
 
-`PASS` — 0 failure(s).
+`PASS` - 0 failure(s)
 
-- `pass` **caption_lines** — 15 cards, 30 lines, median 12 chars, max 14
-- `warn` **fillers** — 2 in the kept speech: like..., like, - verbatim captions cannot drop them
-- `pass` **hook** — first 2s: 'leave Please, mama, leave'
-- `warn` **hook_strength** — 0.5/10 (floor 4) - slow delivery 2.0 w/s (-1.0) | 'leave Please, mama, leave'
-- `pass` **duration** — 20.8s inside 20-45s
-- `pass` **loudness** — -16.1 LUFS (window -17..-13)
-- `pass` **true_peak** — -1.8 dBTP (ceiling -1.3)
-- `pass` **voice_over_bed** — voice sits 15.1 dB over the bed (needs 12; speech 11.2 dB, bed -3.9 dB)
-- `pass` **black_bars** — worst top bar 0 px at 0.0s (limit 12)
-- `pass` **caption_face** — no face behind a caption
-- `pass` **frozen** — longest unchanged stretch 0.4s (limit 3s)
-- `pass` **ending_tail** — 0.15s after the last spoken word
-- `pass` **topic_safety** — no blocked moments
-- `pass` **title_safety** — title/caption clean
-- `pass` **required_features** — 13 required, all present
+- `pass` caption_lines - 15 cards, 29 lines, median 13 chars, max 15 | over 14: 'Bert Kreischer?' (15); 'wife." And they' (15); 'no, no, no, no,' (15)
+- `warn` fillers - 4 in the kept speech: like,, like,, uh, uh - verbatim captions cannot drop them
+- `pass` hook - first 2s: 'Please leave, mama, please, mama, mama, leave'
+- `warn` hook_strength - 0.5/10 (floor 4) - nothing concrete | 'Please leave, mama, please, mama, mama, leave'
+- `pass` duration - 21.6s inside 20-45s
+- `pass` loudness - -14.0 LUFS (window -17..-13)
+- `pass` true_peak - -2.8 dBTP (ceiling -1.3)
+- `pass` voice_over_bed - voice sits 16.4 dB over the bed (needs 12; speech 14.5 dB, bed -1.9 dB)
+- `pass` black_bars - worst top bar 0 px at 0.0s (limit 12)
+- `pass` caption_face - no face behind a caption
+- `pass` frozen - longest unchanged stretch 0.3s (limit 3s)
+- `pass` ending_tail - 1.83s after the last spoken word
+- `pass` topic_safety - no blocked moments
 
 ## Files
 
-- `evil_minded_peasant.mp4` — 1080x1920, 29.97 fps, H.264 + AAC, -16 LUFS
-- `cover.jpg` — 1.6s, chosen on sharpness/face/exposure
-- `cards.json` — the captions that were drawn, with their times
+- `evil_minded_peasant.mp4` - the master that ships
+- `cover.jpg` - 540x960 grid cover, from the clean graded base
+- `qc.json` - the gate's full report

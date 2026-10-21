@@ -4,36 +4,39 @@ Four posts, cut from the 66-minute episode. Every one of them passed the
 campaign gate (`topic_safety` and `title_safety` PASS); the rows that still read
 WARN are listed per post and are judgement calls, not defects.
 
-| Post | Video | Length | What it is |
-|---|---|---|---|
-| [What did you do?](what_did_you_do/POST.md) | [`what_did_you_do.mp4`](what_did_you_do/what_did_you_do.mp4) | 44.9 s | The plane seatmate who finds the hit piece about him and asks what he did |
-| [I took some awesome pictures of me](awesome_pictures_of_me/POST.md) | [`awesome_pictures_of_me.mp4`](awesome_pictures_of_me/awesome_pictures_of_me.mp4) | 44.9 s | 54 years old, alone in the gym, caught by the maintenance guy |
-| [Please, leave. I can smell you from here](evil_minded_peasant/POST.md) | [`evil_minded_peasant.mp4`](evil_minded_peasant/evil_minded_peasant.mp4) | 20.8 s | A Paris perfume shop reverses every word the second it recognises him |
-| [Honey, you're fucked](honey_youre_fucked/POST.md) | [`honey_youre_fucked.mp4`](honey_youre_fucked/honey_youre_fucked.mp4) | 24.5 s | The one-line verdict on caring what people say |
+| Post | Video | Length | Loudness | True peak | What it is |
+|---|---|---|---|---|---|
+| [What did you do?](what_did_you_do/POST.md) | [`what_did_you_do.mp4`](what_did_you_do/what_did_you_do.mp4) | 40.6 s | −13.9 LUFS | −1.5 dBTP | The plane seatmate who finds the hit piece about him and asks what he did |
+| [I took some awesome pictures of me](awesome_pictures_of_me/POST.md) | [`awesome_pictures_of_me.mp4`](awesome_pictures_of_me/awesome_pictures_of_me.mp4) | 43.3 s | −14.0 LUFS | −2.1 dBTP | 54 years old, alone in the gym, caught by the maintenance guy |
+| [Please, leave. I can smell you from here](evil_minded_peasant/POST.md) | [`evil_minded_peasant.mp4`](evil_minded_peasant/evil_minded_peasant.mp4) | 21.7 s | −14.0 LUFS | −2.8 dBTP | A Paris perfume shop reverses every word the second it recognises him |
+| [Honey, you're fucked](honey_youre_fucked/POST.md) | [`honey_youre_fucked.mp4`](honey_youre_fucked/honey_youre_fucked.mp4) | 24.3 s | −14.1 LUFS | −1.7 dBTP | The one-line verdict on caring what people say |
 
-Every file: 1080×1920, 29.97 fps, H.264 + AAC 192k, −16 LUFS, true peak
-−1.4 to −2.6 dBTP (ceiling −1.3).
+Every file: 1080×1920, 29.97 fps, H.264 + AAC 192k, −14 LUFS, true peak under the
+−1.3 dBTP ceiling. Re-cut with white captions and green `#2ECC71` emphasis;
+18+ words ship starred (`F*ck!`, `f*cking`).
 
 ## What is in every one of them
 
-The house kit, all of it, checked per post by `skill_gate.py`:
+The house kit, all of it, checked per post:
 
 - **Full-bleed 9:16** — the vertical window is cut from inside the show's own
-  picture frame and follows the face, so the picture fills the phone. The
-  crop never reaches the broadcaster's burned-in "2 BEARS, 1 CAVE" bug in the
-  top right.
-- **Kinetic open** — the opening sentence lands word by word on a spring, in
-  the campaign ink, with emphasis words in the keyword yellow.
-- **Emphasis ink** at 1.16× on the words that carry the line, plus a small
-  camera punch on each.
+  picture frame and tracks the speaker. It is clamped left of x=1610, where the
+  broadcaster's burned-in "2 BEARS, / 1 CAVE" bug sits, so the bug can never
+  enter the crop even when the speaker is right of frame.
+- **Kinetic open** — the opening sentence lands word by word, white, with the
+  first content word already green, animating from frame 1.
+- **Emphasis ink** — white captions, green `#2ECC71` on the words that carry
+  the line, and those words are larger (118 px key / 250 px hero against 96 px
+  connective), so the colour is a size cue too, not a tint.
 - **Slow push** across the clip; **whip** on any real cut, with a whoosh.
-- **End card** — 2 BEARS / 1 CAVE · EP. 344 / full episode in bio, for the last
-  second, so the clip ends on a card instead of mid-expression.
-- **Show bug** — "2 BEARS 1 CAVE · EP. 344" on every frame.
-- **Keyboard typing** on the caption reveal grid — the recorded keys from the
-  street campaign, one burst per word, silent before the first word and across
-  the end card.
-- Grade, voice chain, ducked bed, −16 LUFS.
+- **End card** — 2 BEARS / 1 CAVE · EP. 344 / FULL EPISODE IN BIO, on the last
+  1.5 s, so the clip ends on a card instead of mid-expression.
+- **Keyboard typing** on the caption reveal grid — one burst per word, silent
+  before the first word and across the end card.
+- **18+ words starred** — `F*ck!`, `f*cking`, `f*cked`. Masked in the builder
+  after the caption is matched to the transcript, so the word still lands on
+  its syllable; guarded by `screen_text` in `motion/qc.py`.
+- Grade, voice chain, bed carved out of the speech band, −14 LUFS.
 
 ## Why only four
 
