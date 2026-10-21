@@ -2,7 +2,47 @@
  "campaign": "two_bears_ep344",
  "title": null,
  "duration": 24.5,
- "endcard": 24.49,
+ "endcard": 23.5,
+ "emphasis": [
+  "fucked",
+  "yourself",
+  "tell"
+ ],
+ "cuts": [
+  0.0,
+  10.31,
+  12.51,
+  12.65,
+  12.68,
+  12.71,
+  14.51,
+  14.55,
+  17.32,
+  17.38,
+  18.75,
+  19.39,
+  19.49,
+  19.52,
+  20.05,
+  20.22,
+  20.25,
+  20.29
+ ],
+ "features": [
+  "reframe_9x16",
+  "endcard",
+  "bug",
+  "grade",
+  "bed",
+  "voice",
+  "kinetic_type",
+  "emphasis_ink",
+  "punch",
+  "ramp",
+  "whip",
+  "keyboard_sfx",
+  "whoosh_sfx"
+ ],
  "cards": [
   {
    "show_from": 0.318,

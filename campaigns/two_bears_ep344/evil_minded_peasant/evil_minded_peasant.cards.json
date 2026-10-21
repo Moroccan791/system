@@ -2,7 +2,37 @@
  "campaign": "two_bears_ep344",
  "title": null,
  "duration": 20.8,
- "endcard": 20.79,
+ "endcard": 19.8,
+ "emphasis": [
+  "evil-minded",
+  "wife",
+  "open"
+ ],
+ "cuts": [
+  0.0,
+  18.92,
+  19.62,
+  19.79,
+  20.42,
+  20.49,
+  20.55,
+  20.62
+ ],
+ "features": [
+  "reframe_9x16",
+  "endcard",
+  "bug",
+  "grade",
+  "bed",
+  "voice",
+  "kinetic_type",
+  "emphasis_ink",
+  "punch",
+  "ramp",
+  "whip",
+  "keyboard_sfx",
+  "whoosh_sfx"
+ ],
  "cards": [
   {
    "show_from": 0.83,

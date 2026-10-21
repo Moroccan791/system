@@ -30,15 +30,16 @@ of the three means the post is not paid, however it performs.
 - `pass` **hook** — first 2s: 'one in the gym with me. I just fucking'
 - `pass` **hook_strength** — 9.0/10 (floor 4) - concrete number (+6.0); first-person admission (+2.0); dense delivery 4.5 w/s (+1.0) | 'one in the gym with me. I just fucking'
 - `pass` **duration** — 44.9s inside 20-45s
-- `pass` **loudness** — -16.0 LUFS (window -17..-13)
-- `pass` **true_peak** — -1.3 dBTP (ceiling -1.3)
-- `pass` **voice_over_bed** — voice sits 23.7 dB over the bed (needs 12; speech 12.5 dB, bed -11.2 dB)
+- `pass` **loudness** — -16.2 LUFS (window -17..-13)
+- `pass` **true_peak** — -1.7 dBTP (ceiling -1.3)
+- `pass` **voice_over_bed** — voice sits 21.6 dB over the bed (needs 12; speech 11.1 dB, bed -10.6 dB)
 - `pass` **black_bars** — worst top bar 0 px at 0.0s (limit 12)
 - `pass` **caption_face** — no face behind a caption
-- `pass` **frozen** — longest unchanged stretch 0.3s (limit 3s)
+- `pass` **frozen** — longest unchanged stretch 0.7s (limit 3s)
 - `pass` **ending_tail** — -0.54s after the last spoken word
 - `pass` **topic_safety** — no blocked moments
 - `pass` **title_safety** — title/caption clean
+- `pass` **required_features** — 13 required, all present
 
 ## Files
 

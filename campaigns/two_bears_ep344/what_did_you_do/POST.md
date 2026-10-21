@@ -30,15 +30,16 @@ of the three means the post is not paid, however it performs.
 - `pass` **hook** — first 2s: 'Are you on Youtube? And I said,'
 - `pass` **hook_strength** — 4.0/10 (floor 4) - first-person admission (+2.0); speaks to the viewer (+2.0); the 2 s window ends mid-word | 'Are you on Youtube? And I said,'
 - `pass` **duration** — 44.9s inside 20-45s
-- `pass` **loudness** — -16.1 LUFS (window -17..-13)
-- `pass` **true_peak** — -1.3 dBTP (ceiling -1.3)
-- `pass` **voice_over_bed** — voice sits 22.9 dB over the bed (needs 12; speech 12.9 dB, bed -10.1 dB)
+- `pass` **loudness** — -16.0 LUFS (window -17..-13)
+- `pass` **true_peak** — -2.6 dBTP (ceiling -1.3)
+- `pass` **voice_over_bed** — voice sits 19.4 dB over the bed (needs 12; speech 9.0 dB, bed -10.4 dB)
 - `pass` **black_bars** — worst top bar 0 px at 0.0s (limit 12)
 - `pass` **caption_face** — no face behind a caption
-- `pass` **frozen** — longest unchanged stretch 1.2s (limit 3s)
+- `pass` **frozen** — longest unchanged stretch 0.5s (limit 3s)
 - `pass` **ending_tail** — -0.01s after the last spoken word
 - `pass` **topic_safety** — no blocked moments
 - `pass` **title_safety** — title/caption clean
+- `pass` **required_features** — 13 required, all present
 
 ## Files
 

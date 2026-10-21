@@ -30,17 +30,17 @@
   {
    "name": "loudness",
    "status": "pass",
-   "detail": "-16.1 LUFS (window -17..-13)"
+   "detail": "-16.0 LUFS (window -17..-13)"
   },
   {
    "name": "true_peak",
    "status": "pass",
-   "detail": "-1.3 dBTP (ceiling -1.3)"
+   "detail": "-2.6 dBTP (ceiling -1.3)"
   },
   {
    "name": "voice_over_bed",
    "status": "pass",
-   "detail": "voice sits 22.9 dB over the bed (needs 12; speech 12.9 dB, bed -10.1 dB)"
+   "detail": "voice sits 19.4 dB over the bed (needs 12; speech 9.0 dB, bed -10.4 dB)"
   },
   {
    "name": "black_bars",
@@ -55,7 +55,7 @@
   {
    "name": "frozen",
    "status": "pass",
-   "detail": "longest unchanged stretch 1.2s (limit 3s)"
+   "detail": "longest unchanged stretch 0.5s (limit 3s)"
   },
   {
    "name": "ending_tail",
@@ -71,6 +71,11 @@
    "name": "title_safety",
    "status": "pass",
    "detail": "title/caption clean"
+  },
+  {
+   "name": "required_features",
+   "status": "pass",
+   "detail": "13 required, all present"
   }
  ]
 }

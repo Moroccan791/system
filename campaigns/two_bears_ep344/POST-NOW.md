@@ -73,7 +73,7 @@ plus the bio link are the three things the brief says are unpaid without.
 
 ## Same file, four platforms
 
-1080×1920, 29.97 fps, H.264 + AAC, −16 LUFS, −1.3 to −2.7 dBTP — inside every
+1080×1920, 29.97 fps, H.264 + AAC, −16 LUFS, −1.4 to −2.6 dBTP — inside every
 one of the four platforms' spec. Upload the same file everywhere; there is no
 platform-specific cut and making one would only split the views.
 
