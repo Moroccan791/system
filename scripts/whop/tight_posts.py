@@ -415,6 +415,8 @@ def mux(video: Path, src: Path, out: Path, with_audio: bool) -> None:
 
 
 PEAK_TARGET = -1.3      # dBTP: AAC inter-sample overs must not clip on playback
+ENCODE_MARGIN = 0.6     # the AAC encoder puts back ~0.3 dB that the limiter took
+                        # off, so the limiter aims below the ceiling
 LOUD_TARGET = -16.0     # LUFS: the campaign window is -17..-14; aim at the middle
 
 
@@ -459,7 +461,7 @@ def apply_limiter(path: Path, video: Path, ceiling_db: float) -> None:
     runs at 192 kHz, where the inter-sample peak *is* a sample, and the result
     is brought back to 48 kHz.
     """
-    linear = 10 ** (ceiling_db / 20.0)
+    linear = 10 ** ((ceiling_db - ENCODE_MARGIN) / 20.0)
     tmp = path.with_name(path.stem + "_lim.mp4")
     subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
                     "-i", str(path), "-i", str(video),
