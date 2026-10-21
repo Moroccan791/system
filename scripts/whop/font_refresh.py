@@ -47,6 +47,20 @@ W, H = 1080, 1920
 FONTS = ROOT / "assets" / "fonts"
 FLAVIOTTE = str(FONTS / "Flaviotte.ttf")
 SHAWKIND = str(FONTS / "Shawkind.ttf")
+#: Style cards can name their own display face; anything unknown falls back to
+#: Shawkind, so every existing style keeps rendering identically.
+FONT_FILES = {
+    "shawkind": SHAWKIND,
+    "anton": str(FONTS / "Anton.woff2"),
+    "bebas": str(FONTS / "BebasNeue.woff2"),
+    "luckiest": str(FONTS / "LuckiestGuy.woff2"),
+    "archivo": str(FONTS / "ArchivoBlack.woff2"),
+    "montserrat": str(FONTS / "Montserrat-ExtraBold.ttf"),
+}
+
+
+def font_path(name: str | None) -> str:
+    return FONT_FILES.get(str(name or "shawkind").lower(), SHAWKIND)
 
 # measured on the shipped cuts (brightness/texture steps + OCR)
 WINDOWS = {
@@ -166,6 +180,8 @@ class Typesetter:
         # ("yellow, red or green ... to attract viewer"). Falls back to the
         # accent, so every existing style card keeps rendering as before.
         self.key_ink = hex_rgb(colors.get("keyword") or colors["accent"])
+        # one face per card; the campaign's style card chooses it
+        self.face = font_path(style.get("caption") or style.get("font"))
         self.scene_bg = hex_rgb(colors["sceneBg"])
         self._fonts: dict[tuple[str, int], ImageFont.FreeTypeFont] = {}
         self._cache: dict[tuple, np.ndarray] = {}
@@ -215,10 +231,10 @@ class Typesetter:
         return int(round(size * self.KEY_SCALE)) if cell["kind"] == "key" else size
 
     def _line_width(self, line: list[dict], size: int) -> float:
-        space = self.font(SHAWKIND, size).getlength(" ")
+        space = self.font(self.face, size).getlength(" ")
         total = space * max(0, len(line) - 1)
         for c in line:
-            total += self.font(SHAWKIND, self._word_size(size, c)).getlength(c["w"])
+            total += self.font(self.face, self._word_size(size, c)).getlength(c["w"])
         return total
 
     def _fit_size(self, cap: dict) -> int:
@@ -251,11 +267,11 @@ class Typesetter:
             return arr
 
         words = cells[:revealed]
-        probe = self.font(SHAWKIND, max_size)
+        probe = self.font(self.face, max_size)
         space = d.textlength(" ", font=probe)
 
         def line_width(items, size):
-            f = self.font(SHAWKIND, size)
+            f = self.font(self.face, size)
             return sum(f.getlength(c["w"]) for c in items) + space * (len(items) - 1)
 
         def split(items, n):
@@ -275,7 +291,7 @@ class Typesetter:
             if max(line_width(ln, size) for ln in lines) <= max_w:
                 break
 
-        f = self.font(SHAWKIND, size)
+        f = self.font(self.face, size)
         ascent = f.getmetrics()[0]
         advance = int(size * 1.12)
         total_h = advance * (len(lines) - 1) + int(size * 0.86)
@@ -285,7 +301,7 @@ class Typesetter:
             x = (W - total) / 2
             yy = top + li * advance
             for cell in line:
-                wf = self.font(SHAWKIND, self._word_size(size, cell))
+                wf = self.font(self.face, self._word_size(size, cell))
                 is_key = cell["kind"] == "key"
                 col = self.key_ink if is_key else self.ink
                 ty = yy + (ascent - wf.getmetrics()[0])
@@ -303,7 +319,7 @@ class Typesetter:
         if key in self._cache:
             return self._cache[key]
         size = self._fit_size(cap)
-        f = self.font(SHAWKIND, size)
+        f = self.font(self.face, size)
         base_ascent = f.getmetrics()[0]
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         d = ImageDraw.Draw(img)
@@ -315,7 +331,7 @@ class Typesetter:
             Emphasis words are set larger, so they grow up and down from the
             same baseline instead of sitting low like a different font.
             """
-            wf = self.font(SHAWKIND, self._word_size(size, cell))
+            wf = self.font(self.face, self._word_size(size, cell))
             is_key = cell["kind"] == "key"
             col = self.key_ink if is_key else self.ink
             ty = y + (base_ascent - wf.getmetrics()[0])
