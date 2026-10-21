@@ -1,20 +1,12 @@
 name: fetch-footage
 
+# Push-triggered on purpose: workflow_dispatch is only available once a
+# workflow exists on the default branch, and this repo's default branch is not
+# where the work happens. Dropping this request file is the trigger.
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag holding the parts"
-        required: true
-        default: "footage-demi-2"
-      pattern:
-        description: "Asset glob"
-        required: true
-        default: "gillis_*.mp4"
-      out_dir:
-        description: "Where to put them on this branch"
-        required: true
-        default: "work/two_bears/src"
+  push:
+    paths:
+      - ".github/footage-request.json"
 
 permissions:
   contents: write
@@ -27,28 +19,36 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
+
+      - name: Read request
+        id: req
+        run: |
+          set -euo pipefail
+          cat .github/footage-request.json
+          for k in tag pattern out_dir; do
+            v=$(jq -r ".$k" .github/footage-request.json)
+            echo "$k=$v" >> "$GITHUB_OUTPUT"
+          done
+
       - name: Download release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p "${{ inputs.out_dir }}"
-          gh release download "${{ inputs.tag }}" \
+          mkdir -p "${{ steps.req.outputs.out_dir }}"
+          gh release download "${{ steps.req.outputs.tag }}" \
             --repo "${{ github.repository }}" \
-            --pattern "${{ inputs.pattern }}" \
-            --dir "${{ inputs.out_dir }}" --clobber
-          ls -l "${{ inputs.out_dir }}"
-      - name: Verify and merge
-        run: |
-          set -euo pipefail
-          cd "${{ inputs.out_dir }}"
-          echo "parts: $(ls *.mp4 | wc -l)"
-          du -sh .
-      - name: Commit
+            --pattern "${{ steps.req.outputs.pattern }}" \
+            --dir "${{ steps.req.outputs.out_dir }}" --clobber
+          echo "--- downloaded ---"
+          ls -l "${{ steps.req.outputs.out_dir }}"
+          du -sh "${{ steps.req.outputs.out_dir }}"
+
+      - name: Commit parts
         run: |
           set -euo pipefail
           git config user.name "footage-bot"
           git config user.email "footage-bot@users.noreply.github.com"
-          git add -f "${{ inputs.out_dir }}"
-          git commit -m "footage: ${{ inputs.tag }} (${{ inputs.pattern }})" || echo "nothing to commit"
+          git add -f "${{ steps.req.outputs.out_dir }}"
+          git commit -m "footage: ${{ steps.req.outputs.tag }} -> ${{ steps.req.outputs.out_dir }}" || echo "nothing to commit"
           git push origin HEAD:"${{ github.ref_name }}"
