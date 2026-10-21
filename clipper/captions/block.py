@@ -60,7 +60,14 @@ ADULT_WORDS = frozenset("""sex fuck fucking fucked fucker shit shitty bitch bitc
 
 
 def censor_text(text: str) -> str:
-    """Star the second letter of any 18+ token: sex -> s*x, Fuck -> F*ck."""
+    """Star the second letter of any 18+ token: sex -> s*x, Fuck -> F*ck.
+
+    Works on a single caption token and on a whole phrase ("Honey, you're
+    fucked"), because the same function guards titles, list labels and
+    endcard copy - anywhere a line of prose reaches the screen.
+    """
+    if " " in text.strip():
+        return " ".join(censor_text(t) for t in text.split(" "))
     m = re.match(r"^(\W*)([A-Za-z']+)(\W*)$", text)
     if not m:
         return text

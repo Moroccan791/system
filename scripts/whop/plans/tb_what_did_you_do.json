@@ -1,0 +1,592 @@
+{
+ "post": "what_did_you_do",
+ "campaign": "two_bears_ep344",
+ "source": "work/two_bears/full.mp4",
+ "transcript": "work/two_bears/asr/windows.json",
+ "offset": 0.0,
+ "span": [
+  2690.3,
+  2734.7
+ ],
+ "drops": [],
+ "splits": [
+  2718.8
+ ],
+ "crops": [
+  {
+   "until": 2718.8,
+   "crop": [
+    708,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 2734.71,
+   "crop": [
+    1082,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  }
+ ],
+ "fadeOut": 0.5,
+ "music": "assets/music/chill.wav",
+ "tail_seconds": 1.5,
+ "max_gap": 0.45,
+ "keep_gap": 0.16,
+ "beats": [
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "are you on",
+    "YouTube and I"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "said I am and",
+    "she typed in"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Bert Kreischer",
+    "And then she"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "flipped it",
+    "around and it"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "was a picture",
+    "of me and it"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "was like and",
+    "it was a really"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "bad picture of",
+    "me it was like"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "the Most hated",
+    "man on the"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "internet."
+   ],
+   "kinds": [
+    [
+     "hero"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "And and I",
+    "obviously"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "it's you know,",
+    "it's a not a"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "fan, but the",
+    "opposite of a"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "fan video of",
+    "me. Kai hates"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "me. And so he",
+    "does videos"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "about me. I",
+    "didn't see"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "it. I haven't",
+    "watched it."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "And then she",
+    "looked at me"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "and goes, what",
+    "did you do?"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "And I was like,",
+    "nothing. And"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "I couldn't",
+    "say it or"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "nothing."
+   ],
+   "kinds": [
+    [
+     "hero"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Nothing. I did",
+    "absolutely."
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "I was just",
+    "trying to make"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "people like",
+    "me. And then,"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Some people",
+    "just based"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "on me wanting",
+    "people to like"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "me don't like",
+    "that about me"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "endcard",
+   "after": "last",
+   "gap": 0.3,
+   "dur": 1.5,
+   "title": "2 BEARS",
+   "titleLines": [
+    "2 BEARS",
+    "1 CAVE \u00b7 EP. 344"
+   ],
+   "sub": "FULL EPISODE IN BIO",
+   "wordSize": 150
+  }
+ ],
+ "posting": {
+  "title": "What did you do?",
+  "description": "The woman in the next seat types his name into YouTube, finds a hit piece, turns the phone around and asks what he did. He has no answer except that he was trying to make people like him.",
+  "disclosure": "",
+  "requiredLine": "2 Bears 1 Cave Ep. 344 - full episode in the bio.",
+  "hashtags": [
+   "#2BearsWeekly",
+   "#2Bears1Cave",
+   "#TomSegura",
+   "#BertKreischer",
+   "#Comedy",
+   "#PodcastClips",
+   "#StandUpComedy",
+   "#Funny"
+  ]
+ }
+}

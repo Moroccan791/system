@@ -1,0 +1,18 @@
+[
+ {
+  "find": ["He", "kind", "of", "hates", "me."],
+  "replace": ["Kai", "hates", "me."]
+ },
+ {
+  "find": ["that", "machine"],
+  "replace": ["Bert", "Kreischer?"]
+ },
+ {
+  "find": ["open", "and", "I", "was,", "oh,"],
+  "replace": ["opened.", "I", "was,", "I", "was"]
+ },
+ {
+  "find": ["goes,", "look", "to", "me.", "she", "goes,"],
+  "replace": ["looks", "at", "me", "and", "goes,"]
+ }
+]

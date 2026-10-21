@@ -1,0 +1,73 @@
+{
+ "post": "honey_youre_fucked",
+ "campaign": "two_bears_ep344",
+ "source": "work/two_bears/full.mp4",
+ "transcript": "work/two_bears/asr/windows.json",
+ "offset": 0.0,
+ "span": [
+  2558.1,
+  2582.6
+ ],
+ "drops": [],
+ "splits": [
+  2568.5,
+  2578.5
+ ],
+ "crops": [
+  {
+   "until": 2568.1,
+   "crop": [
+    712,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 2578.1,
+   "crop": [
+    1082,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 2582.61,
+   "crop": [
+    723,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  }
+ ],
+ "fadeOut": 0.5,
+ "music": "assets/music/chill.wav",
+ "tail_seconds": 1.5,
+ "max_gap": 0.45,
+ "keep_gap": 0.16,
+ "beats": [],
+ "posting": {
+  "title": "Honey, you're fucked",
+  "description": "A woman at a party tells him what people say about you only matters as much as how you feel about yourself. He asks the obvious follow-up. She delivers the verdict and walks away.",
+  "disclosure": "",
+  "requiredLine": "2 Bears 1 Cave Ep. 344 - full episode in the bio.",
+  "hashtags": [
+   "#2BearsWeekly",
+   "#2Bears1Cave",
+   "#TomSegura",
+   "#BertKreischer",
+   "#Comedy",
+   "#PodcastClips",
+   "#StandUpComedy",
+   "#Funny"
+  ]
+ }
+}

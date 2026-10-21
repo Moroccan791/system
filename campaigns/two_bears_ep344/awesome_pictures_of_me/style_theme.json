@@ -1,0 +1,48 @@
+{
+  "name": "whop",
+  "ink": "#0B0E11",
+  "paper": "#FFFFFF",
+  "radius": "sharp",
+  "glow": 0.0,
+  "speed": 1.0,
+  "easing": "soft",
+  "fontMode": "sans",
+  "captionStyle": "editorial",
+  "transitionOrder": [
+    "flash",
+    "flare",
+    "leak",
+    "bwflash"
+  ],
+  "soundSeedSalt": 77,
+  "fontPack": "anton",
+  "cutTransitions": "hard",
+  "fonts": {
+    "caption": "anton",
+    "keyword": "anton",
+    "serif": "anton",
+    "list": "anton",
+    "endcard": "anton"
+  },
+  "colors": {
+    "accent": "#2ECC71",
+    "keyword": "#2ECC71",
+    "serif": "#2ECC71",
+    "endcard": "#2ECC71",
+    "caption": "#FFFFFF",
+    "plate": "#2ECC71",
+    "plateInk": "#141414",
+    "sceneBg": "#141414",
+    "sceneInk": "#FFFFFF",
+    "listHead": "#2ECC71",
+    "listBg": "#141414",
+    "listText": "#FFFFFF"
+  },
+  "accent": "#2ECC71",
+  "styleCard": {
+    "approved": true,
+    "campaign": "two_bears_ep344",
+    "video": "awesome_pictures_of_me",
+    "style_sha256": "0ba4ae7a34c586b554d68d7780747187a491dd3678798c9c538c2a7489283a03"
+  }
+}

@@ -91,11 +91,16 @@ def build(tl: dict, tr, video: Path | None, out: Path) -> dict:
             raise ValueError("authored pack needs 7-8 unique hashtags")
         titles = [authored["title"]] + list(authored.get("alternativeTitles") or [])
         variants = list(authored.get("hookVariants") or variants)
-        description = (authored["disclosure"] + "\n" +
+        # Not every campaign is a paid read: an empty disclosure is a real
+        # value (2 Bears 1 Cave is the show's own channel), and the pack then
+        # carries no #ad line rather than a fake one.
+        disclosure = authored["disclosure"].strip()
+        description = (((disclosure + "\n") if disclosure else "") +
                        authored["description"].strip() + "\n\n" +
                        authored["requiredLine"])
-        if authored["requiredLine"] not in description or not description.startswith("#ad\n") \
-                and not description.startswith("#sponsored\n"):
+        if authored["requiredLine"] not in description:
+            raise ValueError("the campaign's required description line is missing")
+        if disclosure and not description.startswith(("#ad\n", "#sponsored\n")):
             raise ValueError("campaign description line and ad disclosure are required")
     else:
         tags = list(dict.fromkeys(tags))[:8]

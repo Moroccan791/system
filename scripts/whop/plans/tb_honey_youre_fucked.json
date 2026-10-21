@@ -1,0 +1,411 @@
+{
+ "post": "honey_youre_fucked",
+ "campaign": "two_bears_ep344",
+ "source": "work/two_bears/full.mp4",
+ "transcript": "work/two_bears/asr/windows.json",
+ "offset": 0.0,
+ "span": [
+  2558.1,
+  2582.6
+ ],
+ "drops": [],
+ "splits": [
+  2568.5,
+  2578.5
+ ],
+ "crops": [
+  {
+   "until": 2568.1,
+   "crop": [
+    712,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 2578.1,
+   "crop": [
+    1082,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 2582.61,
+   "crop": [
+    723,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  }
+ ],
+ "fadeOut": 0.5,
+ "music": "assets/music/chill.wav",
+ "tail_seconds": 1.5,
+ "max_gap": 0.45,
+ "keep_gap": 0.16,
+ "beats": [
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "was this older",
+    "black woman."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "She saw me on",
+    "Instagram. She"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "goes uh yeah",
+    "i just got rid"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "of mine and i",
+    "was like yeah"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "she's like",
+    "yeah i can't"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "let people",
+    "tell me i'm"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "fat and i was",
+    "like And yeah"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "she goes, it",
+    "doesn't matter"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "what people",
+    "say about you."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "It's how you",
+    "feel about"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "yourself. And",
+    "I said, what"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "if how you",
+    "feel about"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "yourself"
+   ],
+   "kinds": [
+    [
+     "hero"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "is based on",
+    "what people"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "say about you?",
+    "She looks at"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "me and goes,",
+    "honey, you're"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "fucked and just",
+    "walked away."
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "endcard",
+   "after": "last",
+   "gap": 0.3,
+   "dur": 1.5,
+   "title": "2 BEARS",
+   "titleLines": [
+    "2 BEARS",
+    "1 CAVE \u00b7 EP. 344"
+   ],
+   "sub": "FULL EPISODE IN BIO",
+   "wordSize": 150
+  }
+ ],
+ "posting": {
+  "title": "Honey, you're f*cked",
+  "description": "A woman at a party tells him what people say about you only matters as much as how you feel about yourself. He asks the obvious follow-up. She delivers the verdict and walks away.",
+  "disclosure": "",
+  "requiredLine": "2 Bears 1 Cave Ep. 344 - full episode in the bio.",
+  "hashtags": [
+   "#2BearsWeekly",
+   "#2Bears1Cave",
+   "#TomSegura",
+   "#BertKreischer",
+   "#Comedy",
+   "#PodcastClips",
+   "#StandUpComedy",
+   "#Funny"
+  ]
+ }
+}

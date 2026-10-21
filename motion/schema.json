@@ -25,7 +25,7 @@
                                        "strategy": { "type": "string", "minLength": 1 },
                                        "hook": { "type": "string", "minLength": 1 } } } },
         "description": { "type": "string", "minLength": 1 },
-        "disclosure": { "enum": ["#ad", "#sponsored"] },
+        "disclosure": { "enum": ["#ad", "#sponsored", ""] },
         "requiredLine": { "type": "string", "minLength": 1 },
         "hashtags": { "type": "array", "minItems": 7, "maxItems": 8,
                       "items": { "type": "string", "pattern": "^#[A-Za-z0-9_]+$" } },

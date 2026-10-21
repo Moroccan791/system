@@ -1,0 +1,23 @@
+{
+  "caption": "anton",
+  "keyword": "anton",
+  "serif": "anton",
+  "list": "anton",
+  "endcard": "anton",
+  "captionStyle": "editorial",
+  "radius": "sharp",
+  "colors": {
+    "accent": "#2ECC71",
+    "keyword": "#2ECC71",
+    "serif": "#2ECC71",
+    "endcard": "#2ECC71",
+    "caption": "#FFFFFF",
+    "plate": "#2ECC71",
+    "plateInk": "#141414",
+    "sceneBg": "#141414",
+    "sceneInk": "#FFFFFF",
+    "listHead": "#2ECC71",
+    "listBg": "#141414",
+    "listText": "#FFFFFF"
+  }
+}

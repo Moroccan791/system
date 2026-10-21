@@ -1,0 +1,656 @@
+{
+ "post": "awesome_pictures_of_me",
+ "campaign": "two_bears_ep344",
+ "source": "work/two_bears/full.mp4",
+ "transcript": "work/two_bears/asr/windows.json",
+ "offset": 0.0,
+ "span": [
+  2982.0,
+  3027.3
+ ],
+ "drops": [],
+ "splits": [
+  3011.6,
+  3017.6
+ ],
+ "crops": [
+  {
+   "until": 3011.2,
+   "crop": [
+    541,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 3017.2,
+   "crop": [
+    1082,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  },
+  {
+   "until": 3027.31,
+   "crop": [
+    590,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  }
+ ],
+ "fadeOut": 0.5,
+ "music": "assets/music/chill.wav",
+ "tail_seconds": 1.5,
+ "max_gap": 0.45,
+ "keep_gap": 0.16,
+ "beats": [
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "one in the"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "gym with me.",
+    "I just fucking"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "destroyed."
+   ],
+   "kinds": [
+    [
+     "hero"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "And then I took"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "some awesome",
+    "pictures of"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "me. Yeah. And",
+    "then one of"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "the maintenance",
+    "guys saw"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "me taking a",
+    "picture of"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "myself, and he",
+    "just laughed."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "He did. What",
+    "are you doing?"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Like elevator",
+    "door opened."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "I was, I was",
+    "standing."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "I'll show you",
+    "the fucking"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "picture, Tom.",
+    "I was standing"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "with my phone",
+    "like this and"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "it was good",
+    "it was good"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "uh It was good",
+    "lighting on my"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "arm. Yeah, it",
+    "was really good"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "lighting on my",
+    "arm. And, ah,"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Yeah, look",
+    "at the"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "picture."
+   ],
+   "kinds": [
+    [
+     "hero"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "This is the",
+    "picture. And"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "the maintenance",
+    "guy saw"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "that. And the",
+    "maintenance guy"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "saw me doing",
+    "that. Yeah and"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "he was and he",
+    "the door the"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "elevator door",
+    "just opened and"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "i'm right there",
+    "doing it and"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "he went ah And",
+    "then the door"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "just closed",
+    "and I went,"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "fuck."
+   ],
+   "kinds": [
+    [
+     "hero"
+    ]
+   ]
+  },
+  {
+   "type": "endcard",
+   "after": "last",
+   "gap": 0.3,
+   "dur": 1.5,
+   "title": "2 BEARS",
+   "titleLines": [
+    "2 BEARS",
+    "1 CAVE \u00b7 EP. 344"
+   ],
+   "sub": "FULL EPISODE IN BIO",
+   "wordSize": 150
+  }
+ ],
+ "posting": {
+  "title": "I took some awesome pictures of me",
+  "description": "54 years old, alone in the gym at 5 a.m., taking a mirror selfie of his arm in good lighting - and the maintenance guy rides the elevator up into the middle of it.",
+  "disclosure": "",
+  "requiredLine": "2 Bears 1 Cave Ep. 344 - full episode in the bio.",
+  "hashtags": [
+   "#2BearsWeekly",
+   "#2Bears1Cave",
+   "#TomSegura",
+   "#BertKreischer",
+   "#Comedy",
+   "#PodcastClips",
+   "#StandUpComedy",
+   "#Funny"
+  ]
+ }
+}

@@ -43,6 +43,9 @@ ZONES = {
     "scene":  ([0.30, 0.36], 104),
     "payoff": ([0.73, 0.84], 92),
     "low":    ([0.82, 0.90], 92),   # close-up-safe lower third, clear of a low chin
+    # same lower third lifted clear of the platform's caption/UI band, so a
+    # two-row card (or a hero row) still ends above the safe line
+    "lower":  ([0.745, 0.835], 96),
 }
 SIZES = {"sm": 88, "md": 104, "lg": 118}
 LOOKAHEAD = 1.0        # a caption word is never matched more than a second ahead
@@ -451,6 +454,19 @@ def build(plan: dict) -> dict:
         else:
             it["until"] = round(last + last_caption_tail, 3)
 
+    # A hero row is one 250 px word: it needs a beat on screen. A caption's
+    # exit is the next card's first word, so a hero the cut leaves under
+    # 0.45 s on screen is demoted to a key word instead of flashing.
+    for it in items:
+        if it["type"] != "poster":
+            continue
+        if any(w.get("kind") == "hero" for r in it.get("rows", []) for w in r) \
+                and float(it["until"]) - float(it["at"]) < 0.45:
+            for r in it["rows"]:
+                for w in r:
+                    if w.get("kind") == "hero":
+                        w["kind"] = "key"
+
     # no negative times: the first word of a clip can land a hair
     # before zero once the silences are cut
     for it in items:
@@ -462,6 +478,37 @@ def build(plan: dict) -> dict:
                 w["at"] = max(0.0, round(float(w["at"]), 3))
                 if w.get("showAt") is not None:
                     w["showAt"] = max(0.0, round(float(w["showAt"]), 3))
+
+    # ---- 18+ words never reach the screen raw -------------------------
+    # Display-only masking, applied AFTER the clock has matched the line
+    # against the transcript (the spoken token stays verbatim, only the
+    # glyphs change), so "Fuck" still lands on the right syllable and ships
+    # as "F*ck". Every text field is swept: captions, list labels, sticker
+    # copy, endcard titles.
+    sys.path.insert(0, str(ROOT))
+    try:
+        from clipper.captions.block import censor_text
+    except Exception as exc:                      # pragma: no cover
+        raise RuntimeError("censor_text is unavailable: raw 18+ words "
+                           "would ship") from exc
+    masked = 0
+
+    def _mask(node):
+        nonlocal masked
+        if isinstance(node, dict):
+            for k, v in list(node.items()):
+                if k in ("w", "text", "label", "title", "sub", "by") and isinstance(v, str):
+                    m = censor_text(v)
+                    if m != v:
+                        node[k] = m
+                        masked += 1
+                else:
+                    _mask(v)
+        elif isinstance(node, list):
+            for v in node:
+                _mask(v)
+
+    _mask(items)
 
     duration = base_duration or max(it.get("until", it["at"]) for it in items)
     last_word_time = max((w["at"] for it in items
@@ -490,7 +537,8 @@ def build(plan: dict) -> dict:
     (out / "timeline.json").write_text(json.dumps(timeline, indent=2) + "\n")
 
     print(f"{post}: {len(timeline['items'])} items, {timeline['duration']}s, "
-          f"accent {accent}, style {style['captionStyle']}")
+          f"accent {accent}, style {style['captionStyle']}"
+          + (f", {masked} 18+ word(s) starred" if masked else ""))
     for it in timeline["items"]:
         txt = "/".join(" ".join(w["w"] for w in r) for r in it.get("rows", []))
         if it["type"] == "list":

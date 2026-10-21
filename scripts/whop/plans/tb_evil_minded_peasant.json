@@ -1,0 +1,348 @@
+{
+ "post": "evil_minded_peasant",
+ "campaign": "two_bears_ep344",
+ "source": "work/two_bears/full.mp4",
+ "transcript": "work/two_bears/asr/windows.json",
+ "offset": 0.0,
+ "span": [
+  2027.15,
+  2047.3
+ ],
+ "drops": [],
+ "splits": [],
+ "crops": [
+  {
+   "until": 2047.31,
+   "crop": [
+    648,
+    71,
+    528,
+    938
+   ],
+   "push": 0.05,
+   "anchor": 0.5
+  }
+ ],
+ "fadeOut": 0.5,
+ "music": "assets/music/chill.wav",
+ "tail_seconds": 1.5,
+ "max_gap": 0.45,
+ "keep_gap": 0.16,
+ "beats": [
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Please leave,"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "mama, please,",
+    "mama, mama,"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "leave this",
+    "door, please."
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "Please leave,",
+    "leave. I can"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "smell you from",
+    "here. Yeah."
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "And they were",
+    "like, and then"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "key"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "someone was",
+    "like, oh my"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "gosh. Are you",
+    "Bert Kreischer?"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "and now what i",
+    "am and he goes"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn",
+     "key"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "are you with",
+    "this uh this"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "feeble-minded",
+    "uh peasant"
+   ],
+   "kinds": [
+    [
+     "key"
+    ],
+    [
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "And I said, \"I",
+    "am, that's my"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "wife.\" And they",
+    "went, \"Oh, no,"
+   ],
+   "kinds": [
+    [
+     "key",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "no, no, no, no,",
+    "no.\" \"Come in,"
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "conn",
+     "key",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "caption",
+   "zone": "lower",
+   "lines": [
+    "this door is",
+    "open to you.\""
+   ],
+   "kinds": [
+    [
+     "conn",
+     "conn",
+     "conn"
+    ],
+    [
+     "key",
+     "conn",
+     "conn"
+    ]
+   ]
+  },
+  {
+   "type": "endcard",
+   "after": "last",
+   "gap": 0.3,
+   "dur": 1.5,
+   "title": "2 BEARS",
+   "titleLines": [
+    "2 BEARS",
+    "1 CAVE \u00b7 EP. 344"
+   ],
+   "sub": "FULL EPISODE IN BIO",
+   "wordSize": 150
+  }
+ ],
+ "posting": {
+  "title": "Please, leave. I can smell you from here",
+  "description": "A Paris perfume shop tries to throw his wife out, then recognises him and reverses every word: from \"are you with this evil-minded peasant?\" to \"come in, this door is open to you.\"",
+  "disclosure": "",
+  "requiredLine": "2 Bears 1 Cave Ep. 344 - full episode in the bio.",
+  "hashtags": [
+   "#2BearsWeekly",
+   "#2Bears1Cave",
+   "#TomSegura",
+   "#BertKreischer",
+   "#Comedy",
+   "#PodcastClips",
+   "#StandUpComedy",
+   "#Funny"
+  ]
+ }
+}

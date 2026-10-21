@@ -390,6 +390,17 @@ def main() -> int:
     mix = voice + sfx + bed + pad
     if music is not None:
         mix = (mix + music).astype(np.float32)
+    # Voice-forward, between the lines too. The bed is placed from the voice
+    # level and ducks under it, but the room and a guest laughing are in the
+    # same recording as the words: on a short clip a handful of laugh frames
+    # can sit a decibel under the speech and hold the program at 11.8 dB of
+    # separation, under the campaign's 12. The program dips 2.5 dB where the
+    # voice is not active, smoothed over 0.18 s, so it reads as breathing
+    # rather than as gating. Same rule the caption chain already shipped with.
+    quiet = (env < voice_rms * 0.5).astype(np.float32)
+    k2 = max(1, int(0.18 * SR))
+    smooth = np.convolve(quiet, np.ones(k2, np.float32) / k2, "same")
+    mix = (mix * (1.0 - (1.0 - 10 ** (-2.5 / 20.0)) * smooth)).astype(np.float32)
     # soft ceiling ~-2.4 dBFS: gain staging happens against a limiter,
     # not against re-encode trims (which used to eat the loudness)
     mix = (0.76 * np.tanh(mix / 0.76)).astype(np.float32)
@@ -424,7 +435,7 @@ def main() -> int:
         tmp.replace(out)
 
     loud = measure_loudness(out)
-    if loud["true_peak"] > -1.05:  # AAC overshoot safety: trim & re-encode
+    if loud["true_peak"] > -1.35:  # AAC overshoot safety: trim & re-encode
         trim = loud["true_peak"] + 1.7
         tmp = out.with_suffix(".tp.mp4")
         subprocess.run([ffmpeg_exe(), "-y", "-v", "error", "-i", str(out),
@@ -440,13 +451,13 @@ def main() -> int:
     # -14.86 LUFS / -1.86 dBTP input in the Whop pilot. Measure again;
     # do not claim PASS if the exact encoded file misses the target.
     for _ in range(2):
-        if -14.35 <= loud["lufs"] <= -13.65 and loud["true_peak"] < -1.05:
+        if -14.35 <= loud["lufs"] <= -13.65 and loud["true_peak"] < -1.35:
             break
         target = -13.5 if loud["lufs"] < -14.35 else -14.0
         tmp = out.with_suffix(".norm.mp4")
         subprocess.run([ffmpeg_exe(), "-y", "-v", "error", "-i", str(out),
                         "-map", "0:v", "-map", "0:a", "-c:v", "copy",
-                        "-af", f"loudnorm=I={target:.1f}:TP=-1.5:LRA=11:linear=false",
+                        "-af", f"loudnorm=I={target:.1f}:TP=-1.6:LRA=11:linear=false",
                         # loudnorm upsamples internally to 192kHz. Keep
                         # delivery at 48kHz for broad platform support.
                         "-ar", str(SR), "-c:a", "aac", "-b:a", "160k",
@@ -461,8 +472,10 @@ def main() -> int:
     impact_frames = {e["frame"] for e in events
                      if e["kind"] in ("impact", "snap")}
     aligned = cut_frames <= impact_frames
+    # The campaign gate is the contract: it fails above -1.3 dBTP, so the mix
+    # has to pass with room to spare rather than stopping at its own -1.05.
     ok = aligned and -14.7 <= loud["lufs"] <= -13.3 \
-        and loud["true_peak"] < -1.0 and 0.4 <= accent_sec <= 2.0
+        and loud["true_peak"] < -1.29 and 0.4 <= accent_sec <= 2.0
     report = {"video": str(out), "seed": seed, "typing_sound": typing,
               "music_bed": str(sys.argv[sys.argv.index("--music") + 1])
               if "--music" in sys.argv else None,

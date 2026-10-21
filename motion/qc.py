@@ -68,10 +68,19 @@ def _norm(w: str) -> str:
 
 # ---------------------------------------------------------------- words
 def word_sync(tl: dict, transcript: dict) -> tuple[str, str]:
+    # Captions ship 18+ words starred (f*ck) while the transcript keeps the
+    # spoken spelling. Compare like with like: mask the transcript token the
+    # same way the builder masks the caption, so a starred word is not
+    # reported as a sync miss.
+    import sys as _sys
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in _sys.path:
+        _sys.path.insert(0, str(root))
+    from clipper.captions.block import censor_text
     raw_spoken = transcript.get("words", [])
     spoken: list[tuple[str, float]] = []
     for i, word in enumerate(raw_spoken):
-        text = _norm(str(word["text"]))
+        text = _norm(censor_text(str(word["text"])))
         start = float(word["start"])
         # Match build_whop_clip.Clock: Whisper can split the spoken word
         # "into" into adjacent "in" + "to" tokens, while the approved
@@ -86,7 +95,7 @@ def word_sync(tl: dict, transcript: dict) -> tuple[str, str]:
     for it in tl["items"]:
         for row in (it.get("rows") or it.get("lines") or []):
             for w in row:
-                authored.append((_norm(w["w"]), float(w["at"]),
+                authored.append((_norm(censor_text(w["w"])), float(w["at"]),
                                  float(w["showAt"]) if w.get("showAt") is not None
                                  else None))
     si = 0
@@ -272,7 +281,28 @@ def text_contrast(video: Path, tl: dict) -> tuple[str, str]:
             bw = int(170 / 1080 * fr.shape[1])
             roi = fr[max(0, cy - bh):cy + bh, cx - bw:cx + bw]
             import numpy as np
-            b, g, r = (float(np.median(roi[:, :, k])) for k in range(3))
+            # Measure the GROUND, not the letters. A 250 px hero fills most of
+            # the tight window, so a plain median returns the glyph colour and
+            # reports white-on-white for a word that is perfectly legible on a
+            # dark shirt. Pixels that look like the caption ink (white, or the
+            # brand accent) are excluded; if too little is left to trust, the
+            # sample widens to the whole placement band.
+            def ground(patch_):
+                px = patch_.reshape(-1, 3).astype(np.int16)
+                white = px.min(axis=1) > 185
+                close = np.linalg.norm(
+                    px - np.array([accent[2], accent[1], accent[0]]), axis=1) < 95
+                keep = ~(white | close)
+                if keep.sum() < 0.12 * len(px):
+                    return None
+                return tuple(float(np.median(px[keep][:, k])) for k in range(3))
+            got = ground(roi)
+            if got is None:
+                z0, z1 = int(zone[0] * fr.shape[0]), int(zone[1] * fr.shape[0])
+                got = ground(fr[max(0, z0):min(fr.shape[0], z1)])
+            if got is None:
+                continue
+            b, g, r = got
             # keywords are ink-on-accent plates (static pair, checked
             # above); what touches footage directly is white text -
             # and the counter's accent digits
@@ -780,6 +810,43 @@ def duration(video: Path, tl: dict) -> tuple[str, str]:
     return "pass", f"video {got:.2f}s matches timeline {want:.2f}s"
 
 
+def screen_text(tl: dict) -> tuple[str, str]:
+    """No 18+ word may reach the screen unstarred.
+
+    Censoring is a display rule, not a timing one: the spoken token stays
+    verbatim so the caption lands on the right syllable, and the glyphs are
+    masked on the way out ("Fuck" -> "F*ck"). That has to survive every path
+    into a render, so the gate reads the finished timeline and fails on any
+    adult token that still has all its letters.
+    """
+    import sys as _sys
+    root = Path(__file__).resolve().parents[1]
+    if str(root) not in _sys.path:
+        _sys.path.insert(0, str(root))
+    from clipper.captions.block import ADULT_WORDS
+    pat = re.compile(r"\b(" + "|".join(sorted(ADULT_WORDS, key=len, reverse=True))
+                     + r")\b", re.I)
+    hits: list[str] = []
+
+    def _scan(node, where):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k in ("w", "text", "label", "title", "sub", "by") and isinstance(v, str):
+                    if pat.search(v):
+                        hits.append(f"{where}: {v!r}")
+                else:
+                    _scan(v, where)
+        elif isinstance(node, list):
+            for v in node:
+                _scan(v, where)
+
+    for it in tl.get("items") or []:
+        _scan(it, it.get("type", "item"))
+    if hits:
+        return "fail", "unstarred 18+ word(s) on screen - " + "; ".join(hits[:5])
+    return "pass", "no unstarred 18+ word on screen"
+
+
 def margins(tl: dict) -> tuple[str, str]:
     for it in tl["items"]:
         zone = it.get("zone")
@@ -810,6 +877,7 @@ def main() -> int:
               ("value_anchor", *value_anchor(tl, transcript)),
               ("behind_fit", *behind_fit(video, tl)),
               ("semi_text", *semi_text(frames)),
+              ("screen_text", *screen_text(tl)),
               ("margins", *margins(tl))]
     ok = all(s != "fail" for _, s, _ in checks)
     print(f"MOTION QC v2 {video.name}: {'PASS' if ok else 'FAIL'}")
