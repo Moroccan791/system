@@ -137,5 +137,29 @@
   "captions": {
     "forbid_fillers": "warn",
     "note": "The brief requires verbatim captions, so a spoken 'like' or 'you know' cannot be removed without misquoting the speaker. The count is reported on every gate run as a quality signal instead of failing the render. Nothing else about the caption rules is relaxed."
-  }
+  },
+  "ending": {
+    "card_seconds": 1.0,
+    "max_tail_seconds": 2.0
+  },
+  "bug_line": "2 BEARS 1 CAVE  \u00b7  EP. 344",
+  "endcard_head": "2 BEARS",
+  "endcard_sub": "1 CAVE  \u00b7  EP. 344",
+  "endcard_tail": "Full episode in bio",
+  "required_features": [
+    "reframe_9x16",
+    "kinetic_type",
+    "emphasis_ink",
+    "punch",
+    "ramp",
+    "whip",
+    "endcard",
+    "bug",
+    "grade",
+    "bed",
+    "voice",
+    "keyboard_sfx",
+    "whoosh_sfx"
+  ],
+  "_note_required_features": "Every finished post must carry all of these. skill_gate.py reads this list and fails a render that skipped one - the first version of this campaign's renderer shipped without the motion layer and nothing noticed."
 }

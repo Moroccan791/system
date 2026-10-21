@@ -450,12 +450,23 @@ def settle_audio(path: Path, video: Path) -> dict:
 
 
 def apply_limiter(path: Path, video: Path, ceiling_db: float) -> None:
+    """Hold the ceiling *between* the samples, not just on them.
+
+    alimiter sees samples; a true peak meter sees the waveform the samples
+    describe. At 48 kHz an already-limited signal still overshoots by about a
+    decibel between samples, which is why a file limited to -1.3 dBFS measured
+    +0.0 dBTP - legal at the limiter, illegal in the player. So the limiter
+    runs at 192 kHz, where the inter-sample peak *is* a sample, and the result
+    is brought back to 48 kHz.
+    """
     linear = 10 ** (ceiling_db / 20.0)
     tmp = path.with_name(path.stem + "_lim.mp4")
     subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y",
                     "-i", str(path), "-i", str(video),
                     "-map", "1:v:0", "-map", "0:a:0", "-c:v", "copy",
-                    "-af", f"alimiter=limit={linear:.4f}:level=0",
+                    "-af", ("aresample=192000,"
+                            f"alimiter=limit={linear:.4f}:level=0,"
+                            "aresample=48000"),
                     "-c:a", "aac", "-b:a", "192k",
                     "-shortest", str(tmp)], check=True)
     tmp.replace(path)

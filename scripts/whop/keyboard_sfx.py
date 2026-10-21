@@ -220,9 +220,13 @@ def mix_into(bed: np.ndarray, track: np.ndarray, peak: float = KEY_PEAK,
         return bed, 0.0
     gain = peak / top
     n = max(len(bed), len(track))
-    out = np.zeros(n, dtype=np.float32)
+    # `bed` may be stereo (the campaign bed is), so the sum is built in the
+    # bed's own channel count and the mono key track is broadcast across it.
+    shape = (n,) + (bed.shape[1:] if bed.ndim > 1 else ())
+    out = np.zeros(shape, dtype=np.float32)
     out[:len(bed)] = bed
-    out[:len(track)] += track * gain
+    key = (track * gain)[:, None] if out.ndim > 1 else (track * gain)
+    out[:len(track)] += key
     a = np.abs(out)
     over = a > knee
     if over.any():

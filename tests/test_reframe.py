@@ -1,62 +1,61 @@
-"""The reframe map: per-segment crop focus for multi-speaker sources.
+"""The vertical crop: inside the picture, off the watermark, on the face."""
+from __future__ import annotations
 
-The helpers are pure arithmetic (checked exactly); the end-to-end scan is
-checked on synthetic footage with known cuts - textured scenes have no
-faces, so segments must come back with boundaries but no focus values.
-"""
-import pytest
+import sys
+from pathlib import Path
 
-from clipper.edit import reframe
-from clipper.edit.pipeline import candidates_for
-from clipper.synth import render_cut_clip
-from clipper.util import jsonio
+import cv2
+import numpy as np
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
-def test_crop_fraction_for_landscape_to_vertical():
-    assert reframe.crop_fraction(1920, 1080) == pytest.approx(0.3164, abs=1e-3)
-    # already vertical: the crop is the whole width
-    assert reframe.crop_fraction(1080, 1920) == 1.0
+import reframe as RF       # noqa: E402
 
 
-def test_focus_for_centres_the_median_face():
-    frac = reframe.crop_fraction(1920, 1080)
-    assert reframe.focus_for([0.5], frac) == pytest.approx(0.5)
-    # a face at the left edge clamps to hard-left, not negative
-    assert reframe.focus_for([0.05], frac) == 0.0
-    # median, not mean: one stray detection must not drag the window
-    assert reframe.focus_for([0.48, 0.5, 0.52, 0.99], frac) == \
-        reframe.focus_for([0.52], frac)
-    assert reframe.focus_for([], frac) is None
+def framed(w=1920, h=1080) -> np.ndarray:
+    """A frame like the show's: cream border, picture inside, bug top-right."""
+    img = np.full((h, w, 3), 244, np.uint8)
+    img[71:1009, 123:1797] = (70, 80, 90)
+    cv2.rectangle(img, (123, 71), (1797, 1009), (255, 255, 255), 6)
+    cv2.putText(img, "2 BEARS", (1520, 120), cv2.FONT_HERSHEY_SIMPLEX, 1.4,
+                (255, 255, 255), 4)
+    return img
 
 
-def test_merge_bounds_drops_twitchy_segments():
-    bounds = [0.0, 0.4, 2.0, 2.3, 5.0]
-    assert reframe.merge_bounds(bounds, 1.1) == [0.0, 2.0, 5.0]
-    assert reframe.merge_bounds(bounds, 0.1) == bounds
+def test_the_border_is_found() -> None:
+    x0, y0, x1, y1 = RF.picture_rect(framed())
+    assert abs(x0 - 123) <= 6 and abs(y0 - 71) <= 6
+    assert abs(x1 - 1797) <= 3 and abs(y1 - 1009) <= 3
 
 
-def test_reframe_map_finds_the_sources_own_cuts(tmp_path):
-    path = tmp_path / "cuts.mp4"
-    render_cut_clip(str(path), shots=[2, 2, 2], size=(480, 270), fps=12)
-    segments = reframe.reframe_map(path, 0.0, 6.0, min_seg=1.1)
-    starts = [s["start"] for s in segments]
-    assert starts[0] == 0.0 and segments[-1]["end"] == 6.0
-    assert any(abs(s - 2.0) < 0.35 for s in starts[1:])
-    assert any(abs(s - 4.0) < 0.35 for s in starts[1:])
-    # textured scenes: no faces, so no focus - the global crop applies
-    assert all("focus_x" not in s for s in segments)
+def test_the_window_never_leaves_the_picture() -> None:
+    f = framed()
+    r = RF.Reframe()
+    for _ in range(6):
+        x, _cut = r.crop_x(f, 0.0)
+        w = r.window(f)
+        assert x >= w[0] and x + w[2] <= RF.picture_rect(f)[2]
 
 
-def test_candidates_fall_back_to_the_campaign_folder(tmp_path, monkeypatch):
-    from clipper import config
+def test_the_window_keeps_off_the_watermark() -> None:
+    f = framed()
+    r = RF.Reframe()
+    x, _ = r.crop_x(f, 0.0)
+    _px0, _py0, win_w, _ = r.window(f)
+    right = RF.picture_rect(f)[2]
+    assert x + win_w <= right - int(r.watermark_margin * (right - RF.picture_rect(f)[0]))
 
-    monkeypatch.setattr(config, "WORK", tmp_path / "work")
-    monkeypatch.setattr(config, "CAMPAIGNS", tmp_path / "campaigns")
-    folder = tmp_path / "campaigns" / "demo" / "candidates"
-    folder.mkdir(parents=True)
-    jsonio.save(folder / "manual.json", {
-        "source": {"file": "x.mp4", "name": "x.mp4"}, "campaign": "demo",
-        "candidates": [{"id": "#A1", "start": 1.0, "end": 9.0}]})
-    found = candidates_for("demo")
-    assert len(found) == 1
-    assert found[0]["candidates"][0]["id"] == "#A1"
+
+def test_the_crop_is_full_bleed_vertical() -> None:
+    out = RF.Reframe().apply(framed())
+    assert out.shape == (RF.H, RF.W, 3)
+    # no cream border smuggled into the vertical frame
+    assert out[:, :12].mean() < 235 and out[:, -12:].mean() < 235
+
+
+def test_an_unframed_source_still_renders() -> None:
+    plain = np.full((1080, 1920, 3), 90, np.uint8)
+    r = RF.Reframe()
+    assert r.apply(plain).shape == (RF.H, RF.W, 3)

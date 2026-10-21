@@ -64,6 +64,39 @@
   denoise + cas sharpen. The biggest quality lever left is the user's:
   raws downloaded at the highest quality available (1080p+).
 
+## The house kit — every post carries all of it (enforced)
+
+Written after a campaign shipped four posts with a letterboxed picture, no
+kinetic open, no end card, no emphasis ink and no typing sound — every one of
+which this repo already had, and every one of which that campaign's own
+`campaign_rules.json` already asked for. Nothing caught it because nothing
+checked. It is checked now.
+
+A new renderer is not a licence to drop the kit. When a source is a shape the
+existing renderer does not handle, add the case; do not write a thinner
+renderer beside it.
+
+| Piece | Where it lives | What it does |
+|---|---|---|
+| 9:16 reframe | `reframe.py` | full-bleed vertical crop that follows the face, inside the source's own frame, clear of any burned-in bug |
+| kinetic open | `motion_kit.kinetic_type` | the first sentence lands word by word on a spring |
+| emphasis ink | `font_refresh` (`kind="key"`, 1.16×) | key words in the campaign's keyword colour |
+| punch | `motion_kit.perspective_cam` | a small camera punch on each key word |
+| ramp | per-frame scale | slow push across the whole clip |
+| whip | `motion_kit.whip_pan` | transition at a real cut, never a smeared hold |
+| end card | `font_refresh.endcard_image` / `endcard_layer` | the clip ends on the show card, not mid-expression |
+| bug | on-screen credit | show + episode visible on every frame |
+| keyboard | `keyboard_sfx.py` | recorded keys on the caption reveal grid |
+| whoosh | `assets/sfx/whoosh.wav` | a whoosh on each cut |
+| grade | `grade_fast.py` | the campaign grade, skin damped |
+| voice + bed | `voice_finish`, `sound_design` | voice chain, ducked bed, −16 LUFS |
+
+**Enforcement.** A render writes `features` into its manifest; `skill_gate.py`
+compares that against the campaign's `required_features` and fails the post if
+one is missing (or if the rules name something nobody implements).
+`tests/test_skill_gate.py` pins the contract, and it fails if the renderer
+stops reporting a feature.
+
 ## The course rules, now enforced (2026-10-20)
 
 The campaign supplied a clipping course ("Clipping 101"). Its editorial rules
