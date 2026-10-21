@@ -407,6 +407,13 @@ def render(*, campaign: str, start: float, end: float, out: Path,
     # the caption windows so there is silence before the first word and over
     # the end card. A whoosh lands on each whip, because a whip with no sound
     # is a smear rather than a cut.
+    # The bed is carved out of the voice band before anything else is added to
+    # it: music under 250 Hz and above 3.5 kHz is felt and not heard, and music
+    # *in* 250-3500 Hz is the one thing that can make the words compete. This
+    # is what keeps the voice 12 dB clear after the limiter, which squeezes the
+    # speech peaks harder than anything else in the mix.
+    track = _carve_voice_band(track, 48000)
+
     import keyboard_sfx as KB
     keys, key_log = KB.typing_track(cards, duration, body, slug)
     track, key_gain = KB.mix_into(track, keys)
@@ -480,6 +487,33 @@ def _add_whooshes(track: np.ndarray, cuts: list[float], rate: int = 48000,
         if j > i:
             out[i:j] += shot[: j - i, None]
     return out
+
+
+def _carve_voice_band(track: np.ndarray, rate: int, *, lo: float = 250.0,
+                      hi: float = 3500.0, depth_db: float = 12.0,
+                      edge: float = 120.0) -> np.ndarray:
+    """Take the music out of the range the words live in.
+
+    A straight FFT carve with raised-cosine edges: full level below `lo` and
+    above `hi`, `depth_db` down in between, so the bed keeps its weight and its
+    air and leaves the speech band to the voice.
+    """
+    mono = track.mean(axis=1) if track.ndim > 1 else track
+    spec = np.fft.rfft(mono)
+    freqs = np.fft.rfftfreq(len(mono), 1.0 / rate)
+    att = 10 ** (-abs(depth_db) / 20.0)
+    gain = np.ones_like(freqs)
+    ramp_in = (freqs >= lo - edge) & (freqs < lo + edge)
+    gain[ramp_in] = 1.0 - (1.0 - att) * (
+        (freqs[ramp_in] - (lo - edge)) / (2 * edge))
+    gain[(freqs >= lo + edge) & (freqs <= hi - edge)] = att
+    ramp_out = (freqs > hi - edge) & (freqs <= hi + edge)
+    gain[ramp_out] = att + (1.0 - att) * (
+        (freqs[ramp_out] - (hi - edge)) / (2 * edge))
+    carved = np.fft.irfft(spec * gain, n=len(mono)).astype(np.float32)
+    if track.ndim > 1:
+        return np.repeat(carved[:, None], track.shape[1], axis=1)
+    return carved
 
 
 def _speech_level(path: Path) -> float:
