@@ -66,7 +66,8 @@ def is_key(text: str) -> bool:
     return bool(EMPHASIS.match(t)) or bool(re.search(r"\d", t))
 
 
-def build_cards(words: list[dict], *, start: float, end: float) -> list[dict]:
+def build_cards(words: list[dict], *, start: float, end: float,
+                max_chars: int = CR.MAX_LINE_CHARS) -> list[dict]:
     """Cells -> short-line cards, timed from the words themselves."""
     cells = [{"w": w["text"], "at": float(w["start"]) - start,
               "end": float(w["end"]) - start,
@@ -75,7 +76,7 @@ def build_cards(words: list[dict], *, start: float, end: float) -> list[dict]:
     if not cells:
         return []
     cards: list[dict] = []
-    for card in CR.wrap_cells(cells):
+    for card in CR.wrap_cells(cells, max_chars):
         line_cells = [c for line in card["lines"] for c in line]
         cards.append({"lines": card["lines"], "zone": "low",
                       "show_from": float(line_cells[0]["at"]),
@@ -89,9 +90,7 @@ def draw_caption(canvas: np.ndarray, typer: FR.Typesetter, card: dict, t: float,
                  drift: float = 6.0, duration: float = 20.0) -> np.ndarray:
     ov = typer.overlay(card, t)
     shift = int(round(drift * math.sin(2 * math.pi * t / max(duration, 1.0))))
-    if shift:
-        ov = np.roll(ov, shift, axis=1)
-    return blit(canvas, ov)
+    return blit(canvas, ov, shift=shift)
 
 
 _BBOX: dict[int, tuple[int, int, int, int]] = {}
@@ -137,7 +136,8 @@ def brand_layer(style: dict, *, line1: str, line2: str, y: int = 1170) -> np.nda
     return np.asarray(img)
 
 
-def blit(canvas: np.ndarray, ov: np.ndarray, opacity: float = 1.0) -> np.ndarray:
+def blit(canvas: np.ndarray, ov: np.ndarray, opacity: float = 1.0,
+         shift: int = 0) -> np.ndarray:
     """Composite an RGBA layer onto the canvas, inside the layer's own box only.
 
     Blending a full 1080x1920 frame of float32 for a caption that occupies a
@@ -156,11 +156,21 @@ def blit(canvas: np.ndarray, ov: np.ndarray, opacity: float = 1.0) -> np.ndarray
         _BBOX[id(ov)] = box
         _KEEP[id(ov)] = ov
     y0, y1, x0, x1 = box
-    a = ov[y0:y1, x0:x1, 3:4].astype(np.float32) * (opacity / 255.0)
+    if shift:
+        # the drift is applied to the layer's own box, not to the frame: a
+        # rolled copy of a full 1080x1920 RGBA layer is 8 MB a frame, and
+        # caching its box (as this function does) made that permanent - which
+        # is what filled the box's memory the first time this ran long.
+        x0 = max(0, x0 - abs(shift))
+        x1 = min(canvas.shape[1], x1 + abs(shift))
+    layer = ov[y0:y1, x0:x1]
+    if shift:
+        layer = np.roll(layer, shift, axis=1)
+    a = layer[:, :, 3:4].astype(np.float32) * (opacity / 255.0)
     if not a.any():
         return canvas
     region = canvas[y0:y1, x0:x1].astype(np.float32)
-    out = region * (1.0 - a) + ov[y0:y1, x0:x1, :3][:, :, ::-1].astype(np.float32) * a
+    out = region * (1.0 - a) + layer[:, :, :3][:, :, ::-1].astype(np.float32) * a
     canvas[y0:y1, x0:x1] = out.astype(np.uint8)
     return canvas
 
@@ -184,7 +194,9 @@ def render(*, campaign: str, start: float, end: float, out: Path,
         raise SystemExit(f"blocked moment inside {start}-{end}s: {detail}")
 
     duration = end - start
-    cards = build_cards(words, start=start, end=end)
+    cards = build_cards(words, start=start, end=end,
+                        max_chars=int((rules.get("caption_rules") or {})
+                                      .get("max_chars_per_line", CR.MAX_LINE_CHARS)))
     typer = FR.Typesetter(style)
     grade_cfg = {**{"curve": 0.26, "saturation": 1.05, "warmth": 0.010,
                     "cool": 0.008, "vignette": 0.10, "lift": 0.008,
@@ -239,6 +251,13 @@ def render(*, campaign: str, start: float, end: float, out: Path,
         z = punch_at(t, punches)
         if z > 1.0005:
             canvas = MK.perspective_cam(canvas, zoom=min(1.08, z))
+        if i % 60 == 0:
+            # Every revealed card is a cached full-frame RGBA layer (8 MB). A
+            # 45-second cut is 1.4 GB of them if nothing lets go; the layers are
+            # cheap to rebuild, so they are dropped a couple of times a second.
+            typer._cache.clear()
+            _BBOX.clear()
+            _KEEP.clear()
         canvas = blit(canvas, brand)
         hooked = bool(hook_cells) and t < hook_until
         if hooked:

@@ -146,16 +146,37 @@ def check_captions(rows: list[dict], cards: list[dict], rules: dict) -> None:
 
 
 def check_fillers(rows: list[dict], words: list[str], rules: dict) -> None:
-    if not rules.get("captions", {}).get("forbid_fillers", True):
+    """Count the ums and likes.
+
+    Three settings, because the right answer depends on what the captions are.
+    `true` fails the render - correct when the captions are written to a script
+    and a filler is a mistake. `"warn"` reports the count and passes - correct
+    when the captions must be verbatim spoken words, where the filler cannot be
+    removed without misquoting the speaker. `false` turns it off.
+    """
+    mode = rules.get("captions", {}).get("forbid_fillers", True)
+    if mode is False or mode is None:
         add(rows, "fillers", WARN, "not enforced by this campaign")
         return
     found = CR.filler_words(words)
-    add(rows, "fillers", FAIL if found else PASS,
-        f"{len(found)} in the kept speech" + (": " + ", ".join(found) if found else ""))
+    detail = f"{len(found)} in the kept speech" + (": " + ", ".join(found) if found else "")
+    if mode == "warn":
+        add(rows, "fillers", WARN if found else PASS,
+            detail + (" - verbatim captions cannot drop them" if found else ""))
+        return
+    add(rows, "fillers", FAIL if found else PASS, detail)
 
 
 def check_duration(rows: list[dict], duration: float, rules: dict) -> None:
-    clip = rules.get("clip", {})
+    # The campaign files this gate was first written against nested the window
+    # under "clip"; the newer ones state it as "duration". Reading only the
+    # first meant every limit in those files was silently 0..infinite.
+    dur = rules.get("duration") or {}
+    clip = rules.get("clip") or {
+        "hard_min_seconds": dur.get("min"), "hard_max_seconds": dur.get("max"),
+        "preferred_min_seconds": dur.get("min"), "preferred_max_seconds": dur.get("max"),
+    }
+    clip = {k: v for k, v in clip.items() if v is not None}
     lo = float(clip.get("hard_min_seconds", 0))
     hi = float(clip.get("hard_max_seconds", 1e9))
     plo = float(clip.get("preferred_min_seconds", lo))
@@ -351,16 +372,27 @@ def check_picture(rows: list[dict], path: Path, cards: list[dict], rules: dict,
         add(rows, "caption_face", WARN, "YuNet model missing")
 
     # 3. nothing frozen
+    #
+    # The rule is "no held picture for 2-3 s", i.e. a duplicate or a stalled
+    # frame. It was measured as "mean frame-to-frame change above 4", which on
+    # a podcast close-up is a different test: the mouth moves, the whole frame
+    # barely does, and a perfectly live shot scores 2.5. Measured at the level
+    # of the footage and compared against a "these two frames are the same
+    # picture" threshold instead, the rule catches what it is for.
     frozen_max = float(conf.get("max_frozen_seconds", 3.0))
+    epsilon = float(conf.get("frozen_epsilon", 0.15))
+    top = int(conf.get("motion_region_bottom", band[0]))
     prev, longest, last_change = None, 0.0, 0.0
     for i in range(0, total, max(1, int(fps // 3))):
         cap.set(cv2.CAP_PROP_POS_FRAMES, i)
         ok, frame = cap.read()
         if not ok:
             break
-        small = cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (96, 170)).astype(np.float32)
+        picture = frame[:top] if top > 0 else frame
+        small = cv2.resize(cv2.cvtColor(picture, cv2.COLOR_BGR2GRAY),
+                           (108, 192)).astype(np.float32)
         t = i / fps
-        if prev is not None and float(np.mean(np.abs(small - prev))) > 4.0:
+        if prev is not None and float(np.mean(np.abs(small - prev))) > epsilon:
             longest = max(longest, t - last_change)
             last_change = t
         prev = small

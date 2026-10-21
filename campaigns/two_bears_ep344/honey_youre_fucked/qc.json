@@ -1,0 +1,76 @@
+{
+ "video": "/home/user/system/campaigns/two_bears_ep344/honey_youre_fucked/honey_youre_fucked.mp4",
+ "ok": true,
+ "checks": [
+  {
+   "name": "caption_lines",
+   "status": "pass",
+   "detail": "17 cards, 34 lines, median 12 chars, max 14"
+  },
+  {
+   "name": "fillers",
+   "status": "warn",
+   "detail": "2 in the kept speech: like,, like, - verbatim captions cannot drop them"
+  },
+  {
+   "name": "hook",
+   "status": "pass",
+   "detail": "first 2s: 'woman, she saw me on Instagram,'"
+  },
+  {
+   "name": "hook_strength",
+   "status": "warn",
+   "detail": "2.0/10 (floor 4) - first-person admission (+2.0) | 'woman, she saw me on Instagram,'"
+  },
+  {
+   "name": "duration",
+   "status": "pass",
+   "detail": "23.1s inside 20-45s"
+  },
+  {
+   "name": "loudness",
+   "status": "pass",
+   "detail": "-16.1 LUFS (window -17..-13)"
+  },
+  {
+   "name": "true_peak",
+   "status": "pass",
+   "detail": "-1.4 dBTP (ceiling -1.3)"
+  },
+  {
+   "name": "voice_over_bed",
+   "status": "pass",
+   "detail": "voice sits 25.1 dB over the bed (needs 12; speech 12.9 dB, bed -12.2 dB)"
+  },
+  {
+   "name": "black_bars",
+   "status": "pass",
+   "detail": "worst top bar 0 px at 0.0s (limit 12)"
+  },
+  {
+   "name": "caption_face",
+   "status": "pass",
+   "detail": "no face behind a caption"
+  },
+  {
+   "name": "frozen",
+   "status": "pass",
+   "detail": "longest unchanged stretch 0.3s (limit 3s)"
+  },
+  {
+   "name": "ending_tail",
+   "status": "pass",
+   "detail": "0.53s after the last spoken word"
+  },
+  {
+   "name": "topic_safety",
+   "status": "pass",
+   "detail": "no blocked moments"
+  },
+  {
+   "name": "title_safety",
+   "status": "pass",
+   "detail": "title/caption clean"
+  }
+ ]
+}

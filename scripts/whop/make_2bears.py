@@ -49,30 +49,43 @@ def load_words(path: Path) -> list[dict]:
     return json.loads(path.read_text())["words"]
 
 
-def snap(words: list[dict], start: float, end: float, *, sentence_lead: float = 4.0) -> tuple[float, float]:
-    """Grow [start, end] out to whole sentences.
+def _terminal(word: dict) -> bool:
+    return str(word.get("text", "")).rstrip('"\')').endswith((".", "?", "!"))
 
-    Backwards to the nearest sentence boundary within `sentence_lead` seconds,
-    forwards to the first one after `end`. Bounded so a one-line pick cannot
-    swallow half a minute of unrelated setup.
+
+def snap(words: list[dict], start: float, end: float, *,
+         sentence_lead: float = 4.0,
+         max_len: float | None = None) -> tuple[float, float]:
+    """Grow [start, end] out to whole sentences, but only where it has to.
+
+    A cut is already clean if it opens on the first word after a full stop and
+    closes on the word that carries one - in that case nothing moves. Stretching
+    a cut that was already on a boundary is how a 43-second pick becomes a
+    47-second one and falls outside the campaign's window for no reason.
     """
     before = [w for w in words if float(w["end"]) <= start + 0.05]
     s = start
-    for w in reversed(before):
-        if start - float(w["start"]) > sentence_lead:
-            break
-        if str(w["text"]).rstrip('"\')').endswith((".", "?", "!")):
-            s = float(w["end"])
-            break
+    if before and not _terminal(before[-1]):
+        for w in reversed(before):
+            if start - float(w["start"]) > sentence_lead:
+                break
+            if _terminal(w):
+                s = float(w["end"])
+                break
 
-    after = [w for w in words if float(w["start"]) >= end - 0.05]
+    up_to = [w for w in words if float(w["end"]) <= end + 0.05]
     e = end
-    for w in after:
-        if float(w["end"]) - end > 4.0:
-            break
-        if str(w["text"]).rstrip('"\')').endswith((".", "?", "!")):
-            e = float(w["end"])
-            break
+    if up_to and not _terminal(up_to[-1]):
+        for w in words:
+            if float(w["start"]) < end - 0.05:
+                continue
+            if float(w["end"]) - end > 4.0:
+                break
+            if _terminal(w):
+                if max_len is not None and float(w["end"]) - start > max_len:
+                    break
+                e = float(w["end"])
+                break
     return round(s, 2), round(e, 2)
 
 
@@ -138,8 +151,9 @@ def main() -> int:
     for i, pick in enumerate(picks, 1):
         if args.only and i != args.only:
             continue
-        if not args.no_snap:
-            s, e = snap(words, float(pick["start"]), float(pick["end"]))
+        if not args.no_snap and pick.get("snap", True):
+            s, e = snap(words, float(pick["start"]), float(pick["end"]),
+                        max_len=float((rules.get("duration") or {}).get("max", 1e9)))
             if (s, e) != (pick["start"], pick["end"]):
                 pick["start"], pick["end"] = s, e
                 dirty = True

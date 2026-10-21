@@ -1,0 +1,50 @@
+# 2 Bears 1 Cave — Ep. 344
+
+Four posts, cut from the 66-minute episode. Every one of them passed the
+campaign gate (`topic_safety` and `title_safety` PASS); the rows that still read
+WARN are listed per post and are judgement calls, not defects.
+
+| Post | Video | Length | What it is |
+|---|---|---|---|
+| [What did you do?](what_did_you_do/POST.md) | [`what_did_you_do.mp4`](what_did_you_do/what_did_you_do.mp4) | 44.9 s | The plane seatmate who finds the hit piece about him and asks what he did |
+| [I took some awesome pictures of me](awesome_pictures_of_me/POST.md) | [`awesome_pictures_of_me.mp4`](awesome_pictures_of_me/awesome_pictures_of_me.mp4) | 44.9 s | 54 years old, alone in the gym, caught by the maintenance guy |
+| [Are you with this evil-minded peasant?](evil_minded_peasant/POST.md) | [`evil_minded_peasant.mp4`](evil_minded_peasant/evil_minded_peasant.mp4) | 40.6 s | A Paris perfume shop reverses every word the second it recognises him |
+| [Honey, you're fucked](honey_youre_fucked/POST.md) | [`honey_youre_fucked.mp4`](honey_youre_fucked/honey_youre_fucked.mp4) | 23.1 s | The one-line verdict on caring what people say |
+
+Every file: 1080×1920, 29.97 fps, H.264 + AAC 192k, −16 LUFS, −1.3 dBTP.
+
+## Why only four
+
+The episode is mostly not clippable under this brief. In order, the first
+nineteen minutes are the Shane Gillis / SNL monologue controversy (a named
+person's conduct, and the conversation repeatedly quotes a slur in order to
+discuss it); 18–22 minutes are the live-streamed execution story (violence,
+politics, a disabled man as the punchline); 27–32 minutes are Trump, the press
+secretary and George W. Bush (politics as a standalone clip, which the brief
+bans); and 62 minutes in there is a sexual comparison that the sexual-content
+rule blocks. Those windows are named here so it is obvious they were seen and
+rejected, not missed.
+
+What is left is what somebody says about himself: the plane, the gym, the
+perfume shop, the party. All four are self-contained, need no earlier context,
+and put the button on a line he does not write for himself.
+
+## Payout conditions
+
+Every post carries **2 Bears 1 Cave Ep. 344** and **#2BearsWeekly** in the copy
+written in its `POST.md`. The episode link goes in the **bio**, once, at account
+level: https://youtu.be/3pDAyRLPO58
+
+## Reproduce
+
+    .venv/bin/python scripts/whop/make_2bears.py --picks work/two_bears/picks.json
+
+## What is deliberately not done
+
+- The show's own burned-in subtitles sit in the bottom ~180 px of the panel, so
+  the panel is cropped 12% at the bottom before it is placed. Nothing else is
+  cropped; nobody is cut out of frame.
+- Captions are the spoken words only. Fillers are reported by the gate and kept,
+  because verbatim is a harder rule than tidy.
+- The grade moves the picture 0.9 code values from the reference implementation
+  at 3.4× the speed, with skin damped rather than tinted.
