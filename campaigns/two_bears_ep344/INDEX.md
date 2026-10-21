@@ -29,6 +29,13 @@ What is left is what somebody says about himself: the plane, the gym, the
 perfume shop, the party. All four are self-contained, need no earlier context,
 and put the button on a line he does not write for himself.
 
+## Posting
+
+[`POST-NOW.md`](POST-NOW.md) has the download links, the copy to paste, the
+posting order and the bio check. There is no post URL to give back from this
+session: TikTok, Instagram, YouTube and X are not available as connectors here,
+so nothing was published - the files and the copy are ready to upload.
+
 ## Payout conditions
 
 Every post carries **2 Bears 1 Cave Ep. 344** and **#2BearsWeekly** in the copy
