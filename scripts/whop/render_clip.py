@@ -397,8 +397,10 @@ def render(*, campaign: str, start: float, end: float, out: Path,
     # voice chain and before the final loudness settle
     intervals = [(float(w["start"]) - start, float(w["end"]) - start) for w in words]
     voice_rms = _speech_level(mixed)
+    under = (rules.get("bed") or {})
+    under = float(under.get("under_voice_db", 19.5)) if isinstance(under, dict) else 19.5
     track = SD.build_track(duration, intervals, [t for t, _ in punches], 48000,
-                           target_rms=SD.bed_target(voice_rms))
+                           target_rms=SD.bed_target(voice_rms, under_db=under))
 
     # Keyboard typing on the caption reveal grid - the house sound from the
     # street campaign: real recorded keys, one short burst per word, gated to
@@ -417,6 +419,7 @@ def render(*, campaign: str, start: float, end: float, out: Path,
         "campaign": campaign, "title": None,
         "duration": round(duration, 3), "endcard": round(body, 3),
         "emphasis": list(emphasis or []),
+        "cuts": [round(float(c), 2) for c in rf.cuts],
         "features": _features(cards, punches, kin_words, key_log, rf.cuts),
         "cards": [{"show_from": round(c["show_from"], 3),
                    "show_until": round(c["show_until"], 3),

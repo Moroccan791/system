@@ -302,8 +302,34 @@ def bar_mask(gray: np.ndarray, *, max_mean: float = 10.0,
     return (gray.mean(axis=1) < max_mean) & (gray.std(axis=1) < max_std)
 
 
+WHIP = 0.18          # a whip lives 0.18 s; see render_clip.whip_pan
+
+
+def _sample_time(show_from: float, show_until: float, cuts: list[float]) -> float:
+    """When to look at a caption card for a face behind it.
+
+    The midpoint is the right frame unless it lands inside a whip: a whip is a
+    designed smear, and a face detector on a smeared frame reports boxes that
+    are not faces - which is how post 2 failed this check on a frame where the
+    caption sat over a shirt. So the sample steps off the transition and still
+    lands on real footage inside the same card.
+    """
+    mid = (show_from + show_until) / 2
+    if not cuts:
+        return mid
+    for off in (0.0, 0.28, -0.28, 0.45, -0.45):
+        t = mid + off
+        if not (show_from + 0.02 <= t <= show_until - 0.02):
+            continue
+        if all(abs(t - c) > WHIP + 0.06 for c in cuts):
+            return t
+    return mid
+
+
 def check_picture(rows: list[dict], path: Path, cards: list[dict], rules: dict,
-                  manifest_endcard: float | None = None) -> None:
+                  manifest_endcard: float | None = None,
+                  cuts: list[float] | None = None) -> None:
+    cuts = list(cuts or [])
     conf = rules.get("picture", {})
     band = conf.get("caption_band", [1480, 1805])
     max_bar = int(conf.get("max_top_bar_rows", 12))
@@ -345,7 +371,8 @@ def check_picture(rows: list[dict], path: Path, cards: list[dict], rules: dict,
             h, w = frame.shape[:2]
             det = cv2.FaceDetectorYN.create(str(model), "", (w, h), 0.5, 0.3, 50)
             for card in cards:
-                t = (float(card["show_from"]) + float(card["show_until"])) / 2
+                t = _sample_time(float(card["show_from"]),
+                                 float(card["show_until"]), cuts)
                 cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
                 ok, frame = cap.read()
                 if not ok:
@@ -429,7 +456,8 @@ def gate(video: Path, manifest: dict, rules: dict) -> dict:
     check_hook_strength(rows, words, rules)
     check_duration(rows, duration, rules)
     check_audio(rows, video, audio, rules)
-    check_picture(rows, video, cards, rules, manifest.get("endcard"))
+    check_picture(rows, video, cards, rules, manifest.get("endcard"),
+                  manifest.get("cuts"))
     check_ending(rows, manifest, duration, rules)
     check_topic(rows, [{"text": w.get("w") or w.get("text"), "start": w.get("at", 0),
                         "end": w.get("end", 0)} for w in words],

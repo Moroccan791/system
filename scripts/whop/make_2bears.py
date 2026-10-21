@@ -36,7 +36,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "whop"))
 
 import cv2                   # noqa: E402
 import cover as COV          # noqa: E402
-import qc_gate as QG         # noqa: E402
+import skill_gate as QG      # noqa: E402
 import render_clip as RC     # noqa: E402
 import topic_guard as TG     # noqa: E402
 
@@ -152,9 +152,12 @@ def main() -> int:
     for i, pick in enumerate(picks, 1):
         if args.only and i != args.only:
             continue
+        # The card is drawn INSIDE the picked window (the last second of
+        # picture, with the audio still running), so the cut's length and the
+        # campaign's window are unaffected by adding it.
+        hi = float((rules.get("duration") or {}).get("max", 1e9))
         if not args.no_snap and pick.get("snap", True):
-            s, e = snap(words, float(pick["start"]), float(pick["end"]),
-                        max_len=float((rules.get("duration") or {}).get("max", 1e9)))
+            s, e = snap(words, float(pick["start"]), float(pick["end"]), max_len=hi)
             if (s, e) != (pick["start"], pick["end"]):
                 pick["start"], pick["end"] = s, e
                 dirty = True
@@ -174,7 +177,9 @@ def main() -> int:
               f"({pick['end'] - pick['start']:.1f}s)", flush=True)
         info = RC.render(campaign=CAMPAIGN, start=pick["start"], end=pick["end"],
                          out=video, transcript=Path(args.transcript),
-                         source=Path(args.source))
+                         source=Path(args.source),
+                         emphasis=pick.get("emphasis"),
+                         endcard=float((rules.get("ending") or {}).get("card_seconds", 1.4)))
 
         # A cover with a caption across it is a screenshot of subtitles. The
         # card times are known, so scan the widest gap between them; on a
