@@ -1,0 +1,336 @@
+"""Compose the edit — frames, grade, type, flashes, sound.
+
+Frame pipeline per cut:
+    decode source segment -> scale/crop 1920x1080 -> per-act grade
+      -> type card composite -> optional flash -> pipe to x264
+
+Everything is deterministic from the plan json, so a render can be reproduced
+and a single frame can be re-rendered for inspection without redoing the edit.
+
+Sound is the track, shaped by act, written as one pass so the mux cannot drift
+against picture.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+
+from .grid import Grid, load_audio, SR
+from .plan import Plan, Cut
+from .typecards import Card, composite, render_card, scrim
+
+OUT_W, OUT_H, OUT_FPS = 1920, 1080, 30
+
+# how loud the track sits in each act, before the final normalise
+ACT_GAIN = {"build": 0.62, "drop": 1.0, "out": 0.78}
+
+
+def ffmpeg() -> str:
+    import imageio_ffmpeg
+
+    return imageio_ffmpeg.get_ffmpeg_exe()
+
+
+# --------------------------------------------------------------------------
+# grade
+# --------------------------------------------------------------------------
+def grade(frame: np.ndarray, g: dict) -> np.ndarray:
+    """Contrast, saturation, gamma, brightness and a shadow tint, in that order.
+
+    Done in float32 on the whole frame: 1080p is 6 MB per buffer, so a handful of
+    vectorised ops costs a few milliseconds and keeps the look consistent between
+    the test render and the final.
+    """
+    f = frame.astype(np.float32)
+    f = (f - 128.0) * g.get("contrast", 1.0) + 128.0
+    f = f * g.get("brightness", 0.0) * 255.0 + f
+    if g.get("gamma", 1.0) != 1.0:
+        f = 255.0 * np.clip(f / 255.0, 0, 1) ** g["gamma"]
+    sat = g.get("saturation", 1.0)
+    if sat != 1.0:
+        luma = (f[..., 0] * 0.2126 + f[..., 1] * 0.7152 + f[..., 2] * 0.0722)[..., None]
+        f = luma + (f - luma) * sat
+    tint = g.get("shadow_tint")
+    if tint:
+        # tint only the shadows, so highlights stay clean
+        w = np.clip(1.0 - (f.mean(axis=2, keepdims=True) / 160.0), 0.0, 1.0)
+        f = f * (1.0 + (np.array(tint, dtype=np.float32) - 1.0) * w * 0.9)
+    return np.clip(f, 0, 255).astype(np.uint8)
+
+
+# --------------------------------------------------------------------------
+# decode
+# --------------------------------------------------------------------------
+_ASPECT_CACHE: dict[str, float] = {}
+
+
+def _source_aspect(src: str) -> float:
+    if src not in _ASPECT_CACHE:
+        from .shots import probe
+
+        m = probe(src)
+        _ASPECT_CACHE[src] = (m["width"] / m["height"]) if m["height"] else 16 / 9
+    return _ASPECT_CACHE[src]
+
+
+def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.ndarray]:
+    """Frames for one cut, already at output size and speed.
+
+    Two layouts, chosen by how far the source is from 16:9:
+
+    COVER  the source is already close to the frame. Scale to fill and crop the
+           overflow — what an editor does with a normal shot.
+    FIT    the source is a vertical insert or a 4:3 archive clip. Covering it
+           would crop to a nostril, so the shot is placed in the middle and the
+           space behind it is filled with an enlarged, blurred copy of itself.
+           This is the standard broadcast answer and it reads as deliberate;
+           black bars read as a mistake.
+    """
+    aspect = _source_aspect(src)
+    target = OUT_W / OUT_H
+    mismatch = abs(math.log(max(aspect, 1e-3) / target))
+
+    timing = ""
+    if abs(speed - 1.0) > 1e-3:
+        timing = f",setpts={speed:.4f}*PTS"
+
+    if mismatch < 0.30:
+        vf = (f"scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
+              f"flags=lanczos,crop={OUT_W}:{OUT_H},setsar=1")
+        graph = ["-vf", vf + timing]
+    else:
+        fc = (
+            f"[0:v]scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
+            f"flags=lanczos,crop={OUT_W}:{OUT_H},boxblur=32:2,"
+            f"eq=brightness=-0.12:saturation=0.7[bg];"
+            f"[0:v]scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=decrease:"
+            f"flags=lanczos,setsar=1[fg];"
+            f"[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1{timing}[v]"
+        )
+        graph = ["-filter_complex", fc, "-map", "[v]"]
+
+    cmd = [ffmpeg(), "-nostdin", "-v", "error",
+           "-ss", f"{max(0.0, t_in):.4f}", "-i", src,
+           "-t", f"{max(0.04, dur):.4f}"] + graph + [
+           "-r", str(OUT_FPS), "-pix_fmt", "rgb24", "-f", "rawvideo", "-"]
+    raw = subprocess.run(cmd, capture_output=True, check=False).stdout
+    fb = OUT_W * OUT_H * 3
+    n = len(raw) // fb
+    return [np.frombuffer(raw[i * fb:(i + 1) * fb], dtype=np.uint8)
+            .reshape(OUT_H, OUT_W, 3).copy() for i in range(n)]
+
+
+# --------------------------------------------------------------------------
+# script (the words on screen)
+# --------------------------------------------------------------------------
+@dataclass
+class ScriptCard:
+    beat: float
+    text: str
+    accent: str = ""
+
+    @property
+    def key(self) -> str:
+        return f"{self.beat:g}:{self.text}"
+
+
+def load_script(path: str | Path | None) -> list[ScriptCard]:
+    if not path or not Path(path).exists():
+        return []
+    data = json.loads(Path(path).read_text())
+    if isinstance(data, dict):
+        data = data.get("cards", [])
+    cards = []
+    for d in data:
+        if isinstance(d, str):
+            cards.append(ScriptCard(0.0, d))
+        else:
+            cards.append(ScriptCard(float(d.get("beat", 0)),
+                                    str(d.get("text", "")),
+                                    str(d.get("accent", ""))))
+    cards.sort(key=lambda c: c.beat)
+    return cards
+
+
+# --------------------------------------------------------------------------
+# render
+# --------------------------------------------------------------------------
+def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
+           script_path: str | Path | None = None, cards_until: float | None = None,
+           progress=print, preset: str = "medium", crf: int = 18) -> Path:
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    grid = plan.grid
+    cards = load_script(script_path)
+
+    # pre-render every card once
+    rendered: list[tuple[float, Card, float]] = []
+    for c in cards:
+        t = grid.t(c.beat) - grid.t(plan.cuts[0].start_beat)
+        if t < -0.001:
+            continue
+        # hold: capped by the act's own cut length, so a card cannot outlive the
+        # shot it sits on. In the drop a card lives about one cut.
+        cut = next((k for k in plan.cuts
+                    if k.out_start - 1e-6 <= t < k.out_end), None)
+        hold = 2.4
+        if cut is not None:
+            hold = min(0.80 if cut.act == "drop" else 2.4, max(cut.dur * 1.6, 0.30))
+        rendered.append((t, render_card(c.text, OUT_W, OUT_H,
+                                        accent=c.accent or None), hold))
+    rendered.sort(key=lambda r: r[0])
+
+    total_frames = int(round(plan.duration * OUT_FPS))
+    enc = subprocess.Popen(
+        [ffmpeg(), "-nostdin", "-v", "error", "-y",
+         "-f", "rawvideo", "-pix_fmt", "rgb24",
+         "-s", f"{OUT_W}x{OUT_H}", "-r", str(OUT_FPS), "-i", "-",
+         "-an", "-c:v", "libx264", "-preset", preset, "-crf", str(crf),
+         "-pix_fmt", "yuv420p", str(out_path.with_suffix(".video.mp4"))],
+        stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    written = 0
+    for ci, cut in enumerate(plan.cuts):
+        g = plan.grade_for(cut.act)
+        frames = decode_segment(source_path, cut.src_in, cut.src_dur, cut.speed)
+        want = max(1, int(round(cut.dur * OUT_FPS)))
+        # a cut can come up a frame short after a seek; hold the last frame
+        while len(frames) < want:
+            frames.append(frames[-1] if frames else
+                          np.zeros((OUT_H, OUT_W, 3), dtype=np.uint8))
+        for fi in range(want):
+            t = cut.out_start + fi / OUT_FPS
+            frame = grade(frames[fi], g)
+
+            # flash: the first two frames of a marked cut
+            if cut.flash and fi < 2:
+                k = 0.85 if fi == 0 else 0.55
+                frame = (frame.astype(np.float32) * (1 - k) + 255.0 * k).astype(np.uint8)
+
+            # type
+            for ti, (ct, card, hold) in enumerate(rendered):
+                nxt = rendered[ti + 1][0] if ti + 1 < len(rendered) else 1e9
+                if ct - 1e-6 <= t < min(nxt, ct + hold) - 1e-6:
+                    if cards_until is not None and t > cards_until:
+                        break
+                    age = t - ct
+                    # scrim only when the plate behind the type is bright
+                    reg = frame[max(0, card.y):card.y + card.rgba.shape[0],
+                                max(0, card.x):card.x + card.rgba.shape[1]]
+                    if reg.size:
+                        plate = float(reg.mean())
+                        amt = max(0.0, min(0.34, (plate - 90.0) / 110.0 * 0.34))
+                        if amt > 0.01:
+                            scrim(frame, card, amount=amt)
+                    if age < 2.0 / OUT_FPS:
+                        composite(frame, card.scaled(1.05), alpha=0.7)
+                    else:
+                        composite(frame, card, alpha=1.0)
+                    break
+
+            enc.stdin.write(frame.tobytes())
+            written += 1
+            if written % 60 == 0:
+                progress(f"  frame {written}/{total_frames}")
+
+    enc.stdin.close()
+    err = enc.stderr.read().decode()[-800:]
+    enc.wait()
+    if err.strip():
+        progress(err)
+
+    # ---- sound: track shaped by act, cut to the picture's length ----
+    audio = _sound(plan, track_path, out_path.with_suffix(".audio.wav"))
+
+    final = out_path
+    subprocess.run(
+        [ffmpeg(), "-nostdin", "-v", "error", "-y",
+         "-i", str(out_path.with_suffix(".video.mp4")),
+         "-i", str(audio),
+         "-map", "0:v:0", "-map", "1:a:0",
+         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
+         "-shortest", str(final)], check=True)
+    for p in (out_path.with_suffix(".video.mp4"), audio):
+        try:
+            p.unlink()
+        except OSError:
+            pass
+    return final
+
+
+def _sound(plan: Plan, track_path: str, out_wav: Path) -> Path:
+    """Track from plan.start, gain-shaped per act, loudness-normalised."""
+    x = load_audio(track_path)
+    a = max(0, int(round(plan.start * SR)))
+    b = min(len(x), a + int(plan.duration * SR))
+    seg = x[a:b].astype(np.float32)
+
+    gain = np.ones(len(seg), dtype=np.float32)
+    for cut in plan.cuts:
+        i0 = int(cut.out_start * SR)
+        i1 = min(len(seg), int(cut.out_end * SR))
+        if i1 <= i0:
+            continue
+        gain[i0:i1] = ACT_GAIN.get(cut.act, 0.8)
+    # smooth the gain steps over 120ms so an act change is a swell, not a click
+    k = int(0.12 * SR)
+    if k > 1 and len(gain) > k:
+        pad = np.pad(gain, (k // 2, k // 2), mode="edge")
+        gain = np.convolve(pad, np.ones(k) / k, mode="valid")[: len(gain)]
+    seg = seg * gain
+
+    import wave
+    pcm = (np.clip(seg, -1, 1) * 32767).astype("<i2")
+    with wave.open(str(out_wav), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes(pcm.tobytes())
+
+    # normalise to the campaign loudness target so platform gain is predictable
+    norm = out_wav.with_suffix(".norm.wav")
+    subprocess.run(
+        [ffmpeg(), "-nostdin", "-v", "error", "-y", "-i", str(out_wav),
+         "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-ar", "48000", str(norm)],
+        check=True)
+    return norm
+
+
+def main(argv=None):
+    import argparse
+
+    from .grid import analyse as analyse_track
+    from .plan import build_plan, summarise
+    from .shots import analyse as analyse_source
+
+    ap = argparse.ArgumentParser(description="render an overedit from a plan")
+    ap.add_argument("--plan", default=None, help="plan json (else build one)")
+    ap.add_argument("--track", required=False)
+    ap.add_argument("--source", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--script", default=None)
+    ap.add_argument("--start", type=float, default=0.0)
+    ap.add_argument("--end", type=float, default=None)
+    ap.add_argument("--seed", type=int, default=0)
+    a = ap.parse_args(argv)
+
+    if a.plan:
+        grid = analyse_track(a.track) if a.track else None
+        raise SystemExit("--plan loading is done by produce.py; use that")
+    grid = analyse_track(a.track, a.end)
+    src = analyse_source(a.source, a.end)
+    plan = build_plan(grid, src, a.start, a.end, a.seed)
+    print(summarise(plan))
+    out = render(plan, a.source, a.track, a.out, a.script)
+    print(f"wrote {out}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

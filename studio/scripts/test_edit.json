@@ -1,0 +1,14 @@
+{"cards": [
+  {"beat": 0,  "text": "They said",      "accent": "SAID"},
+  {"beat": 3,  "text": "wait",           "accent": "WAIT"},
+  {"beat": 6,  "text": "for the",        "accent": ""},
+  {"beat": 8,  "text": "right",          "accent": "RIGHT"},
+  {"beat": 10, "text": "moment",         "accent": "MOMENT"},
+  {"beat": 13, "text": "nobody",         "accent": "NOBODY"},
+  {"beat": 15, "text": "came",           "accent": "CAME"},
+  {"beat": 17, "text": "so i",           "accent": ""},
+  {"beat": 18, "text": "made one",       "accent": "MADE"},
+  {"beat": 21, "text": "mine",           "accent": "MINE"},
+  {"beat": 24, "text": "hold",           "accent": "HOLD"},
+  {"beat": 28, "text": "still here",     "accent": "STILL"}
+]}
