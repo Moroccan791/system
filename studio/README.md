@@ -102,6 +102,26 @@ python -m studio.produce \
 
 Beats are grid positions, so changing the track moves the words with it.
 
+## The real track and the real footage
+
+`footage/beauty_and_a_beat.mp3` (68.6 s) and `footage/spiderman_scenepack.mp4`
+(157 s, 1280×534, Twixtor, graded) are the reference's own ingredients.
+
+Measured: **122.8 BPM, first beat at 0.368 s**, 292 onsets. The sections are
+build 0–27.75, build 27.75–41.25, **drop at 41.25**, chorus 48.75–64.24.
+
+Two things that source forced:
+
+* **Tempo.** The envelope comb locked onto **81.9 BPM** — half time — because a
+  half-time grid still lands on most of the hits. That is a wrong answer that
+  sounds almost right, which is the worst kind. Tempo now comes from an
+  onset-comb followed by a musical-range check that resolves half/double, and
+  fine phase comes from the kick band because onsets cannot tell a beat from its
+  off-beat.
+* **Motion.** Every shot in a Twixtor pack measures 0.002–0.019 motion, because
+  it is all slow motion. Absolute thresholds made the choice meaningless, so
+  shot choice now uses each shot's **percentile rank within its own source**.
+
 ## What is not built yet
 
 Named honestly, because each is a real gap against the reference:

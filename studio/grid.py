@@ -110,20 +110,85 @@ def onset_times(env: np.ndarray, thresh_q: float = 0.90, min_gap: float = 0.11):
     return out
 
 
-def estimate_tempo(env: np.ndarray, lo: float = 70.0, hi: float = 190.0,
-                   phase_env: np.ndarray | None = None):
-    """Find the tempo whose grid actually has hits on it, then refine it.
+def estimate_tempo(env: np.ndarray, lo: float = 55.0, hi: float = 190.0,
+                   phase_env: np.ndarray | None = None,
+                   onsets: list[float] | None = None):
+    """Find the musical pulse.
 
-    Two stages, because a coarse comb search lands within ~0.2% of the tempo and
-    0.2% is 60ms of drift over a 31-second edit — enough to see. Stage two does a
-    joint fine search over tempo and phase against the low band, where the kick
-    attack is sharp.
+    Envelope-comb is not enough on a slowed track: it locked onto half time
+    (81.9 BPM on a 122.75 BPM song) because a half-time grid also lands on most
+    of the hits. Onsets are the better evidence, so when they are available this
+    scores a candidate grid by how close it passes to the REAL onsets, then
+    resolves the half/double ambiguity by musical range, not by score alone.
+
+    Returns (bpm, phase_seconds, score).
     """
+    fps = SR / HOP
+    penv = phase_env if (phase_env is not None and phase_env.max() > 0) else env
+    if not onsets or len(onsets) < 8:
+        return _estimate_tempo_envelope(env, lo, hi, penv)
+
+    on = np.asarray(sorted(onsets), dtype=np.float64)
+    sigma = 0.035
+
+    def grid_score(bpm: float, phase: float, div: int = 2) -> float:
+        period = 60.0 / bpm / div
+        n = int((on[-1] - phase) / period)
+        if n < 8:
+            return -1.0
+        g = phase + np.arange(n + 1) * period
+        d = np.abs(g[:, None] - on[None, :]).min(axis=1)
+        return float(np.mean(np.exp(-(d ** 2) / (2 * sigma ** 2))))
+
+    cands = []
+    for bpm in np.arange(lo, hi, 0.25):
+        period = 60.0 / bpm / 2
+        best = max((grid_score(bpm, ph), float(ph))
+                   for ph in np.arange(0.0, period, 0.01))
+        cands.append((best[0], float(bpm), best[1]))
+    cands.sort(key=lambda c: -c[0])
+    score, bpm, phase = cands[0]
+
+    # Resolve half/double: a beat slower than ~0.7s or faster than ~0.35s is a
+    # subdivision or a bar, not the pulse an editor cuts on.
+    def musical(b: float) -> bool:
+        return 80.0 <= b <= 155.0
+
+    if not musical(bpm):
+        for s2, b2, p2 in cands[:60]:
+            if musical(b2) and abs(b2 / bpm - round(b2 / bpm)) < 0.01:
+                if s2 > score * 0.80:
+                    score, bpm, phase = s2, b2, p2
+                    break
+
+    # Fine phase against the KICK BAND, not against onsets.
+    # Onsets cannot tell a beat from its off-beat: on a track with 8th-note hats
+    # both grids pass through real onsets and score the same. The low band
+    # breaks the tie because the kick is on the beat and the hat is not.
+    period = 60.0 / bpm
+    fps = SR / HOP
+    best_ph, best_sc = phase, -1.0
+    for ph in np.arange(phase - period / 2, phase + period / 2, 0.001):
+        ph = ph % period
+        n = int((len(penv) / fps - ph) / period)
+        if n < 4:
+            continue
+        idx = np.round((ph + np.arange(n) * period) * fps).astype(int)
+        idx = idx[(idx >= 0) & (idx < len(penv))]
+        if len(idx) < 4:
+            continue
+        sc = float(penv[idx].mean())
+        if sc > best_sc:
+            best_ph, best_sc = ph, sc
+    return float(bpm), float(best_ph), float(score)
+
+
+def _estimate_tempo_envelope(env: np.ndarray, lo: float, hi: float,
+                             penv: np.ndarray):
+    """Fallback when no onsets could be picked: envelope comb + refinement."""
     fps = SR / HOP
     if env.max() <= 0 or len(env) < int(fps * 2):
         return 120.0, 0.0, 0.0
-    penv = phase_env if (phase_env is not None and phase_env.max() > 0) else env
-
     best = (0.0, 120.0, 0.0)
     for period_frames in np.arange(fps * 60 / hi, fps * 60 / lo, 0.25):
         n_beats = int((len(env) - 1) / period_frames)
@@ -135,41 +200,11 @@ def estimate_tempo(env: np.ndarray, lo: float = 70.0, hi: float = 190.0,
             pos = pos[pos < len(env)]
             if len(pos) < 4:
                 continue
-            score = float(env[pos].mean())
-            score *= min(1.0, len(pos) / 16.0) ** 0.25
+            score = float(env[pos].mean()) * min(1.0, len(pos) / 16.0) ** 0.25
             if score > best[0]:
                 best = (score, 60.0 * fps / period_frames, float(phase))
-    _score, bpm0, _ph = best
-
-    # --- stage two: joint fine search around the coarse winner -----------------
-    def score_grid(bpm: float, phase_s: float) -> float:
-        period = 60.0 / bpm * fps
-        phase_f = phase_s * fps
-        n_beats = int((len(penv) - phase_f) / period)
-        if n_beats < 6:
-            return -1.0
-        pos = np.round(phase_f + np.arange(n_beats) * period).astype(int)
-        pos = pos[(pos >= 0) & (pos < len(penv))]
-        if len(pos) < 6:
-            return -1.0
-        # weight late beats equally: a grid that drifts scores worse here
-        return float(penv[pos].mean())
-
-    best_bpm, best_phase, best_s = bpm0, 0.0, -1.0
-    for bpm in np.arange(bpm0 * 0.985, bpm0 * 1.015, 0.01):
-        period = 60.0 / bpm * fps
-        for phase_f in np.arange(0.0, period, 1.0):
-            sc = score_grid(bpm, phase_f / fps)
-            if sc > best_s:
-                best_s, best_bpm, best_phase = sc, float(bpm), float(phase_f / fps)
-
-    # express the phase as the first beat inside the track
-    period_s = 60.0 / best_bpm
-    while best_phase >= period_s:
-        best_phase -= period_s
-    while best_phase < 0:
-        best_phase += period_s
-    return float(best_bpm), float(best_phase), float(best_s)
+    _s, bpm0, _p = best
+    return float(bpm0), float(_p / fps), float(_s)
 
 
 @dataclass
@@ -336,7 +371,8 @@ def analyse(track: str | Path, max_seconds: float | None = None) -> Grid:
     duration = len(x) / SR
     env = onset_envelope(x)
     penv = low_band_envelope(x)
-    bpm, phase, _score = estimate_tempo(env, phase_env=penv)
+    onsets = onset_times(env)
+    bpm, phase, _score = estimate_tempo(env, phase_env=penv, onsets=onsets)
     phase = phase - _attack_lag(penv) + (WIN / 2) / SR
     period_s = 60.0 / bpm
     while phase < 0:

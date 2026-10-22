@@ -93,14 +93,16 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
            black bars read as a mistake.
     """
     aspect = _source_aspect(src)
-    target = OUT_W / OUT_H
-    mismatch = abs(math.log(max(aspect, 1e-3) / target))
+    # WIDER than the frame (cinema 2.4:1, 2:1) is cropped to fill — that is what
+    # an editor does with film footage. NARROWER (vertical inserts, 4:3 archive)
+    # is fitted over a blurred fill, because cropping those eats the subject.
+    cover = aspect >= 1.55
 
     timing = ""
     if abs(speed - 1.0) > 1e-3:
         timing = f",setpts={speed:.4f}*PTS"
 
-    if mismatch < 0.30:
+    if cover:
         vf = (f"scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
               f"flags=lanczos,crop={OUT_W}:{OUT_H},setsar=1")
         graph = ["-vf", vf + timing]

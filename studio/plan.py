@@ -149,7 +149,8 @@ def _act_bounds(grid: Grid, start: float, end: float) -> dict[str, tuple[float, 
             best, best_jump = secs[i].start, jump
     if best is not None and best_jump > 0:
         cand = bar(grid.beats(best))
-        if abs(cand - drop_start) <= 4.0:
+        # a real drop is worth moving the build for; a bed with no dynamics is not
+        if abs(cand - drop_start) <= max(4.0, span * 0.20):
             drop_start = cand
 
     if out_start <= drop_start + 4.0:
@@ -174,8 +175,26 @@ def _density_at(act: str, progress: float) -> float:
     return DENSITY["out"]
 
 
+_MOTION_RANK: dict[int, dict[int, float]] = {}
+
+
 def _max_shot(source: Source) -> float:
     return max((s.dur for s in source.shots), default=0.0)
+
+
+def _motion_ranks(source: Source) -> dict[int, float]:
+    """Percentile rank of each shot's motion within this source (0..1).
+
+    Absolute motion does not transfer between sources: a slow-motion scenepack
+    measures 0.002 on every shot and a handheld vlog 0.05, but both have a
+    liveliest shot and a stillest one. Rank, not raw value.
+    """
+    vals = sorted((s.motion for s in source.shots))
+    if len(vals) < 2:
+        return {s.index: 0.5 for s in source.shots}
+    lo, hi = vals[0], vals[-1]
+    span = max(1e-9, hi - lo)
+    return {s.index: (s.motion - lo) / span for s in source.shots}
 
 
 def _pick_shot(source: Source, rng: random.Random, act: str, need: float,
@@ -191,6 +210,9 @@ def _pick_shot(source: Source, rng: random.Random, act: str, need: float,
       5. ties broken by a seeded draw, so a plan is reproducible.
     """
     want_motion = {"build": 0.5, "drop": 0.8, "out": 0.15}[act]
+    if id(source) not in _MOTION_RANK:
+        _MOTION_RANK[id(source)] = _motion_ranks(source)
+    ranks = _MOTION_RANK[id(source)]
     scored = []
     for s in source.shots:
         if s.dur * 0.98 < need:
@@ -198,7 +220,7 @@ def _pick_shot(source: Source, rng: random.Random, act: str, need: float,
         if s.index in recent[-2:]:
             continue
         score = 0.0
-        score -= abs(min(1.0, s.motion * 12.0) - want_motion) * 3.0
+        score -= abs(ranks.get(s.index, 0.5) - want_motion) * 3.0
         score -= 1.2 if s.index in used else 0.0
         # A long hold has to be a shot worth holding. Near-black frames and
         # soft focus look like a mistake for 5 seconds even when they are art.
