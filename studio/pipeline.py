@@ -1,0 +1,158 @@
+"""One command per video. The standing workflow, in code.
+
+The sequence is fixed because it was established by the work, not by taste:
+
+    video + audio + the lyric as text
+        -> research the fandom            (studio/brief.py — a gate, not a note)
+        -> place the words                (studio/captions.py, preview first)
+        -> choose the face                (studio/fonts.py, assets/fonts/edit)
+        -> render                         (studio/produce.py, one renderer)
+
+Nothing here is guessed: the out-point comes from the last word, the start comes
+from the first word, the words come from the text, the face comes from a choice.
+`--dry-run` stops after the caption sheet and the plan — the approval step before
+four minutes of encoding are spent.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import subprocess
+from pathlib import Path
+
+from . import fonts
+from .captions import (cards_from_words, coverage, parse_lines, preview,
+                       to_script)
+from .ends import out_point
+from .grid import analyse as analyse_track
+from .lyrics import transcribe_robust
+from .shots import analyse as analyse_source
+
+
+def _probe_audio(path: str) -> float:
+    import imageio_ffmpeg
+
+    out = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-i", str(path)],
+                         capture_output=True, text=True).stderr
+    for line in out.splitlines():
+        if "Duration:" in line:
+            h, m, s = line.split("Duration:")[1].split(",")[0].strip().split(":")
+            return int(h) * 3600 + int(m) * 60 + float(s)
+    raise RuntimeError(f"could not read the duration of {path}")
+
+
+def _asr_for(track: str, duration: float) -> list[dict]:
+    """Transcribe once and cache by file identity.
+
+    The ASR is the slowest step, and two passes over the same audio disagree by
+    up to a second. Captions are approved from one transcript, so the render has
+    to use that same transcript rather than transcribe again and shift.
+    """
+    st = Path(track).stat()
+    key = hashlib.sha1(f"{track}:{st.st_size}:{int(st.st_mtime)}"
+                       .encode()).hexdigest()[:12]
+    cache = Path("work/studio") / f"asr_{key}.json"
+    if cache.exists():
+        return json.loads(cache.read_text())
+    words = transcribe_robust(track, 0.0, duration)
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps(words, indent=1) + "\n")
+    return words
+
+
+def _bar_floor(grid, t: float) -> float:
+    beats = grid.beats(max(0.0, t))
+    return max(0.0, grid.t(math.floor(beats / 4.0) * 4.0))
+
+
+def run(video: str, audio: str, captions: str, out: str,
+        start: float | None = None, font: str | None = None,
+        dry_run: bool = False, preset: str = "medium", crf: int = 18,
+        preview_path: str | None = None) -> dict:
+    grid = analyse_track(audio)
+    duration = min(grid.duration, _probe_audio(audio))
+    lines = parse_lines(captions)
+    if not lines:
+        raise SystemExit(f"no captions in {captions}")
+
+    words = _asr_for(audio, duration)
+    cards = cards_from_words(lines, audio, 0.0, duration, asr=words)
+    if not cards:
+        raise SystemExit("no sung words found — check the lyric against the audio")
+
+    # start: one bar of air before the first word, on a bar line
+    first = cards[0]["start"]
+    start = start if start is not None else _bar_floor(grid, first - 1.0)
+    cards = [c for c in cards if c["start"] >= start - 1e-6]
+    last = cards[-1]["end"]
+    end = out_point(last, grid, tail=1.2, ceiling=duration)
+
+    report = {
+        "start": round(start, 2), "end": round(end, 2),
+        "duration": round(end - start, 2),
+        "first_word": round(first, 2), "last_word": round(last, 2),
+        "lines": len(lines), "cards": len(cards),
+        "coverage": coverage(cards, lines),
+        "font": (font or fonts.config().get("main")),
+    }
+
+    sheet = preview_path or str(Path(out).with_suffix(".cards.jpg"))
+    preview(cards, sheet)
+    script = Path(out).with_suffix(".script.json")
+    script.parent.mkdir(parents=True, exist_ok=True)
+    script.write_text(json.dumps({"cards": to_script(cards, grid.bpm)},
+                                 indent=1) + "\n")
+    report["sheet"] = sheet
+    report["script"] = str(script)
+
+    if font:
+        fonts.set_family(font)
+
+    if dry_run:
+        from . import director
+        from .plan import build_directed_plan, summarise
+
+        src = analyse_source(video, None)
+        plan = build_directed_plan(
+            grid, src, director.segments_for(grid, src, cards, end, start), start)
+        report["plan"] = summarise(plan).splitlines()
+        print(summarise(plan))
+        print(f"cards {len(cards)}  {start:.2f} -> {end:.2f}s  "
+              f"({end - start:.2f}s)  sheet {sheet}")
+        return report
+
+    from .produce import main as produce
+
+    produce(["--track", audio, "--source", video, "--captions", captions,
+             "--start", f"{start:.3f}", "--end", f"{end:.3f}",
+             "--script", str(script), "--out", out, "--direct",
+             "--preset", preset, "--crf", str(crf)])
+    return report
+
+
+def main_cli(argv=None):
+    import argparse
+
+    ap = argparse.ArgumentParser(description="video + audio + lyric -> edit")
+    ap.add_argument("--video", required=True)
+    ap.add_argument("--audio", required=True)
+    ap.add_argument("--captions", required=True,
+                    help="the lyric, one sung line per line")
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--start", type=float, default=None)
+    ap.add_argument("--font", default=None, help="a face from assets/fonts/edit")
+    ap.add_argument("--preset", default="medium")
+    ap.add_argument("--crf", type=int, default=18)
+    ap.add_argument("--dry-run", action="store_true",
+                    help="stop after the caption sheet and the plan")
+    a = ap.parse_args(argv)
+    rep = run(a.video, a.audio, a.captions, a.out, a.start, a.font,
+              a.dry_run, a.preset, a.crf)
+    print(json.dumps(rep, indent=1))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main_cli())

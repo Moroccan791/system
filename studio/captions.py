@@ -62,7 +62,8 @@ def words_of(lines: list[str]) -> list[str]:
 
 def cards_from_words(lines: list[str], track: str, start: float,
                      duration: float, max_words: int = 2,
-                     hold: float = 0.06, min_hold: float = 0.18) -> list[dict]:
+                     hold: float = 0.06, min_hold: float = 0.18,
+                     asr: list[dict] | None = None) -> list[dict]:
     """One card per 1-2 words, each held until its word stops sounding.
 
     The rule is the operator's, not a heuristic: a word stays on screen for as
@@ -73,7 +74,8 @@ def cards_from_words(lines: list[str], track: str, start: float,
     Cards still tile with no gaps: a card may only run up to the next onset, never
     past it. Short words get `min_hold` so a card is never a single frame.
     """
-    asr = transcribe_robust(track, start, duration)
+    if asr is None:
+        asr = transcribe_robust(track, start, duration)
     placed = align_fuzzy(lines, asr)
 
     # Monotonic, always. Two words that both missed the recogniser come back

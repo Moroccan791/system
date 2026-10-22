@@ -145,8 +145,7 @@ def main(argv=None):
         print(f"captions: {len(cards)} cards from {len(lines)} lines "
               f"-> {script_path}")
 
-        dur = a.end - a.start
-        segs = director.segments_for(grid, src, cards, dur)
+        segs = director.segments_for(grid, src, cards, a.end, a.start)
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)

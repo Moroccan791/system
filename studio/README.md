@@ -253,3 +253,28 @@ every word after it off the song.
 `python -m pytest tests/test_studio.py` runs without ffmpeg-heavy renders:
 grid phase accuracy, plan structure invariants (no freeze, act ratios, flash
 budget), and card metrics.
+
+## The standing workflow (`pipeline.py`)
+
+One command per video, in the order the work proved it needs:
+
+```bash
+python -m studio.pipeline \
+  --video footage/<pack>.mp4 --audio footage/<track>.mp3 \
+  --captions studio/scripts/<lyric>.txt --out work/studio/<name>.mp4 \
+  [--font <face>] [--dry-run]
+```
+
+1. **research** what this fandom responds to and write it into a brief — the
+   brief is a gate, and a lyric that needs a two-shot the pack does not have
+   stops the job there;
+2. **place the words**: the supplied lyric on the measured vocal, one or two
+   words per card, each card held until its word stops sounding;
+3. **approve**: `--dry-run` writes the card sheet and the plan and stops. Nothing
+   is encoded before the words have been seen;
+4. **choose the face** from `assets/fonts/edit/` — the choice is a file in
+   `assets/fonts/family.json`, not an edit to the compositor;
+5. **render** through the one renderer.
+
+The start is the bar before the first word; the end is the bar after the last
+word plus a breath. Neither is typed by hand.

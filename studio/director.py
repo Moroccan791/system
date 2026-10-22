@@ -146,7 +146,46 @@ FILL = (24, 25, 7, 23)      # daylight, used to bridge an instrumental gap
 FILL_HOLD = 0.55            # seconds per cut in a bridge
 
 
-def moments_for(cards: list[dict], bpm: float, duration: float) -> list[Moment]:
+INTRO_TOTAL = sum(m.span for m in INTRO)
+
+
+def _intro_for(first: float, start: float) -> list[Moment]:
+    """The build, sized to the air that actually exists before the first word.
+
+    INTRO is written for a long instrumental. This track's first word lands about
+    two and a half seconds after the edit starts, so the template has to be CUT
+    DOWN — taking the tail of it, which is the part that accelerates into the
+    drop — instead of the last cut being stretched to thirteen seconds, which is
+    what happened and reads as a freeze.
+    """
+    lead = first - start
+    if lead <= 0.12:
+        return []
+    if lead >= INTRO_TOTAL:
+        out = [m.__class__(**{**m.__dict__}) for m in INTRO]
+        shift = first - out[-1].until          # land the last beat on the word
+        for m in out:
+            m.at += shift
+            m.until += shift
+        return out
+    picked: list[Moment] = []
+    total = 0.0
+    for m in reversed(INTRO):
+        picked.insert(0, m.__class__(**{**m.__dict__}))
+        total += m.span
+        if total >= lead:
+            break
+    k = lead / total
+    t = start
+    for m in picked:
+        d = m.span * k
+        m.at, m.until = t, t + d
+        t += d
+    return picked
+
+
+def moments_for(cards: list[dict], bpm: float, duration: float,
+                start: float = 0.0) -> list[Moment]:
     """Cards + sung lines -> a directed timeline with NO holes in it.
 
     One cut per card, because the picture should change when the word does. Two
@@ -162,19 +201,8 @@ def moments_for(cards: list[dict], bpm: float, duration: float) -> list[Moment]:
     if not cards:
         raise ValueError("no caption cards — nothing to cut to")
 
-    out: list[Moment] = [m.__class__(**{**m.__dict__}) for m in INTRO]
     first = cards[0]["start"]
-    out = [m for m in out if m.at < first - 1e-6]
-    if out:
-        # the intro ends exactly where the first card begins: stretch it if the
-        # vocal starts late, trim it if the vocal starts early. Either way there
-        # is no overlap and no hole, which is what keeps sound and picture locked.
-        if out[-1].until < first:
-            out[-1].until = first
-        else:
-            out[-1].until = first
-            if out[-1].span < 0.20:
-                out.pop()
+    out: list[Moment] = _intro_for(first, start)
 
     last_dir = LINE_DIRECTION[max(LINE_DIRECTION)]
     line_first: dict[int, bool] = {}
@@ -207,10 +235,11 @@ def moments_for(cards: list[dict], bpm: float, duration: float) -> list[Moment]:
     return out
 
 
-def segments_for(grid, source, cards: list[dict], duration: float):
+def segments_for(grid, source, cards: list[dict], duration: float,
+                 start: float = 0.0):
     """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
-    for m in moments_for(cards, grid.bpm, duration):
+    for m in moments_for(cards, grid.bpm, duration, start):
         beats = (m.cuts if m.cuts
                  else max(1, round(m.span * grid.bpm / 60.0 * m.div)))
         step = m.span / beats
