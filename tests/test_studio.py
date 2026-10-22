@@ -672,3 +672,35 @@ def test_watermark_off_when_not_configured():
     watermark.clear()
     out = watermark.stamp(frame, off)
     assert (out == 90).all()
+
+
+def test_a_line_marked_one_cut_is_one_shot():
+    """Four cards and one exhale: a line the direction marks cuts=1 must not be
+    cut once per card — that turned the last hold into four dark frames."""
+    from studio.director import moments_for
+
+    direction = {0: {"shots": (1, 2), "div": 1.0, "cuts": 1},
+                 1: {"shots": (3, 4), "div": 1.0}}
+    cards = [{"text": "a", "start": 10.0, "end": 10.7, "line": 0},
+             {"text": "b", "start": 10.7, "end": 11.4, "line": 0},
+             {"text": "c", "start": 11.4, "end": 12.1, "line": 0},
+             {"text": "d", "start": 12.1, "end": 13.0, "line": 1},
+             {"text": "e", "start": 13.0, "end": 13.8, "line": 1}]
+    ms = moments_for(cards, 120.0, 14.0, 10.0, direction)
+    held = [m for m in ms if m.until <= 12.15]
+    assert len(held) == 1 and held[0].at == 10.0 and abs(held[0].until - 12.1) < 1e-6
+    assert len([m for m in ms if m.at >= 12.1]) == 2      # the normal line still cuts per card
+
+
+def test_ramp_span_obeys_the_plans_speed():
+    """A ramp may not consume more source than the planner allowed for.
+
+    A settle ramp's mean speed is 1.36x, so a 4.8s hold on a 1.3s shot decoded
+    6.5s of pack — four different shots timed as one indestructible cut.
+    """
+    from studio.compose import ramp_span
+    from studio.ramp import make
+
+    settle = make("settle")
+    assert abs(ramp_span(4.76, settle) - 4.76 * settle.mean_speed) < 1e-6
+    assert abs(ramp_span(4.76, settle, 0.27) - 4.76 * 0.27) < 1e-6

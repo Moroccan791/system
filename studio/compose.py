@@ -134,7 +134,21 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
             .reshape(OUT_H, OUT_W, 3).copy() for i in range(n)]
 
 
-def decode_ramped(src: str, t_in: float, out_dur: float, ramp) -> list[np.ndarray]:
+def ramp_span(out_dur: float, ramp, speed: float | None = None) -> float:
+    """How much SOURCE a ramped cut may consume.
+
+    The ramp's own mean speed is the right answer only while the shot is long
+    enough for it. When the planner finds a shot that is too short it slows the
+    cut down and records that in `cut.speed` — and the ramp has to obey THAT, or
+    the cut runs off the end of the shot and eats the three shots after it. That
+    is exactly how a 0.26x hold on a 1.3s shot became four different shots in a
+    row, timed as one.
+    """
+    return out_dur * (speed if speed else ramp.offset(1.0))
+
+
+def decode_ramped(src: str, t_in: float, out_dur: float, ramp,
+                  speed: float | None = None) -> list[np.ndarray]:
     """Frames for a speed-ramped cut.
 
     The ramp lives in output time, so this decodes the whole source span once at
@@ -142,7 +156,7 @@ def decode_ramped(src: str, t_in: float, out_dur: float, ramp) -> list[np.ndarra
     nearest decoded frames. That keeps it to one ffmpeg call per cut and gives
     sub-frame accuracy, instead of one call per frame.
     """
-    span = out_dur * ramp.offset(1.0)
+    span = ramp_span(out_dur, ramp, speed)
     buf = decode_segment(src, t_in, span, 1.0)
     n_out = max(1, int(round(out_dur * OUT_FPS)))
     if not buf:
@@ -342,7 +356,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         g = plan.grade_for(cut.act)
         if cut.ramp:
             frames = decode_ramped(source_path, cut.src_in, cut.dur,
-                                   make_ramp(cut.ramp))
+                                   make_ramp(cut.ramp), speed=cut.speed)
         else:
             frames = decode_segment(source_path, cut.src_in, cut.src_dur, cut.speed)
 
@@ -487,10 +501,13 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 def _sound(plan: Plan, track_path: str, out_wav: Path,
            sfx: bool = True) -> Path:
     """Track from plan.start, gain-shaped per act, loudness-normalised."""
-    x = load_audio(track_path)
+    x = load_audio(track_path, channels=2)
     a = max(0, int(round(plan.start * SR)))
     b = min(len(x), a + int(plan.duration * SR))
     seg = x[a:b].astype(np.float32)
+    if seg.ndim == 1:                      # a mono source: still write a 2ch file
+        seg = np.repeat(seg[:, None], 2, axis=1)
+    seg = seg.copy()
 
     gain = np.ones(len(seg), dtype=np.float32)
     for cut in plan.cuts:
@@ -504,19 +521,21 @@ def _sound(plan: Plan, track_path: str, out_wav: Path,
     if k > 1 and len(gain) > k:
         pad = np.pad(gain, (k // 2, k // 2), mode="edge")
         gain = np.convolve(pad, np.ones(k) / k, mode="valid")[: len(gain)]
-    seg = seg * gain
+    seg = seg * gain[:, None]
 
     if sfx:
         cues = cues_for(plan)
         bed = render_cues(cues, plan.duration)
-        # the track is the score; the design sits under it and never masks it
+        # the track is the score; the design sits under it and never masks it.
+        # The design is mono, so it goes into both channels at equal level —
+        # panning it would pull the ear off the vocal.
         n = min(len(seg), len(bed))
-        seg[:n] = np.clip(seg[:n] + bed[:n], -1.0, 1.0)
+        seg[:n] = np.clip(seg[:n] + bed[:n, None], -1.0, 1.0)
 
     import wave
-    pcm = (np.clip(seg, -1, 1) * 32767).astype("<i2")
+    pcm = (np.clip(seg, -1, 1) * 32767).astype("<i2")   # (n, 2) interleaved
     with wave.open(str(out_wav), "wb") as w:
-        w.setnchannels(1)
+        w.setnchannels(2)
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(pcm.tobytes())

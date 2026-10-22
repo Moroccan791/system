@@ -149,27 +149,31 @@ LINE_DIRECTION: dict[int, dict] = {
 # edit at div 2.0 is 0.23s cuts, which is a strobe, not an overedit. The build is
 # div 1.0 on singles, the choruses are div 1.5, and the last line is one hold.
 LINE_DIRECTION_TOM: dict[int, dict] = {
-    # Pools are SIX deep, not three. A sung line earns five or six cuts, so a
-    # three-shot pool has to bring a shot back inside a second — the picture
-    # stutters and the pack looks smaller than it is. Six gives every cut its own
-    # frame at the same 0.45s median, and every shot here is checked against the
-    # pack (work/studio/th_all_shots.jpg), not guessed.
-    0: dict(shots=(0, 31, 26, 2, 3, 12), div=1.0, note="intro ad-lib, the street"),
-    1: dict(shots=(13, 14, 27, 50, 64, 51), div=1.0, note="Peter, close"),
-    2: dict(shots=(31, 32, 26, 30, 40, 41), div=1.0, note="between the two"),
-    3: dict(shots=(14, 27, 13, 18, 19, 51), div=1.0, note="'right here' — the face"),
-    4: dict(shots=(31, 43, 53, 54, 44, 63), div=1.0, note="the swing, opening"),
-    5: dict(shots=(59, 60, 62, 22, 21, 57), div=1.0, note="mid-swing, the crouch"),
-    6: dict(shots=(45, 44, 28, 29, 46, 25), div=1.0, note="the climb, the crowd"),
-    7: dict(shots=(56, 55, 48, 49, 47, 52), div=1.0, note="the rooftop, the city"),
-    8: dict(shots=(53, 54, 61, 63, 43, 62), div=1.0, note="second chorus, bigger"),
-    9: dict(shots=(60, 62, 22, 23, 20, 24), div=1.0, note="the fight"),
-    10: dict(shots=(14, 27, 13, 18, 19, 51), div=1.0, note="the face again"),
-    11: dict(shots=(48, 49, 56, 47, 52, 58), div=1.0, note="top of the world, then the drop"),
-    12: dict(shots=(58, 27, 14, 31, 26, 51), div=1.0,
+    # One entry per SUNG LINE, in the order the edit actually hears them. This
+    # map was written for a 14-line reading of the song; the edit resolves to 12
+    # (the last chorus sings "I need you to stay" twice), so the keys were one
+    # to three lines out of step with the cards on screen — the direction was
+    # following the lyric sheet, not the vocal.
+    #
+    # Pools are six deep, each shot checked against work/studio/th_all_shots.jpg.
+    # A sung line earns five or six cuts, so a three-shot pool has to bring a
+    # shot back inside a second and the pack reads as a loop.
+    0: dict(shots=(14, 27, 13, 18, 19, 51), div=1.0,
+            note="'right here' — him, close"),
+    1: dict(shots=(31, 32, 26, 30, 40, 41), div=1.0, note="between the two"),
+    2: dict(shots=(18, 19, 51, 27, 13, 50), div=1.0, note="the face, the cost"),
+    3: dict(shots=(31, 43, 53, 54, 44, 63), div=1.0, note="the swing, opening"),
+    4: dict(shots=(59, 60, 62, 22, 21, 57), div=1.0, note="mid-swing, the crouch"),
+    5: dict(shots=(45, 44, 28, 29, 46, 25), div=1.0, note="the climb, the crowd"),
+    6: dict(shots=(56, 55, 48, 49, 47, 52), div=1.0, note="the rooftop, the city"),
+    7: dict(shots=(53, 54, 61, 63, 43, 62), div=1.0, note="second chorus, bigger"),
+    8: dict(shots=(60, 62, 22, 23, 20, 24), div=1.0, note="the fight"),
+    9: dict(shots=(61, 63, 57, 24, 23, 25), div=1.0,
+            note="the last 'stay' — the fight, wider"),
+    10: dict(shots=(58, 27, 14, 31, 26, 51), div=1.0,
              note="'miss your touch' — the hands, then him, alone"),
-    13: dict(shots=(58, 55, 56), cuts=1, ramp="settle",
-             note="'believe in love' — one hold, the exhale"),
+    11: dict(shots=(58,), cuts=1, ramp="settle",
+             note="'believe in love' — one hold, the hands"),
 }
 
 DIRECTIONS = {"peter_gwen": LINE_DIRECTION, "tom_holland_bnd": LINE_DIRECTION_TOM}
@@ -255,28 +259,56 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
                               (FILL[k % len(FILL)],), 1.0, "drop",
                               note=why))
 
+    # cards of one sung line, in order — the unit a direction is written for
+    groups: list[list[dict]] = []
     for c in cards:
-        gap = c["start"] - prev_end
-        if gap > 0.005:
-            if gap <= 0.35 and out:
-                # a card can end on its word and leave a few frames before the
-                # next one starts. Do not invent a cut for 60ms of silence —
-                # hold the previous shot through it.
-                out[-1].until = c["start"]
-            else:
-                fill(prev_end, c["start"], "instrumental — back to daylight")
-        d = direction.get(c["line"], last_dir)
-        fresh = not line_first.get(c["line"], False)
-        line_first[c["line"]] = True
-        # `div` is what makes a long card overedit instead of holding: the
-        # card's own duration decides how many cuts it earns. A line that says
-        # cuts=1 (the kiss) is the one place the picture is allowed to sit.
-        out.append(Moment(c["start"], c["end"], tuple(d["shots"]),
-                          d.get("div", 1.0), "drop",
-                          src=d.get("src") if fresh else None,
-                          ramp=d.get("ramp") if fresh else None,
-                          note=d.get("note", ""), cuts=d.get("cuts")))
-        prev_end = c["end"]
+        if groups and groups[-1][0]["line"] == c["line"]:
+            groups[-1].append(c)
+        else:
+            groups.append([c])
+
+    for group in groups:
+        line = group[0]["line"]
+        d = direction.get(line, last_dir)
+        fresh = not line_first.get(line, False)
+        line_first[line] = True
+
+        def lead_in(at: float) -> None:
+            nonlocal prev_end
+            gap = at - prev_end
+            if gap > 0.005:
+                if gap <= 0.35 and out:
+                    # a card can end on its word and leave a few frames before
+                    # the next one starts. Do not invent a cut for 60ms of
+                    # silence — hold the previous shot through it.
+                    out[-1].until = at
+                else:
+                    fill(prev_end, at, "instrumental — back to daylight")
+
+        # A line marked `cuts` is ONE image however many cards it carries.
+        # "You're the reason I believe in love" is four cards and one exhale;
+        # treating each card as its own moment cut four times inside the hold
+        # and turned the last two seconds into four dark frames in a row.
+        if d.get("cuts") is not None and len(group) > 1:
+            at, until = group[0]["start"], group[-1]["end"]
+            lead_in(at)
+            out.append(Moment(at, until, tuple(d["shots"]), d.get("div", 1.0),
+                              "drop", src=d.get("src"), ramp=d.get("ramp"),
+                              note=d.get("note", ""), cuts=d.get("cuts")))
+            prev_end = until
+            continue
+
+        for c in group:
+            lead_in(c["start"])
+            # `div` is what makes a long card overedit instead of holding: the
+            # card's own duration decides how many cuts it earns.
+            out.append(Moment(c["start"], c["end"], tuple(d["shots"]),
+                              d.get("div", 1.0), "drop",
+                              src=d.get("src") if fresh else None,
+                              ramp=d.get("ramp") if fresh else None,
+                              note=d.get("note", ""), cuts=d.get("cuts")))
+            prev_end = c["end"]
+            fresh = False
 
     gap = duration - prev_end
     if gap > 0.25:

@@ -36,13 +36,22 @@ def _ffmpeg() -> str:
     return imageio_ffmpeg.get_ffmpeg_exe()
 
 
-def load_audio(path: str | Path) -> np.ndarray:
-    """Decode anything ffmpeg reads to mono float32 at SR."""
+def load_audio(path: str | Path, channels: int = 1) -> np.ndarray:
+    """Decode anything ffmpeg reads to float32 at SR.
+
+    Mono by default, because every measurement here (beat grid, onsets, voice
+    level) works on one channel. The MIX needs both: downmixing the track was
+    throwing away the whole stereo image of a music edit, and nobody noticed
+    because the analysis path is the one everybody reads.
+    """
     raw = subprocess.run(
         [_ffmpeg(), "-nostdin", "-v", "error", "-i", str(path),
-         "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+         "-ac", str(int(channels)), "-ar", str(SR), "-f", "f32le", "-"],
         capture_output=True, check=True).stdout
-    return np.frombuffer(raw, dtype=np.float32)
+    data = np.frombuffer(raw, dtype=np.float32)
+    if channels > 1:
+        data = data.reshape(-1, int(channels))
+    return data
 
 
 def _stft_mag(x: np.ndarray) -> np.ndarray:
