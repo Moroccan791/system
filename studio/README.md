@@ -168,6 +168,10 @@ There is no shake. Handheld jitter fights type legibility and has a shelf life.
 Cost: about 40 ms of compositor per frame (18 ms grade, 22 ms look) on top of the
 decode — the 43s render went from 282s to 333s.
 
+Grain costs **bitrate**, not just time: the same 43 s at crf 18 came out at
+**137 MB** (25 Mb/s) instead of 27 MB. `produce` now defaults `--crf` to 23 when
+the look is on and 18 when it is off, which lands the file back around 23 MB.
+
 ## Ramps, whips and matte
 
 The three moves the reference used that the first build did not have.

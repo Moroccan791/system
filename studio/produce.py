@@ -97,8 +97,12 @@ def main(argv=None):
     ap.add_argument("--no-premium", action="store_true",
                     help="skip colour matching and the filmic grade")
     ap.add_argument("--preset", default="medium")
-    ap.add_argument("--crf", type=int, default=18)
+    ap.add_argument("--crf", type=int, default=None,
+                    help="default 18 clean, 23 when the look layer is on: grain "
+                         "costs ~5x the bitrate and a 43s file hit 137MB at 18")
     a = ap.parse_args(argv)
+    if a.crf is None:
+        a.crf = 23 if not a.no_look else 18
 
     t0 = time.time()
     grid = analyse_track(a.track, a.end)
