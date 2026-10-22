@@ -31,7 +31,9 @@ REQUEST = Path(".github/asr-request.json")
 RATE = 16000
 CHUNK = 28.0          # the decoder refuses anything over 30s
 SWEEP_WIN = 6.0
-SWEEP_HOP = 0.5
+SWEEP_HOP = 1.0      # a word at w survives in windows started at t<=w, so the
+                     # LAST window that still contains it starts within one hop
+                     # of w — that is the localiser, and its error is the hop
 
 STAMP = re.compile(r"<\|(\d+(?:\.\d+)?)\|>")
 
@@ -50,8 +52,10 @@ def crop(audio: str, start: float, end: float) -> np.ndarray:
 
 def paths() -> tuple[str, str, str]:
     files = list(MODEL_DIR.rglob("*.onnx"))
-    enc = next(p for p in files if "encoder" in p.name and "int8" not in p.name)
-    dec = next(p for p in files if "decoder" in p.name and "int8" not in p.name)
+    # int8: same weights quantised, ~3x faster on a 2-core runner, and this is a
+    # decode sweep — thousands of short passes — so the speed is the feature.
+    enc = next(p for p in files if "encoder" in p.name and "int8" in p.name)
+    dec = next(p for p in files if "decoder" in p.name and "int8" in p.name)
     tok = next(MODEL_DIR.rglob("*tokens.txt"))
     return str(enc), str(dec), str(tok)
 
@@ -124,8 +128,10 @@ def run(item: dict) -> dict:
 
 def main() -> int:
     req = json.loads(REQUEST.read_text())
+    only = [a for a in sys.argv[2:] if a]
+    items = [i for i in req["items"] if not only or i["out"] in only]
     print("model files:", [p.name for p in Path(MODEL_DIR).rglob("*.onnx")])
-    for item in req["items"]:
+    for item in items:
         out = Path(item["out"])
         out.parent.mkdir(parents=True, exist_ok=True)
         try:
