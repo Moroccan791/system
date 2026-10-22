@@ -50,7 +50,10 @@ def grade(frame: np.ndarray, g: dict) -> np.ndarray:
     """
     f = frame.astype(np.float32)
     f = (f - 128.0) * g.get("contrast", 1.0) + 128.0
-    f = f * g.get("brightness", 0.0) * 255.0 + f
+    # brightness is an OFFSET in 0-255 space. It was written as a multiplier,
+    # so a grade of -0.02 multiplied every pixel by -4.1 and turned a shot with
+    # a mean luma of 65 into one with a mean of 4.
+    f = f + g.get("brightness", 0.0) * 255.0
     if g.get("gamma", 1.0) != 1.0:
         f = 255.0 * np.clip(f / 255.0, 0, 1) ** g["gamma"]
     sat = g.get("saturation", 1.0)

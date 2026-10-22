@@ -164,6 +164,24 @@ def test_transitions_are_single_frame_events(grid):
     assert all(c.act == "drop" for c in whips)
 
 
+def test_grade_preserves_luma():
+    """Grade must not move a mid-grey frame more than a few percent.
+
+    This is here because brightness was once applied as a MULTIPLIER, which
+    turned a shot with mean luma 65 into one with mean 4 — every render looked
+    correct in the plan and black on screen.
+    """
+    import numpy as np
+
+    from studio.compose import grade
+    from studio.plan import GRADE
+
+    plate = np.full((64, 64, 3), 90, dtype=np.uint8)
+    for act, settings in GRADE.items():
+        out = grade(plate, settings).astype(float)
+        assert 60 < out.mean() < 120, f"{act} grade moved 90 to {out.mean():.1f}"
+
+
 def test_matte_keeps_the_frame_size():
     """The matte composite must leave the word readable and the frame intact."""
     import numpy as np
