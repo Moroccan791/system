@@ -1,12 +1,26 @@
 # studio/ — the overedit engine
 
-A second, separate system from the whop campaign chain. Whop cuts speech:
-it finds the best 40 seconds of talking and captions it. Studio cuts *music*:
-the track is the score and every cut is played against it. They share nothing
-but the fonts and ffmpeg, deliberately — a change here can never break a
-campaign render.
+**This is the main system.** Scope as of the editing-account decision: studio
+is where the work goes; the whop campaign chain is paused, not deleted, and its
+four shipped posts and never-clip list stay as they are. Nothing in this
+directory depends on it.
 
-Format: **1920×1080, 30 fps, 16:9.** Vertical stays with whop.
+Studio cuts *music*: the track is the score and every cut is played against it.
+Whop cut *speech* — best 40 seconds of talking, captions on top. The two share
+nothing but the fonts and ffmpeg, deliberately.
+
+Format: **1920×1080, 30 fps, 16:9.**
+
+What decides a delivered edit, in order of how much it has cost to learn:
+
+1. **the footage** — a pack that runs out is what makes an edit repeat itself;
+2. **the captions** — placed on the sung phrase, held until the next word,
+   verified against the mix before the take ships;
+3. **the cut rate** — an act template, not a constant.
+
+The engine is the cheap part. Two and a half minutes of pack became a 43-second
+edit that reused its best frames eight times; more source is the fix, and it is
+a sourcing problem, not a code one.
 
 ## The one idea
 
