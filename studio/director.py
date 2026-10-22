@@ -120,15 +120,14 @@ INTRO: list[Moment] = [
 # opening and to nothing else. Rhythm comes from `div` — 2 cuts per beat turns a
 # long card into eighths — never from cutting to a shot the line is not about.
 LINE_DIRECTION: dict[int, dict] = {
-    0: dict(shots=(27, 31, 28), div=1.0, note="night, the two of them"),
-    1: dict(shots=(10, 0, 12, 23), div=2.0, note="the approach"),
-    2: dict(shots=(35, 14), div=1.0, note="the closest frames in the pack"),
-    3: dict(shots=(29, 6, 26), div=1.0, note="her"),
-    4: dict(shots=(32, 31), cuts=1, ramp="settle",
-             note="the kiss: one cut, let it breathe"),
-    5: dict(shots=(26, 35, 31), div=2.0, note="devotion"),
-    6: dict(shots=(31, 27, 32), div=2.0, note="motion inside the moment"),
-    7: dict(shots=(35, 32, 31), div=2.0, note="back to her face"),
+    0: dict(shots=(27, 31, 28, 35), div=1.0, note="night, the two of them"),
+    1: dict(shots=(10, 0, 12, 16, 15, 23), div=2.0, note="the approach"),
+    2: dict(shots=(35, 14, 26, 31), div=1.0, note="the closest frames"),
+    3: dict(shots=(29, 6, 26, 32), div=1.0, note="her"),
+    4: dict(shots=(31, 27, 32, 35), div=1.0, note="the embrace, the city, the kiss"),
+    5: dict(shots=(26, 10, 0, 16, 31), div=2.0, note="devotion"),
+    6: dict(shots=(27, 31, 32, 12, 23), div=2.0, note="motion inside the moment"),
+    7: dict(shots=(35, 32, 29, 31, 6), div=2.0, note="back to her face"),
 }
 
 # The bar of instrumental between "I need" and its answer, where the edit

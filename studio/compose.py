@@ -210,6 +210,7 @@ class ScriptCard:
     accent: str = ""
     matte: bool | None = None      # None = let the renderer decide
     pin: bool = False              # follow the subject instead of the centre
+    until: float | None = None     # beat the line's audio stops (None = cut-based)
 
     @property
     def key(self) -> str:
@@ -236,11 +237,13 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
         if isinstance(d, str):
             cards.append(ScriptCard(0.0, d))
         else:
+            until = d.get("until")
             cards.append(ScriptCard(float(d.get("beat", 0)),
                                     str(d.get("text", "")),
                                     str(d.get("accent", "")),
                                     d.get("matte"),
-                                    bool(d.get("pin", False))))
+                                    bool(d.get("pin", False)),
+                                    float(until) if until is not None else None))
     cards.sort(key=lambda c: c.beat)
     return cards
 
@@ -274,6 +277,13 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         hold = 2.4
         if cut is not None:
             hold = min(0.80 if cut.act == "drop" else 2.4, max(cut.dur * 1.6, 0.30))
+        # A LYRICAL card is not a lower third: it stays until the word's audio
+        # stops, however many shots that spans. The cut-length cap above is for
+        # incidental type; with words it truncated every card to the length of
+        # the shot underneath, so a card covering "beauty and" disappeared a
+        # third of the way through the phrase.
+        if c.until is not None and c.until > c.beat:
+            hold = max(hold, min(4.0, (c.until - c.beat) * period))
         from . import fonts as _fonts
 
         rendered.append((t, render_card(c.text, OUT_W, OUT_H,

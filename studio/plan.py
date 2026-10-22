@@ -428,6 +428,7 @@ def build_directed_plan(grid: Grid, source: Source, segments: list[dict],
     plan = Plan(grid=grid, source=source, start=start, end=start,
                 bpm=grid.bpm, seed=0)
     taken: dict[int, list[tuple[float, float]]] = {}
+    used: dict[int, int] = {}
 
     def free_in(shot, need: float, want: float | None) -> float:
         """An in-point that is not already on screen.
@@ -468,12 +469,17 @@ def build_directed_plan(grid: Grid, source: Source, segments: list[dict],
             pool = [max(range(len(source.shots)),
                         key=lambda i: source.shots[i].dur)]
         fits = [i for i in pool if source.shots[i].dur * 0.97 >= need]
-        # Do not cut from a shot back into the same shot: two frames from
-        # different places in one take, one after the other, read as a stutter,
-        # not as a cut. Rotate to another fitting member of the pool instead.
-        if len(fits) > 1 and plan.cuts and fits[0] == plan.cuts[-1].shot:
-            fits = fits[1:] + fits[:1]
-        chosen = fits[0] if fits else max(pool, key=lambda i: source.shots[i].dur)
+        # Two rules, in this order:
+        #   1. never cut from a shot back into the same shot — two frames from
+        #      different places in one take, back to back, read as a stutter;
+        #   2. among what is left, take the LEAST USED shot. A pack this small
+        #      makes it very easy to lean on the two best frames; spreading the
+        #      load is the difference between an edit and a loop.
+        fresh = [i for i in fits if not (plan.cuts and i == plan.cuts[-1].shot)]
+        cands = fresh or fits
+        cands.sort(key=lambda i: used.get(i, 0))
+        chosen = cands[0] if cands else max(pool, key=lambda i: source.shots[i].dur)
+        used[chosen] = used.get(chosen, 0) + 1
         shot = source.shots[chosen]
         if need > shot.dur:
             # not enough footage at this speed: slow it down to fill the line
