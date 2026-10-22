@@ -3,7 +3,50 @@
  "language": "bn",
  "start": 93.9,
  "end": 140.0,
- "text": "āmār marār karo tu mī āmār vēcē ta kar dai āmār marār karo tu mī āmār marār karo tu mī āmār marār karo tu mī āmār marār karo tu mī āmār marār karo tu mī āmār marār karo tu mī āmār marār karo tu mī āmār mar",
- "words": [],
- "raw_tokens": []
+ "duration": 46.1,
+ "chunks": [
+  {
+   "text": "āma marār kārā tu  āma bēcē ta kārā tu",
+   "stamps": [],
+   "segments": [],
+   "offset": 0.0
+  },
+  {
+   "text": "",
+   "stamps": [],
+   "segments": [],
+   "offset": 28.0
+  }
+ ],
+ "sweep": [
+  {
+   "start": 0.0,
+   "text": "A mar mara rar karon tumi"
+  },
+  {
+   "start": 1.0,
+   "text": "i i i i i i"
+  },
+  {
+   "start": 2.0,
+   "text": "ārā ūmī"
+  },
+  {
+   "start": 13.0,
+   "text": "ākārākārākārākārākārākārākārākārā"
+  },
+  {
+   "start": 24.0,
+   "text": "āba nu e e e e e e"
+  },
+  {
+   "start": 25.0,
+   "text": "ाान ेे ाा िानी"
+  },
+  {
+   "start": 27.0,
+   "text": "āāāṇī"
+  }
+ ],
+ "full_text": "āma marār kārā tu  āma bēcē ta kārā tu "
 }

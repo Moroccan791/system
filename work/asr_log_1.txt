@@ -1,0 +1,3 @@
+model files: ['small-encoder.onnx', 'small-decoder.int8.onnx', 'small-decoder.onnx', 'small-encoder.int8.onnx']
+--- footage/post2/YTDown.com_YouTube_Media_35YlEcfwVe0_faahun-Sharani-Shamman-ranir-bidai_011_128k.mp3 [bn] 7 sweep windows
+āma marār kārā tu  āma bēcē ta kārā tu 
