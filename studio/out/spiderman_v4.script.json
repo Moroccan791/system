@@ -1,0 +1,212 @@
+{
+ "bpm": 122.75,
+ "cards": [
+  {
+   "beat": 8.429,
+   "text": "we young",
+   "line": 0,
+   "accent": "YOUNG",
+   "pin": false,
+   "matte": false,
+   "until": 10.434
+  },
+  {
+   "beat": 10.434,
+   "text": "tonight",
+   "line": 0,
+   "accent": "TONIGHT",
+   "pin": false,
+   "matte": false,
+   "until": 11.845
+  },
+  {
+   "beat": 11.845,
+   "text": "I'm coming",
+   "line": 1,
+   "accent": "COMING",
+   "pin": false,
+   "matte": false,
+   "until": 14.362
+  },
+  {
+   "beat": 14.362,
+   "text": "for ya,",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 16.408
+  },
+  {
+   "beat": 16.408,
+   "text": "I'm coming",
+   "line": 1,
+   "accent": "COMING",
+   "pin": false,
+   "matte": false,
+   "until": 18.351
+  },
+  {
+   "beat": 18.351,
+   "text": "for ya",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 22.852
+  },
+  {
+   "beat": 25.184,
+   "text": "'Cause all",
+   "line": 2,
+   "accent": "CAUSE",
+   "pin": false,
+   "matte": false,
+   "until": 26.698
+  },
+  {
+   "beat": 26.698,
+   "text": "I need",
+   "line": 2,
+   "accent": "NEED",
+   "pin": false,
+   "matte": false,
+   "until": 30.135
+  },
+  {
+   "beat": 30.135,
+   "text": "Is a",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 32.201
+  },
+  {
+   "beat": 32.201,
+   "text": "beauty and",
+   "line": 3,
+   "accent": "BEAUTY",
+   "pin": false,
+   "matte": false,
+   "until": 35.597
+  },
+  {
+   "beat": 35.597,
+   "text": "a beat",
+   "line": 3,
+   "accent": "BEAT",
+   "pin": false,
+   "matte": false,
+   "until": 39.873
+  },
+  {
+   "beat": 39.873,
+   "text": "Who can",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 42.308
+  },
+  {
+   "beat": 42.308,
+   "text": "make my",
+   "line": 4,
+   "accent": "MAKE",
+   "pin": false,
+   "matte": false,
+   "until": 44.661
+  },
+  {
+   "beat": 44.661,
+   "text": "life complete",
+   "line": 4,
+   "accent": "LIFE",
+   "pin": false,
+   "matte": false,
+   "until": 49.755
+  },
+  {
+   "beat": 60.7,
+   "text": "It's all",
+   "line": 5,
+   "accent": "ALL",
+   "pin": false,
+   "matte": false,
+   "until": 62.377
+  },
+  {
+   "beat": 62.377,
+   "text": "all 'bout",
+   "line": 5,
+   "accent": "ALL",
+   "pin": false,
+   "matte": false,
+   "until": 63.523
+  },
+  {
+   "beat": 63.523,
+   "text": "you",
+   "line": 5,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 66.305
+  },
+  {
+   "beat": 66.305,
+   "text": "When the",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 67.963
+  },
+  {
+   "beat": 67.963,
+   "text": "music makes",
+   "line": 6,
+   "accent": "MUSIC",
+   "pin": false,
+   "matte": false,
+   "until": 71.481
+  },
+  {
+   "beat": 71.481,
+   "text": "you move",
+   "line": 6,
+   "accent": "MOVE",
+   "pin": false,
+   "matte": false,
+   "until": 74.161
+  },
+  {
+   "beat": 74.161,
+   "text": "Baby, do",
+   "line": 7,
+   "accent": "BABY",
+   "pin": false,
+   "matte": false,
+   "until": 76.903
+  },
+  {
+   "beat": 76.903,
+   "text": "it like",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 79.194
+  },
+  {
+   "beat": 79.194,
+   "text": "you do",
+   "line": 7,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 83.306
+  }
+ ]
+}
