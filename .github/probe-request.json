@@ -4,15 +4,26 @@
       "audio": "footage/post2/faahun.mp3",
       "language": "bn",
       "dur": 7.0,
-      "at": [93.9, 101.66, 110.12, 118.5],
+      "at": [
+        93.9,
+        101.66,
+        110.12,
+        118.5
+      ],
       "prompt": "Amar morar karon tumi. Abar beche thakar dayi."
     },
     {
       "audio": "footage/post2/zaalima.mp3",
       "language": "hi",
       "dur": 8.0,
-      "at": [23.0, 30.5, 38.0, 45.5],
+      "at": [
+        23.0,
+        30.5,
+        38.0,
+        45.5
+      ],
       "prompt": "Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi."
     }
-  ]
+  ],
+  "run": 1792708083
 }
