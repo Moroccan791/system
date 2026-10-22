@@ -157,6 +157,36 @@ so the type holds the shape and the plate gives it the texture — which is what
 compositor actually does, and why it reads on any footage. Matte is reserved for
 one card in four in the drop.
 
+## Sound design (`sound.py`)
+
+The picture cuts on the grid, so the sound has to arrive on the same grid. All
+SFX are **synthesised** — deterministic, and no licensing question about a hit
+you generated yourself.
+
+| cue | where | why |
+|---|---|---|
+| riser | ends **exactly** on the drop's first frame | one that stops early leaves a hole; one that overshoots steps on the downbeat |
+| impact | drop downbeat | the loudest event in the edit |
+| whoosh | on a whip, ending on the cut | the picture blur is the other half of the gesture |
+| tick | on a flash cut | marks the join without competing with the music |
+| swell | first frame of the out act | the exhale needs an entrance |
+
+A sound is only placed where the PICTURE marks a cut (whip, flash, act change) —
+not on all 47 cuts. Measured on the render: 15 cues, all within a frame of their
+cut, and the impact lifts RMS from 0.211 to 0.288 at the drop.
+
+## Tracking (`track.py`)
+
+Pins a graphic to the subject: Haar finds a face in the first frame of the cut,
+pyramidal Lucas-Kanade follows a sparse feature set inside a grown face box, and
+a short median filter removes the per-frame jitter that reads as a bug. A card
+with `"pin": true` in the script follows that point instead of sitting centred,
+and is clamped so it can never leave the frame.
+
+Tracking is measured, not assumed: 0 lost frames over 30-frame cuts on this
+footage (subway pan 248 px, close-up 78 px). LK drifts over a long hold, so it is
+only used on drop-length cuts; where no face is found the card stays centred.
+
 ## What is not built yet## Verification
 
 `python -m pytest tests/test_studio.py` runs without ffmpeg-heavy renders:

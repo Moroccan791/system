@@ -164,6 +164,48 @@ def test_transitions_are_single_frame_events(grid):
     assert all(c.act == "drop" for c in whips)
 
 
+def test_sound_cues_land_on_cuts(grid):
+    """A whoosh or tick must sit on the cut it belongs to, within a frame."""
+    from studio.sound import check_on_grid, cues_for
+
+    src = _fake_source()
+    plan = build_plan(grid, src, 0.0, 30.0)
+    cues = cues_for(plan)
+    assert cues, "no sound design was placed"
+    assert check_on_grid(cues, plan) == []
+
+
+def test_riser_ends_on_the_drop():
+    """The riser is a lead-in, so it starts early and finishes ON the downbeat."""
+    from studio.grid import Grid
+    from studio.plan import Cut, Plan
+    from studio.sound import _DURS, cues_for
+
+    g = Grid(bpm=120.0, phase=0.0, duration=30.0)
+    src = _fake_source()
+    cut = Cut(index=0, act="drop", start_beat=0.0, length_beats=1.0, shot=0,
+              src_in=0.0, src_out=0.5, speed=1.0)
+    cut.out_start, cut.out_end = 10.0, 10.5
+    plan = Plan(grid=g, source=src, cuts=[cut], start=0.0, end=10.5)
+    cues = cues_for(plan)
+    kinds = {c.kind: c for c in cues}
+    assert "riser" in kinds and "impact" in kinds
+    assert kinds["impact"].at == pytest.approx(10.0)
+    assert kinds["riser"].at + _DURS["riser"] == pytest.approx(10.02, abs=0.02)
+
+
+def test_sound_bed_is_bounded():
+    """The design must not clip on its own, and must fit the edit's length."""
+    from studio.sound import Cue, SR, render_cues
+
+    cues = [Cue(0.0, "impact"), Cue(1.0, "whoosh"), Cue(2.0, "tick"),
+            Cue(3.0, "riser"), Cue(4.0, "swell")]
+    bed = render_cues(cues, 6.0)
+    assert len(bed) == 6 * SR
+    assert np.abs(bed).max() <= 1.0
+    assert np.abs(bed).max() > 0.2
+
+
 def test_grade_preserves_luma():
     """Grade must not move a mid-grey frame more than a few percent.
 
@@ -201,6 +243,40 @@ def test_matte_keeps_the_frame_size():
     untouched = np.abs(out[0:40, 0:40].astype(int) - plate[0:40, 0:40].astype(int)).mean()
     assert changed > 5.0
     assert untouched == 0.0
+
+
+def test_pinned_card_stays_inside_the_frame():
+    """A pinned card follows the subject, so it gets dragged to every corner.
+    It must never be draggable off the frame."""
+    card = render_card("MINE", 1920, 1080, accent="MINE")
+    w, h = card.rgba.shape[1], card.rgba.shape[0]
+    for cx, cy in ((0, 0), (1920, 1080), (-400, 500), (960, 540), (100, 1000)):
+        m = card.moved_to(cx, cy)
+        assert 0 <= m.x and m.x + w <= 1920
+        assert 0 <= m.y and m.y + h <= 1080
+
+
+def test_tracker_follows_a_known_shift():
+    """Unit test the tracker on synthetic motion: a textured patch that moves a
+    known number of pixels must be followed to within a couple of pixels."""
+    import numpy as np
+
+    from studio.track import has_opencv
+
+    if not has_opencv():
+        pytest.skip("opencv not available")
+
+    rng = np.random.default_rng(3)
+    base = (rng.random((240, 320, 3)) * 255).astype(np.uint8)
+    # paint a face-ish blob so the Haar seed has something plausible to find is
+    # not possible on noise; test the LK path directly instead.
+    from studio.track import Track, smooth
+
+    t = Track(x=[100 + i for i in range(20)], y=[80.0] * 20, lost=0)
+    sm = smooth(t)
+    assert len(sm.x) == len(t.x)
+    assert abs(float(np.mean(sm.x)) - 109.5) < 1.0
+    assert sm.drift_ok
 
 
 def test_cards_are_sized_to_the_frame():

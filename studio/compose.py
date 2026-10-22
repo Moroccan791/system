@@ -24,6 +24,8 @@ import numpy as np
 from .grid import Grid, load_audio, SR
 from .plan import Plan, Cut
 from .ramp import make as make_ramp, mean_speed_of
+from .sound import cues_for, render_cues, write_wav
+from .track import smooth, track_box
 from .typecards import Card, composite, composite_matte, render_card, scrim
 
 OUT_W, OUT_H, OUT_FPS = 1920, 1080, 30
@@ -207,6 +209,7 @@ class ScriptCard:
     text: str
     accent: str = ""
     matte: bool | None = None      # None = let the renderer decide
+    pin: bool = False              # follow the subject instead of the centre
 
     @property
     def key(self) -> str:
@@ -236,7 +239,8 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
             cards.append(ScriptCard(float(d.get("beat", 0)),
                                     str(d.get("text", "")),
                                     str(d.get("accent", "")),
-                                    d.get("matte")))
+                                    d.get("matte"),
+                                    bool(d.get("pin", False))))
     cards.sort(key=lambda c: c.beat)
     return cards
 
@@ -246,7 +250,8 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
 # --------------------------------------------------------------------------
 def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            script_path: str | Path | None = None, cards_until: float | None = None,
-           progress=print, preset: str = "medium", crf: int = 18) -> Path:
+           progress=print, preset: str = "medium", crf: int = 18,
+           sfx: bool = True) -> Path:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     grid = plan.grid
@@ -285,6 +290,13 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             matte_for[ti] = (n_seen % 4 == 2)
         n_seen += 1
 
+    def pinned_active(ti: int, cut) -> bool:
+        """Is a card that wants tracking on screen during this cut?"""
+        if ti >= len(cards) or not cards[ti].pin:
+            return False
+        ct, _c, hold = rendered[ti]
+        return ct - 1e-6 < cut.out_end and ct + hold > cut.out_start
+
     total_frames = int(round(plan.duration * OUT_FPS))
     enc = subprocess.Popen(
         [ffmpeg(), "-nostdin", "-v", "error", "-y",
@@ -303,6 +315,13 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                                    make_ramp(cut.ramp))
         else:
             frames = decode_segment(source_path, cut.src_in, cut.src_dur, cut.speed)
+
+        # A pinned card follows the subject, so the cut needs a track before the
+        # compositor can draw. Tracking costs ~0.15s per cut and is skipped
+        # entirely when no card is pinned.
+        track = None
+        if any(pinned_active(t, cut) for t in range(len(rendered))):
+            track = smooth(track_box(frames)) if len(frames) > 1 else None
 
         want = max(1, int(round(cut.dur * OUT_FPS)))
         if len(frames) < want:
@@ -348,6 +367,11 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                         amt = max(0.0, min(0.34, (plate - 90.0) / 110.0 * 0.34))
                         if amt > 0.01:
                             scrim(frame, card, amount=amt)
+                    if cards[ti].pin and track is not None:
+                        pt = track.at(fi)
+                        if pt is not None:
+                            card = card.moved_to(pt[0], pt[1] - card.rgba.shape[0] * 0.15,
+                                                 OUT_W, OUT_H)
                     use_matte = matte_for[ti]
                     if use_matte and cut.act == "drop":
                         composite_matte(frame, card)
@@ -370,7 +394,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         progress(err)
 
     # ---- sound: track shaped by act, cut to the picture's length ----
-    audio = _sound(plan, track_path, out_path.with_suffix(".audio.wav"))
+    audio = _sound(plan, track_path, out_path.with_suffix(".audio.wav"),
+                   sfx=sfx)
 
     final = out_path
     subprocess.run(
@@ -388,7 +413,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     return final
 
 
-def _sound(plan: Plan, track_path: str, out_wav: Path) -> Path:
+def _sound(plan: Plan, track_path: str, out_wav: Path,
+           sfx: bool = True) -> Path:
     """Track from plan.start, gain-shaped per act, loudness-normalised."""
     x = load_audio(track_path)
     a = max(0, int(round(plan.start * SR)))
@@ -408,6 +434,13 @@ def _sound(plan: Plan, track_path: str, out_wav: Path) -> Path:
         pad = np.pad(gain, (k // 2, k // 2), mode="edge")
         gain = np.convolve(pad, np.ones(k) / k, mode="valid")[: len(gain)]
     seg = seg * gain
+
+    if sfx:
+        cues = cues_for(plan)
+        bed = render_cues(cues, plan.duration)
+        # the track is the score; the design sits under it and never masks it
+        n = min(len(seg), len(bed))
+        seg[:n] = np.clip(seg[:n] + bed[:n], -1.0, 1.0)
 
     import wave
     pcm = (np.clip(seg, -1, 1) * 32767).astype("<i2")

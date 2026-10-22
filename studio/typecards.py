@@ -34,6 +34,20 @@ class Card:
     y: int
     role: str = "line"
 
+    def moved_to(self, cx: float, cy: float, frame_w: int = 1920,
+                 frame_h: int = 1080, margin: float = 0.02) -> "Card":
+        """A copy centred on (cx, cy), clamped so it never leaves the frame."""
+        h, w = self.rgba.shape[:2]
+        x = int(round(cx - w / 2))
+        y = int(round(cy - h / 2))
+        mx = int(frame_w * margin)
+        my = int(frame_h * margin)
+        # keep the whole card inside the frame; the old clamp used the centre and
+        # let a wide card hang off the left edge
+        x = min(max(x, mx), max(mx, frame_w - mx - w))
+        y = min(max(y, my), max(my, frame_h - my - h))
+        return Card(self.text, self.rgba, x, y, self.role)
+
     def scaled(self, k: float) -> "Card":
         """A copy scaled about its own centre — the 1-frame pop on entry."""
         im = Image.fromarray(self.rgba, "RGBA")

@@ -23,7 +23,8 @@
   {
    "beat": 30.0,
    "text": "IS A",
-   "accent": "BEAUTY"
+   "accent": "BEAUTY",
+   "pin": true
   },
   {
    "beat": 32.0,
@@ -38,12 +39,14 @@
   {
    "beat": 36.0,
    "text": "MY",
-   "accent": "LIFE"
+   "accent": "LIFE",
+   "pin": true
   },
   {
    "beat": 38.0,
    "text": "COMPLETE",
-   "accent": ""
+   "accent": "",
+   "pin": true
   },
   {
    "beat": 40.0,

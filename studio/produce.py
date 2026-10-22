@@ -75,6 +75,8 @@ def main(argv=None):
     ap.add_argument("--start", type=float, default=0.0, help="track start, seconds")
     ap.add_argument("--end", type=float, default=None, help="track end, seconds")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--no-sfx", action="store_true",
+                    help="track only, no beat-locked sound design")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=18)
     a = ap.parse_args(argv)
@@ -97,8 +99,23 @@ def main(argv=None):
     out.with_suffix(".plan.json").write_text(json.dumps(plan.as_dict(), indent=1) + "\n")
     out.with_suffix(".report.json").write_text(json.dumps(rep, indent=1) + "\n")
 
+    from .sound import cues_for
+
+    cues = cues_for(plan)
+    rep["sound"] = {"cues": len(cues),
+                    "by_kind": {k: sum(1 for c in cues if c.kind == k)
+                                for k in ("riser", "impact", "whoosh", "tick",
+                                          "swell")},
+                    "on_grid_problems": __import__("studio.sound",
+                                                   fromlist=["x"]).check_on_grid(
+                                                        cues, plan)}
+    out.with_suffix(".report.json").write_text(json.dumps(rep, indent=1) + "\n")
+
     render(plan, a.source, a.track, out, a.script,
-           progress=lambda m: None, preset=a.preset, crf=a.crf)
+           progress=lambda m: None, preset=a.preset, crf=a.crf,
+           sfx=not a.no_sfx)
+    print(f"sound: {len(cues)} cues "
+          f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")
     print(f"wrote {out}  ({plan.duration:.2f}s, {time.time() - t0:.0f}s to build)")
     return 0
 
