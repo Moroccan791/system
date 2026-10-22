@@ -118,8 +118,8 @@ def align(lines: list[str], asr: list[dict]) -> list[LyricLine]:
             prev = max((k for k in anchors if k < i), default=None)
             nxt = min((k for k in anchors if k > i), default=None)
             if prev is not None and nxt is not None:
-                t0, t1 = asr[anchors[NXT := nxt]]["start"], asr[anchors[prev]]["end"]
-                t0, t1 = asr[anchors[prev]]["end"], asr[anchors[nxt]]["start"]
+                t0 = asr[anchors[prev]]["end"]
+                t1 = asr[anchors[nxt]]["start"]
                 frac = (i - prev) / max(1, (nxt - prev))
                 t = t0 + (t1 - t0) * frac
             elif prev is not None:
@@ -137,6 +137,125 @@ def align(lines: list[str], asr: list[dict]) -> list[LyricLine]:
         if ws:
             result.append(LyricLine(line, ws))
     return result
+
+
+def _sim(a: str, b: str) -> float:
+    """How much two words sound like the same word, 0..1.
+
+    Singing does not produce wrong words, it produces the right syllables through
+    a bad recogniser: "beauty" comes back "bloody", "a" comes back "I'm". Exact
+    matching then prefers a VERSE where the lyric happens to use plain words over
+    the chorus where it is actually sung. So similarity, not equality:
+
+      * identical -> 1.0
+      * same opening sound and a similar shape -> most of the way there
+      * one word is a prefix of the other ("i" / "i'm") -> 0.8
+    """
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    r = difflib.SequenceMatcher(None, a, b).ratio()
+    if a[0] == b[0]:
+        r = min(0.95, r + 0.15)
+    if len(a) > 1 and len(b) > 1 and (a.startswith(b) or b.startswith(a)):
+        r = max(r, 0.8)
+    return r
+
+
+def align_fuzzy(lines: list[str], asr: list[dict], min_sim: float = 0.62,
+                gap: float = -0.30) -> list[LyricLine]:
+    """Align the WHOLE lyric to the ASR stream at once, by sound.
+
+    Global on purpose. Every line is scored against every position, but the
+    sequence has to stay in order, so a repeated hook cannot drag a line into the
+    second chorus and an instrumental gap cannot absorb half a phrase: the DP
+    pays for the gap. The earlier per-line version searched independently and
+    happily put "All I need is a beauty and a beat" on a verse, because the ASR
+    had mangled the chorus and the verse had cleaner words.
+    """
+    toks, owner = [], []
+    for li, line in enumerate(lines):
+        for w in line.split():
+            toks.append(_norm(w))
+            owner.append(li)
+    if not toks or not asr:
+        return []
+
+    an = [_norm(w["text"]) for w in asr]
+    n, m = len(toks), len(an)
+    NEG = -1e9
+    score = [[0.0] * (m + 1) for _ in range(n + 1)]
+    back = [[0] * (m + 1) for _ in range(n + 1)]
+
+    def match(i, j):
+        sim = _sim(toks[i - 1], an[j - 1])
+        return (sim, 2) if sim >= min_sim else (gap, 1)     # 2=match 1=skip-both
+
+    for i in range(1, n + 1):
+        score[i][0] = score[i - 1][0] + gap
+        back[i][0] = 1
+    for j in range(1, m + 1):
+        score[0][j] = score[0][j - 1] + gap
+        back[0][j] = 3
+
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            sc, op = match(i, j)
+            diag = score[i - 1][j - 1] + sc
+            up = score[i - 1][j] + gap          # lyric word with no ASR word
+            left = score[i][j - 1] + gap        # ASR word that is not ours
+            best, how = diag, op
+            if up > best:
+                best, how = up, 1
+            if left > best:
+                best, how = left, 3
+            score[i][j] = best
+            back[i][j] = how
+
+    i, j = n, m
+    pairs: dict[int, tuple[int, float]] = {}
+    while i > 0 and j > 0:
+        how = back[i][j]
+        if how == 2:
+            pairs[i - 1] = (j - 1, _sim(toks[i - 1], an[j - 1]))
+            i, j = i - 1, j - 1
+        elif how == 1:
+            i -= 1
+        else:
+            j -= 1
+
+    step = 0.33
+    out: list[LyricLine] = []
+    for li, line in enumerate(lines):
+        idx = [k for k, o in enumerate(owner) if o == li]
+        if not idx:
+            continue
+        words: list[LyricWord] = []
+        for k in idx:
+            text = toks[k]
+            raw = line.split()[k - idx[0]]
+            if k in pairs:
+                j, conf = pairs[k]
+                words.append(LyricWord(raw, asr[j]["start"], asr[j]["end"],
+                                       round(conf, 2)))
+            else:
+                prev = max((x for x in idx if x < k and x in pairs), default=None)
+                nxt = min((x for x in idx if x > k and x in pairs), default=None)
+                if prev is not None and nxt is not None:
+                    t0 = asr[pairs[prev][0]]["end"]
+                    t1 = asr[pairs[nxt][0]]["start"]
+                    frac = (k - prev) / max(1, nxt - prev)
+                    t = t0 + max(0.0, t1 - t0) * frac
+                elif prev is not None:
+                    t = asr[pairs[prev][0]]["end"] + step * (k - prev)
+                elif nxt is not None:
+                    t = asr[pairs[nxt][0]]["start"] - step * (nxt - k)
+                else:
+                    t = words[-1].end if words else 0.0
+                words.append(LyricWord(raw, t, t + step, 0.35))
+        out.append(LyricLine(line, words))
+    return out
 
 
 def to_cards(lines: list[LyricLine], accent_pick=None, max_words: int = 3) -> list[dict]:
@@ -191,15 +310,6 @@ def to_cards(lines: list[LyricLine], accent_pick=None, max_words: int = 3) -> li
                           "accent": accent_pick(text) if accent_pick else ""})
     return cards
 
-
-# The chorus of the reference track. Kept as data so a different song is a
-# different file, not a code change.
-BEAUTY_AND_A_BEAT = [
-    "All I need is a beauty and a beat",
-    "Who can make my life complete",
-    "It's all yours when I'm not around",
-    "It's all yours, it's all yours",
-]
 
 ACCENT_WORDS = {"beauty", "beat", "complete", "yours", "life", "need", "make"}
 
@@ -257,7 +367,12 @@ def tighten(cards: list[dict], max_span: float = 3.2,
 def lyric_cards(track: str, start: float, duration: float,
                 lines: list[str] | None = None) -> list[dict]:
     """The whole job: track -> timed lyric cards on the edit's clock."""
-    lines = lines or BEAUTY_AND_A_BEAT
+    if not lines:
+        # There is deliberately no built-in lyric here. The words are an INPUT.
+        # A guessed chorus once shipped cards the song never sings, on correct
+        # timings, which is worse than no cards at all: it is confidently wrong.
+        raise ValueError("no lyric text supplied — captions are an input, "
+                         "never an inference")
     asr = transcribe(track, start, duration)
     aligned = align(lines, asr)
     return tighten(to_cards(aligned, accent_for))

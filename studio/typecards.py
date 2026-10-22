@@ -58,11 +58,24 @@ class Card:
         return Card(self.text, np.asarray(im), nx, ny, self.role)
 
 
-def _load_font(size: int) -> ImageFont.FreeTypeFont:
-    for p in (FONT, FONT_FALLBACK):
-        if Path(p).exists():
-            return ImageFont.truetype(p, size)
-    raise FileNotFoundError("no display font found in assets/fonts")
+def _load_font(size: int, path: str | Path | None = None) -> ImageFont.FreeTypeFont:
+    """The face in use, from assets/fonts/family.json.
+
+    A font is a decision, not a fallback: if the configured face is missing we
+    say so, rather than silently setting the whole edit in whatever happened to
+    be the only file PIL could open.
+    """
+    if path is None:
+        from . import fonts
+
+        path = fonts.main()
+    p = Path(path)
+    if p.exists():
+        return ImageFont.truetype(str(p), size)
+    for alt in (FONT, FONT_FALLBACK):
+        if Path(alt).exists():
+            return ImageFont.truetype(alt, size)
+    raise FileNotFoundError(f"no display font at {p}")
 
 
 def _measure(draw, text: str, font, tracking: int) -> tuple[int, int]:
@@ -80,7 +93,9 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
                 width_frac: float = 0.62, accent: str | None = None,
                 colour: tuple[int, int, int] = (255, 255, 255),
                 accent_colour: tuple[int, int, int] = (46, 204, 113),
-                tracking_frac: float = 0.06, shadow: bool = True) -> Card:
+                tracking_frac: float = 0.06, shadow: bool = True,
+                font_path: str | Path | None = None,
+                cap_frac: float | None = None) -> Card:
     """Draw one card, sized so its width is a fraction of the frame.
 
     `accent` is a word (or a character range marker) to paint in the accent
@@ -98,12 +113,18 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
 
     probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
     target_w = int(frame_w * width_frac)
+    # A fixed cap height is how a face is JUDGED: sizing every face to the same
+    # width makes a condensed face and a wide one look identical, which is the
+    # one thing they are not.
+    fixed = int(frame_h * cap_frac) if cap_frac else None
 
     # binary-search the font size that fills the target width
     lo, hi, size = 24, int(frame_h * 0.42), int(frame_h * 0.12)
     best = size
-    for _ in range(18):
-        font = _load_font(size)
+    if fixed:
+        best = fixed
+    for _ in ([] if fixed else range(18)):
+        font = _load_font(size, font_path)
         tracking = max(1, int(size * tracking_frac))
         w, _h = _measure(probe, body, font, tracking)
         if w < target_w:
@@ -121,11 +142,11 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
     # a glyph the height of a third of the frame — that is a poster, not a beat.
     max_h = int(frame_h * 0.26)
     while best > 12:
-        f = _load_font(best)
+        f = _load_font(best, font_path)
         if f.getmetrics()[0] + f.getmetrics()[1] <= max_h:
             break
         best = int(best * 0.94)
-    font = _load_font(best)
+    font = _load_font(best, font_path)
     tracking = max(1, int(best * tracking_frac))
     w, h = _measure(probe, body, font, tracking)
 

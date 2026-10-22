@@ -42,3 +42,6 @@ campaigns/
 .arena/
 *.log
 motion/node_modules/
+
+# converted font cache (regenerated from the woff2 originals)
+assets/fonts/ttf/

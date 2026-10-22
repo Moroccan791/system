@@ -365,7 +365,7 @@ def test_directed_plan_never_shows_the_same_frames_twice():
 
 
 def test_lyric_cards_never_overlap_and_never_invent_words():
-    from studio.lyrics import BEAUTY_AND_A_BEAT, LyricWord, LyricLine, to_cards
+    from studio.lyrics import LyricLine, LyricWord, to_cards
 
     words = "All I need is a beauty and a beat".split()
     t = 10.0
@@ -388,3 +388,75 @@ def test_script_beats_map_back_to_the_aligned_time():
     bpm = 122.75
     for beat, t in ((25.7, 12.563), (0.0, 0.0), (36.1, 17.646)):
         assert card_time(beat, bpm) == pytest.approx(t, abs=2e-3)
+
+
+# --------------------------------------------------------------------------
+# the edit may not stop in the middle of a word
+# --------------------------------------------------------------------------
+def test_out_point_waits_for_the_last_word_then_snaps_to_a_bar():
+    from studio.ends import out_point
+
+    g = _Grid(bpm=122.75)          # 0.489 s per beat, 1.955 s per bar
+    out = out_point(30.0, g, tail=1.2)
+    assert out >= 31.2
+    assert (g.beats(out) % 4) == pytest.approx(0.0, abs=1e-6)
+
+
+def test_window_that_cuts_the_last_word_is_refused():
+    from studio.ends import check_window
+
+    assert check_window(31.2, last_vocal=30.9) is None
+    msg = check_window(30.0, last_vocal=31.4)
+    assert msg and "mid-word" in msg
+
+
+def test_lyric_cards_refuse_to_invent_a_lyric():
+    from studio.lyrics import lyric_cards
+
+    with pytest.raises(ValueError):
+        lyric_cards("footage/beauty_and_a_beat.mp3", 27.75, 34.25, None)
+
+
+def test_caption_parser_keeps_words_and_drops_timestamps():
+    from studio.captions import parse_lines
+    import tempfile, pathlib
+
+    txt = ("[Chorus]\n"
+           "00:12.480 All I need is a beauty\n"
+           "\n"
+           "[00:14.10] and a beat\n"
+           "(x2)\n")
+    with tempfile.TemporaryDirectory() as d:
+        p = pathlib.Path(d) / "c.txt"
+        p.write_text(txt)
+        lines = parse_lines(p)
+    assert lines == ["All I need is a beauty", "and a beat"]
+
+
+def test_caption_cards_tile_the_vocal_with_no_gap_or_overlap():
+    from studio.captions import to_script
+    from studio.lyrics import LyricLine, LyricWord
+
+    ws = []
+    t = 5.0
+    for w in "All I need is a beauty and a beat".split():
+        ws.append(LyricWord(w, t, t + 0.30))
+        t += 0.36
+
+    # emulate the card cut without ASR
+    from studio.captions import cards_from_words
+    import studio.captions as C
+
+    orig = C.transcribe
+    C.transcribe = lambda *a, **k: [{"text": w.text, "start": w.start, "end": w.end}
+                                    for w in ws]
+    try:
+        cards = cards_from_words(["All I need is a beauty and a beat"],
+                                 "x", 0.0, 1.0, max_words=2)
+    finally:
+        C.transcribe = orig
+    assert [c["text"] for c in cards] == ["All I", "need is", "a beauty", "and a", "beat"]
+    for a, b in zip(cards, cards[1:]):
+        assert a["end"] == pytest.approx(b["start"])
+    script = to_script(cards, 120.0)
+    assert script[0]["beat"] * 60 / 120.0 == pytest.approx(cards[0]["start"])

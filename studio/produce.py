@@ -21,6 +21,11 @@ from pathlib import Path
 from .compose import OUT_FPS, OUT_H, OUT_W, render
 from .grid import analyse as analyse_track
 from .plan import build_plan, summarise
+
+# Words that carry their line, for the accent colour. Kept small on purpose: an
+# accent on every card is decoration, one accent per thought is design.
+ACCENT = {"beauty", "beat", "complete", "yours", "life", "need", "make",
+          "gwen", "her", "you", "do", "want", "music"}
 from .shots import analyse as analyse_source
 
 
@@ -72,6 +77,9 @@ def main(argv=None):
     ap.add_argument("--source", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--script", default=None, help="json list of {beat,text,accent}")
+    ap.add_argument("--captions", default=None,
+                    help="the lyric as text, one sung line per line — the words "
+                         "on screen are placed from this, never guessed")
     ap.add_argument("--start", type=float, default=0.0, help="track start, seconds")
     ap.add_argument("--end", type=float, default=None, help="track end, seconds")
     ap.add_argument("--seed", type=int, default=0)
@@ -100,13 +108,45 @@ def main(argv=None):
 
     if a.direct:
         from . import director
+        from .captions import cards_from_words, parse_lines, to_script
+        from .ends import out_point
         from .plan import build_directed_plan
-        dur = (a.end if a.end is not None else grid.duration) - a.start
-        if a.script is None:
-            a.script = str(out.with_suffix(".script.json"))
-            director.write(a.track, a.start, dur, grid.bpm, a.script)
-            print(f"script: {a.script} (from the aligned lyric)")
-        segs = director.segments_for(grid, src, a.track, a.start, dur)
+
+        if not a.captions:
+            raise SystemExit(
+                "refusing to render: --direct needs --captions. The words on "
+                "screen are an input; a guessed lyric on correct timings is "
+                "still the wrong lyric.")
+
+        # Place the captions across the WHOLE tail of the track, not just the
+        # window: the out-point is derived from the last placed word, so the
+        # window has to be able to grow past where we thought it ended.
+        lines = parse_lines(a.captions)
+        cards = cards_from_words(lines, a.track, a.start,
+                                 grid.duration - a.start)
+        if not cards:
+            raise SystemExit("refusing to render: no vocal found for the captions")
+        last_word = cards[-1]["end"]
+        if a.end is None:
+            a.end = out_point(last_word, grid, tail=1.2, ceiling=grid.duration)
+            print(f"end: {a.end:.2f}s  (last placed word ends {last_word:.2f}s, "
+                  f"+1.2s tail, snapped up to the bar)")
+        elif a.end < last_word:
+            raise SystemExit(
+                f"refusing to render: --end {a.end:.2f}s is before the last "
+                f"caption ({last_word:.2f}s) — the edit would cut the line")
+        cards = [c for c in cards if c["start"] < a.end - 1e-3]
+
+        script_path = Path(a.script) if a.script else out.with_suffix(".script.json")
+        script_path.parent.mkdir(parents=True, exist_ok=True)
+        script_path.write_text(
+            json.dumps({"cards": to_script(cards, grid.bpm, ACCENT)}, indent=1) + "\n")
+        a.script = str(script_path)
+        print(f"captions: {len(cards)} cards from {len(lines)} lines "
+              f"-> {script_path}")
+
+        dur = a.end - a.start
+        segs = director.segments_for(grid, src, cards, dur)
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)

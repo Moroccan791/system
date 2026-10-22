@@ -115,18 +115,25 @@ INTRO: list[Moment] = [
 #   8 It's all yours            33                  the cost, alone on a ledge
 #   9 it's all yours            35                  back to her face
 # ---------------------------------------------------------------------------
-CARD_DIRECTION: dict[int, dict] = {
-    0: dict(shots=(35,), div=1.0, src=150.60, note="extreme close, both faces"),
-    1: dict(shots=(14,), div=1.0, src=55.60, note="his face, lit up"),
+#   line 0 All I need...            35   the closest frame in the pack
+#   line 1 is a beauty and a beat   14   his face lit up at her
+#   line 2 Who can make...          31, 27, 35   the two of them, night
+#   line 3 my life complete         32   the kiss, one hold
+#   line 4 It's all yours           26, 10, 6    devotion
+#   line 5 when I'm not around      31, 32  -> 28, 30, 29   flashback, then distance
+#   line 6 It's all yours           33   the cost, alone on a ledge
+#   line 7 (last line)              35   back to her face
+LINE_DIRECTION: dict[int, dict] = {
+    0: dict(shots=(35,), cuts=1, src=150.60, note="extreme close, both faces"),
+    1: dict(shots=(14,), cuts=1, src=55.60, note="his face, lit up"),
     2: dict(shots=(31, 27, 35), div=2.0, note="embrace, city, close — on 8ths"),
-    3: dict(shots=(27, 31, 32), div=2.0, note="night, the two of them"),
-    4: dict(shots=(32,), cuts=1, src=135.10, ramp="settle",
+    3: dict(shots=(32,), cuts=1, src=135.10, ramp="settle",
              note="the kiss: one cut, let it breathe"),
-    5: dict(shots=(26, 10, 6), div=1.0, note="devotion"),
-    6: dict(shots=(31, 32), div=1.0, note="flashback to the embrace and the kiss"),
-    7: dict(shots=(28, 30, 29), div=1.0, note="distance, him alone"),
-    8: dict(shots=(33,), div=1.0, note="alone on the ledge"),
-    9: dict(shots=(35,), cuts=1, src=152.30, note="back to her face"),
+    4: dict(shots=(26, 10, 6), div=1.0, note="devotion"),
+    5: dict(shots=(31, 32, 28, 30, 29), div=1.0,
+             note="flashback, then distance, then her alone"),
+    6: dict(shots=(33,), div=1.0, note="alone on the ledge"),
+    7: dict(shots=(35,), cuts=1, src=152.30, note="back to her face"),
 }
 
 # The one cut that is not on a lyric: the bar of instrumental after "complete",
@@ -135,62 +142,80 @@ BRIDGE = (24, 25, 7, 23)
 BRIDGE_DIV = 0.5
 
 
-def moments_for(track: str, start: float, duration: float,
-                bpm: float) -> list[Moment]:
-    """Build the full directed timeline for the track window."""
-    cards = lyric_cards(track, start, duration)
-    if len(cards) < len(CARD_DIRECTION):
-        raise RuntimeError(
-            f"got {len(cards)} lyric cards, direction covers "
-            f"{len(CARD_DIRECTION)} — the words on screen and the shot plan "
-            f"have drifted apart")
+FILL = (24, 25, 7, 23)      # daylight, used to bridge an instrumental gap
+FILL_HOLD = 0.55            # seconds per cut in a bridge
 
-    out = [m.__class__(**{**m.__dict__}) for m in INTRO]
 
-    # instrumental bar: runs from the end of card 4 to the start of card 5
-    gap_a, gap_b = cards[4]["end"], cards[5]["start"]
-    if gap_b - gap_a > 0.5:
-        n = max(2, round((gap_b - gap_a) * bpm / 60.0 * BRIDGE_DIV))
-        step = (gap_b - gap_a) / n
-        for i in range(n):
-            out.append(Moment(gap_a + i * step, gap_a + (i + 1) * step,
-                              (BRIDGE[i % len(BRIDGE)],), BRIDGE_DIV, "drop",
-                              note="instrumental — back to daylight"))
+def moments_for(cards: list[dict], bpm: float, duration: float) -> list[Moment]:
+    """Cards + sung lines -> a directed timeline with NO holes in it.
 
-    for i, card in enumerate(cards):
-        d = CARD_DIRECTION.get(i)
-        if d is None:
-            continue
-        out.append(Moment(card["start"], card["end"], tuple(d["shots"]),
-                          d.get("div", 1.0), "drop", src=d.get("src"),
-                          ramp=d.get("ramp"), note=d.get("note", ""),
-                          cuts=d.get("cuts")))
+    One cut per card, because the picture should change when the word does. Two
+    things the earlier version got wrong:
 
-    # the tail: after the last word, one slow frame, mono. The exhale.
-    end = duration
-    if end - cards[-1]["end"] > 0.4:
-        out.append(Moment(cards[-1]["end"], end, (34,), 1.0, "out",
+      * it built one moment per LINE, so a line whose cards were spread across an
+        instrumental became a single 7-second cut;
+      * it left the instrumental between lines unplanned, which leaves holes in
+        the timeline — the encoder then runs picture and sound out of step.
+
+    Every gap is now filled explicitly, so the plan is contiguous by construction.
+    """
+    if not cards:
+        raise ValueError("no caption cards — nothing to cut to")
+
+    out: list[Moment] = [m.__class__(**{**m.__dict__}) for m in INTRO]
+    first = cards[0]["start"]
+    out = [m for m in out if m.at < first - 1e-6]
+    if out:
+        # the intro ends exactly where the first card begins: stretch it if the
+        # vocal starts late, trim it if the vocal starts early. Either way there
+        # is no overlap and no hole, which is what keeps sound and picture locked.
+        if out[-1].until < first:
+            out[-1].until = first
+        else:
+            out[-1].until = first
+            if out[-1].span < 0.20:
+                out.pop()
+
+    last_dir = LINE_DIRECTION[max(LINE_DIRECTION)]
+    line_first: dict[int, bool] = {}
+    prev_end = first
+
+    def fill(a: float, b: float, why: str):
+        n = max(1, round((b - a) / FILL_HOLD))
+        step = (b - a) / n
+        for k in range(n):
+            out.append(Moment(a + k * step, a + (k + 1) * step,
+                              (FILL[k % len(FILL)],), 1.0, "drop",
+                              note=why))
+
+    for c in cards:
+        if c["start"] > prev_end + 0.08:
+            fill(prev_end, c["start"], "instrumental — back to daylight")
+        d = LINE_DIRECTION.get(c["line"], last_dir)
+        fresh = not line_first.get(c["line"], False)
+        line_first[c["line"]] = True
+        out.append(Moment(c["start"], c["end"], tuple(d["shots"]), 1.0, "drop",
+                          src=d.get("src") if fresh else None,
+                          ramp=d.get("ramp") if fresh else None,
+                          note=d.get("note", ""), cuts=1))
+        prev_end = c["end"]
+
+    if duration > prev_end + 0.25:
+        out.append(Moment(prev_end, duration, (34,), 1.0, "out",
                           src=143.40, note="the exhale", cuts=1))
     out.sort(key=lambda m: m.at)
     return out
 
 
-def segments_for(grid, source, track: str, start: float, duration: float):
-    """Moments -> concrete segments the planner can turn into cuts.
-
-    A moment's span is divided into `div` cuts per beat; each cut takes the next
-    shot from the pool that is long enough to feed it. Source in-points come from
-    the moment when it names one, otherwise from the planner's own in-point rule.
-    """
+def segments_for(grid, source, cards: list[dict], duration: float):
+    """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
-    for m in moments_for(track, start, duration, grid.bpm):
+    for m in moments_for(cards, grid.bpm, duration):
         beats = (m.cuts if m.cuts
                  else max(1, round(m.span * grid.bpm / 60.0 * m.div)))
         step = m.span / beats
         n = len(m.shots)
         for k in range(beats):
-            # rotate the pool so a subdivided moment actually alternates shots
-            # instead of holding one frame in four identical pieces
             rot = k % n
             pool = list(m.shots[rot:]) + list(m.shots[:rot])
             flat.append({
@@ -205,41 +230,3 @@ def segments_for(grid, source, track: str, start: float, duration: float):
     return flat
 
 
-def script_cards(track: str, start: float, duration: float, bpm: float,
-                 pin: tuple[str, ...] = ("is a beauty", "my life complete",
-                                         "not around")) -> list[dict]:
-    """The on-screen words, straight from the aligned lyric.
-
-    `beat` is beats from frame one, which is the contract `compose.card_time`
-    implements. No word here is typed by hand, so no card can say something the
-    song does not say.
-    """
-    cards = []
-    for c in lyric_cards(track, start, duration):
-        cards.append({
-            "beat": round(c["start"] * bpm / 60.0, 3),
-            "text": c["text"],
-            "accent": c["accent"].upper() if c["accent"] else "",
-            "pin": c["text"] in pin,
-            # No matte on a lyric. The matte fills the letterforms with the plate
-            # underneath, which is a great move on a lens close-up and a disaster
-            # on a night rooftop: the word becomes the same tone as the sky and
-            # the line the song is carrying disappears exactly when it matters.
-            # Legibility is not negotiable on the words.
-            "matte": False,
-            "until": round(c["end"] * bpm / 60.0, 3),
-        })
-    return cards
-
-
-def write(track: str, start: float, duration: float, bpm: float,
-          script_path: str | Path, plan_path: str | Path | None = None) -> dict:
-    cards = script_cards(track, start, duration, bpm)
-    p = Path(script_path)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({"cards": cards}, indent=1) + "\n")
-    if plan_path:
-        Path(plan_path).write_text(
-            json.dumps([m.__dict__ for m in
-                        moments_for(track, start, duration, bpm)], indent=1) + "\n")
-    return {"cards": len(cards)}
