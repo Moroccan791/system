@@ -22,7 +22,7 @@ So the planner works from an act template, not from a constant cut rate:
 
 | act | fraction | cuts/beat | what happens |
 |---|---|---|---|
-| build | 0.00–0.42 | 0.11 → 0.55 | long holds, type is the only thing moving |
+| build | 0.00–0.42 | 0.11 → 0.55 | holds up to 2.6s, type is the only thing moving |
 | drop | 0.42–0.80 | 1.15 | cuts on 8ths and 16ths, flashes on ~1 cut in 5 |
 | out | 0.80–1.00 | 0.42 @ 0.55× speed | slow motion, monochrome, release |
 
@@ -63,6 +63,9 @@ Per shot: motion, laplacian sharpness, brightness, saturation, warm/cool/mono.
   penalised only when the hold is long;
 * a cut can never be longer than the shot feeding it: if nothing is that long,
   the hold is split into 2–6 cuts on the grid rather than freezing a frame;
+* a hold may not exceed `MAX_HOLD_S` (2.6 s in the build and out). Uncapped, the
+  only shots long enough to fill a 4.4 s hold in the Spider-Man scenepack are the
+  dark atmospheric ones, which forces the edit onto the worst footage in the pack;
 * flashes only in the drop, budgeted at 22% of cuts, and only where consecutive
   shots differ hard in brightness or in colour family.
 
@@ -122,6 +125,11 @@ Two things that source forced:
 * **Motion.** Every shot in a Twixtor pack measures 0.002–0.019 motion, because
   it is all slow motion. Absolute thresholds made the choice meaningless, so
   shot choice now uses each shot's **percentile rank within its own source**.
+* **Hold length.** Only 4 of 17 shots in the scenepack are ≥4.3 s and those are
+  the darkest (brightness 29–60, against bright shots at 107 and 79 that are
+  short). A 4.4 s hold therefore had exactly one option: something too dark to
+  read. Capping holds at 2.6 s widens the choice set — the build now opens on a
+  shot at brightness 79 and a close-up at 107.
 
 ## What is not built yet
 

@@ -50,6 +50,12 @@ DIVISION = {"build": 1, "drop": 4, "out": 2}
 # how much the last stretch of the build accelerates toward the drop
 RAMP = (0.80, 2.4)   # density multiplier at ramp start / at the drop
 
+# A hold may not exceed this many seconds: beyond it the planner splits the
+# hold across shots. On a scenepack the only shots long enough for a 4.4s hold
+# are the dark atmospheric ones, so an uncapped hold forces the edit onto the
+# worst footage in the pack.
+MAX_HOLD_S = {"build": 2.6, "drop": 99.0, "out": 2.6}
+
 # playback speed per act. Slow motion in the out is the reference's exhale.
 SPEED = {"build": 1.0, "drop": 1.0, "out": 0.55}
 
@@ -279,6 +285,9 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
             # quantise the length to the act's grid division
             div = DIVISION[act]
             length = max(1.0 / div, round(length * div) / div)
+            max_hold_beats = MAX_HOLD_S[act] * grid.bpm / 60.0
+            if length > max_hold_beats:
+                length = max(1.0 / div, round(max_hold_beats * div) / div)
             if beat + length > b_end:
                 length = b_end - beat
                 if length < 1.0 / div:
