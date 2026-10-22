@@ -186,19 +186,28 @@ def lines_of(cards: list[dict]) -> list[dict]:
     return out
 
 
-def to_script(cards: list[dict], bpm: float, accent: dict | None = None) -> list[dict]:
-    """Cards -> the script format compose.py reads (beats from frame one)."""
+def to_script(cards: list[dict], bpm: float, accent: dict | None = None,
+              origin: float = 0.0) -> list[dict]:
+    """Cards -> the script format compose.py reads (beats from frame one).
+
+    `origin` is the track time where the edit begins. Cards are placed against
+    the track (25.98s means 25.98s into the song), the picture is placed against
+    the edit (frame one = the start of the window), and compose counts beats from
+    frame one. Without the subtraction a card approved at 25.98s into the song
+    lands 23.83 seconds late in a window that starts there — the words arrive
+    after the line has been sung, over the wrong shots.
+    """
     accent = accent or ACCENT_WORDS
     out = []
     for c in cards:
         word = accent_word(c["text"])
         out.append({
-            "beat": round(c["start"] * bpm / 60.0, 3),
+            "beat": round((c["start"] - origin) * bpm / 60.0, 3),
             "text": c["text"],
             "accent": word.upper(),
             "pin": False,
             "matte": False,
-            "until": round(c["end"] * bpm / 60.0, 3),
+            "until": round((c["end"] - origin) * bpm / 60.0, 3),
         })
     return out
 

@@ -468,6 +468,11 @@ def build_directed_plan(grid: Grid, source: Source, segments: list[dict],
             pool = [max(range(len(source.shots)),
                         key=lambda i: source.shots[i].dur)]
         fits = [i for i in pool if source.shots[i].dur * 0.97 >= need]
+        # Do not cut from a shot back into the same shot: two frames from
+        # different places in one take, one after the other, read as a stutter,
+        # not as a cut. Rotate to another fitting member of the pool instead.
+        if len(fits) > 1 and plan.cuts and fits[0] == plan.cuts[-1].shot:
+            fits = fits[1:] + fits[:1]
         chosen = fits[0] if fits else max(pool, key=lambda i: source.shots[i].dur)
         shot = source.shots[chosen]
         if need > shot.dur:

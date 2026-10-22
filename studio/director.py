@@ -103,46 +103,41 @@ INTRO: list[Moment] = [
 # screen and the picture underneath can never drift apart: the same function
 # that times the text decides when the shot changes.
 #
-#   card                        shot pool           why
-#   0 All I need                35                  the closest frame in the pack
-#   1 is a beauty               14                  his face lit up at her
-#   2 and a beat (rhythmic)     31,27,35            motion on 8ths
-#   3 Who can make (rhythmic)   27,31,32            the two of them, night
-#   4 my life complete          32 (hold)           the kiss, one cut, no cutting
-#   5 It's all yours           26,10,6             devotion: her, him, them
-#   6 when I'm                  31,32               the flashback
-#   7 not around                28,30,29            distance, him alone
-#   8 It's all yours            33                  the cost, alone on a ledge
-#   9 it's all yours            35                  back to her face
-# ---------------------------------------------------------------------------
-#   line 0 All I need...            35   the closest frame in the pack
-#   line 1 is a beauty and a beat   14   his face lit up at her
-#   line 2 Who can make...          31, 27, 35   the two of them, night
-#   line 3 my life complete         32   the kiss, one hold
-#   line 4 It's all yours           26, 10, 6    devotion
-#   line 5 when I'm not around      31, 32  -> 28, 30, 29   flashback, then distance
-#   line 6 It's all yours           33   the cost, alone on a ledge
-#   line 7 (last line)              35   back to her face
+#   line                                     pool                 why
+#   ----------------------------------------------------------------  -------
+#   0 We young tonight                     27,31,28   night, the two of them
+#   1 I'm coming for ya                     10,0,12,23  he comes to her
+#   2 'Cause all I need                    35,14      the closest frames
+#   3 Is a beauty and a beat                29,6,26    her
+#   4 Who can make my life complete         32,31      the kiss
+#   5 It's all all 'bout you                26,35,31   devotion
+#   6 When the music makes you move         31,27,32   motion inside the moment
+#   7 Baby, do it like you do               35,32,31   back to her face
+#
+# This lyric is the chorus of "Beauty and a Beat", eight lines, repeated words.
+# The pool for a line is the pair, never one of them alone: the brief is the
+# couple, and the pack's warm daylight singles (24, 25, 30, 34) belong to the
+# opening and to nothing else. Rhythm comes from `div` — 2 cuts per beat turns a
+# long card into eighths — never from cutting to a shot the line is not about.
 LINE_DIRECTION: dict[int, dict] = {
-    0: dict(shots=(35,), cuts=1, src=150.60, note="extreme close, both faces"),
-    1: dict(shots=(14,), cuts=1, src=55.60, note="his face, lit up"),
-    2: dict(shots=(31, 27, 35), div=2.0, note="embrace, city, close — on 8ths"),
-    3: dict(shots=(32,), cuts=1, src=135.10, ramp="settle",
+    0: dict(shots=(27, 31, 28), div=1.0, note="night, the two of them"),
+    1: dict(shots=(10, 0, 12, 23), div=2.0, note="the approach"),
+    2: dict(shots=(35, 14), div=1.0, note="the closest frames in the pack"),
+    3: dict(shots=(29, 6, 26), div=1.0, note="her"),
+    4: dict(shots=(32, 31), cuts=1, ramp="settle",
              note="the kiss: one cut, let it breathe"),
-    4: dict(shots=(26, 10, 6), div=1.0, note="devotion"),
-    5: dict(shots=(31, 32, 28, 30, 29), div=1.0,
-             note="flashback, then distance, then her alone"),
-    6: dict(shots=(33,), div=1.0, note="alone on the ledge"),
-    7: dict(shots=(35,), cuts=1, src=152.30, note="back to her face"),
+    5: dict(shots=(26, 35, 31), div=2.0, note="devotion"),
+    6: dict(shots=(31, 27, 32), div=2.0, note="motion inside the moment"),
+    7: dict(shots=(35, 32, 31), div=2.0, note="back to her face"),
 }
 
-# The one cut that is not on a lyric: the bar of instrumental after "complete",
-# where the edit exhales and returns to daylight before the second half.
-BRIDGE = (24, 25, 7, 23)
+# The bar of instrumental between "I need" and its answer, where the edit
+# breathes. Still the couple: a bridge is a change of pace, not of subject.
+BRIDGE = (31, 27, 26)
 BRIDGE_DIV = 0.5
 
 
-FILL = (24, 25, 7, 23)      # daylight, used to bridge an instrumental gap
+FILL = (31, 27, 26, 35)     # the couple, used to bridge an instrumental gap
 FILL_HOLD = 0.55            # seconds per cut in a bridge
 
 
@@ -217,19 +212,40 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
                               note=why))
 
     for c in cards:
-        if c["start"] > prev_end + 0.08:
-            fill(prev_end, c["start"], "instrumental — back to daylight")
+        gap = c["start"] - prev_end
+        if gap > 0.005:
+            if gap <= 0.35 and out:
+                # a card can end on its word and leave a few frames before the
+                # next one starts. Do not invent a cut for 60ms of silence —
+                # hold the previous shot through it.
+                out[-1].until = c["start"]
+            else:
+                fill(prev_end, c["start"], "instrumental — back to daylight")
         d = LINE_DIRECTION.get(c["line"], last_dir)
         fresh = not line_first.get(c["line"], False)
         line_first[c["line"]] = True
-        out.append(Moment(c["start"], c["end"], tuple(d["shots"]), 1.0, "drop",
+        # `div` is what makes a long card overedit instead of holding: the
+        # card's own duration decides how many cuts it earns. A line that says
+        # cuts=1 (the kiss) is the one place the picture is allowed to sit.
+        out.append(Moment(c["start"], c["end"], tuple(d["shots"]),
+                          d.get("div", 1.0), "drop",
                           src=d.get("src") if fresh else None,
                           ramp=d.get("ramp") if fresh else None,
-                          note=d.get("note", ""), cuts=1))
+                          note=d.get("note", ""), cuts=d.get("cuts")))
         prev_end = c["end"]
 
-    if duration > prev_end + 0.25:
-        out.append(Moment(prev_end, duration, (34,), 1.0, "out",
+    gap = duration - prev_end
+    if gap > 0.25:
+        # A tail is a breath, not a twelfth shot. Anything longer than a couple
+        # of seconds gets bridge cuts and THEN a short exhale, because a single
+        # 26-second hold at quarter speed is not slow motion, it is a stuck file.
+        exhale = min(2.0, gap)
+        if gap - exhale > 0.6:
+            fill(prev_end, duration - exhale, "tail — bridge to the end")
+        # One hold, not a sub-divided one: cutting inside a 0.55x settle means
+        # the source jumps backwards under a slow image, which reads as a
+        # stutter. The exhalation is a single, uncut breath.
+        out.append(Moment(duration - exhale, duration, (34,), 1.0, "out",
                           src=143.40, note="the exhale", cuts=1))
     out.sort(key=lambda m: m.at)
     return out
@@ -241,7 +257,7 @@ def segments_for(grid, source, cards: list[dict], duration: float,
     flat = []
     for m in moments_for(cards, grid.bpm, duration, start):
         beats = (m.cuts if m.cuts
-                 else max(1, round(m.span * grid.bpm / 60.0 * m.div)))
+                 else max(1, min(4, round(m.span * grid.bpm / 60.0 * m.div))))
         step = m.span / beats
         n = len(m.shots)
         for k in range(beats):

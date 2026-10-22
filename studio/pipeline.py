@@ -101,12 +101,16 @@ def run(video: str, audio: str, captions: str, out: str,
 
     sheet = preview_path or str(Path(out).with_suffix(".cards.jpg"))
     preview(cards, sheet)
+    cards_file = Path(out).with_suffix(".cards.json")
+    cards_file.parent.mkdir(parents=True, exist_ok=True)
+    cards_file.write_text(json.dumps(cards, indent=1) + "\n")
     script = Path(out).with_suffix(".script.json")
     script.parent.mkdir(parents=True, exist_ok=True)
     script.write_text(json.dumps({"cards": to_script(cards, grid.bpm)},
                                  indent=1) + "\n")
     report["sheet"] = sheet
     report["script"] = str(script)
+    report["cards_file"] = str(cards_file)
 
     if font:
         col = None
@@ -131,6 +135,7 @@ def run(video: str, audio: str, captions: str, out: str,
     from .produce import main as produce
 
     produce(["--track", audio, "--source", video, "--captions", captions,
+             "--cards", str(cards_file),
              "--start", f"{start:.3f}", "--end", f"{end:.3f}",
              "--script", str(script), "--out", out, "--direct",
              "--preset", preset, "--crf", str(crf)])

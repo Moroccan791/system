@@ -73,6 +73,10 @@ def main(argv=None):
     ap.add_argument("--source", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--script", default=None, help="json list of {beat,text,accent}")
+    ap.add_argument("--cards", default=None,
+                    help="json list of approved cards (start/end/text/line) — "
+                         "used verbatim, no second transcription")
+    ap.add_argument("--plan-only", action="store_true")
     ap.add_argument("--captions", default=None,
                     help="the lyric as text, one sung line per line — the words "
                          "on screen are placed from this, never guessed")
@@ -117,9 +121,15 @@ def main(argv=None):
         # Place the captions across the WHOLE tail of the track, not just the
         # window: the out-point is derived from the last placed word, so the
         # window has to be able to grow past where we thought it ended.
-        lines = parse_lines(a.captions)
-        cards = cards_from_words(lines, a.track, a.start,
-                                 grid.duration - a.start)
+        if a.cards:
+            # The cards were placed and approved upstream. Re-deriving them here
+            # would transcribe again, disagree by up to a second, and silently
+            # render something the operator never saw.
+            cards = json.loads(Path(a.cards).read_text())
+        else:
+            lines = parse_lines(a.captions)
+            cards = cards_from_words(lines, a.track, a.start,
+                                     grid.duration - a.start)
         if not cards:
             raise SystemExit("refusing to render: no vocal found for the captions")
         last_word = cards[-1]["end"]
@@ -136,10 +146,12 @@ def main(argv=None):
         script_path = Path(a.script) if a.script else out.with_suffix(".script.json")
         script_path.parent.mkdir(parents=True, exist_ok=True)
         script_path.write_text(
-            json.dumps({"cards": to_script(cards, grid.bpm, ACCENT)}, indent=1) + "\n")
+            json.dumps({"cards": to_script(cards, grid.bpm, ACCENT,
+                                           origin=a.start)}, indent=1) + "\n")
         a.script = str(script_path)
-        print(f"captions: {len(cards)} cards from {len(lines)} lines "
-              f"-> {script_path}")
+        src_desc = (f"{len(lines)} lines" if a.captions and not a.cards
+                    else "approved upstream")
+        print(f"captions: {len(cards)} cards from {src_desc} -> {script_path}")
 
         segs = director.segments_for(grid, src, cards, a.end, a.start)
         plan = build_directed_plan(grid, src, segs, a.start)
@@ -162,6 +174,10 @@ def main(argv=None):
                                                    fromlist=["x"]).check_on_grid(
                                                         cues, plan)}
     out.with_suffix(".report.json").write_text(json.dumps(rep, indent=1) + "\n")
+
+    if a.plan_only:
+        print(f"plan-only: {out} not rendered")
+        return 0
 
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
