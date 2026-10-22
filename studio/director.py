@@ -186,30 +186,36 @@ LINE_DIRECTION_TOM: dict[int, dict] = {
 # They should not share a frame, so the packs are disjoint on purpose.
 # ---------------------------------------------------------------------------
 LINE_DIRECTION_BANGLA: dict[int, dict] = {
-    # Faahun — metal, 4.18s sung lines, two cards each. Held images, not montage.
-    0: dict(shots=(42, 41, 40, 43, 4, 5), div=0.75, note="her face, already crying"),
-    1: dict(shots=(28, 29, 35, 36, 9, 11), div=0.75, note="'still alive' — the smile"),
-    2: dict(shots=(43, 42, 52, 53, 54, 55), div=0.75, note="the dark"),
-    3: dict(shots=(1, 58, 56, 57, 50, 51), div=0.75, note="him, alone in it"),
-    4: dict(shots=(40, 41, 42, 43, 92, 93), div=0.75, note="the wound again"),
-    5: dict(shots=(11, 12, 35, 36, 37, 38), div=0.75, note="and the reason"),
-    6: dict(shots=(47, 48, 49, 120, 121, 122), div=0.75, note="night, the city"),
-    7: dict(shots=(53, 54, 55, 104, 105, 106), div=0.75, note="the dark, closer"),
-    8: dict(shots=(42, 43, 40, 41, 92, 102), div=0.75, note="her, one last time"),
-    9: dict(shots=(9, 28, 29, 35, 87, 88), div=0.75, note="the reason he stayed"),
-    10: dict(shots=(58,), cuts=1, ramp="settle",
-             note="'dayii' — one hold, the silhouette"),
+    # Faahun — metal, four sung phrases of two cards each, 1.5-2.3s a card.
+    # The grief half of the pack: her face at the wound, him in the dark after.
+    0: dict(shots=(42, 41, 43, 40), div=0.8, note="AMAR MORAR — her, already crying"),
+    1: dict(shots=(52, 53, 55, 54), div=0.8, note="KARON TUMII — the dark behind her"),
+    2: dict(shots=(56, 57, 50, 51), div=0.8, note="ABAR BECHE — what is left of him"),
+    3: dict(shots=(96, 97, 98, 99), div=0.8, note="THAKAR DAYII — the reason he stayed"),
+    4: dict(shots=(40, 42, 41, 43), div=0.8, note="AMAR MORAR again — the same wound"),
+    5: dict(shots=(53, 54, 52, 55), div=0.8, note="KARON TUMII again"),
+    6: dict(shots=(104, 105, 106, 103), div=0.8, note="ABAR BECHE again"),
+    7: dict(shots=(58, 59, 60, 61), div=1.6, ramp="settle", note="DAYII — hold on the last word"),
 }
 
 LINE_DIRECTION_ZAALIMA: dict[int, dict] = {
-    # Zaalima — the warm half. Nothing from the fall, nothing from the grief.
-    0: dict(shots=(6, 8, 10, 11, 12, 35), div=1.0, note="after seeing you"),
-    1: dict(shots=(9, 29, 43, 42, 4, 5), div=1.0, note="'zaalima' — her, mid-argument"),
-    2: dict(shots=(14, 15, 16, 17, 18, 19), div=1.0, note="the world watching"),
-    3: dict(shots=(13, 40, 41, 36, 37, 38), div=1.0, note="the blame lands"),
-    4: dict(shots=(44, 45, 76, 77, 87, 88), div=1.0, note="both of them, again"),
-    5: dict(shots=(89, 90, 91, 100, 101, 84), div=1.0, note="closer now"),
-    6: dict(shots=(90, 91, 100, 101, 85, 86), div=1.0, note="'kehlayi' — the last word"),
+    # Zaalima — the warm half: the lab, the rooftop, the two-shots. Nothing from
+    # the fall, nothing from the dark, so the two edits share no frame.
+    0: dict(shots=(4, 5, 6), div=1.0, note="Deedaar tera — after seeing you"),
+    1: dict(shots=(8, 10, 11), div=1.0, note="milne ke baad — the first look"),
+    2: dict(shots=(9, 29, 30), div=1.0, note="chhute meri angdaai — her laugh"),
+    3: dict(shots=(12, 13, 14), div=1.0, note="Tu hi bata — mid-argument"),
+    4: dict(shots=(15, 16, 17), div=1.0, note="de kyun zaalima — the world watching"),
+    5: dict(shots=(18, 19, 20), div=1.0, note="main kehlayi — the blame lands on her"),
+    6: dict(shots=(34, 35, 36), div=1.0, note="Kyun is tarah — the rooftop"),
+    7: dict(shots=(37, 38, 39), div=1.0, note="se duniya jahan — city below"),
+    8: dict(shots=(44, 45, 46), div=1.0, note="mein karta hai — both of them"),
+    9: dict(shots=(80, 81, 86), div=1.0, note="meri ruswaai — the closest they got"),
+    10: dict(shots=(87, 88, 89), div=1.0, note="Tera kusoor — tenderness"),
+    11: dict(shots=(90, 91, 100), div=1.2, ramp="settle", note="zaalima main kehlayi — hold"),
+    12: dict(shots=(23, 24, 25), div=1.0, note="Deedaar tera — the hook again"),
+    13: dict(shots=(26, 27, 28), div=1.0, note="ke baad hi — balcony"),
+    14: dict(shots=(101, 84, 85), div=1.4, ramp="settle", note="angdaai — the last word"),
 }
 
 DIRECTIONS = {"peter_gwen": LINE_DIRECTION,
