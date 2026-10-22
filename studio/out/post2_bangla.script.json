@@ -1,0 +1,203 @@
+{
+ "bpm": 115.0,
+ "cards": [
+  {
+   "beat": 0.0,
+   "text": "AMAR MORAR",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 3.53
+  },
+  {
+   "beat": 3.53,
+   "text": "KARON TUMII",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 8.012
+  },
+  {
+   "beat": 8.012,
+   "text": "ABAR BECHE",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 11.533
+  },
+  {
+   "beat": 11.533,
+   "text": "THAKAR DAYII",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 16.023
+  },
+  {
+   "beat": 16.023,
+   "text": "AMAR MORAR",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 19.485
+  },
+  {
+   "beat": 19.485,
+   "text": "KARON TUMII",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 24.035
+  },
+  {
+   "beat": 24.035,
+   "text": "ABAR BECHE",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 27.774
+  },
+  {
+   "beat": 27.774,
+   "text": "THAKAR DAYII",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 32.047
+  },
+  {
+   "beat": 32.047,
+   "text": "AMAR MORAR",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 35.518
+  },
+  {
+   "beat": 35.518,
+   "text": "KARON TUMII",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 40.058
+  },
+  {
+   "beat": 40.058,
+   "text": "ABAR BECHE",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 43.336
+  },
+  {
+   "beat": 43.336,
+   "text": "THAKAR DAYII",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 48.07
+  },
+  {
+   "beat": 48.07,
+   "text": "AMAR MORAR",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 51.633
+  },
+  {
+   "beat": 51.633,
+   "text": "KARON TUMII",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 56.082
+  },
+  {
+   "beat": 56.082,
+   "text": "ABAR BECHE",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 59.7
+  },
+  {
+   "beat": 59.7,
+   "text": "THAKAR DAYII",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 64.093
+  },
+  {
+   "beat": 64.093,
+   "text": "AMAR MORAR",
+   "line": 8,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 67.756
+  },
+  {
+   "beat": 67.756,
+   "text": "KARON TUMII",
+   "line": 8,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 72.105
+  },
+  {
+   "beat": 72.105,
+   "text": "ABAR BECHE",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 75.603
+  },
+  {
+   "beat": 75.603,
+   "text": "THAKAR DAYII",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 80.117
+  },
+  {
+   "beat": 80.117,
+   "text": "AMAR MORAR",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 83.664
+  },
+  {
+   "beat": 83.664,
+   "text": "KARON TUMII",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 88.243
+  }
+ ]
+}

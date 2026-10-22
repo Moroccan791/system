@@ -1,0 +1,8 @@
+ship gate — post2_bangla.mp4
+  PASS  resolution       1920x1080
+  PASS  frame rate       30.00 fps
+  PASS  audio            2 channel(s)
+  PASS  no dead frames   0 frame(s) below luma 12
+  PASS  handle           brightness +87 over its surround (138 frames)
+  PASS  captions fit     last card 46.04s vs 46.04s of picture
+  READY TO POST

@@ -1,0 +1,284 @@
+{
+ "bpm": 90.0,
+ "cards": [
+  {
+   "beat": 5.25,
+   "text": "Deedaar tera",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 6.931
+  },
+  {
+   "beat": 6.931,
+   "text": "milne ke",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 8.34
+  },
+  {
+   "beat": 8.34,
+   "text": "baad hi",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 9.468
+  },
+  {
+   "beat": 9.468,
+   "text": "chhute meri",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 11.012
+  },
+  {
+   "beat": 11.012,
+   "text": "angdaai",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 12.0
+  },
+  {
+   "beat": 12.0,
+   "text": "Tu hi",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 13.254
+  },
+  {
+   "beat": 13.254,
+   "text": "bata de",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 14.583
+  },
+  {
+   "beat": 14.583,
+   "text": "kyun zaalima",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 16.633
+  },
+  {
+   "beat": 16.633,
+   "text": "main kehlayi",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 18.75
+  },
+  {
+   "beat": 18.75,
+   "text": "Kyun is",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 19.559
+  },
+  {
+   "beat": 19.559,
+   "text": "tarah se",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 20.868
+  },
+  {
+   "beat": 20.868,
+   "text": "duniya jahan",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 22.535
+  },
+  {
+   "beat": 22.535,
+   "text": "mein karta",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 23.825
+  },
+  {
+   "beat": 23.825,
+   "text": "hai meri",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 24.686
+  },
+  {
+   "beat": 24.686,
+   "text": "ruswaai",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 25.5
+  },
+  {
+   "beat": 25.5,
+   "text": "Tera kusoor",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 27.64
+  },
+  {
+   "beat": 27.64,
+   "text": "aur zaalima",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 30.014
+  },
+  {
+   "beat": 30.014,
+   "text": "main kehlayi",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 32.25
+  },
+  {
+   "beat": 32.25,
+   "text": "Deedaar tera",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 33.849
+  },
+  {
+   "beat": 33.849,
+   "text": "milne ke",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 35.341
+  },
+  {
+   "beat": 35.341,
+   "text": "baad hi",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 36.374
+  },
+  {
+   "beat": 36.374,
+   "text": "chhute meri",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 38.013
+  },
+  {
+   "beat": 38.013,
+   "text": "angdaai",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 39.0
+  },
+  {
+   "beat": 39.0,
+   "text": "Tu hi",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 40.291
+  },
+  {
+   "beat": 40.291,
+   "text": "bata de",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 41.715
+  },
+  {
+   "beat": 41.715,
+   "text": "kyun zaalima",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 43.606
+  },
+  {
+   "beat": 43.606,
+   "text": "main kehlayi",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 45.75
+  },
+  {
+   "beat": 45.75,
+   "text": "Tu hi",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 47.091
+  },
+  {
+   "beat": 47.091,
+   "text": "bata de",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 48.457
+  },
+  {
+   "beat": 48.457,
+   "text": "kyun zaalima",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 50.505
+  },
+  {
+   "beat": 50.505,
+   "text": "main kehlayi",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 52.59
+  }
+ ]
+}
