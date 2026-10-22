@@ -122,7 +122,23 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
     lo, hi, size = 24, int(frame_h * 0.42), int(frame_h * 0.12)
     best = size
     if fixed:
+        # Equalise OPTICAL size, not point size. Two faces at the same point size
+        # have different cap heights — Couture set 40% smaller than Gefika at the
+        # same number, which makes a specimen sheet lie about what you are seeing.
+        lo, hi = 8, int(frame_h * 0.5)
         best = fixed
+        for _ in range(24):
+            mid = (lo + hi) // 2
+            f = _load_font(mid, font_path)
+            b = f.getbbox("H")
+            hgt = b[3] - b[1]
+            if hgt < fixed:
+                lo = mid
+            else:
+                hi = mid
+            best = mid
+            if abs(hgt - fixed) <= 1 or hi - lo <= 1:
+                break
     for _ in ([] if fixed else range(18)):
         font = _load_font(size, font_path)
         tracking = max(1, int(size * tracking_frac))

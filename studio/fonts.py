@@ -135,7 +135,9 @@ def accent() -> Path | None:
 
 
 def specimen(out: str | Path, text: str = "IS A BEAUTY",
-             faces: list[str] | None = None, tile_w: int = 640) -> Path:
+             faces: list[str] | None = None, tile_w: int = 640,
+             plate: tuple[str, float] | None = None,
+             cap_frac: float = 0.115) -> Path:
     """The same word, every face, at the size it will actually be set."""
     import numpy as np
     from PIL import Image, ImageDraw
@@ -148,7 +150,7 @@ def specimen(out: str | Path, text: str = "IS A BEAUTY",
     for name in faces:
         path = ensure(name)
         try:
-            card = render_card(text, 1920, 1080, cap_frac=0.115,
+            card = render_card(text, 1920, 1080, cap_frac=cap_frac,
                                font_path=str(path))
         except Exception as exc:                      # a face that will not load
             tiles.append((name, None, str(exc)))
@@ -158,12 +160,33 @@ def specimen(out: str | Path, text: str = "IS A BEAUTY",
     ok = [(n, c) for n, c, e in tiles if c is not None]
     if not ok:
         raise RuntimeError("no face loaded")
+
+    # A face is judged on the picture, not on grey. Same frame for every face, so
+    # the only variable is the type.
+    base = None
+    if plate:
+        import subprocess
+
+        import imageio_ffmpeg
+
+        path, t = plate
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-loglevel", "error",
+                        "-y", "-ss", f"{t:.3f}", "-i", str(path), "-frames:v", "1",
+                        "/tmp/spec_plate.png"], check=True)
+        base = Image.open("/tmp/spec_plate.png").convert("RGB").resize((1920, 1080))
     h = int(tile_w * 9 / 16)
     rows = (len(ok) + 1) // 2
     sheet = Image.new("RGB", (tile_w * 2, h * rows), (20, 20, 22))
     for r, (name, card) in enumerate(ok):
-        frame = np.full((1080, 1920, 3), 34, dtype=np.uint8)
-        composite(frame, card)
+        if base is None:
+            frame = np.full((1080, 1920, 3), 34, dtype=np.uint8)
+            composite(frame, card)
+        else:
+            from .typecards import scrim
+
+            frame = np.asarray(base).copy()
+            scrim(frame, card, amount=0.34, blur=14)
+            composite(frame, card)
         im = Image.fromarray(frame).resize((tile_w, h))
         d = ImageDraw.Draw(im)
         d.rectangle([0, 0, 210, 20], fill=(0, 0, 0))
