@@ -101,6 +101,9 @@ def main(argv=None):
                     help="skip push-in / entry settle / grain")
     ap.add_argument("--no-premium", action="store_true",
                     help="skip colour matching and the filmic grade")
+    ap.add_argument("--no-watermark", action="store_true",
+                    help="leave the account handle off the frame (it is read "
+                         "from assets/fonts/family.json)")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=None,
                     help="default 18 clean, 23 when the look layer is on: grain "
@@ -227,7 +230,8 @@ def main(argv=None):
 
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
-           sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium)
+           sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium,
+           watermark=not a.no_watermark)
     print(f"sound: {len(cues)} cues "
           f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")
     print(f"wrote {out}  ({plan.duration:.2f}s, {time.time() - t0:.0f}s to build)")

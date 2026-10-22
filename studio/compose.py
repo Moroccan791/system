@@ -254,7 +254,8 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
 def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            script_path: str | Path | None = None, cards_until: float | None = None,
            progress=print, preset: str = "medium", crf: int = 18,
-           sfx: bool = True, look: bool = True, premium: bool = True) -> Path:
+           sfx: bool = True, look: bool = True, premium: bool = True,
+           watermark: bool = True) -> Path:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     grid = plan.grid
@@ -444,6 +445,11 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                     else:
                         composite(frame, card, alpha=1.0)
                     break
+
+            # the handle last, so nothing in the design ever covers it
+            if watermark:
+                from . import watermark as _wm
+                frame = _wm.stamp(frame)
 
             prev_last = frame
             enc.stdin.write(frame.tobytes())

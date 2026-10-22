@@ -5,5 +5,9 @@
   255,
   209,
   37
- ]
+ ],
+ "watermark": "@fayzann.edits",
+ "watermark_font": "DejaVuSans.ttf",
+ "watermark_frac": 0.021,
+ "watermark_alpha": 0.62
 }

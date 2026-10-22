@@ -638,3 +638,37 @@ def test_shot_trim_skips_a_black_head():
     # a shot that is black all the way through is left alone, not zeroed
     dark_b, dark_s = np.full(10, 11.0), np.full(10, 0.2)
     assert _trim_dead(0, 10, dark_b, dark_s, fps) == (0, 10)
+
+
+def test_watermark_is_plain_type_bottom_centre():
+    """The handle is legibility, not typography: plain face, bottom centre,
+    half transparent, and it never touches the words in the middle."""
+    import numpy as np
+    from studio import watermark
+
+    st = {"text": "@fayzann.edits", "font": "assets/fonts/DejaVuSans.ttf",
+          "frac": 0.021, "alpha": 0.62}
+    frame = np.full((1080, 1920, 3), 90, dtype=np.uint8)
+    before = frame.copy()
+    watermark.clear()
+    watermark.stamp(frame, st)
+    # something was drawn near the bottom edge
+    band = frame[950:1080]
+    assert (band != 90).any()
+    # ...and the word area is untouched
+    assert np.array_equal(frame[:800], before[:800])
+    # ...and the handle is centred
+    ys, xs = np.nonzero((frame != 90).any(axis=2))
+    assert abs(int(xs.mean()) - 960) < 60
+
+
+def test_watermark_off_when_not_configured():
+    import numpy as np
+    from studio import watermark
+
+    off = {"text": "", "font": "assets/fonts/DejaVuSans.ttf",
+           "frac": 0.021, "alpha": 0.62}
+    frame = np.full((540, 960, 3), 90, dtype=np.uint8)
+    watermark.clear()
+    out = watermark.stamp(frame, off)
+    assert (out == 90).all()
