@@ -148,6 +148,42 @@ def to_markdown(listing: Listing, name: str = "edit") -> str:
     return "\n".join(out)
 
 
+def to_post(listing: Listing, name: str = "edit", duration: float = 0.0) -> str:
+    """The file you actually paste from, on the day.
+
+    The listing document is for review; this is for the upload screen. Title
+    first (in the order to try), then one caption block per platform — the same
+    words, sized to what each one shows before "more" — then the tags on their
+    own line so they are never buried inside a sentence.
+    """
+    tags = " ".join("#" + t for t in listing.hashtags)
+    short_visible = LIMITS["reels"]["visible"]
+    # The description already ends with its tag line. Strip any line that is
+    # only hashtags before adding the canonical set back, or the caption carries
+    # them twice — which is exactly what happened the first time this ran.
+    body = [ln for ln in listing.description.strip().split("\n")
+            if not (ln.strip() and all(w.startswith("#") for w in ln.split()))]
+    lead = "\n".join(body).rstrip()
+    first = _clip(lead.split("\n")[0], short_visible)
+    out = [f"# POST — {name}", ""]
+    if duration:
+        out.append(f"_{duration:.1f}s · 1920x1080 · 30fps_")
+        out.append("")
+    out += ["## Title", ""]
+    for i, t in enumerate(listing.titles, 1):
+        out.append(f"{i}. **{t}**  ({len(t)} chars)")
+    out += ["", "## Description", "",
+            "Paste as-is (Reels / TikTok / Shorts all accept this):", "",
+            "```", lead, "", tags, "```", "",
+            f"The first {short_visible} characters are what shows before the "
+            "cut, so that line has to stand alone:", "", "```", first, "```", "",
+            "## Hashtags", "", tags, ""]
+    if listing.notes:
+        out += ["## Check before posting", ""] + [f"- {n}" for n in listing.notes]
+        out.append("")
+    return "\n".join(out)
+
+
 def main(argv=None) -> int:
     import argparse
 

@@ -118,8 +118,13 @@ def set_family(main: str, accent: str | None = None,
     ensure(main)
     if accent:
         ensure(accent)
-    cfg = {"main": main, "accent": accent,
-           "accent_colour": list(accent_colour or (255, 209, 37))}
+    # MERGE, never replace. Choosing a face used to rewrite this file as
+    # {main, accent, accent_colour} only — which silently deleted the account
+    # handle, so every video made after a font change was watermark-free and
+    # nothing said so. Anything this function does not own, it leaves alone.
+    cfg = dict(config()) if CONFIG.exists() else {}
+    cfg.update({"main": main, "accent": accent,
+                "accent_colour": list(accent_colour or (255, 209, 37))})
     CONFIG.write_text(json.dumps(cfg, indent=1) + "\n")
     _cache.clear()
     return CONFIG

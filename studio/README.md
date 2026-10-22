@@ -11,6 +11,10 @@ nothing but the fonts and ffmpeg, deliberately.
 
 Format: **1920×1080, 30 fps, 16:9.**
 
+**The daily loop is `docs/DAILY.md`.** One command takes a scenepack, a track and
+a timed lyric to a shipped edit with its post written; `studio.gate` refuses
+anything that is mono, not 1080p30, or missing the `@fayzann.edits` handle.
+
 What decides a delivered edit, in order of how much it has cost to learn:
 
 1. **the footage** — a pack that runs out is what makes an edit repeat itself;

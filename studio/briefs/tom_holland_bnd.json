@@ -1,0 +1,72 @@
+{
+ "title": "Peter Parker — Brand New Day · Stay",
+ "topic": "Spider-Man: Brand New Day (2026), Tom Holland / Zendaya",
+ "thesis": "Brand New Day is the film where Peter is finally alone in a life he chose. Set to 'Stay', the edit is the want underneath that: he keeps moving, and the one thing he keeps coming back to is her.",
+ "track": "footage/track.mp3",
+ "song": "Stay — The Kid LAROI & Justin Bieber (edit audio)",
+ "source": "",
+ "window": [
+  0.0,
+  0.0
+ ],
+ "audience": [
+  {
+   "claim": "The emotional core the reviews single out is Peter with MJ — 'real yearning and perplexity', and the intimate scenes carry the film. Edits of the pair are what travel.",
+   "source": "BBC review round-up of Brand New Day; Telegraph and Standard reviews, Aug 2026"
+  },
+  {
+   "claim": "Ned remembering Peter is a 771K-like edit on its own — being forgotten is the fandom's favourite wound from this film.",
+   "source": "TikTok discover: peter-parker-remembered-scene, top item 771.2K"
+  },
+  {
+   "claim": "The grounded, sombre take is the praise that repeats: 'more of a sombre, drama-filled plot … healing of Peter's past scars'.",
+   "source": "Rotten Tomatoes audience review round-up, Jul 2026"
+  },
+  {
+   "claim": "Frank Castle is the new pairing people mention — and it is a violence edit, not a tenderness edit. Mixing them reads as two videos stapled together.",
+   "source": "RT audience round-up + EditVdiaries tag clouds"
+  }
+ ],
+ "lyric": [
+  {
+   "line": "I do the same thing I told you that I never would",
+   "needs": "two_shot",
+   "why": ""
+  },
+  {
+   "line": "I told you I'd change, even when I knew I never could",
+   "needs": "two_shot",
+   "why": ""
+  },
+  {
+   "line": "I know that I can't find nobody else as good as you",
+   "needs": "two_shot",
+   "why": ""
+  },
+  {
+   "line": "I need you to stay, need you to stay",
+   "needs": "two_shot",
+   "why": ""
+  }
+ ],
+ "avoid": [
+  "Frank Castle / Punisher shots in a Peter-MJ edit",
+  "Tony Stark flashbacks — this film is not about him"
+ ],
+ "tags": [
+  "spiderman",
+  "tomholland",
+  "peterparker",
+  "brandnewday",
+  "mj",
+  "zendaya",
+  "spidermanedit",
+  "marvel"
+ ],
+ "hooks": [
+  "he chose to be alone",
+  "brand new day, same gravity",
+  "the suit stayed, everything else went",
+  "he keeps moving because stopping means remembering"
+ ]
+}

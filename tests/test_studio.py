@@ -704,3 +704,114 @@ def test_ramp_span_obeys_the_plans_speed():
     settle = make("settle")
     assert abs(ramp_span(4.76, settle) - 4.76 * settle.mean_speed) < 1e-6
     assert abs(ramp_span(4.76, settle, 0.27) - 4.76 * 0.27) < 1e-6
+
+
+def test_brief_round_trips_through_a_file():
+    """A brief a day means a brief in a file, not an edit to brief.py."""
+    import json
+    import tempfile
+    from pathlib import Path
+    from studio import brief as briefs
+
+    b = briefs.load("tom_holland_bnd")
+    d = b.as_dict()
+    assert d["hooks"] and d["tags"], "hooks and tags must survive the round trip"
+    back = briefs.StudioBrief.from_dict(json.loads(json.dumps(d)))
+    assert back.hooks == b.hooks and back.tags == b.tags
+    assert back.title == b.title and back.song == b.song
+
+    tmp = Path(tempfile.mkdtemp()) / "briefs"
+    tmp.mkdir()
+    (tmp / "newone.json").write_text(json.dumps(d))
+    old = briefs.BRIEF_DIR
+    briefs.BRIEF_DIR = tmp
+    try:
+        assert "newone" in briefs.names()
+        assert briefs.load("newone").hooks == b.hooks
+        try:
+            briefs.load("nope")
+        except KeyError as exc:
+            assert "known briefs" in str(exc)
+        else:
+            raise AssertionError("an unknown brief must not fall back to a default")
+    finally:
+        briefs.BRIEF_DIR = old
+
+
+def test_post_file_has_everything_the_upload_screen_needs():
+    """Title, one caption to paste, and the tags — and tags only once."""
+    from studio import brief as briefs
+    from studio import publish
+
+    b = briefs.load("tom_holland_bnd")
+    listing = publish.write(b, 42.6, track=b.song)
+    post = publish.to_post(listing, b.title, duration=42.6)
+    assert "## Title" in post and "## Description" in post and "## Hashtags" in post
+    assert listing.titles[0] in post
+    block = post.split("Paste as-is")[1].split("```")[1]
+    assert block.count("#spiderman") == 1, "the tag line must not be duplicated"
+    assert "♪" in block and b.song in block
+
+
+def test_gate_rejects_a_mono_file_without_a_handle():
+    """The two properties every earlier miss had: mono, and no handle."""
+    from studio import gate
+
+    res = gate.run("studio/out/tom_holland_v5.mp4")
+    failed = {c["name"] for c in res["checks"] if not c["ok"]}
+    assert not res["ok"]
+    assert "handle" in failed and "audio" in failed
+
+
+def test_gate_passes_the_shipped_edit():
+    """The shipped take: 1080p30, stereo, no dead frame, handle on every frame."""
+    from studio import gate
+
+    res = gate.run("studio/out/tom_holland_v8.mp4",
+                   "studio/out/tom_holland_v8.script.json")
+    assert res["ok"], gate.report(res)
+
+
+def test_choosing_a_font_does_not_delete_the_handle():
+    """set_family used to rewrite family.json as three keys, which silently
+    removed the watermark from every video made after a font change."""
+    import json
+    import tempfile
+    from pathlib import Path
+    from studio import fonts
+
+    old = fonts.CONFIG
+    tmp = Path(tempfile.mkdtemp()) / "family.json"
+    tmp.write_text(json.dumps({"main": "Gefika", "accent": None,
+                               "watermark": "@fayzann.edits",
+                               "watermark_frac": 0.021}))
+    fonts.CONFIG = tmp
+    try:
+        fonts.set_family("Couture")
+        cfg = json.loads(tmp.read_text())
+        assert cfg["main"] == "Couture"
+        assert cfg["watermark"] == "@fayzann.edits"
+        assert cfg["watermark_frac"] == 0.021
+    finally:
+        fonts.CONFIG = old
+
+
+def test_the_handle_is_on_unless_explicitly_turned_off():
+    """A missing key used to mean "no watermark" — one config rewrite shipped a
+    watermark-free video and nothing said so. Absent key = the default handle;
+    an empty string = deliberately off."""
+    import json
+    import tempfile
+    from pathlib import Path
+    from studio import fonts, watermark
+
+    old = fonts.CONFIG
+    tmp = Path(tempfile.mkdtemp()) / "family.json"
+    fonts.CONFIG = tmp
+    try:
+        tmp.write_text(json.dumps({"main": "Couture", "accent": None}))
+        assert watermark.settings()["text"] == "@fayzann.edits"
+        tmp.write_text(json.dumps({"main": "Couture", "watermark": ""}))
+        assert watermark.settings()["text"] == ""
+    finally:
+        fonts.CONFIG = old

@@ -56,6 +56,7 @@ class StudioBrief:
     tags: list[str] = field(default_factory=list)   # searchable, niche first
     hooks: list[str] = field(default_factory=list)  # copy written FOR a viewer
     track: str = ""
+    song: str = ""          # what the caption calls the track: "Stay — …"
     source: str = ""
     window: tuple[float, float] = (0.0, 0.0)
 
@@ -96,14 +97,32 @@ class StudioBrief:
     def as_dict(self):
         return {
             "title": self.title, "topic": self.topic, "thesis": self.thesis,
-            "track": self.track, "source": self.source,
+            "track": self.track, "song": self.song, "source": self.source,
             "window": list(self.window),
             "audience": [{"claim": e.claim, "source": e.source}
                          for e in self.audience],
             "lyric": [{"line": li.line, "needs": li.needs, "why": li.why}
                       for li in self.lyric],
             "avoid": self.avoid,
+            "tags": self.tags, "hooks": self.hooks,
         }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "StudioBrief":
+        return cls(
+            title=d.get("title", ""),
+            topic=d.get("topic", ""),
+            thesis=d.get("thesis", ""),
+            audience=[Evidence(**e) for e in d.get("audience", [])],
+            lyric=[LyricIntent(**li) for li in d.get("lyric", [])],
+            avoid=list(d.get("avoid", [])),
+            tags=list(d.get("tags", [])),
+            hooks=list(d.get("hooks", [])),
+            track=d.get("track", ""),
+            song=d.get("song", ""),
+            source=d.get("source", ""),
+            window=tuple(d.get("window", (0.0, 0.0))) or (0.0, 0.0),
+        )
 
     def write(self, path: str | Path, face_counts: dict[int, int] | None = None,
               problems: list[str] | None = None) -> Path:
@@ -190,71 +209,46 @@ PETER_GWEN = StudioBrief(
         "burned-in scene labels (they are visible in this pack) in a hero frame",
     ],
     track="footage/beauty_and_a_beat.mp3",
+    song="Beauty and a Beat (slowed)",
     source="footage/spiderman_scenepack.mp4",
     window=(27.75, 62.0),
 )
 
 
-# ---------------------------------------------------------------------------
-# Spider-Man: Brand New Day (2026) — Tom Holland, Zendaya, Jacob Batalon.
-#
-# Researched 2026-10-22 from reviews and the edit pages, not from memory:
-#   * the film is the most emotional MCU Spider-Man *because* it is grounded —
-#     critics called out the Holland/Zendaya relationship for "real yearning",
-#     and the more intimate scenes with MJ and Ned are what carry the charge;
-#   * the highest-performing edits are Peter/MJ (heartbreak, "I don't love
-#     you"), Ned remembering Peter (771K likes), and Peter tired and grieving —
-#     the fandom's frame is loss and being forgotten, not web-slinging;
-#   * Frank Castle is the new dynamic people mention, and it is a *different*
-#     edit: violence, not tenderness. Do not mix the two in one cut.
-#
-# The track decides which of those this edit is. "Stay" is a fast pop-punk
-# record: it is a hype edit, so the lyric line that lands is the chorus, and the
-# shots that answer it are Peter in motion — swinging, running, the suit — with
-# MJ cuts earned at the line about not finding anybody else.
-# ---------------------------------------------------------------------------
-TOM_HOLLAND_BND = StudioBrief(
-    title="Peter Parker — Brand New Day · Stay",
-    topic="Spider-Man: Brand New Day (2026), Tom Holland / Zendaya",
-    thesis=("Brand New Day is the film where Peter is finally alone in a life he "
-            "chose. Set to 'Stay', the edit is the want underneath that: he keeps "
-            "moving, and the one thing he keeps coming back to is her."),
-    audience=[
-        Evidence("The emotional core the reviews single out is Peter with MJ — "
-                 "'real yearning and perplexity', and the intimate scenes carry "
-                 "the film. Edits of the pair are what travel.",
-                 "BBC review round-up of Brand New Day; Telegraph and Standard "
-                 "reviews, Aug 2026"),
-        Evidence("Ned remembering Peter is a 771K-like edit on its own — being "
-                 "forgotten is the fandom's favourite wound from this film.",
-                 "TikTok discover: peter-parker-remembered-scene, top item 771.2K"),
-        Evidence("The grounded, sombre take is the praise that repeats: 'more of "
-                 "a sombre, drama-filled plot … healing of Peter's past scars'.",
-                 "Rotten Tomatoes audience review round-up, Jul 2026"),
-        Evidence("Frank Castle is the new pairing people mention — and it is a "
-                 "violence edit, not a tenderness edit. Mixing them reads as two "
-                 "videos stapled together.",
-                 "RT audience round-up + EditVdiaries tag clouds"),
-    ],
-    tags=["spiderman", "tomholland", "peterparker", "brandnewday", "mj",
-          "zendaya", "spidermanedit", "marvel"],
-    hooks=["he chose to be alone",
-           "brand new day, same gravity",
-           "the suit stayed, everything else went",
-           "he keeps moving because stopping means remembering"],
-    lyric=[
-        LyricIntent("I do the same thing I told you that I never would", TWO),
-        LyricIntent("I told you I'd change, even when I knew I never could", TWO),
-        LyricIntent("I know that I can't find nobody else as good as you", TWO),
-        LyricIntent("I need you to stay, need you to stay", TWO),
-    ],
-    avoid=["Frank Castle / Punisher shots in a Peter-MJ edit",
-           "Tony Stark flashbacks — this film is not about him"],
-    track="footage/track.mp3",
-)
+# New briefs live in studio/briefs/<name>.json — one video a day means a brief a
+# day, and a brief is data. The two that predate the folder are still here:
+# peter_gwen below, and tom_holland_bnd in the folder with the rest.
 
-BRIEFS = {"peter_gwen": PETER_GWEN, "tom_holland_bnd": TOM_HOLLAND_BND}
+BRIEFS = {"peter_gwen": PETER_GWEN}
+
+# A video a day means a brief a day, and editing Python to add one is how a
+# standing workflow stops being standing. A brief can also be a JSON file:
+#
+#     studio/briefs/<name>.json   {"title": ..., "hooks": [...], "tags": [...]}
+#
+# Written by research, read by the pipeline, never templated.
+BRIEF_DIR = Path("studio/briefs")
+
+
+def names() -> list[str]:
+    """Every brief the pipeline can render for — code first, then files."""
+    on_disk = ([p.stem for p in BRIEF_DIR.glob("*.json")]
+               if BRIEF_DIR.exists() else [])
+    return sorted(set(BRIEFS) | set(on_disk))
 
 
 def load(name: str = "peter_gwen") -> StudioBrief:
-    return BRIEFS[name]
+    if name in BRIEFS:
+        return BRIEFS[name]
+    path = BRIEF_DIR / f"{name}.json"
+    if path.exists():
+        return StudioBrief.from_dict(json.loads(path.read_text()))
+    raise KeyError(f"no brief {name!r} — known briefs: {', '.join(names())}")
+
+
+def save(brief: StudioBrief, name: str) -> Path:
+    """Write a researched brief where `load()` will find it."""
+    p = BRIEF_DIR / f"{name}.json"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(brief.as_dict(), indent=1, ensure_ascii=False) + "\n")
+    return p

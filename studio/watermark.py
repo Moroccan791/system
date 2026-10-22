@@ -27,6 +27,13 @@ FONT_DIR = Path("assets/fonts")
 # Plain faces only. A watermark is legibility, not typography.
 PLAIN = ("DejaVuSans.ttf", "DejaVuSans-Bold.ttf", "DejaVuSerif.ttf")
 
+# The account handle is ON unless it is explicitly turned off. It used to be
+# "off unless the key is present", and one font change rewrote family.json
+# without the key — which silently shipped a watermark-free video and said
+# nothing. A default that can only be disabled on purpose is the only safe
+# shape for a standing requirement.
+DEFAULT_HANDLE = "@fayzann.edits"
+
 
 def _font_path(name: str | None) -> str | None:
     for cand in ([name] if name else []) + list(PLAIN):
@@ -43,7 +50,8 @@ def settings() -> dict:
     from . import fonts
 
     cfg = fonts.config()
-    text = (cfg.get("watermark") or "").strip()
+    raw = cfg["watermark"] if "watermark" in cfg else DEFAULT_HANDLE
+    text = str(raw).strip()
     return {"text": text,
             "font": _font_path(cfg.get("watermark_font")),
             "frac": float(cfg.get("watermark_frac") or 0.021),
