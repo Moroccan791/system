@@ -1,0 +1,69 @@
+{
+ "title": "Peter & Gwen — Zaalima",
+ "topic": "The Amazing Spider-Man: Peter Parker and Gwen Stacy · Zaalima (Arijit Singh)",
+ "thesis": "'Zaalima' blames the beloved and then takes the blame anyway. So the edit is the tenderness, not the fall: how close they got, and how much it was going to cost — the warm half of the pack.",
+ "track": "footage/post2/zaalima.mp3",
+ "song": "Zaalima — Arijit Singh & Harshdeep Kaur (edit audio)",
+ "source": "footage/post2/raw.mp4",
+ "window": [
+  23.0,
+  58.06
+ ],
+ "audience": [
+  {
+   "claim": "The chemistry is the product: 'their relationship felt organic, sweet and real'. Two-shots and near-kisses out-perform plot cuts.",
+   "source": "Ranker 'most emotional moments', TikTok 'shot of espresso' edits"
+  },
+  {
+   "claim": "What viewers name as the scenes: the rooftop reveal and web-pull kiss, the bridge 'I love you' in web, the graduation kiss, dinner with her family.",
+   "source": "CBR, ScreenRant, WatchMojo 'most romantic Spider-Man moments'"
+  },
+  {
+   "claim": "Hindi film-song edits on this pair are cut to the vocal line, with the card sitting on a face rather than on action.",
+   "source": "Instagram edit pages tagged #zaalima #peterandgwen"
+  }
+ ],
+ "lyric": [
+  {
+   "line": "Deedaar tera milne ke baad hi chhute meri angdaai",
+   "needs": "two_shot",
+   "why": "the whole line is 'after seeing you' — it needs both of them"
+  },
+  {
+   "line": "Tu hi bata de kyun zaalima main kehlayi",
+   "needs": "single",
+   "why": "her, mid-argument"
+  },
+  {
+   "line": "Kyun is tarah se duniya jahan mein karta hai meri ruswaai",
+   "needs": "two_shot",
+   "why": "the world watching them"
+  },
+  {
+   "line": "Tera kusoor aur zaalima main kehlayi",
+   "needs": "single",
+   "why": "the blame lands on her"
+  }
+ ],
+ "avoid": [
+  "the fall / the dark grief shots — this edit is before the ending",
+  "the two Twixtor title cards (#0 and #63) — burned-in text",
+  "fast montage: the song is an ache, not a drop"
+ ],
+ "tags": [
+  "peterandgwen",
+  "gwenstacy",
+  "peterparker",
+  "amazingspiderman",
+  "andrewgarfield",
+  "emmastone",
+  "zaalima",
+  "hindiedit"
+ ],
+ "hooks": [
+  "she was never the one to blame",
+  "tu hi bata de kyun zaalima",
+  "the closest they ever got",
+  "everyone blamed him for loving her"
+ ]
+}

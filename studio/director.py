@@ -176,7 +176,46 @@ LINE_DIRECTION_TOM: dict[int, dict] = {
              note="'believe in love' — one hold, the hands"),
 }
 
-DIRECTIONS = {"peter_gwen": LINE_DIRECTION, "tom_holland_bnd": LINE_DIRECTION_TOM}
+# ---------------------------------------------------------------------------
+# Post 2 — the same pack, two songs. The Amazing Spider-Man scenepack is 111
+# shots in two halves: #0-62 plain, #63-111 the same material Twixtor'd. Both
+# directions work the plain half and take Twixtor frames where a hold needs
+# slow motion. The two title cards (#0, #63) are burned-in text, never used.
+#
+# The split is the point: one edit is the grief, the other is the tenderness.
+# They should not share a frame, so the packs are disjoint on purpose.
+# ---------------------------------------------------------------------------
+LINE_DIRECTION_BANGLA: dict[int, dict] = {
+    # Faahun — metal, 4.18s sung lines, two cards each. Held images, not montage.
+    0: dict(shots=(42, 41, 40, 43, 4, 5), div=0.75, note="her face, already crying"),
+    1: dict(shots=(28, 29, 35, 36, 9, 11), div=0.75, note="'still alive' — the smile"),
+    2: dict(shots=(43, 42, 52, 53, 54, 55), div=0.75, note="the dark"),
+    3: dict(shots=(1, 58, 56, 57, 50, 51), div=0.75, note="him, alone in it"),
+    4: dict(shots=(40, 41, 42, 43, 92, 93), div=0.75, note="the wound again"),
+    5: dict(shots=(11, 12, 35, 36, 37, 38), div=0.75, note="and the reason"),
+    6: dict(shots=(47, 48, 49, 120, 121, 122), div=0.75, note="night, the city"),
+    7: dict(shots=(53, 54, 55, 104, 105, 106), div=0.75, note="the dark, closer"),
+    8: dict(shots=(42, 43, 40, 41, 92, 102), div=0.75, note="her, one last time"),
+    9: dict(shots=(9, 28, 29, 35, 87, 88), div=0.75, note="the reason he stayed"),
+    10: dict(shots=(58,), cuts=1, ramp="settle",
+             note="'dayii' — one hold, the silhouette"),
+}
+
+LINE_DIRECTION_ZAALIMA: dict[int, dict] = {
+    # Zaalima — the warm half. Nothing from the fall, nothing from the grief.
+    0: dict(shots=(6, 8, 10, 11, 12, 35), div=1.0, note="after seeing you"),
+    1: dict(shots=(9, 29, 43, 42, 4, 5), div=1.0, note="'zaalima' — her, mid-argument"),
+    2: dict(shots=(14, 15, 16, 17, 18, 19), div=1.0, note="the world watching"),
+    3: dict(shots=(13, 40, 41, 36, 37, 38), div=1.0, note="the blame lands"),
+    4: dict(shots=(44, 45, 76, 77, 87, 88), div=1.0, note="both of them, again"),
+    5: dict(shots=(89, 90, 91, 100, 101, 84), div=1.0, note="closer now"),
+    6: dict(shots=(90, 91, 100, 101, 85, 86), div=1.0, note="'kehlayi' — the last word"),
+}
+
+DIRECTIONS = {"peter_gwen": LINE_DIRECTION,
+              "tom_holland_bnd": LINE_DIRECTION_TOM,
+              "post2_bangla": LINE_DIRECTION_BANGLA,
+              "post2_zaalima": LINE_DIRECTION_ZAALIMA}
 
 # The bar of instrumental between "I need" and its answer, where the edit
 # breathes. Still the couple: a bridge is a change of pace, not of subject.

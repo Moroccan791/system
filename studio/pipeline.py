@@ -127,7 +127,10 @@ def run(video: str, audio: str, captions: str | None, out: str,
     last = cards[-1]["end"]
     end = (out_point(last, grid, tail=1.2, ceiling=duration) if end is None
            else float(end))
-    if end <= last:
+    # A caption may END on the last frame; it may not run past it. The window
+    # is allowed to be exactly the lyric's own span — refusing a 58.06s end for
+    # a 58.06s line is off-by-a-rounding, not a rule.
+    if end < last - 1e-3:
         raise SystemExit(f"--end {end:.2f}s would cut the last caption "
                          f"({last:.2f}s) — the edit may not end before the line")
     cards = [c for c in cards if c["start"] < end - 1e-3]

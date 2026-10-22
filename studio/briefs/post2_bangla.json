@@ -1,0 +1,59 @@
+{
+ "title": "Peter & Gwen — Faahun",
+ "topic": "The Amazing Spider-Man: Peter Parker and Gwen Stacy · Bangla metal (Sharani Shamman)",
+ "thesis": "The line is a corpse's arithmetic: you are the reason I died, and you are the reason I am still alive. That is the Gwen story told from inside it — the dark half of the pack, the fall, the silence after.",
+ "track": "footage/post2/faahun.mp3",
+ "song": "Faahun — Sharani Shamman (Bangla metal)",
+ "source": "footage/post2/raw.mp4",
+ "window": [
+  93.95,
+  139.99
+ ],
+ "audience": [
+  {
+   "claim": "Every high-performing Peter/Gwen edit is loss, not romance: 'I lost Gwen, she was my MJ' out-performs every swinging cut in the fandom.",
+   "source": "TikTok discover pages for Peter/Gwen, top items 222K-896K likes"
+  },
+  {
+   "claim": "The frame that breaks containment is the fall and the web that misses — the moment the audience already knows is coming.",
+   "source": "Viral 'flips and Gwen' edit, 15M views / 720K likes"
+  },
+  {
+   "claim": "Bangla metal edits travel on the lyric, not the action: the hook is quoted in the caption and the cut is slow. Fast cuts read as a different genre.",
+   "source": "Bangla edit pages: Sharani Shamman / Faahun tags, comment threads"
+  }
+ ],
+ "lyric": [
+  {
+   "line": "AMAR MORAR KARON TUMII",
+   "needs": "single",
+   "why": "her, and what loving her cost"
+  },
+  {
+   "line": "ABAR BECHE THAKAR DAYII",
+   "needs": "single",
+   "why": "the same face, the reason he is still here"
+  }
+ ],
+ "avoid": [
+  "the two Twixtor title cards (#0 and #63) — burned-in text",
+  "any fast montage: this is a metal lyric, the cut is a held image",
+  "shots where she is cropped out of frame"
+ ],
+ "tags": [
+  "peterandgwen",
+  "gwenstacy",
+  "peterparker",
+  "amazingspiderman",
+  "andrewgarfield",
+  "emmastone",
+  "banglaedit",
+  "spidermanedit"
+ ],
+ "hooks": [
+  "you were the reason i died",
+  "and the reason i'm still alive",
+  "amar morar karon tumi",
+  "she is both the wound and the cure"
+ ]
+}
