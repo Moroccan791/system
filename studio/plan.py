@@ -30,6 +30,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 from .grid import Grid
+from .ramp import Ramp, make as make_ramp, mean_speed_of
 from .shots import Source
 
 # fractions of the edit
@@ -59,6 +60,10 @@ MAX_HOLD_S = {"build": 2.6, "drop": 99.0, "out": 2.6}
 # playback speed per act. Slow motion in the out is the reference's exhale.
 SPEED = {"build": 1.0, "drop": 1.0, "out": 0.55}
 
+# Which cuts get a speed ramp. A ramp has to be a surprise, so it goes on a
+# minority of cuts: every drop cut ramping would be a house style, not an edit.
+RAMP_SHARE = {"build": 0.0, "drop": 0.35, "out": 0.0}
+
 # per-act grade. The reference changes colour by act: cold grief -> hot drop ->
 # monochrome memory -> warm resolution. One grade for a whole video is amateur.
 GRADE = {
@@ -82,6 +87,8 @@ class Cut:
     src_out: float
     speed: float
     flash: bool = False
+    ramp: str | None = None          # name in ramp.RAMPS, or None for constant
+    transition: str = "cut"          # cut | whip
 
     # derived
     out_start: float = 0.0
@@ -189,6 +196,13 @@ def _max_shot(source: Source) -> float:
     return max((s.dur for s in source.shots), default=0.0)
 
 
+def _cut_speed(cut_ramp: str | None, act: str) -> float:
+    """Mean source seconds per output second for a cut."""
+    if cut_ramp:
+        return mean_speed_of(cut_ramp)
+    return SPEED[act]
+
+
 def _motion_ranks(source: Source) -> dict[int, float]:
     """Percentile rank of each shot's motion within this source (0..1).
 
@@ -202,6 +216,38 @@ def _motion_ranks(source: Source) -> dict[int, float]:
     lo, hi = vals[0], vals[-1]
     span = max(1e-9, hi - lo)
     return {s.index: (s.motion - lo) / span for s in source.shots}
+
+
+def _in_point(shot, room: float, need: float, out_dur: float,
+              rng: random.Random) -> float:
+    """Where inside a shot to start.
+
+    Three rules, in order:
+      * long holds start mid-shot, because the head of a scene in a graded pack
+        is usually a fade up from black and holding on a fade looks broken;
+      * never start somewhere the shot's own brightness profile says is dark —
+        a 6s shot can be bright in the middle and near-black at the head, and one
+        mean would put the hold in the dark part of a good shot;
+      * otherwise a small random offset, so repeated use of one shot differs.
+    """
+    if room <= 0.05:
+        return shot.src_in
+    usable = min(room, max(0.0, shot.dur - need))
+    prof = shot.profile or []
+    lo = 0.34 if out_dur >= 1.5 else 0.0
+    cands = []
+    steps = 7
+    for i in range(steps):
+        f = lo + (0.95 - lo) * (i / max(1, steps - 1))
+        off = usable * f
+        b = shot.bright
+        if prof:
+            slot = int(min(len(prof) - 1, (off + need / 2) / max(1e-6, shot.dur)
+                           * len(prof)))
+            b = prof[slot]
+        cands.append((b + rng.random() * 0.15 * b, off))
+    cands.sort(key=lambda c: -c[0])
+    return shot.src_in + cands[0][1]
 
 
 def _bright_ranks(source: Source) -> dict[int, float]:
@@ -292,8 +338,14 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
                 length = b_end - beat
                 if length < 1.0 / div:
                     break
-            speed = SPEED[act]
             out_dur = length * 60.0 / grid.bpm
+            # A ramp changes how much source the cut consumes, so the choice of
+            # ramp has to happen BEFORE the shot is picked: a ramped cut needs
+            # more runway than a constant one (mean speed 0.87 vs 1.0 here).
+            ramp_name = None
+            if act in RAMP_SHARE and rng.random() < RAMP_SHARE[act]:
+                ramp_name = "settle" if rng.random() < 0.75 else "launch"
+            speed = _cut_speed(ramp_name, act)
             need = out_dur * speed
 
             # A cut can never be longer than the shot feeding it. If nothing in
@@ -316,12 +368,10 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
                     sh = _pick_shot(source, rng, act, nd, recent, used)
                     ss = source.shots[sh]
                     room2 = max(0.0, ss.dur - nd)
-                    if room2 > 0.35 and od >= 1.5:
-                        si = ss.src_in + room2 * (0.34 + 0.30 * rng.random())
-                    else:
-                        si = ss.src_in + (rng.random() * 0.25 * room2 if room2 > 0.2 else 0.0)
+                    si = _in_point(ss, room2, nd, od, rng)
                     c2 = Cut(index=idx, act=act, start_beat=beat, length_beats=ln,
-                             shot=sh, src_in=si, src_out=si + nd, speed=SPEED[act])
+                             shot=sh, src_in=si, src_out=si + nd, speed=SPEED[act],
+                             ramp=None)
                     c2.out_start = grid.t(beat) - grid.t(0)
                     c2.out_end = c2.out_start + od
                     plan.cuts.append(c2)
@@ -335,16 +385,10 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
             src_shot = source.shots[shot]
             # in-point: somewhere that leaves enough runway, biased to the head
             room = max(0.0, src_shot.dur - need)
-            # Long holds start mid-shot: the head of a scene in a graded pack is
-            # usually a fade up from black, and holding on a fade looks broken.
-            if room > 0.35 and out_dur >= 1.5:
-                src_in = src_shot.src_in + room * (0.34 + 0.30 * rng.random())
-            else:
-                src_in = src_shot.src_in + (rng.random() * 0.25 * room if room > 0.2
-                                            else 0.0)
+            src_in = _in_point(src_shot, room, need, out_dur, rng)
             cut = Cut(index=idx, act=act, start_beat=beat, length_beats=length,
                       shot=shot, src_in=src_in, src_out=src_in + need,
-                      speed=speed)
+                      speed=speed, ramp=ramp_name)
             cut.out_start = grid.t(beat) - grid.t(0)
             cut.out_end = cut.out_start + out_dur
             plan.cuts.append(cut)
@@ -364,6 +408,7 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
     plan.end = plan.start + picture_dur
 
     _mark_flashes(plan, source)
+    _mark_transitions(plan, source)
     return plan
 
 
@@ -401,6 +446,38 @@ def _mark_flashes(plan: Plan, source: Source) -> None:
         cut.flash = True
 
 
+def _mark_transitions(plan: Plan, source: Source) -> None:
+    """Choose the 1-2 frame double-sided transitions.
+
+    A whip is not a cut with a blur on it: it is one or two frames that belong to
+    BOTH shots — the outgoing frame pushed and the incoming frame pulled, blended.
+    It earns its place where the cut would otherwise be a hard jump between two
+    shots that do not share a direction. Never adjacent to a flash: two loud
+    transitions in a row is noise.
+    """
+    drop = [c for c in plan.cuts if c.act == "drop"]
+    budget = max(1, int(len(drop) * 0.15))
+    scored = []
+    for a, b in zip(plan.cuts, plan.cuts[1:]):
+        if b.act != "drop" or b.flash:
+            continue
+        sa, sb = source.shots[a.shot], source.shots[b.shot]
+        jump = abs(sa.bright - sb.bright) / 255.0
+        # a whip reads best between two shots with real movement in them
+        motion = max(sa.motion, sb.motion)
+        scored.append((jump * 2.0 + min(1.0, motion * 20.0), b))
+    scored.sort(key=lambda x: -x[0])
+    chosen = 0
+    for _score, cut in scored:
+        if chosen >= budget:
+            break
+        prev = plan.cuts[cut.index - 1] if cut.index > 0 else None
+        if prev is not None and (prev.flash or prev.transition != "cut"):
+            continue
+        cut.transition = "whip"
+        chosen += 1
+
+
 def summarise(plan: Plan) -> str:
     lines = [f"plan: {len(plan.cuts)} cuts over {plan.duration:.2f}s "
              f"({plan.bpm:.1f} BPM, seed {plan.seed})"]
@@ -413,7 +490,9 @@ def summarise(plan: Plan) -> str:
         lines.append(f"  {act:6s} {len(cs):3d} cuts  {sum(d):6.2f}s  "
                      f"median {sorted(d)[len(d)//2]:.2f}s  "
                      f"{per_beat:.2f} cuts/beat  "
-                     f"{sum(1 for c in cs if c.flash)} flash")
+                     f"{sum(1 for c in cs if c.flash)} flash  "
+                     f"{sum(1 for c in cs if c.transition == 'whip')} whip  "
+                     f"{sum(1 for c in cs if c.ramp)} ramp")
     return "\n".join(lines)
 
 

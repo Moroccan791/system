@@ -197,6 +197,66 @@ def scrim(frame: np.ndarray, card: Card, amount: float = 0.22,
     return frame
 
 
+def composite_matte(frame: np.ndarray, card: Card, zoom: float = 1.7,
+                    fill_alpha: float = 0.74, outline: float = 0.9) -> np.ndarray:
+    """Fill the letterforms with the picture underneath.
+
+    This is the reference's signature move on the lens close-up: the words are a
+    window cut INTO the shot, showing the same plate at a different scale.
+
+    Two things this has to get right, and the first version got the second wrong:
+
+    * the interior must be a DIFFERENT plane, so the fill is the plate magnified
+      and pushed in contrast and lift;
+    * the glyph must stay legible when the plate behind it is dark. A pure matte
+      fill inherits that darkness and the word disappears. So the fill is laid
+      over the card's own white type at `fill_alpha`: the type underneath holds
+      the shape, the plate on top gives it the texture. That is what a compositor
+      actually does, and it is why the word reads on any footage.
+    """
+    a = card.rgba[..., 3].astype(np.float32) / 255.0
+    h, w = a.shape
+    fh, fw = frame.shape[:2]
+    x0, y0 = max(0, card.x), max(0, card.y)
+    x1, y1 = min(fw, card.x + w), min(fh, card.y + h)
+    if x1 <= x0 or y1 <= y0:
+        return frame
+    aa = a[y0 - card.y:y1 - card.y, x0 - card.x:x1 - card.x]
+    if aa.max() <= 0.01:
+        return frame
+
+    region = frame[y0:y1, x0:x1]
+    rh, rw = region.shape[:2]
+
+    # glyph colour from the card itself, so the accent still means something
+    card_rgb = card.rgba[y0 - card.y:y1 - card.y,
+                         x0 - card.x:x1 - card.x, :3].astype(np.float32)
+
+    # the inner plane: same area, magnified about its centre, pushed and lifted
+    inner = Image.fromarray(region, "RGB").resize(
+        (max(1, int(rw * zoom)), max(1, int(rh * zoom))), Image.BICUBIC)
+    ox = (inner.size[0] - rw) // 2
+    oy = (inner.size[1] - rh) // 2
+    inner = np.asarray(inner.crop((ox, oy, ox + rw, oy + rh)), dtype=np.float32)
+    inner = np.clip((inner - 128.0) * 1.7 + 128.0 + 40.0, 0, 255)
+    luma = (inner[..., 0] * 0.2126 + inner[..., 1] * 0.7152
+            + inner[..., 2] * 0.0722)[..., None]
+    inner = np.clip(luma + (inner - luma) * 0.85, 0, 255)
+
+    # white type underneath, plate on top, then a dark rim so the word has an edge
+    body = card_rgb * (1.0 - fill_alpha) + inner * fill_alpha
+    amask = Image.fromarray((aa * 255).astype(np.uint8), "L")
+    dil = np.asarray(amask.filter(ImageFilter.MaxFilter(13)),
+                     dtype=np.float32) / 255.0
+    edge = np.clip(dil - aa, 0.0, 1.0) * outline
+
+    out = region.astype(np.float32)
+    out = out * (1.0 - aa[..., None]) + body * aa[..., None]
+    out = out * (1.0 - edge[..., None]) + 6.0 * edge[..., None]
+    frame[y0:y1, x0:x1] = np.clip(out, 0, 255).astype(np.uint8)
+    return frame
+
+
 def composite(frame: np.ndarray, card: Card, alpha: float = 1.0) -> np.ndarray:
     """Alpha-composite a card onto an RGB frame in place-ish."""
     if alpha <= 0:

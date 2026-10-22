@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 
 import numpy as np
@@ -120,6 +120,10 @@ class Shot:
     bright: float = 0.0
     sat: float = 0.0
     colour: str = "neutral"
+    # coarse brightness across the shot (N buckets). A 6s shot can be bright in
+    # the middle and near-black at the head; one mean would put a hold in the
+    # dark part of a good shot and call it a bad shot.
+    profile: list[float] = field(default_factory=list)
 
     @property
     def dur(self) -> float:
@@ -132,6 +136,7 @@ class Shot:
         d["src_out"] = round(self.src_out, 3)
         for k in ("motion", "sharp", "bright", "sat"):
             d[k] = round(float(d[k]), 3)
+        d["profile"] = [round(float(v), 1) for v in self.profile]
         return d
 
 
@@ -171,6 +176,19 @@ def _cuts(diff: np.ndarray, hdiff: np.ndarray, fps: float,
     return cuts
 
 
+PROFILE_N = 12
+
+
+def _profile(bright: np.ndarray) -> list[float]:
+    """Mean luma in N equal slices of a shot."""
+    if len(bright) == 0:
+        return []
+    n = min(PROFILE_N, len(bright))
+    edges = np.linspace(0, len(bright), n + 1).astype(int)
+    return [float(bright[edges[i]:max(edges[i] + 1, edges[i + 1])].mean())
+            for i in range(n)]
+
+
 def analyse(path: str | Path, max_seconds: float | None = None) -> Source:
     meta = probe(path)
     bright, sat, sharp, diff, hdiff = _stream_stats(path, max_seconds)
@@ -197,7 +215,8 @@ def analyse(path: str | Path, max_seconds: float | None = None) -> Source:
             sharp=float(np.median(sharp[a:b])),
             bright=float(np.median(bright[a:b])),
             sat=float(np.clip(sat[a:b].mean(), 0, 1)),
-            colour=colour_of(a, b)))
+            colour=colour_of(a, b),
+            profile=_profile(bright[a:b])))
     return Source(path=str(path), width=meta["width"], height=meta["height"],
                   fps=fps, duration=duration, shots=shots)
 

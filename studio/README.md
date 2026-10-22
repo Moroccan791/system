@@ -131,24 +131,33 @@ Two things that source forced:
   read. Capping holds at 2.6 s widens the choice set — the build now opens on a
   shot at brightness 79 and a close-up at 107.
 
-## What is not built yet
+## Ramps, whips and matte
 
-Named honestly, because each is a real gap against the reference:
+The three moves the reference used that the first build did not have.
 
-1. **Type-as-matte.** In the reference, on the lens close-up the letterforms are
-   filled with the plate underneath. We draw flat type. This needs a per-glyph
-   mask and a shifted crop source.
-2. **Tracking.** Pinning a graphic to a moving object. Needs optical flow or a
-   point tracker; neither is in the stack.
-3. **Whip / zoom-blur transitions.** We have a flash and a hard cut. The
-   reference also uses 1–2 frame double-sided transitions — measurable, not yet
-   implemented.
-4. **Beat-locked sound design.** Hits, whooshes and risers placed on the grid.
-   The current cut uses the track alone.
-5. **Content-aware crop for picture-in-picture sources.** A source that already
-   has bars baked in keeps them; studio assumes clean footage.
+**Speed ramps** (`ramp.py`). A constant-speed shot is the default because it is
+easy, not because it is good. On slow-motion footage the single biggest upgrade
+is to change speed *inside* the shot so it decelerates into the cut. The ramp is
+defined in output time and integrated to a source offset, so `speed(u)` literally
+means "seconds of source per second of output" at that moment; its integral is
+the mean speed, which is what the planner budgets runway against. Ramps go on
+**35% of drop cuts** — every cut ramping is a house style, not an edit.
 
-## Verification
+**Whip transitions** (`compose.whip_frame`). Not a cut with blur on it: two shots
+share one or two frames, pushed in opposite directions with a horizontal smear
+that peaks mid-transition. Budgeted at 15% of drop cuts, never on the same cut as
+a flash.
+
+**Text as matte** (`typecards.composite_matte`). The letterforms become a window
+into the plate, showing the same frame magnified 1.7× and pushed in contrast so
+the glyph interiors are visibly a different plane. The first version was a pure
+matte fill and it failed: over a dark plate the fill inherits the darkness and
+the word disappears. The fill is therefore laid over the card's own type at 74%,
+so the type holds the shape and the plate gives it the texture — which is what a
+compositor actually does, and why it reads on any footage. Matte is reserved for
+one card in four in the drop.
+
+## What is not built yet## Verification
 
 `python -m pytest tests/test_studio.py` runs without ffmpeg-heavy renders:
 grid phase accuracy, plan structure invariants (no freeze, act ratios, flash

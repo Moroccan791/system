@@ -127,6 +127,64 @@ def test_card_beats_are_relative_to_frame_one():
         assert card_time(4.0, bpm) == pytest.approx(4 * 60 / bpm)
 
 
+def test_ramp_mean_speed_matches_integral():
+    """A ramp's mean speed is what the planner budgets source runway against."""
+    from studio.ramp import make
+
+    r = make("settle")
+    assert r.mean_speed == pytest.approx(r.offset(1.0), abs=1e-9)
+    # the mean must sit between the two ends, and settle must end slower
+    assert r.end_speed < r.mean_speed < r.start_speed
+    assert r.speed(0.0) == pytest.approx(r.start_speed)
+    assert r.speed(1.0) == pytest.approx(r.end_speed)
+    # offset is monotonic, so time never runs backwards
+    xs = [r.offset(u) for u in (0.0, 0.25, 0.5, 0.75, 1.0)]
+    assert all(b >= a for a, b in zip(xs, xs[1:]))
+
+
+def test_ramped_cut_still_fits_its_shot(grid):
+    """A ramped cut consumes more source than a constant one; the plan must
+    never ask for more than the shot has, or the frame freezes."""
+    src = _fake_source(dur=2.0)
+    plan = build_plan(grid, src, 0.0, 30.0)
+    for c in plan.cuts:
+        assert c.src_dur <= src.shots[c.shot].dur + 1e-6
+        assert c.src_dur <= 2.0 + 1e-6
+
+
+def test_transitions_are_single_frame_events(grid):
+    """Never a flash and a whip on the same cut: two loud transitions at one
+    join is noise, not emphasis."""
+    src = _fake_source()
+    plan = build_plan(grid, src, 0.0, 30.0)
+    for c in plan.cuts:
+        assert not (c.flash and c.transition == "whip")
+    whips = [c for c in plan.cuts if c.transition == "whip"]
+    assert whips, "at least one whip should be earned"
+    assert all(c.act == "drop" for c in whips)
+
+
+def test_matte_keeps_the_frame_size():
+    """The matte composite must leave the word readable and the frame intact."""
+    import numpy as np
+
+    from studio.typecards import composite_matte
+
+    rng = np.random.default_rng(0)
+    plate = rng.integers(30, 90, (1080, 1920, 3), dtype=np.uint8)
+    card = render_card("BEAUTY", 1920, 1080, accent="BEAUTY")
+    out = composite_matte(plate.copy(), card)
+    assert out.shape == plate.shape
+    # inside the glyphs the pixels must move; outside them they must not
+    h, w = card.rgba.shape[:2]
+    cy, cx = card.y + h // 2, card.x + w // 2
+    changed = np.abs(out[cy - 20:cy + 20, cx - 20:cx + 20].astype(int)
+                     - plate[cy - 20:cy + 20, cx - 20:cx + 20].astype(int)).mean()
+    untouched = np.abs(out[0:40, 0:40].astype(int) - plate[0:40, 0:40].astype(int)).mean()
+    assert changed > 5.0
+    assert untouched == 0.0
+
+
 def test_cards_are_sized_to_the_frame():
     for text in ("WAIT", "MOMENT", "STILL HERE", "THEY SAID"):
         c = render_card(text, 1920, 1080)

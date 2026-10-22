@@ -23,7 +23,8 @@ import numpy as np
 
 from .grid import Grid, load_audio, SR
 from .plan import Plan, Cut
-from .typecards import Card, composite, render_card, scrim
+from .ramp import make as make_ramp, mean_speed_of
+from .typecards import Card, composite, composite_matte, render_card, scrim
 
 OUT_W, OUT_H, OUT_FPS = 1920, 1080, 30
 
@@ -128,6 +129,72 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
             .reshape(OUT_H, OUT_W, 3).copy() for i in range(n)]
 
 
+def decode_ramped(src: str, t_in: float, out_dur: float, ramp) -> list[np.ndarray]:
+    """Frames for a speed-ramped cut.
+
+    The ramp lives in output time, so this decodes the whole source span once at
+    OUTPUT fps and then samples it along the ramp's time warp, blending the two
+    nearest decoded frames. That keeps it to one ffmpeg call per cut and gives
+    sub-frame accuracy, instead of one call per frame.
+    """
+    span = out_dur * ramp.offset(1.0)
+    buf = decode_segment(src, t_in, span, 1.0)
+    n_out = max(1, int(round(out_dur * OUT_FPS)))
+    if not buf:
+        return []
+    idx = []
+    for k in range(n_out):
+        u = k / max(1, n_out - 1)
+        pos = ramp.offset(u) / max(1e-9, ramp.offset(1.0)) * (len(buf) - 1)
+        idx.append(pos)
+    out = []
+    for pos in idx:
+        i0 = int(pos)
+        i1 = min(len(buf) - 1, i0 + 1)
+        w = pos - i0
+        if w < 1e-3:
+            out.append(buf[i0].copy())
+        else:
+            out.append((buf[i0].astype(np.float32) * (1 - w)
+                        + buf[i1].astype(np.float32) * w).astype(np.uint8))
+    return out
+
+
+def whip_frame(a: np.ndarray, b: np.ndarray, k: float) -> np.ndarray:
+    """One frame of a whip: both shots pushed sideways, blurred, criss-crossed.
+
+    A whip is not a cut with blur on it. The outgoing frame leaves one way, the
+    incoming frame arrives from the other, and for one or two frames they occupy
+    the same frame. Motion blur peaks in the middle and falls off at both ends.
+    """
+    shift = int(OUT_W * 0.55 * k)
+    strength = 1.0 - abs(2.0 * k - 1.0)              # 0 at the ends, 1 in the middle
+    ca = np.roll(a, -shift, axis=1)
+    cb = np.roll(b, OUT_W - shift, axis=1)
+    out = ca.astype(np.float32) * (1.0 - k) + cb.astype(np.float32) * k
+
+    radius = int(round(26 * strength))
+    if radius >= 2:
+        # horizontal box blur, two passes, via cumulative sums — cheap and it
+        # smears along the direction of travel, which is the point
+        pad = np.pad(out, ((0, 0), (radius, radius), (0, 0)), mode="edge")
+        for _ in range(2):
+            cs = np.cumsum(pad, axis=1)
+            cs = np.concatenate([np.zeros_like(cs[:, :1]), cs], axis=1)
+            # box sum of exactly 2*radius samples, anchored at each pixel
+            blurred = (cs[:, 2 * radius:] - cs[:, :-2 * radius]) / (2 * radius)
+            pad = blurred
+        out = pad
+    if out.shape[1] != OUT_W:                     # keep the frame size exact
+        fixed = np.empty((out.shape[0], OUT_W, 3), dtype=np.float32)
+        n = min(OUT_W, out.shape[1])
+        off = (out.shape[1] - n) // 2
+        fixed[:, :n] = out[:, off:off + n]
+        fixed[:, n:] = out[:, off + n - 1: off + n]
+        out = fixed
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
 # --------------------------------------------------------------------------
 # script (the words on screen)
 # --------------------------------------------------------------------------
@@ -136,6 +203,7 @@ class ScriptCard:
     beat: float
     text: str
     accent: str = ""
+    matte: bool | None = None      # None = let the renderer decide
 
     @property
     def key(self) -> str:
@@ -164,7 +232,8 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
         else:
             cards.append(ScriptCard(float(d.get("beat", 0)),
                                     str(d.get("text", "")),
-                                    str(d.get("accent", ""))))
+                                    str(d.get("accent", "")),
+                                    d.get("matte")))
     cards.sort(key=lambda c: c.beat)
     return cards
 
@@ -201,6 +270,18 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                                         accent=c.accent or None), hold))
     rendered.sort(key=lambda r: r[0])
 
+    # Matte is a statement, so it goes on a minority of drop cards: every fourth
+    # one, unless the script asked for it explicitly.
+    matte_for = {}
+    n_seen = 0
+    for ti, (ct, _c, _h) in enumerate(rendered):
+        explicit = cards[ti].matte if ti < len(cards) else None
+        if explicit is not None:
+            matte_for[ti] = bool(explicit)
+        else:
+            matte_for[ti] = (n_seen % 4 == 2)
+        n_seen += 1
+
     total_frames = int(round(plan.duration * OUT_FPS))
     enc = subprocess.Popen(
         [ffmpeg(), "-nostdin", "-v", "error", "-y",
@@ -211,17 +292,38 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         stdin=subprocess.PIPE, stderr=subprocess.PIPE)
 
     written = 0
+    prev_last: np.ndarray | None = None
     for ci, cut in enumerate(plan.cuts):
         g = plan.grade_for(cut.act)
-        frames = decode_segment(source_path, cut.src_in, cut.src_dur, cut.speed)
+        if cut.ramp:
+            frames = decode_ramped(source_path, cut.src_in, cut.dur,
+                                   make_ramp(cut.ramp))
+        else:
+            frames = decode_segment(source_path, cut.src_in, cut.src_dur, cut.speed)
+
         want = max(1, int(round(cut.dur * OUT_FPS)))
-        # a cut can come up a frame short after a seek; hold the last frame
+        if len(frames) < want:
+            # A short decode is a seek problem, not a stylistic choice: retry the
+            # cut once with a little lead-in before the in-point. Padding with
+            # black (the previous behaviour) hid a dead cut inside a render that
+            # otherwise looked fine.
+            frames = decode_segment(source_path, max(0.0, cut.src_in - 0.20),
+                                    cut.src_dur + 0.20, cut.speed)
+        if not frames:
+            raise RuntimeError(
+                f"cut {cut.index}: decoded no frames from {source_path} at "
+                f"{cut.src_in:.3f}s (+{cut.src_dur:.3f}s). Refusing to write "
+                f"black frames.")
         while len(frames) < want:
-            frames.append(frames[-1] if frames else
-                          np.zeros((OUT_H, OUT_W, 3), dtype=np.uint8))
+            frames.append(frames[-1])
         for fi in range(want):
             t = cut.out_start + fi / OUT_FPS
             frame = grade(frames[fi], g)
+
+            # whip: the first frames of a marked cut are shared with the shot
+            # before it, which is what makes two shots feel like one move
+            if cut.transition == "whip" and prev_last is not None and fi < 2:
+                frame = whip_frame(prev_last, frame, 0.62 if fi == 0 else 0.88)
 
             # flash: the first two frames of a marked cut
             if cut.flash and fi < 2:
@@ -243,12 +345,16 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                         amt = max(0.0, min(0.34, (plate - 90.0) / 110.0 * 0.34))
                         if amt > 0.01:
                             scrim(frame, card, amount=amt)
-                    if age < 2.0 / OUT_FPS:
+                    use_matte = matte_for[ti]
+                    if use_matte and cut.act == "drop":
+                        composite_matte(frame, card)
+                    elif age < 2.0 / OUT_FPS:
                         composite(frame, card.scaled(1.05), alpha=0.7)
                     else:
                         composite(frame, card, alpha=1.0)
                     break
 
+            prev_last = frame
             enc.stdin.write(frame.tobytes())
             written += 1
             if written % 60 == 0:
