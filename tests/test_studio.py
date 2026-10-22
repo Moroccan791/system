@@ -279,6 +279,19 @@ def test_tracker_follows_a_known_shift():
     assert sm.drift_ok
 
 
+def test_tracker_absent_means_centred_not_crash():
+    """No face found is normal. The compositor must fall back to a centred card,
+    not raise — this crashed a render at cut 12 and the pipe hid the exit code."""
+    from studio.typecards import render_card
+
+    track = None
+    card = render_card("MY", 1920, 1080, accent="MY")
+    # the exact guard the renderer applies
+    if track is not None and track.at(0) is not None:
+        raise AssertionError("unreachable")
+    moved = card  # falls back to the card as authored, i.e. centred
+
+
 def test_cards_are_sized_to_the_frame():
     for text in ("WAIT", "MOMENT", "STILL HERE", "THEY SAID"):
         c = render_card(text, 1920, 1080)

@@ -320,8 +320,12 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         # compositor can draw. Tracking costs ~0.15s per cut and is skipped
         # entirely when no card is pinned.
         track = None
-        if any(pinned_active(t, cut) for t in range(len(rendered))):
-            track = smooth(track_box(frames)) if len(frames) > 1 else None
+        if len(frames) > 1 and any(pinned_active(t, cut) for t in range(len(rendered))):
+            found = track_box(frames)
+            # No face in the seed frame is normal (a wide shot, a back, a stunt).
+            # The card falls back to centred rather than the cut failing.
+            if found is not None:
+                track = smooth(found)
 
         want = max(1, int(round(cut.dur * OUT_FPS)))
         if len(frames) < want:
@@ -405,7 +409,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
          "-map", "0:v:0", "-map", "1:a:0",
          "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
          "-shortest", str(final)], check=True)
-    for p in (out_path.with_suffix(".video.mp4"), audio):
+    for p in (out_path.with_suffix(".video.mp4"), audio,
+              audio.with_suffix(".wav")):
         try:
             p.unlink()
         except OSError:
