@@ -1,0 +1,7 @@
+ship gate — tom_holland_v8_short.mp4
+  PASS  resolution       1920x1080
+  PASS  frame rate       30.00 fps
+  PASS  audio            2 channel(s)
+  PASS  no dead frames   0 frame(s) below luma 12
+  PASS  handle           brightness +70 over its surround (98 frames)
+  READY TO POST
