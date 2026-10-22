@@ -1,0 +1,53 @@
+name: asr-timings
+
+# Same trigger trick as fetch.yml: workflow_dispatch needs the workflow to exist
+# on the default branch, which is not where the work happens. Dropping the
+# request file is the trigger.
+on:
+  push:
+    paths:
+      - ".github/asr-request.json"
+
+permissions:
+  contents: write
+
+jobs:
+  asr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Deps
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          python -m pip install -q sherpa-onnx numpy
+
+      - name: Model
+        run: |
+          set -euo pipefail
+          mkdir -p asr-model
+          url="https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-small.tar.bz2"
+          curl -sL --retry 3 -o /tmp/m.tar.bz2 "$url"
+          tar -xjf /tmp/m.tar.bz2 -C asr-model
+          find asr-model -maxdepth 2 -name "*.onnx" -o -maxdepth 2 -name "*tokens.txt"
+
+      - name: Decode
+        run: python .github/asr_run.py asr-model
+
+      - name: Commit timings
+        run: |
+          set -euo pipefail
+          git config user.name "asr-bot"
+          git config user.email "asr-bot@users.noreply.github.com"
+          git add -f work/asr_*.json
+          git commit -m "asr: word timings for the post2 vocals" || echo "nothing to commit"
+          git push origin HEAD:"${{ github.ref_name }}"
