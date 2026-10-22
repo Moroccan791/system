@@ -53,7 +53,7 @@ jobs:
           set -euo pipefail
           mkdir -p asr-model
           curl -sL --retry 3 -o /tmp/m.tar.bz2 \
-            "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-small.tar.bz2"
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-base.tar.bz2"
           tar -xjf /tmp/m.tar.bz2 -C asr-model
 
       - name: Decode

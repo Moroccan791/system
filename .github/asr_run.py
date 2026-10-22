@@ -52,10 +52,10 @@ def crop(audio: str, start: float, end: float) -> np.ndarray:
 
 def paths() -> tuple[str, str, str]:
     files = list(MODEL_DIR.rglob("*.onnx"))
-    # int8: same weights quantised, ~3x faster on a 2-core runner, and this is a
-    # decode sweep — thousands of short passes — so the speed is the feature.
-    enc = next(p for p in files if "encoder" in p.name and "int8" in p.name)
-    dec = next(p for p in files if "decoder" in p.name and "int8" in p.name)
+    # Full precision. int8 was 3x faster and unusable: on Bangla it produced
+    # "ākārākārākārā" where the float weights produced the actual lyric.
+    enc = next(p for p in files if "encoder" in p.name and "int8" not in p.name)
+    dec = next(p for p in files if "decoder" in p.name and "int8" not in p.name)
     tok = next(MODEL_DIR.rglob("*tokens.txt"))
     return str(enc), str(dec), str(tok)
 
@@ -76,14 +76,31 @@ def recognizer(lang: str, segments: bool) -> sherpa_onnx.OfflineRecognizer:
     return _RECS[key]
 
 
+def junk(text: str) -> float:
+    """How much a window's transcript looks like whispering to itself.
+
+    The model never returns silence: over an instrumental it emits one syllable
+    repeated, or punctuation, or a single vowel. So the transcript is also the
+    voice-activity signal — varied words mean a vocal, a stutter means none.
+    """
+    toks = text.split()
+    if not toks:
+        return 1.0
+    uniq = len(set(toks)) / len(toks)
+    short = sum(len(t) <= 2 for t in toks) / len(toks)
+    return round(min(1.0, (1 - uniq) * 0.6 + short * 0.6), 3)
+
+
 def decode(rec, samples: np.ndarray) -> dict:
     stream = rec.create_stream()
     stream.accept_waveform(RATE, samples)
     rec.decode_stream(stream)
     r = stream.result
     text = getattr(r, "text", "") or ""
+    clean = STAMP.sub("", text).strip()
     return {
-        "text": STAMP.sub("", text).strip(),
+        "text": clean,
+        "junk": junk(clean),
         "stamps": [float(x) for x in STAMP.findall(text)],
         "segments": [
             {"start": float(s.start), "end": float(s.end), "text": s.text}
