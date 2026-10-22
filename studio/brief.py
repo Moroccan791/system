@@ -194,7 +194,66 @@ PETER_GWEN = StudioBrief(
     window=(27.75, 62.0),
 )
 
-BRIEFS = {"peter_gwen": PETER_GWEN}
+
+# ---------------------------------------------------------------------------
+# Spider-Man: Brand New Day (2026) — Tom Holland, Zendaya, Jacob Batalon.
+#
+# Researched 2026-10-22 from reviews and the edit pages, not from memory:
+#   * the film is the most emotional MCU Spider-Man *because* it is grounded —
+#     critics called out the Holland/Zendaya relationship for "real yearning",
+#     and the more intimate scenes with MJ and Ned are what carry the charge;
+#   * the highest-performing edits are Peter/MJ (heartbreak, "I don't love
+#     you"), Ned remembering Peter (771K likes), and Peter tired and grieving —
+#     the fandom's frame is loss and being forgotten, not web-slinging;
+#   * Frank Castle is the new dynamic people mention, and it is a *different*
+#     edit: violence, not tenderness. Do not mix the two in one cut.
+#
+# The track decides which of those this edit is. "Stay" is a fast pop-punk
+# record: it is a hype edit, so the lyric line that lands is the chorus, and the
+# shots that answer it are Peter in motion — swinging, running, the suit — with
+# MJ cuts earned at the line about not finding anybody else.
+# ---------------------------------------------------------------------------
+TOM_HOLLAND_BND = StudioBrief(
+    title="Peter Parker — Brand New Day · Stay",
+    topic="Spider-Man: Brand New Day (2026), Tom Holland / Zendaya",
+    thesis=("Brand New Day is the film where Peter is finally alone in a life he "
+            "chose. Set to 'Stay', the edit is the want underneath that: he keeps "
+            "moving, and the one thing he keeps coming back to is her."),
+    audience=[
+        Evidence("The emotional core the reviews single out is Peter with MJ — "
+                 "'real yearning and perplexity', and the intimate scenes carry "
+                 "the film. Edits of the pair are what travel.",
+                 "BBC review round-up of Brand New Day; Telegraph and Standard "
+                 "reviews, Aug 2026"),
+        Evidence("Ned remembering Peter is a 771K-like edit on its own — being "
+                 "forgotten is the fandom's favourite wound from this film.",
+                 "TikTok discover: peter-parker-remembered-scene, top item 771.2K"),
+        Evidence("The grounded, sombre take is the praise that repeats: 'more of "
+                 "a sombre, drama-filled plot … healing of Peter's past scars'.",
+                 "Rotten Tomatoes audience review round-up, Jul 2026"),
+        Evidence("Frank Castle is the new pairing people mention — and it is a "
+                 "violence edit, not a tenderness edit. Mixing them reads as two "
+                 "videos stapled together.",
+                 "RT audience round-up + EditVdiaries tag clouds"),
+    ],
+    tags=["spiderman", "tomholland", "peterparker", "brandnewday", "mj",
+          "zendaya", "spidermanedit", "marvel"],
+    hooks=["he chose to be alone",
+           "brand new day, same gravity",
+           "the suit stayed, everything else went",
+           "he keeps moving because stopping means remembering"],
+    lyric=[
+        LyricIntent("I do the same thing I told you that I never would", TWO),
+        LyricIntent("I told you I'd change, even when I knew I never could", TWO),
+        LyricIntent("I know that I can't find nobody else as good as you", TWO),
+        LyricIntent("I need you to stay, need you to stay", TWO),
+    ],
+    avoid=["Frank Castle / Punisher shots in a Peter-MJ edit",
+           "Tony Stark flashbacks — this film is not about him"],
+    track="footage/track.mp3",
+)
+
+BRIEFS = {"peter_gwen": PETER_GWEN, "tom_holland_bnd": TOM_HOLLAND_BND}
 
 
 def load(name: str = "peter_gwen") -> StudioBrief:
