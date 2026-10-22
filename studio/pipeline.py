@@ -156,8 +156,12 @@ def run(video: str, audio: str, captions: str, out: str,
         from .plan import build_directed_plan, summarise
 
         src = analyse_source(video, None)
+        from .director import DIRECTIONS
+
+        direction = DIRECTIONS.get(brief_name, director.LINE_DIRECTION)
         plan = build_directed_plan(
-            grid, src, director.segments_for(grid, src, cards, end, start), start)
+            grid, src,
+            director.segments_for(grid, src, cards, end, start, direction), start)
         report["plan"] = summarise(plan).splitlines()
         print(summarise(plan))
         print(f"cards {len(cards)}  {start:.2f} -> {end:.2f}s  "
@@ -167,7 +171,7 @@ def run(video: str, audio: str, captions: str, out: str,
     from .produce import main as produce
 
     produce(["--track", audio, "--source", video, "--captions", captions,
-             "--cards", str(cards_file),
+             "--cards", str(cards_file), "--brief", brief_name,
              "--start", f"{start:.3f}", "--end", f"{end:.3f}",
              "--script", str(script), "--out", out, "--direct",
              "--preset", preset, "--crf", str(crf)])

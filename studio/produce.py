@@ -92,6 +92,11 @@ def main(argv=None):
     ap.add_argument("--direct", action="store_true",
                     help="let the lyric choose the shots (studio/director.py) "
                          "instead of the shot scorer")
+    ap.add_argument("--brief", default="peter_gwen",
+                    help="brief + direction set name")
+    ap.add_argument("--direction", default=None,
+                    help="line-direction set in director.DIRECTIONS "
+                         "(default: the brief name, else peter_gwen)")
     ap.add_argument("--no-look", action="store_true",
                     help="skip push-in / entry settle / grain")
     ap.add_argument("--no-premium", action="store_true",
@@ -125,11 +130,11 @@ def main(argv=None):
         from .ends import out_point
         from .plan import build_directed_plan
 
-        if not a.captions:
+        if not (a.captions or a.cards or a.timed):
             raise SystemExit(
-                "refusing to render: --direct needs --captions. The words on "
-                "screen are an input; a guessed lyric on correct timings is "
-                "still the wrong lyric.")
+                "refusing to render: --direct needs --captions, --timed or "
+                "--cards. The words on screen are an input; a guessed lyric on "
+                "correct timings is still the wrong lyric.")
 
         # Place the captions across the WHOLE tail of the track, not just the
         # window: the out-point is derived from the last placed word, so the
@@ -192,7 +197,9 @@ def main(argv=None):
                     else "approved upstream")
         print(f"captions: {len(cards)} cards from {src_desc} -> {script_path}")
 
-        segs = director.segments_for(grid, src, cards, a.end, a.start)
+        name = a.direction or a.brief
+        direction = director.DIRECTIONS.get(name, director.LINE_DIRECTION)
+        segs = director.segments_for(grid, src, cards, a.end, a.start, direction)
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)

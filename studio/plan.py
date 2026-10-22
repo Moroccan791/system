@@ -60,6 +60,10 @@ MAX_HOLD_S = {"build": 2.6, "drop": 99.0, "out": 2.6}
 # playback speed per act. Slow motion in the out is the reference's exhale.
 SPEED = {"build": 1.0, "drop": 1.0, "out": 0.55}
 
+# Seconds a shot must stay off screen before it may come back. Short pools
+# cannot always honour it; it is a preference, never a hole in the plan.
+REUSE_COOLDOWN = 1.0
+
 # Which cuts get a speed ramp. A ramp has to be a surprise, so it goes on a
 # minority of cuts: every drop cut ramping would be a house style, not an edit.
 RAMP_SHARE = {"build": 0.0, "drop": 0.35, "out": 0.0}
@@ -429,6 +433,7 @@ def build_directed_plan(grid: Grid, source: Source, segments: list[dict],
                 bpm=grid.bpm, seed=0)
     taken: dict[int, list[tuple[float, float]]] = {}
     used: dict[int, int] = {}
+    last_at: dict[int, float] = {}
 
     def free_in(shot, need: float, want: float | None) -> float:
         """An in-point that is not already on screen.
@@ -477,9 +482,19 @@ def build_directed_plan(grid: Grid, source: Source, segments: list[dict],
         #      load is the difference between an edit and a loop.
         fresh = [i for i in fits if not (plan.cuts and i == plan.cuts[-1].shot)]
         cands = fresh or fits
+        # 3. a shot that was on screen a second ago is still on the viewer's
+        #    retina. "Least used" alone will happily bring it straight back,
+        #    because it is the least used of THIS segment's short pool — which is
+        #    how a 67-shot pack ended up showing one frame nine times inside forty
+        #    seconds. Prefer anything that has had a moment to clear; if the pool
+        #    is too small for that, fall back rather than drop a cut.
+        cooled = [i for i in cands
+                  if seg["start"] - last_at.get(i, -99.0) >= REUSE_COOLDOWN]
+        cands = cooled or cands
         cands.sort(key=lambda i: used.get(i, 0))
         chosen = cands[0] if cands else max(pool, key=lambda i: source.shots[i].dur)
         used[chosen] = used.get(chosen, 0) + 1
+        last_at[chosen] = seg["start"]
         shot = source.shots[chosen]
         if need > shot.dur:
             # not enough footage at this speed: slow it down to fill the line

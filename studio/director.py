@@ -130,6 +130,50 @@ LINE_DIRECTION: dict[int, dict] = {
     7: dict(shots=(35, 32, 29, 31, 6), div=2.0, note="back to her face"),
 }
 
+# ---------------------------------------------------------------------------
+# Tom Holland — Spider-Man: Brand New Day, cut to "Stay".
+#
+# The pack is Peter and the suit; there is no MJ in it (checked frame by frame),
+# so the couple line is played on Peter alone. That changes the read from "the
+# two of them" to "the one who stayed" — and it is the honest reading of the
+# footage rather than a guess at what the lyric wanted.
+#
+#   #00-03   shop, Peter in the street, wide
+#   #13-14   Peter close, the DELI tee, the face
+#   #15-25   suit in a doorway, crouched, the rain, the fight
+#   #26-32   Peter in the green jacket, in the crowd, walking
+#   #31,43,53-63  the swings: the pack's whole point
+#   #34-35   the pool, desaturated and strange — used once, as a breath
+#
+# "Stay" is 143 BPM pop-punk: the chorus wants eighths (div 2.0) but a whole
+# edit at div 2.0 is 0.23s cuts, which is a strobe, not an overedit. The build is
+# div 1.0 on singles, the choruses are div 1.5, and the last line is one hold.
+LINE_DIRECTION_TOM: dict[int, dict] = {
+    # Pools are SIX deep, not three. A sung line earns five or six cuts, so a
+    # three-shot pool has to bring a shot back inside a second — the picture
+    # stutters and the pack looks smaller than it is. Six gives every cut its own
+    # frame at the same 0.45s median, and every shot here is checked against the
+    # pack (work/studio/th_all_shots.jpg), not guessed.
+    0: dict(shots=(0, 31, 26, 2, 3, 12), div=1.0, note="intro ad-lib, the street"),
+    1: dict(shots=(13, 14, 27, 50, 64, 51), div=1.0, note="Peter, close"),
+    2: dict(shots=(31, 32, 26, 30, 40, 41), div=1.0, note="between the two"),
+    3: dict(shots=(14, 27, 13, 18, 19, 51), div=1.0, note="'right here' — the face"),
+    4: dict(shots=(31, 43, 53, 54, 44, 63), div=1.0, note="the swing, opening"),
+    5: dict(shots=(59, 60, 62, 22, 21, 57), div=1.0, note="mid-swing, the crouch"),
+    6: dict(shots=(45, 44, 28, 29, 46, 25), div=1.0, note="the climb, the crowd"),
+    7: dict(shots=(56, 55, 48, 49, 47, 52), div=1.0, note="the rooftop, the city"),
+    8: dict(shots=(53, 54, 61, 63, 43, 62), div=1.0, note="second chorus, bigger"),
+    9: dict(shots=(60, 62, 22, 23, 20, 24), div=1.0, note="the fight"),
+    10: dict(shots=(14, 27, 13, 18, 19, 51), div=1.0, note="the face again"),
+    11: dict(shots=(48, 49, 56, 47, 52, 58), div=1.0, note="top of the world, then the drop"),
+    12: dict(shots=(58, 27, 14, 31, 26, 51), div=1.0,
+             note="'miss your touch' — the hands, then him, alone"),
+    13: dict(shots=(58, 55, 56), cuts=1, ramp="settle",
+             note="'believe in love' — one hold, the exhale"),
+}
+
+DIRECTIONS = {"peter_gwen": LINE_DIRECTION, "tom_holland_bnd": LINE_DIRECTION_TOM}
+
 # The bar of instrumental between "I need" and its answer, where the edit
 # breathes. Still the couple: a bridge is a change of pace, not of subject.
 BRIDGE = (31, 27, 26)
@@ -179,7 +223,7 @@ def _intro_for(first: float, start: float) -> list[Moment]:
 
 
 def moments_for(cards: list[dict], bpm: float, duration: float,
-                start: float = 0.0) -> list[Moment]:
+                start: float = 0.0, direction: dict | None = None) -> list[Moment]:
     """Cards + sung lines -> a directed timeline with NO holes in it.
 
     One cut per card, because the picture should change when the word does. Two
@@ -198,7 +242,8 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
     first = cards[0]["start"]
     out: list[Moment] = _intro_for(first, start)
 
-    last_dir = LINE_DIRECTION[max(LINE_DIRECTION)]
+    direction = direction or LINE_DIRECTION
+    last_dir = direction[max(direction)]
     line_first: dict[int, bool] = {}
     prev_end = first
 
@@ -220,7 +265,7 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
                 out[-1].until = c["start"]
             else:
                 fill(prev_end, c["start"], "instrumental — back to daylight")
-        d = LINE_DIRECTION.get(c["line"], last_dir)
+        d = direction.get(c["line"], last_dir)
         fresh = not line_first.get(c["line"], False)
         line_first[c["line"]] = True
         # `div` is what makes a long card overedit instead of holding: the
@@ -251,10 +296,10 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
 
 
 def segments_for(grid, source, cards: list[dict], duration: float,
-                 start: float = 0.0):
+                 start: float = 0.0, direction: dict | None = None):
     """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
-    for m in moments_for(cards, grid.bpm, duration, start):
+    for m in moments_for(cards, grid.bpm, duration, start, direction):
         beats = (m.cuts if m.cuts
                  else max(1, min(4, round(m.span * grid.bpm / 60.0 * m.div))))
         step = m.span / beats

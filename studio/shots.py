@@ -178,6 +178,41 @@ def _cuts(diff: np.ndarray, hdiff: np.ndarray, fps: float,
 
 PROFILE_N = 12
 
+# A pack is cut from a longer film, so some shots open or close on the black
+# frame the edit before them faded through. Cutting into one of those puts a
+# single dead frame on a beat — half a frame of nothing, then a slam, which reads
+# as a glitch rather than a cut. A shot is trimmed past them when it is measured.
+DEAD_LUMA = 20.0      # a frame this dark has no picture in it
+DEAD_FLAT = 12.0      # ...and if it is flat too, it is a fade, not a dark shot
+DEAD_MAX = 0.6        # do not eat more than this much of a shot's head or tail
+
+
+def _trim_dead(a: int, b: int, bright: np.ndarray, sharp: np.ndarray,
+               fps: float) -> tuple[int, int]:
+    """Advance a shot past leading/trailing black frames.
+
+    Only trims: indices stay put, so a direction sheet that names shot 63 keeps
+    meaning the same shot after the fix. If the whole shot is black the trim is
+    abandoned rather than leaving a zero-length shot behind.
+    """
+    cap = max(1, int(DEAD_MAX * fps))
+
+    def dead(i: int) -> bool:
+        return bool(bright[i] < DEAD_LUMA and sharp[i] < DEAD_FLAT)
+
+    a0, b0 = a, b
+    moved = 0
+    while a < b - 1 and moved < cap and dead(a):
+        a += 1
+        moved += 1
+    moved = 0
+    while b - 1 > a and moved < cap and dead(b - 1):
+        b -= 1
+        moved += 1
+    if b - a < max(1, int(0.12 * fps)):      # the shot was black, not head-black
+        return a0, b0
+    return a, b
+
 
 def _profile(bright: np.ndarray) -> list[float]:
     """Mean luma in N equal slices of a shot."""
@@ -209,6 +244,7 @@ def analyse(path: str | Path, max_seconds: float | None = None) -> Source:
         b = bounds[i + 1] if i + 1 < len(bounds) else n
         if b <= a:
             continue
+        a, b = _trim_dead(a, b, bright, sharp, fps)
         shots.append(Shot(
             index=len(shots), src_in=a / fps, src_out=b / fps,
             motion=float(diff[a + 1:b].mean() / 255.0) if b - a > 1 else 0.0,

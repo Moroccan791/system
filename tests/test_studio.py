@@ -613,3 +613,28 @@ def test_intake_names_are_safe():
         "✨ #spiderman #edit (1).mp4").endswith(".mp4")
     assert " " not in _safe("a b c.mov")
     assert _safe("plain_name.mp4") == "plain_name.mp4"
+
+
+def test_shot_trim_skips_a_black_head():
+    """A pack's shots can open on the fade the previous edit left behind.
+
+    Cutting into that frame puts one dead frame on a beat, which reads as a
+    glitch. The shot is trimmed past it — and keeps its index, so the direction
+    sheet still points at the same shot.
+    """
+    import numpy as np
+    from studio.shots import _trim_dead
+
+    fps = 60.0
+    n = 60
+    bright = np.full(n, 90.0)
+    sharp = np.full(n, 200.0)
+    bright[:6] = 11.0          # fade-in at the head
+    sharp[:6] = 0.2
+    bright[-4:] = 11.0         # and a black tail
+    sharp[-4:] = 0.2
+    a, b = _trim_dead(0, n, bright, sharp, fps)
+    assert a == 6 and b == n - 4
+    # a shot that is black all the way through is left alone, not zeroed
+    dark_b, dark_s = np.full(10, 11.0), np.full(10, 0.2)
+    assert _trim_dead(0, 10, dark_b, dark_s, fps) == (0, 10)
