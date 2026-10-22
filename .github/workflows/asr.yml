@@ -41,13 +41,20 @@ jobs:
           find asr-model -maxdepth 2 -name "*.onnx" -o -maxdepth 2 -name "*tokens.txt"
 
       - name: Decode
-        run: python .github/asr_run.py asr-model
+        run: |
+          set -uo pipefail
+          mkdir -p work
+          python .github/asr_run.py asr-model 2>&1 | tail -30 | tee work/asr_log.txt || true
+          ls -l work
 
-      - name: Commit timings
+      # The job's own logs are not reachable from the sandbox, so anything that
+      # went wrong is committed alongside the timings and read from the diff.
+      - name: Commit timings (always)
+        if: always()
         run: |
           set -euo pipefail
           git config user.name "asr-bot"
           git config user.email "asr-bot@users.noreply.github.com"
-          git add -f work/asr_*.json
+          git add -f work/asr_*.json work/asr_*.txt || true
           git commit -m "asr: word timings for the post2 vocals" || echo "nothing to commit"
-          git push origin HEAD:"${{ github.ref_name }}"
+          git push origin HEAD:"${{ github.ref_name }}" || echo "push skipped"

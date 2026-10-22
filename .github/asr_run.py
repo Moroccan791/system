@@ -90,7 +90,12 @@ def main() -> int:
     for item in req["items"]:
         out = Path(item["out"])
         out.parent.mkdir(parents=True, exist_ok=True)
-        data = run(item)
+        try:
+            data = run(item)
+        except Exception:
+            import traceback
+            Path("work/asr_error.txt").write_text(traceback.format_exc())
+            raise
         out.write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n")
         print(f"--- {item['audio']} [{item['language']}] -> {out}")
         print(data["text"][:400])
