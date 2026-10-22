@@ -1,77 +1,84 @@
 {
  "cards": [
   {
-   "beat": 4.2,
-   "text": "they don't",
-   "accent": "SEE"
+   "beat": 25.724,
+   "text": "All I need",
+   "accent": "NEED",
+   "pin": false,
+   "matte": false,
+   "until": 27.803
   },
   {
-   "beat": 8.4,
-   "text": "what i",
-   "accent": "SEE"
-  },
-  {
-   "beat": 12.6,
-   "text": "wait",
-   "accent": "WAIT"
-  },
-  {
-   "beat": 28.0,
-   "text": "I",
-   "accent": "NEED"
-  },
-  {
-   "beat": 30.0,
-   "text": "IS A",
+   "beat": 27.803,
+   "text": "is a beauty",
    "accent": "BEAUTY",
-   "pin": true
+   "pin": true,
+   "matte": false,
+   "until": 30.07
   },
   {
-   "beat": 32.0,
-   "text": "AND A",
-   "accent": "BEAT"
+   "beat": 30.07,
+   "text": "and a beat",
+   "accent": "BEAT",
+   "pin": false,
+   "matte": false,
+   "until": 32.148
   },
   {
-   "beat": 34.0,
-   "text": "WHO CAN",
-   "accent": "MAKE"
+   "beat": 32.402,
+   "text": "Who can make",
+   "accent": "MAKE",
+   "pin": false,
+   "matte": false,
+   "until": 35.597
   },
   {
-   "beat": 36.0,
-   "text": "MY",
+   "beat": 35.597,
+   "text": "my life complete",
    "accent": "LIFE",
-   "pin": true
+   "pin": true,
+   "matte": false,
+   "until": 39.775
   },
   {
-   "beat": 38.0,
-   "text": "COMPLETE",
+   "beat": 47.459,
+   "text": "It's all yours",
+   "accent": "YOURS",
+   "pin": false,
+   "matte": false,
+   "until": 53.916
+  },
+  {
+   "beat": 53.916,
+   "text": "when I'm",
    "accent": "",
-   "pin": true
+   "pin": false,
+   "matte": false,
+   "until": 58.22
   },
   {
-   "beat": 40.0,
-   "text": "IT'S ALL",
-   "accent": "YOURS"
+   "beat": 58.22,
+   "text": "not around",
+   "accent": "",
+   "pin": true,
+   "matte": false,
+   "until": 62.525
   },
   {
-   "beat": 42.0,
-   "text": "WHEN I'M",
-   "accent": "NOT"
+   "beat": 62.525,
+   "text": "It's all yours",
+   "accent": "YOURS",
+   "pin": false,
+   "matte": false,
+   "until": 64.499
   },
   {
-   "beat": 44.0,
-   "text": "AROUND",
-   "accent": ""
-  },
-  {
-   "beat": 58.0,
-   "text": "all yours",
-   "accent": "YOURS"
-  },
-  {
-   "beat": 64.0,
-   "text": "still",
-   "accent": "STILL"
+   "beat": 64.499,
+   "text": "it's all yours",
+   "accent": "YOURS",
+   "pin": false,
+   "matte": false,
+   "until": 66.348
   }
  ]
 }

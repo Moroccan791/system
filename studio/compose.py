@@ -363,19 +363,34 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                     if cards_until is not None and t > cards_until:
                         break
                     age = t - ct
-                    # scrim only when the plate behind the type is bright
-                    reg = frame[max(0, card.y):card.y + card.rgba.shape[0],
-                                max(0, card.x):card.x + card.rgba.shape[1]]
-                    if reg.size:
-                        plate = float(reg.mean())
-                        amt = max(0.0, min(0.34, (plate - 90.0) / 110.0 * 0.34))
-                        if amt > 0.01:
-                            scrim(frame, card, amount=amt)
+                    # Track first, then light: a pinned card MOVES, so a halo
+                    # measured at the pinned card's start position is left behind
+                    # as a ghost of the word on a bright plate.
                     if cards[ti].pin and track is not None:
                         pt = track.at(fi)
                         if pt is not None:
                             card = card.moved_to(pt[0], pt[1] - card.rgba.shape[0] * 0.15,
                                                  OUT_W, OUT_H)
+                    # Scrim when the plate behind the TYPE is bright, measured
+                    # under the glyphs and at the 90th percentile — a mean is
+                    # fooled by a dark shirt filling half the card's box, which
+                    # is exactly the shot where a white word disappears.
+                    reg = frame[max(0, card.y):card.y + card.rgba.shape[0],
+                                max(0, card.x):card.x + card.rgba.shape[1]]
+                    if reg.size:
+                        lum = reg.mean(axis=2) if reg.ndim == 3 else reg
+                        mask = card.rgba[..., 3] > 40
+                        if mask.shape == lum.shape and mask.any():
+                            vals = lum[mask]
+                        else:
+                            vals = lum.reshape(-1)
+                        plate = float(np.percentile(vals, 90))
+                        amt = max(0.0, min(0.52, (plate - 78.0) / 90.0 * 0.52))
+                        if amt > 0.01:
+                            # a bright plate needs a tight halo, or the glow
+                            # smears across the face instead of hugging the type
+                            scrim(frame, card, amount=amt,
+                                  blur=22 if amt < 0.24 else 9)
                     use_matte = matte_for[ti]
                     if use_matte and cut.act == "drop":
                         composite_matte(frame, card)

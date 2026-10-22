@@ -193,9 +193,16 @@ def scrim(frame: np.ndarray, card: Card, amount: float = 0.22,
     alpha = card.rgba[..., 3]
     if alpha.max() == 0:
         return frame
-    mask = Image.fromarray(alpha, "L").filter(ImageFilter.GaussianBlur(blur))
+    # Build the halo from the GLYPH BODIES only. The card's own drop shadow
+    # lives in the alpha channel at ~40% and, blurred, it becomes a second,
+    # ghosted copy of the word on a bright plate — which is exactly the plate
+    # the scrim exists for. Threshold first, blur second.
+    body = np.where(alpha >= 170, 255, 0).astype(np.uint8)
+    if not body.any():
+        body = alpha
+    mask = Image.fromarray(body, "L").filter(ImageFilter.GaussianBlur(blur))
     m = np.asarray(mask).astype(np.float32) / 255.0
-    m = np.clip(m * 2.2, 0.0, 1.0)
+    m = np.clip(m * 2.4, 0.0, 1.0)
 
     h, w = m.shape
     fh, fw = frame.shape[:2]

@@ -412,6 +412,94 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
     return plan
 
 
+def build_directed_plan(grid: Grid, source: Source, segments: list[dict],
+                        start: float = 0.0) -> Plan:
+    """Turn directed segments into a Plan.
+
+    Same Cut objects, same flash/whip marking, same renderer — only the choice of
+    shot is removed from the scorer and given to the director. That is the whole
+    difference between an edit with a subject and a montage.
+
+    Sync is absolute: a segment's length is the lyric's length, never a number
+    the footage can negotiate. If the chosen shot is shorter than the cut needs,
+    the cut SLOWS DOWN to fill it. Shortening the picture instead would slide
+    every word after it off the song.
+    """
+    plan = Plan(grid=grid, source=source, start=start, end=start,
+                bpm=grid.bpm, seed=0)
+    taken: dict[int, list[tuple[float, float]]] = {}
+
+    def free_in(shot, need: float, want: float | None) -> float:
+        """An in-point that is not already on screen.
+
+        A shot used four times in sixteen seconds has to show four different
+        moments of itself. Taking the head of the shot every time is how an
+        overedit ends up stuttering on one frame.
+        """
+        lo, hi = shot.src_in, shot.src_in + max(0.0, shot.dur - need)
+        spans = taken.setdefault(shot.index, [])
+        first = min(max(want if want is not None else lo + 0.25, lo), hi)
+        best, best_overlap = first, None
+        t = first
+        for _ in range(int(max(1, (hi - lo) / 0.12)) + 2):
+            if t > hi:
+                break
+            ov = sum(max(0.0, min(t + need, b) - max(t, a)) for a, b in spans)
+            if ov <= 1e-6:
+                best = t
+                break
+            if best_overlap is None or ov < best_overlap:
+                best, best_overlap = t, ov
+            t += 0.18
+        spans.append((best, best + need))
+        return best
+
+    for idx, seg in enumerate(segments):
+        out_dur = seg["end"] - seg["start"]
+        if out_dur <= 1e-4:
+            continue
+        act = seg.get("act", "drop")
+        ramp_name = seg.get("ramp")
+        speed = _cut_speed(ramp_name, act)
+        need = out_dur * speed
+
+        pool = [i for i in seg["pool"] if i < len(source.shots)]
+        if not pool:
+            pool = [max(range(len(source.shots)),
+                        key=lambda i: source.shots[i].dur)]
+        fits = [i for i in pool if source.shots[i].dur * 0.97 >= need]
+        chosen = fits[0] if fits else max(pool, key=lambda i: source.shots[i].dur)
+        shot = source.shots[chosen]
+        if need > shot.dur:
+            # not enough footage at this speed: slow it down to fill the line
+            need = shot.dur * 0.99
+            speed = need / out_dur
+
+        want = seg.get("src")
+        if want is None:
+            want = _in_point(shot, max(0.0, shot.dur - need), need, out_dur,
+                             random.Random(int(seg["start"] * 1000)))
+        src_in = free_in(shot, need, float(want))
+        cut = Cut(index=idx, act=act, start_beat=grid.beats(seg["start"]),
+                  length_beats=out_dur * grid.bpm / 60.0, shot=chosen,
+                  src_in=src_in, src_out=src_in + need, speed=speed,
+                  ramp=ramp_name)
+        cut.out_start = seg["start"]
+        cut.out_end = seg["end"]
+        plan.cuts.append(cut)
+
+    if not plan.cuts:
+        return plan
+    t0 = plan.cuts[0].out_start
+    for c in plan.cuts:
+        c.out_start -= t0
+        c.out_end -= t0
+    plan.end = plan.start + plan.cuts[-1].out_end
+    _mark_flashes(plan, source)
+    _mark_transitions(plan, source)
+    return plan
+
+
 def card_slots(plan: Plan, card: dict, max_hold: float = 2.4) -> dict:
     """How long a scripted card may stay on screen.
 

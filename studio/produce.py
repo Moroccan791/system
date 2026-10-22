@@ -77,6 +77,9 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--no-sfx", action="store_true",
                     help="track only, no beat-locked sound design")
+    ap.add_argument("--direct", action="store_true",
+                    help="let the lyric choose the shots (studio/director.py) "
+                         "instead of the shot scorer")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=18)
     a = ap.parse_args(argv)
@@ -87,14 +90,28 @@ def main(argv=None):
           f"beat0 {grid.phase:.3f}s")
     for s in grid.sections:
         print(f"  {s.label:6s} {s.start:6.2f}-{s.end:6.2f}")
-    src = analyse_source(a.source, a.end)
+    # the SOURCE is always analysed in full: truncating it at the track
+    # end hides every shot after that point, which is most of a pack
+    src = analyse_source(a.source, None)
     print(f"source: {len(src.shots)} shots, {src.duration:.2f}s")
-
-    plan = build_plan(grid, src, a.start, a.end, a.seed)
-    print(summarise(plan))
 
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
+
+    if a.direct:
+        from . import director
+        from .plan import build_directed_plan
+        dur = (a.end if a.end is not None else grid.duration) - a.start
+        if a.script is None:
+            a.script = str(out.with_suffix(".script.json"))
+            director.write(a.track, a.start, dur, grid.bpm, a.script)
+            print(f"script: {a.script} (from the aligned lyric)")
+        segs = director.segments_for(grid, src, a.track, a.start, dur)
+        plan = build_directed_plan(grid, src, segs, a.start)
+    else:
+        plan = build_plan(grid, src, a.start, a.end, a.seed)
+    print(summarise(plan))
+
     rep = report(plan, grid, src)
     out.with_suffix(".plan.json").write_text(json.dumps(plan.as_dict(), indent=1) + "\n")
     out.with_suffix(".report.json").write_text(json.dumps(rep, indent=1) + "\n")

@@ -189,7 +189,66 @@ Tracking is measured, not assumed: 0 lost frames over 30-frame cuts on this
 footage (subway pan 248 px, close-up 78 px). LK drifts over a long hold, so it is
 only used on drop-length cuts; where no face is found the card stays centred.
 
-## What is not built yet## Verification
+## Before any footage is cut: the brief (`brief.py`)
+
+The stage that was missing, and the one that decides whether the edit works. An
+overedit can be perfectly beat-synced and still be worthless because it is about
+the wrong thing: this pack was cut to "Beauty and a Beat" as an Andrew Garfield
+action reel, and the song is a love song, so nothing matched.
+
+`brief.py` makes that a required stage with a hard gate:
+
+| field | what it forces |
+|---|---|
+| `audience` | the evidence for what viewers come for, with a source — not a hunch |
+| `lyric` | each line and the shot CLASS it needs (`two_shot`, `single`, `wide`) |
+| `avoid` | the shots that break the thesis even when they look good |
+| `check()` | refuses the job when the song needs a shot class the pack cannot supply |
+| `write()` | the brief as a markdown file, so the reasoning is reviewable |
+
+The gate raises on "only 3 two-shots for 12 lines" rather than letting the drop
+repeat itself. `work/studio/brief_peter_gwen.md` is the generated brief for this
+edit.
+
+## The words on screen (`lyrics.py`)
+
+Captions are subtitles of the SONG, and they are derived, never typed:
+
+1. `transcribe()` runs the pack's own ASR on the track window, which returns word
+   times but mangles words ("beauty" comes back as "bloody").
+2. `align()` puts the known lyric text onto that clock with
+   `difflib.SequenceMatcher` block anchors, interpolating the words the ASR missed
+   and falling back to a fixed 0.22 s per unseen word.
+3. `to_cards()` phrases the line — three words max, breaks pulled forward to a
+   conjunction, time distributed by character count inside the line's own span.
+4. `tighten()` clamps overlaps and splits anything that outstays its welcome,
+   without re-chunking a short phrase.
+5. `accent_for()` picks the one word per card that carries the line.
+
+Invariant, tested: the concatenation of the cards equals the lyric line, word for
+word. A card cannot say anything the song does not say.
+
+## Which shot, and when to cut (`director.py`)
+
+`plan.py` scores shots on motion, brightness and novelty. That is the right
+machine for a montage and the wrong one for an edit with a subject: a scorer that
+likes movement hands you Spider-Man swinging under "all I need is a beauty".
+
+Direction is a stage between the brief and the plan:
+
+* the lyric decides **which shot**, one pool per line, chosen by watching the pack
+  (`SHOT_NOTES` records what is actually in each frame);
+* the grid decides **how often** to cut, so a rhythmic line subdivides on 8ths and
+  a line that ends the thought is one hold;
+* a word that lands wins over the beat, because that is the truth the ear hears.
+
+`build_directed_plan()` turns those segments into the same `Cut` objects the
+renderer already understands — same ramps, flashes, whips, grade and sound. There
+is still exactly one renderer. A directed cut never shortens to fit its footage:
+if the shot is too short it slows down, because shortening the picture slides
+every word after it off the song.
+
+## Verification
 
 `python -m pytest tests/test_studio.py` runs without ffmpeg-heavy renders:
 grid phase accuracy, plan structure invariants (no freeze, act ratios, flash

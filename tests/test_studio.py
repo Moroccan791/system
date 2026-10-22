@@ -304,3 +304,87 @@ def test_cards_are_sized_to_the_frame():
 def test_three_words_max_on_a_card():
     c = render_card("this is far too many words for one beat", 1920, 1080)
     assert len(c.text.split()) <= 3
+
+
+# --------------------------------------------------------------------------
+# direction: the lyric chooses the shot, and sync is never negotiable
+# --------------------------------------------------------------------------
+class _Grid:
+    """Just enough grid for the planner: tempo and a beat lookup."""
+    def __init__(self, bpm=120.0):
+        self.bpm = bpm
+        self.duration = 60.0
+
+    def beats(self, t: float) -> float:
+        return t * self.bpm / 60.0
+
+    def t(self, beat: float) -> float:
+        return beat * 60.0 / self.bpm
+
+
+def _src(shots):
+    return Source(path="x", width=1920, height=1080, fps=30.0, duration=600.0,
+                  shots=[Shot(index=i, src_in=a, src_out=b) for i, a, b in shots])
+
+
+def test_directed_plan_uses_exactly_the_shots_it_was_given():
+    from studio.plan import build_directed_plan
+
+    src = _src([(0, 0.0, 3.0), (1, 3.0, 6.0), (2, 6.0, 20.0)])
+    segs = [{"start": 0.0, "end": 1.0, "act": "drop", "pool": [2]},
+            {"start": 1.0, "end": 1.5, "act": "drop", "pool": [1]},
+            {"start": 1.5, "end": 3.0, "act": "drop", "pool": [0]}]
+    plan = build_directed_plan(_Grid(), src, segs)
+    assert [c.shot for c in plan.cuts] == [2, 1, 0]
+    assert plan.cuts[-1].out_end == pytest.approx(3.0)
+
+
+def test_directed_plan_slows_a_short_shot_instead_of_shortening_the_cut():
+    from studio.plan import build_directed_plan
+
+    src = _src([(0, 0.0, 0.5), (1, 0.5, 30.0)])
+    plan = build_directed_plan(
+        _Grid(), src, [{"start": 0.0, "end": 2.0, "act": "drop", "pool": [0]}])
+    cut = plan.cuts[0]
+    # the picture still covers the line; the footage is stretched to fill it
+    assert cut.out_end - cut.out_start == pytest.approx(2.0)
+    assert cut.speed < 1.0
+    assert cut.src_dur <= 0.5 + 1e-6
+
+
+def test_directed_plan_never_shows_the_same_frames_twice():
+    from studio.plan import build_directed_plan
+
+    src = _src([(0, 0.0, 10.0)])
+    segs = [{"start": i * 0.5, "end": (i + 1) * 0.5, "act": "drop", "pool": [0]}
+            for i in range(6)]
+    plan = build_directed_plan(_Grid(), src, segs)
+    spans = [(round(c.src_in, 2), round(c.src_out, 2)) for c in plan.cuts]
+    for a, b in zip(spans, spans[1:]):
+        assert b[0] >= a[1] - 1e-6, f"repeated frame at {a} -> {b}"
+
+
+def test_lyric_cards_never_overlap_and_never_invent_words():
+    from studio.lyrics import BEAUTY_AND_A_BEAT, LyricWord, LyricLine, to_cards
+
+    words = "All I need is a beauty and a beat".split()
+    t = 10.0
+    ws = []
+    for w in words:
+        ws.append(LyricWord(w, t, t + 0.4))
+        t += 0.42
+    line = LyricLine(" ".join(words), ws)
+    cards = to_cards([line])
+    assert all(len(c["text"].split()) <= 3 for c in cards)
+    for a, b in zip(cards, cards[1:]):
+        assert a["end"] <= b["start"] + 1e-6
+    shown = " ".join(c["text"] for c in cards)
+    assert shown.split() == words          # nothing added, nothing lost
+
+
+def test_script_beats_map_back_to_the_aligned_time():
+    from studio.compose import card_time
+
+    bpm = 122.75
+    for beat, t in ((25.7, 12.563), (0.0, 0.0), (36.1, 17.646)):
+        assert card_time(beat, bpm) == pytest.approx(t, abs=2e-3)
