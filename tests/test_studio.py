@@ -522,3 +522,19 @@ def test_timed_lyric_parsing():
     assert got[0] == (28.23, None, "we young tonight")
     assert got[1] == (38.84, 43.6, "Is a beauty and a beat")
     assert len(got) == 2
+
+
+def test_listing_from_brief():
+    """Titles come from viewer-facing hooks, never from the research notes."""
+    from studio import brief as briefs
+    from studio import publish
+
+    b = briefs.load("peter_gwen")
+    lst = publish.write(b, 43.0, track="Beauty and a Beat (slowed)")
+    assert lst.hook.lower() in [h.lower() for h in b.hooks]
+    assert len(lst.titles) == 3
+    assert all(len(t) <= 100 for t in lst.titles)
+    assert 3 <= len(lst.hashtags) <= 5
+    assert lst.hashtags[0] == "peterandgwen"
+    # an evidence sentence must never become the caption
+    assert not any("fandom" in t.lower() for t in lst.titles)

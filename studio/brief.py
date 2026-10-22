@@ -53,6 +53,8 @@ class StudioBrief:
     audience: list[Evidence] = field(default_factory=list)
     lyric: list[LyricIntent] = field(default_factory=list)
     avoid: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)   # searchable, niche first
+    hooks: list[str] = field(default_factory=list)  # copy written FOR a viewer
     track: str = ""
     source: str = ""
     window: tuple[float, float] = (0.0, 0.0)
@@ -141,6 +143,15 @@ class StudioBrief:
 # --------------------------------------------------------------------------
 PETER_GWEN = StudioBrief(
     title="Peter & Gwen — Beauty and a Beat",
+    tags=["peterandgwen", "peterparker", "gwenstacy", "amazingspiderman",
+          "andrewgarfield", "emmastone", "beautyandabeat", "spidermanedit"],
+    # Written for a viewer, not about the research. `audience` is evidence for
+    # choosing shots; this is copy. Keeping them separate is what stops a
+    # listing from opening with a sentence nobody would ever say.
+    hooks=["the only thing he ever needed",
+           "he never got to save her",
+           "peter & gwen, the ending that never came",
+           "all he needed was her"],
     topic="The Amazing Spider-Man: Peter Parker and Gwen Stacy",
     thesis=("The song is someone who says they only need one person. So the edit "
             "is about the two of them — not about Peter alone, and not about "

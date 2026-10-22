@@ -268,44 +268,64 @@ every word after it off the song.
 grid phase accuracy, plan structure invariants (no freeze, act ratios, flash
 budget), and card metrics.
 
-## The standing workflow (`pipeline.py`)
+## The standing workflow
 
-One command per video, in the order the work proved it needs:
+One job, in the order the work proved it needs. Steps 1-2 are the ones that
+decide whether the edit is worth making; everything after is engineering.
 
 ```bash
+# 1. which moments in the pack are worth cutting to
+python -m studio.picks footage/<pack>.mp4 --top 8 --only 0,5,6,10 --sheet work/studio/picks.jpg
+
+# 2. research the subject -> a brief (who the audience comes for, what the
+#    lyric asks for). The brief gates the footage: if the lyric needs the two of
+#    them and the pack has none, the job stops here, not at the render.
+
+# 3. one command per video: place the words, plan, listing, render, verify
 python -m studio.pipeline \
   --video footage/<pack>.mp4 --audio footage/<track>.mp3 \
   --captions studio/scripts/<lyric>.txt --out work/studio/<name>.mp4 \
-  [--font <face>] [--dry-run]
+  --brief peter_gwen --font <face> --accent <face> --accent-colour RRGGBB
 ```
 
-1. **research** what this fandom responds to and write it into a brief — the
-   brief is a gate, and a lyric that needs a two-shot the pack does not have
-   stops the job there;
-2. **place the words**: the supplied lyric on the measured vocal, one or two
-   words per card, each card held until its word stops sounding;
-3. **approve**: `--dry-run` writes the card sheet and the plan and stops. Nothing
-   is encoded before the words have been seen;
-4. **choose the face** from `assets/fonts/edit/` — the choice is a file in
-   `assets/fonts/family.json`, not an edit to the compositor;
-5. **render** through the one renderer;
-6. **verify the words against the mix** (`sync.py`, runs automatically at the end
-   of `pipeline.run` and writes `<out>.sync.txt`). Every lyric line is matched to
-   a 3-second sliding-window transcription of the finished file, and the report
-   prints the lyric beside what the audio actually says there. A line whose best
-   evidence sits somewhere else in the song is a FAIL and the take does not ship.
+What each stage writes, and what you read before saying yes:
 
-The start is the bar before the first word; the end is the bar after the last
-word plus a breath. Neither is typed by hand.
+| stage | artefact | what you actually check |
+|---|---|---|
+| picks | `picks.jpg` | are these the moments, or just the sharpest frames |
+| place | `*.cards.jpg` | the words, 1-2 per card, on the right syllable |
+| plan | printed act table | is the build long enough for the drop to land |
+| listing | `*.publish.md` | hook, three titles, tags |
+| render | `*.mp4` | the edit |
+| verify | `*.sync.txt` | what the audio says under each line |
 
-### Why step 6 exists
+`--dry-run` stops after the card sheet, the plan and the listing. Nothing is
+encoded before the words and the copy have both been seen.
 
-The same bug shipped three times: captions placed by one estimator, never checked
-by a second. A two-word card is a weak fingerprint (the recogniser returns
-"for ya" as "fire"), so verification works on WHOLE LINES — "It's all 'bout you"
-cannot be confused with "when the music makes you move" — and it reports the
-heard text, not just a score. That column is what catches a line the recogniser
-smears; read it before every delivery.
+### The listing (`publish.py`)
+
+Title, description and hashtags are written from the brief, not from the render:
+the audience evidence that chose the shots is the same evidence that decides the
+hook. Hooks live in `brief.hooks` and are copy for a viewer; `brief.audience` is
+evidence for choosing shots and is never printed to a caption — a listing that
+opens with a sentence nobody would say is a listing nobody clicks.
+
+Platform limits are enforced (`LIMITS`): TikTok/Reels 2200 chars with the first
+55/125 visible, Shorts title 100. Tags are niche-first and searched-word shaped
+(`#peterandgwen`, not `#edit`).
+
+### What this engine does NOT have yet
+
+Said plainly so nobody assumes it exists:
+
+* **no face/subject detection** — `picks` scores geometry; the brief's shot
+  class has to come from a human (or from `SHOT_NOTES` in `director.py`);
+* **no zoom punch-ins, shake or film grain** — the reference's look layer;
+  we have grade, whip, flash, ramp and matte;
+* **no cross-shot colour match** — grade is per act, not per shot pair;
+* **no vertical export** — 1920×1080 only;
+* **English-only ASR** — for other languages the placement path is `--timed`
+  and the verification is a proof sheet.
 
 ### Caption feel (`captions.polish`)
 

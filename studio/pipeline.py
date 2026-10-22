@@ -71,7 +71,8 @@ def run(video: str, audio: str, captions: str, out: str,
         start: float | None = None, font: str | None = None,
         dry_run: bool = False, preset: str = "medium", crf: int = 18,
         preview_path: str | None = None, accent: str | None = None,
-        accent_colour: str | None = None) -> dict:
+        accent_colour: str | None = None, brief_name: str = "peter_gwen",
+        tags: list[str] | None = None) -> dict:
     grid = analyse_track(audio)
     duration = min(grid.duration, _probe_audio(audio))
     lines = parse_lines(captions)
@@ -110,6 +111,21 @@ def run(video: str, audio: str, captions: str, out: str,
                                   "cards": to_script(cards, grid.bpm,
                                                      origin=start)},
                                  indent=1) + "\n")
+    # The listing is written from the same brief the shots were chosen from, and
+    # it is written here — before the render — so it can be reviewed with the
+    # card sheet rather than scrambled together at posting time.
+    from . import brief as briefs
+    from . import publish
+
+    studio_brief = briefs.load(brief_name)
+    listing = publish.write(studio_brief, end - start,
+                            track=Path(audio).stem.replace("_", " "),
+                            extra_tags=tags)
+    listing_path = Path(out).with_suffix(".publish.md")
+    listing_path.write_text(publish.to_markdown(listing, studio_brief.title))
+    report["publish"] = listing.as_dict()
+    report["publish_file"] = str(listing_path)
+
     report["sheet"] = sheet
     report["script"] = str(script)
     report["cards_file"] = str(cards_file)
@@ -178,12 +194,17 @@ def main_cli(argv=None):
     ap.add_argument("--accent-colour", default=None, help="RRGGBB")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=18)
+    ap.add_argument("--brief", default="peter_gwen",
+                    help="which researched brief this edit is cut for")
+    ap.add_argument("--tag", action="append", default=None,
+                    help="extra hashtag, no # (repeatable)")
     ap.add_argument("--dry-run", action="store_true",
                     help="stop after the caption sheet and the plan")
     a = ap.parse_args(argv)
     rep = run(a.video, a.audio, a.captions, a.out, a.start, a.font,
               a.dry_run, a.preset, a.crf, accent=a.accent,
-              accent_colour=a.accent_colour)
+              accent_colour=a.accent_colour, brief_name=a.brief,
+              tags=a.tag)
     print(json.dumps(rep, indent=1))
     return 0
 
