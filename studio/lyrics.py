@@ -139,6 +139,59 @@ def align(lines: list[str], asr: list[dict]) -> list[LyricLine]:
     return result
 
 
+def transcribe_boost(track: str, start: float, duration: float,
+                    tmp: str = "/tmp/lyric_boost.wav") -> list[dict]:
+    """ASR of a vocal-emphasised copy of the segment.
+
+    A sung vocal sits under the instrumental and a plain transcription misses
+    whole phrases: on this track the entire pre-chorus came back empty. Gentle
+    compression (dynaudnorm) and a band-limit pull the voice forward without
+    inventing words, and the phrase that was silent becomes audible.
+    """
+    import imageio_ffmpeg
+
+    subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-v", "error",
+                    "-ss", f"{start:.3f}", "-t", f"{duration:.3f}", "-i", track,
+                    "-af", "highpass=f=200,dynaudnorm=f=150:p=0.9,volume=6dB",
+                    "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", tmp],
+                   check=True)
+    out = "/tmp/lyric_boost.json"
+    done = subprocess.run([sys.executable, "-m", "clipper", "transcribe", tmp,
+                           "--asr", "moonshine", "--out", out],
+                          capture_output=True, text=True)
+    if done.returncode != 0:
+        raise RuntimeError(done.stderr[-800:])
+    data = json.loads(Path(out).read_text())
+    words = data.get("words", data) if isinstance(data, dict) else data
+    return [{"text": str(w["text"]).strip(), "start": float(w["start"]),
+             "end": float(w["end"])} for w in words if str(w.get("text", "")).strip()]
+
+
+def merge_words(*lists: list[dict], tol: float = 0.25) -> list[dict]:
+    """Union of several transcriptions of the same audio, by time.
+
+    The first list wins where they agree (it is the least processed audio); later
+    lists contribute only words that land where nothing was heard before. That is
+    how a phrase the raw pass could not hear gets a timestamp without the two
+    passes fighting over the same syllable.
+    """
+    out: list[dict] = []
+    for words in lists:
+        for w in words:
+            mid = (w["start"] + w["end"]) / 2
+            if any(a["start"] - tol <= mid <= a["end"] + tol for a in out):
+                continue
+            out.append(w)
+    out.sort(key=lambda w: w["start"])
+    return out
+
+
+def transcribe_robust(track: str, start: float, duration: float) -> list[dict]:
+    """Both passes, merged. What callers should use for captions."""
+    return merge_words(transcribe(track, start, duration),
+                       transcribe_boost(track, start, duration))
+
+
 def _sim(a: str, b: str) -> float:
     """How much two words sound like the same word, 0..1.
 
@@ -163,56 +216,33 @@ def _sim(a: str, b: str) -> float:
     return r
 
 
-def align_fuzzy(lines: list[str], asr: list[dict], min_sim: float = 0.62,
-                gap: float = -0.30) -> list[LyricLine]:
-    """Align the WHOLE lyric to the ASR stream at once, by sound.
-
-    Global on purpose. Every line is scored against every position, but the
-    sequence has to stay in order, so a repeated hook cannot drag a line into the
-    second chorus and an instrumental gap cannot absorb half a phrase: the DP
-    pays for the gap. The earlier per-line version searched independently and
-    happily put "All I need is a beauty and a beat" on a verse, because the ASR
-    had mangled the chorus and the verse had cleaner words.
-    """
-    toks, owner = [], []
-    for li, line in enumerate(lines):
-        for w in line.split():
-            toks.append(_norm(w))
-            owner.append(li)
-    if not toks or not asr:
-        return []
-
-    an = [_norm(w["text"]) for w in asr]
+def _dp(toks: list[str], an: list[str], min_sim: float, gap: float):
+    """Needleman-Wunsch over words scored by SOUND. Returns (score, pairs)."""
     n, m = len(toks), len(an)
-    NEG = -1e9
     score = [[0.0] * (m + 1) for _ in range(n + 1)]
     back = [[0] * (m + 1) for _ in range(n + 1)]
-
-    def match(i, j):
-        sim = _sim(toks[i - 1], an[j - 1])
-        return (sim, 2) if sim >= min_sim else (gap, 1)     # 2=match 1=skip-both
-
     for i in range(1, n + 1):
         score[i][0] = score[i - 1][0] + gap
         back[i][0] = 1
     for j in range(1, m + 1):
         score[0][j] = score[0][j - 1] + gap
         back[0][j] = 3
-
     for i in range(1, n + 1):
+        ti = toks[i - 1]
+        row, prev = score[i], score[i - 1]
+        brow = back[i]
         for j in range(1, m + 1):
-            sc, op = match(i, j)
-            diag = score[i - 1][j - 1] + sc
-            up = score[i - 1][j] + gap          # lyric word with no ASR word
-            left = score[i][j - 1] + gap        # ASR word that is not ours
-            best, how = diag, op
+            sim = _sim(ti, an[j - 1])
+            diag = prev[j - 1] + (sim if sim >= min_sim else gap)
+            up = prev[j] + gap
+            left = row[j - 1] + gap
+            best, how = diag, 2
             if up > best:
                 best, how = up, 1
             if left > best:
                 best, how = left, 3
-            score[i][j] = best
-            back[i][j] = how
-
+            row[j] = best
+            brow[j] = how
     i, j = n, m
     pairs: dict[int, tuple[int, float]] = {}
     while i > 0 and j > 0:
@@ -224,6 +254,50 @@ def align_fuzzy(lines: list[str], asr: list[dict], min_sim: float = 0.62,
             i -= 1
         else:
             j -= 1
+    return score[n][m], pairs
+
+
+def align_fuzzy(lines: list[str], asr: list[dict], min_sim: float = 0.62,
+                gap: float = -0.30, slack: float = 1.5) -> list[LyricLine]:
+    """Align the whole lyric to the ASR stream, as ONE contiguous performance.
+
+    Two failures shaped this:
+
+      * per-line search put the chorus on a verse, because the ASR had mangled
+        the chorus and the verse had cleaner words;
+      * a global match without a time term still did it — the song opens with a
+        different verse that happens to contain "we" and "I'm", so "we young
+        tonight" anchored eighteen seconds early and stretched everything after
+        it.
+
+    So the match runs over a WINDOW of the transcript at a time and keeps the
+    best window. A lyric is sung once, in order, without a thirty-second hole in
+    the middle, and a window cannot express one.
+    """
+    toks, owner = [], []
+    for li, line in enumerate(lines):
+        for w in line.split():
+            toks.append(_norm(w))
+            owner.append(li)
+    if not toks or not asr:
+        return []
+
+    an = [_norm(w["text"]) for w in asr]
+    # The window is roughly as long as the lyric, in ASR words. It has to be
+    # shorter than the transcript or there is nothing to slide: a sung phrase
+    # produces FEWER recogniser words than it has syllables, because the ASR
+    # drops the ones it cannot resolve.
+    win = min(len(an), max(8, int(len(toks) * 0.9)))
+    best = None
+    for start in range(0, max(1, len(an) - win + 1)):
+        sub = an[start:start + win]
+        sc, pairs = _dp(toks, sub, min_sim, gap)
+        if best is None or sc > best[0] + 1e-9:
+            best = (sc, start, pairs)
+    if best is None:
+        return []
+    _score, start, pairs = best
+    pairs = {k: (j + start, c) for k, (j, c) in pairs.items()}
 
     step = 0.33
     out: list[LyricLine] = []
@@ -233,7 +307,6 @@ def align_fuzzy(lines: list[str], asr: list[dict], min_sim: float = 0.62,
             continue
         words: list[LyricWord] = []
         for k in idx:
-            text = toks[k]
             raw = line.split()[k - idx[0]]
             if k in pairs:
                 j, conf = pairs[k]
@@ -252,7 +325,7 @@ def align_fuzzy(lines: list[str], asr: list[dict], min_sim: float = 0.62,
                 elif nxt is not None:
                     t = asr[pairs[nxt][0]]["start"] - step * (nxt - k)
                 else:
-                    t = words[-1].end if words else 0.0
+                    t = out[-1].end if out else 0.0
                 words.append(LyricWord(raw, t, t + step, 0.35))
         out.append(LyricLine(line, words))
     return out

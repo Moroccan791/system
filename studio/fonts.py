@@ -19,6 +19,10 @@ import json
 from pathlib import Path
 
 FONT_DIR = Path("assets/fonts")
+# The EDITING faces live here, one folder, and nothing else is offered for a
+# video. The rest of assets/fonts belongs to the campaign (whop) chain and stays
+# out of the way so "which font" is a two-second question, not a menu of twelve.
+EDIT_DIR = FONT_DIR / "edit"
 OUT_DIR = FONT_DIR / "ttf"
 CONFIG = FONT_DIR / "family.json"
 
@@ -47,9 +51,14 @@ def ensure(name: str) -> Path:
     """A path PIL can open for this face, converting woff2 once if needed."""
     if name in _cache and _cache[name].exists():
         return _cache[name]
-    src = FONT_DIR / CANDIDATES[name]
+    if name in edit_faces():
+        src = edit_faces()[name]
+    elif name in CANDIDATES:
+        src = FONT_DIR / CANDIDATES[name]
+    else:
+        raise FileNotFoundError(f"{name}: not in {EDIT_DIR} or the library")
     if not src.exists():
-        raise FileNotFoundError(f"{name}: no {src.name} in {FONT_DIR}")
+        raise FileNotFoundError(f"{name}: {src} is missing")
     if src.suffix.lower() in (".ttf", ".otf"):
         _cache[name] = src
         return src
@@ -66,9 +75,27 @@ def ensure(name: str) -> Path:
     return dst
 
 
+def edit_faces() -> dict[str, Path]:
+    """Every face dropped into assets/fonts/edit, by filename.
+
+    Auto-discovered on purpose: a new font is a file, not a code change. Unzip
+    into that folder, run `python -m studio.fonts --list`, choose.
+    """
+    if not EDIT_DIR.exists():
+        return {}
+    out = {}
+    for p in sorted(EDIT_DIR.iterdir()):
+        if p.suffix.lower() in (".ttf", ".otf", ".woff2", ".woff"):
+            out[p.stem] = p
+    return out
+
+
 def available() -> dict[str, str]:
     """face -> the file it converts from, for everything present on disk."""
-    return {n: f for n, f in CANDIDATES.items() if (FONT_DIR / f).exists()}
+    faces = {n: str(f.relative_to(FONT_DIR)) for n, f in edit_faces().items()}
+    faces.update({n: f for n, f in CANDIDATES.items()
+                  if (FONT_DIR / f).exists() and n not in faces})
+    return faces
 
 
 def config() -> dict:
@@ -115,7 +142,8 @@ def specimen(out: str | Path, text: str = "IS A BEAUTY",
 
     from .typecards import composite, render_card
 
-    faces = faces or [f for f in available() if f != "CabinetGroteskBlack"]
+    faces = faces or list(edit_faces()) or [
+        f for f in available() if f != "CabinetGroteskBlack"]
     tiles = []
     for name in faces:
         path = ensure(name)

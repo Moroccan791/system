@@ -447,16 +447,21 @@ def test_caption_cards_tile_the_vocal_with_no_gap_or_overlap():
     from studio.captions import cards_from_words
     import studio.captions as C
 
-    orig = C.transcribe
-    C.transcribe = lambda *a, **k: [{"text": w.text, "start": w.start, "end": w.end}
-                                    for w in ws]
+    orig = C.transcribe_robust
+    C.transcribe_robust = lambda *a, **k: [{"text": w.text, "start": w.start,
+                                            "end": w.end} for w in ws]
     try:
         cards = cards_from_words(["All I need is a beauty and a beat"],
                                  "x", 0.0, 1.0, max_words=2)
     finally:
-        C.transcribe = orig
+        C.transcribe_robust = orig
     assert [c["text"] for c in cards] == ["All I", "need is", "a beauty", "and a", "beat"]
+    # cards may not overlap, and each holds until its own last word has sounded
     for a, b in zip(cards, cards[1:]):
-        assert a["end"] == pytest.approx(b["start"])
+        assert a["end"] <= b["start"] + 1e-6
+    words_end = {}
+    for c in cards:
+        words_end[c["text"]] = c["end"]
+    assert cards[3]["end"] >= 5.0 + 0.36 * 7 + 0.30 - 1e-3  # "and a" holds to its words
     script = to_script(cards, 120.0)
     assert script[0]["beat"] * 60 / 120.0 == pytest.approx(cards[0]["start"])

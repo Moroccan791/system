@@ -84,7 +84,7 @@ def _measure(draw, text: str, font, tracking: int) -> tuple[int, int]:
         return 0, 0
     words = text.split(" ")
     w = int(sum(draw.textlength(wd, font=font) for wd in words)
-            + tracking * 1.6 * max(0, len(words) - 1))
+            + (tracking * 1.6 + font.size * 0.24) * max(0, len(words) - 1))
     asc, desc = font.getmetrics()
     return w, asc + desc
 
@@ -160,9 +160,13 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
         # throws away the font's kerning and "MADE" renders as "MAD E".
         # Tracking belongs BETWEEN words, not inside them.
         x = pad
+        # A word gap is not letter tracking. Tracking is the space BETWEEN
+        # letters; running words together because we only advanced by tracking
+        # is how "WE YOUNG" sets as "WEYOUNG".
+        word_gap = tracking * 1.6 + best * 0.24
         for wi, word in enumerate(body.split(" ")):
             if wi:
-                x += tracking * 1.6
+                x += word_gap
             wx = x
             for ch in word:
                 f = fill_accent if accent and ch in accent else fill_white

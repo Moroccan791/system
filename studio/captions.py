@@ -25,7 +25,7 @@ import json
 import re
 from pathlib import Path
 
-from .lyrics import LyricWord, align_fuzzy, transcribe
+from .lyrics import LyricWord, align_fuzzy, transcribe_robust
 
 SECTION = re.compile(r"^\s*[\[(].*[\])]\s*$")     # [Chorus], (x2)
 
@@ -44,6 +44,10 @@ def parse_lines(path: str | Path) -> list[str]:
             continue
         s = re.sub(r"^[\[(]?\d{1,2}:\d{2}[.:]\d{1,3}[\])]?\s*", "", s)
         s = re.sub(r"-->.*$", "", s).strip()
+        # "It's all (all) 'bout you" — the bracket is an echo that IS sung, so the
+        # word stays and only the bracket goes. Dropping it would shift every
+        # word after it off its syllable.
+        s = re.sub(r"[()\[\]]", "", s)
         if s:
             lines.append(s)
     return lines
@@ -58,15 +62,31 @@ def words_of(lines: list[str]) -> list[str]:
 
 def cards_from_words(lines: list[str], track: str, start: float,
                      duration: float, max_words: int = 2,
-                     tail: float = 0.12) -> list[dict]:
-    """One card per 1-2 words, timed to the vocal.
+                     hold: float = 0.06, min_hold: float = 0.18) -> list[dict]:
+    """One card per 1-2 words, each held until its word stops sounding.
 
-    A card ends where the next card starts, so cards tile the vocal with no gaps
-    and no overlap. The last card of a phrase gets a short tail so a word is not
-    pulled off screen on its own consonant.
+    The rule is the operator's, not a heuristic: a word stays on screen for as
+    long as it is audible, plus a hair. Cutting a card on the next onset makes
+    the last word of a phrase vanish while it is still being sung, which is the
+    single most obvious tell that captions were generated rather than placed.
+
+    Cards still tile with no gaps: a card may only run up to the next onset, never
+    past it. Short words get `min_hold` so a card is never a single frame.
     """
-    asr = transcribe(track, start, duration)
+    asr = transcribe_robust(track, start, duration)
     placed = align_fuzzy(lines, asr)
+
+    # Monotonic, always. Two words that both missed the recogniser come back
+    # interpolated to the same instant, which puts two cards on one frame and
+    # makes a 0.09s card between them. Push each word past the one before it.
+    for line in placed:
+        prev_end = None
+        for w in line.words:
+            if prev_end is not None and w.start < prev_end + 0.04:
+                shift = prev_end + 0.04 - w.start
+                w.start += shift
+                w.end = max(w.end + shift, w.start + 0.04)
+            prev_end = w.end
 
     # Chunk WITHIN a line. A card that straddles two sung lines reads as a
     # caption generator that has lost its place.
@@ -88,13 +108,16 @@ def cards_from_words(lines: list[str], track: str, start: float,
     cards = []
     for i, c in enumerate(chunks):
         t0 = c["start"]
-        t1 = chunks[i + 1]["start"] if i + 1 < len(chunks) else c["end_of_words"] + tail
-        # A card ends when its word ends, plus a breath — never stretched to the
-        # next card across an instrumental. "LIFE COMPLETE" sat on screen for
-        # 6.9s that way, which reads as a bug, not a hold.
-        t1 = min(t1, c["end_of_words"] + tail + 0.10)
+        # hold until the card's LAST word stops sounding
+        t1 = max(c["end_of_words"] + hold, t0 + min_hold)
+        if i + 1 < len(chunks):
+            nxt = chunks[i + 1]["start"]
+            if nxt < t1:
+                # the next word starts before this one has finished: never run
+                # into the next card, so the card stops at that onset
+                t1 = nxt
         cards.append({"start": round(t0, 3),
-                      "end": round(max(t1, t0 + 0.16), 3),
+                      "end": round(max(t1, t0 + min_hold * 0.5), 3),
                       # confidence of the worst word in the card, so a badly
                       # aligned line is visible in the preview instead of shipping
                       "text": c["text"], "conf": round(c["conf"], 2),
@@ -181,8 +204,9 @@ def preview(cards: list[dict], out: str | Path, video: str | Path | None = None,
         composite(arr, card)
         im = Image.fromarray(arr).resize((tile_w, int(tile_w * 9 / 16)))
         d = ImageDraw.Draw(im)
-        d.rectangle([0, 0, 120, 18], fill=(0, 0, 0))
-        d.text((4, 4), f"{c['start']:.2f}s c{c['conf']:.1f}", fill=(255, 220, 0))
+        d.rectangle([0, 0, 150, 26], fill=(0, 0, 0))
+        d.text((6, 7), f"{c['start']:.2f}s  {c['end']-c['start']:.2f}s",
+               fill=(255, 220, 0))
         tiles.append(im)
 
     rows = (len(tiles) + cols - 1) // cols
