@@ -158,6 +158,48 @@ def cards_from_words(lines: list[str], track: str, start: float,
     return cards
 
 
+# ---------------------------------------------------------------------------
+# Two caption conventions that are not about accuracy, but decide whether the
+# words FEEL right. Both were learned from watching a delivered edit back.
+#
+#   LEAD  type arrives a beat before the syllable. A caption that lands exactly
+#         on the attack reads late, because the eye needs ~0.2s to arrive and
+#         the ear is already past the word. Karaoke has done this for decades.
+#
+#   TILE  a gap shorter than TILE inside a sung passage is not silence, it is a
+#         breath or a held note — and a card that vanishes there looks like the
+#         caption system lost its place. Hold the previous card through it. A
+#         real instrumental break (this track has a 5.3s one) is longer than
+#         TILE and is left alone: type across an instrumental is a lie about
+#         where the voice is.
+# ---------------------------------------------------------------------------
+LEAD = 0.28
+TILE = 1.90
+MIN_HOLD = 0.22
+MAX_BRIDGE = 2.20
+
+
+def polish(cards: list[dict], lead: float = LEAD, tile: float = TILE,
+           min_hold: float = MIN_HOLD, max_bridge: float = MAX_BRIDGE) -> list[dict]:
+    """Lead the type into the word, and never blink out mid-phrase."""
+    out: list[dict] = []
+    for c in cards:
+        start = max(0.0, c["start"] - lead)
+        end = max(c["end"] - lead, start + min_hold)
+        if out and start < out[-1]["start"] + min_hold:
+            start = out[-1]["start"] + min_hold
+            end = max(end, start + min_hold)
+        out.append({**c, "start": round(start, 3), "end": round(end, 3)})
+    for a, b in zip(out, out[1:]):
+        gap = b["start"] - a["end"]
+        if 0.0 < gap <= tile:
+            # bridge the breath, but do not turn the card into a lower third:
+            # a word that owns the screen for four seconds stops being type and
+            # becomes furniture.
+            a["end"] = round(min(b["start"], a["start"] + max_bridge), 3)
+    return out
+
+
 def coverage(cards: list[dict], lines: list[str]) -> dict:
     want = words_of(lines)
     got = " ".join(c["text"] for c in cards).split()

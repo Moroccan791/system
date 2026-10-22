@@ -292,3 +292,19 @@ by a second. A two-word card is a weak fingerprint (the recogniser returns
 cannot be confused with "when the music makes you move" — and it reports the
 heard text, not just a score. That column is what catches a line the recogniser
 smears; read it before every delivery.
+
+### Caption feel (`captions.polish`)
+
+Accuracy is not the whole job. Two conventions are applied to every card list
+before it is rendered, and both came from watching a delivered edit back:
+
+* **lead 0.28 s** — the type arrives before the syllable. A card that lands on
+  the attack reads late; the eye needs a moment to arrive.
+* **bridge short gaps (≤1.9 s, max 2.2 s on screen)** — a gap inside a sung
+  passage is a breath, not silence, and a card that vanishes there looks like
+  the system lost its place. A real instrumental break stays blank: type across
+  an instrumental is a lie about where the voice is.
+
+Both numbers are constants at the top of `captions.py` (`LEAD`, `TILE`,
+`MAX_BRIDGE`) — if an edit reads consistently early or late, one number moves,
+not the whole card table.

@@ -465,3 +465,19 @@ def test_caption_cards_tile_the_vocal_with_no_gap_or_overlap():
     assert cards[3]["end"] >= 5.0 + 0.36 * 7 + 0.30 - 1e-3  # "and a" holds to its words
     script = to_script(cards, 120.0)
     assert script[0]["beat"] * 60 / 120.0 == pytest.approx(cards[0]["start"])
+
+
+def test_caption_lead_and_bridging():
+    """Type leads the syllable, and never blinks out inside a sung phrase."""
+    from studio.captions import polish
+
+    cards = [
+        {"text": "a", "start": 10.00, "end": 10.40, "line": 0},
+        {"text": "b", "start": 10.60, "end": 11.00, "line": 0},
+        {"text": "c", "start": 15.00, "end": 15.40, "line": 1},
+    ]
+    out = polish(cards, lead=0.5, tile=1.9, max_bridge=2.2)
+    assert out[0]["start"] == 9.5            # led by LEAD, not placed on the attack
+    assert out[0]["end"] == 10.1             # 0.1s breath inside the phrase: bridged
+    assert out[1]["end"] == 10.5             # a 4s gap is an instrumental: left blank
+    assert out[2]["start"] == 14.5           # and the next card still leads its word
