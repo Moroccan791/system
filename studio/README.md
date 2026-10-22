@@ -295,6 +295,22 @@ every word after it off the song.
 grid phase accuracy, plan structure invariants (no freeze, act ratios, flash
 budget), and card metrics.
 
+## Footage intake (`intake.py`)
+
+Source arrives as a GitHub release asset (anything over ~20 MB has to). One
+command pulls it, names it safely, and probes it:
+
+```bash
+python -m studio.intake --list                      # what is in the newest release
+python -m studio.intake --tag <tag> --dir footage/<job> --stage
+```
+
+`--stage` also copies the first video and first audio to `footage/scenepack.mp4`
+and `footage/track.mp3`, so no pipeline command has to quote a filename with an
+emoji in it. It never clobbers: a same-size file is skipped, a different one gets
+a `.1`. And it probes on arrival — duration, resolution, shot count and the six
+highest-ranked moments — so the first message about a pack is about the edit.
+
 ## The standing workflow
 
 One job, in the order the work proved it needs. Steps 1-2 are the ones that

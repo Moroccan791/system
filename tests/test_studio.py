@@ -583,3 +583,13 @@ def test_colour_match_is_capped():
     gain, off = grade.correction(shot, tgt)
     assert gain.max() <= 1.0 + grade.MAX_GAIN + 1e-6
     assert abs(float(off)) <= grade.MAX_LIFT + 1e-6
+
+
+def test_intake_names_are_safe():
+    """A release asset called '✨ #spiderman edit.mp4' must land on disk safely."""
+    from studio.intake import _safe
+
+    assert _safe("✨ #spiderman #edit (1).mp4") == "1_.mp4" or _safe(
+        "✨ #spiderman #edit (1).mp4").endswith(".mp4")
+    assert " " not in _safe("a b c.mov")
+    assert _safe("plain_name.mp4") == "plain_name.mp4"
