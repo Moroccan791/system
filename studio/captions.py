@@ -29,6 +29,18 @@ from .lyrics import LyricWord, align_fuzzy, transcribe_robust
 
 SECTION = re.compile(r"^\s*[\[(].*[\])]\s*$")     # [Chorus], (x2)
 
+
+def is_section(s: str) -> bool:
+    """A bare marker line — `[Chorus]`, `(x2)` — not a lyric.
+
+    The bracket test alone is not enough. A timed line that ends on an ad-lib,
+    `[00:38.700 - 00:43.000] When I'm away from you, I miss your touch (ooh)`,
+    starts with `[` and ends with `)`, so it looked exactly like a marker and was
+    thrown away with the whole line — a silently missing lyric, not an error.
+    A line that carries a time is a lyric no matter what its punctuation does.
+    """
+    return bool(SECTION.match(s)) and not TIMED.match(s)
+
 # The words a lyric turns on. An accent on every card is decoration; one accent
 # per thought is design. Kept as data so a different song is a different list.
 ACCENT_WORDS = {
@@ -71,7 +83,7 @@ def parse_lines(path: str | Path) -> list[str]:
     lines = []
     for raw in Path(path).read_text(encoding="utf-8").splitlines():
         s = raw.strip()
-        if not s or SECTION.match(s):
+        if not s or is_section(s):
             continue
         s = re.sub(r"^[\[(]?\d{1,2}:\d{2}[.:]\d{1,3}[\])]?\s*", "", s)
         s = re.sub(r"-->.*$", "", s).strip()
@@ -301,7 +313,7 @@ def parse_timed(path: str | Path) -> list[tuple[float, float | None, str]]:
     out: list[tuple[float, float | None, str]] = []
     for raw in Path(path).read_text(encoding="utf-8").splitlines():
         s = raw.strip()
-        if not s or SECTION.match(s):
+        if not s or is_section(s):
             continue
         m = TIMED.match(s)
         if not m:

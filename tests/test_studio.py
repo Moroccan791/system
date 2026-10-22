@@ -524,6 +524,26 @@ def test_timed_lyric_parsing():
     assert len(got) == 2
 
 
+def test_timed_line_ending_on_an_adlib_is_not_a_marker():
+    """`... [00:38.7 - 00:43.0] ... your touch (ooh)` starts `[` and ends `)`.
+
+    The section-marker test used to eat it, so a whole sung line vanished with no
+    error and nothing in lint to show for it — the outro was simply gone.
+    """
+    import tempfile
+    from pathlib import Path
+    from studio.captions import parse_timed
+
+    f = Path(tempfile.mkdtemp()) / "lyric.txt"
+    f.write_text("[00:38.700 - 00:43.000] When I'm away from you, I miss your touch (ooh)\n"
+                 "[00:43.100 - 00:46.800] You're the reason I believe in love\n"
+                 "[Chorus] (x2)\n")
+    got = parse_timed(f)
+    assert len(got) == 2, got
+    assert got[0][0] == 38.7 and got[0][1] == 43.0
+    assert "away from you" in got[0][2]
+
+
 def test_listing_from_brief():
     """Titles come from viewer-facing hooks, never from the research notes."""
     from studio import brief as briefs
