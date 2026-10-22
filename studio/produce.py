@@ -144,8 +144,14 @@ def main(argv=None):
         if not cards:
             raise SystemExit("refusing to render: no vocal found for the captions")
         # lead into the syllable, hold through breaths — see captions.polish
-        from .captions import polish
+        from .captions import lint, polish, timeline
         cards = polish(cards)
+        print(timeline(cards))
+        problems = lint(cards)
+        if problems:
+            print("caption lint:")
+            for p_ in problems:
+                print("  " + p_)
         last_word = cards[-1]["end"]
         if a.end is None:
             a.end = out_point(last_word, grid, tail=1.2, ceiling=grid.duration)

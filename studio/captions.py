@@ -173,31 +173,99 @@ def cards_from_words(lines: list[str], track: str, start: float,
 #         TILE and is left alone: type across an instrumental is a lie about
 #         where the voice is.
 # ---------------------------------------------------------------------------
-LEAD = 0.28
-TILE = 1.90
-MIN_HOLD = 0.22
-MAX_BRIDGE = 2.20
+LEAD = 0.15          # type arrives a beat before the syllable
+TAIL = 0.42          # how long a word keeps holding after its audio stops
+GAP = 1.80           # a hole longer than this is an instrumental: leave it bare
+MIN_CARD = 0.45      # shorter than this is a flash, not a word
+MAX_MERGE = 3        # a merged card never carries more words than this
+FINAL_TAIL = 1.10    # the last card leaves with the music, not before it
+MAX_HOLD = 3.60      # a card on screen longer than this has become furniture
 
 
-def polish(cards: list[dict], lead: float = LEAD, tile: float = TILE,
-           min_hold: float = MIN_HOLD, max_bridge: float = MAX_BRIDGE) -> list[dict]:
-    """Lead the type into the word, and never blink out mid-phrase."""
-    out: list[dict] = []
+def polish(cards: list[dict], lead: float = LEAD, tail: float = TAIL,
+           gap: float = GAP, min_card: float = MIN_CARD,
+           max_merge: int = MAX_MERGE, final_tail: float = FINAL_TAIL) -> list[dict]:
+    """One rule: a card stays until the next word arrives.
+
+    Every earlier attempt at this had two authorities — the word's own audio and
+    a cap on how long a card may sit — and they fought, which is why the same
+    complaint came back in a different place each time. Here the card's length is
+    the distance to the next onset and nothing else:
+
+        start = onset - LEAD          (type leads the syllable by a hair)
+        end   = next card's start     (held, not re-timed)
+
+    so a card is on screen for exactly as long as its word is the current word,
+    and card durations stop being arbitrary. Two exceptions, both of them about
+    the music rather than the mechanism:
+
+      * a hole longer than GAP is an instrumental, not a breath. The word holds
+        for TAIL and then the picture is bare — type over an instrumental is a
+        lie about where the voice is;
+      * two words closer together than MIN_CARD cannot both be read. They become
+        one card if they fit, otherwise the second is nudged out by MIN_CARD.
+
+    The last card gets FINAL_TAIL: a lyric that vanishes while the chord is still
+    ringing is the one place a viewer notices the captions ending.
+    """
+    src = sorted((dict(c) for c in cards), key=lambda c: c["start"])
+
+    # 1. flashes: two onsets this close cannot be two cards
+    merged: list[dict] = []
+    for c in src:
+        if merged and (c["start"] - merged[-1]["start"]) < min_card:
+            words = (merged[-1]["text"] + " " + c["text"]).split()
+            if len(words) <= max_merge:
+                merged[-1]["text"] = " ".join(words)
+                merged[-1]["end"] = max(merged[-1]["end"], c["end"])
+                continue
+            c = {**c, "start": merged[-1]["start"] + min_card}
+        merged.append(dict(c))
+
+    # 2. lead in
+    for c in merged:
+        c["start"] = max(0.0, c["start"] - lead)
+
+    # 3. hold until the next word
+    for i, c in enumerate(merged):
+        held = c["end"] + (final_tail if i == len(merged) - 1 else tail)
+        nxt = merged[i + 1]["start"] if i + 1 < len(merged) else None
+        if nxt is not None and (nxt - c["end"]) <= gap:
+            c["end"] = max(nxt, c["start"] + min_card)
+        else:
+            c["end"] = max(held, c["start"] + min_card)
+        c["start"] = round(c["start"], 3)
+        c["end"] = round(c["end"], 3)
+    return merged
+
+
+def lint(cards: list[dict], gap: float = GAP, min_card: float = MIN_CARD,
+         max_hold: float = MAX_HOLD) -> list[str]:
+    """What would a viewer notice? Every line here is a complaint waiting to happen."""
+    bad: list[str] = []
+    for a, b in zip(cards, cards[1:]):
+        hole = b["start"] - a["end"]
+        if hole < -0.001:
+            bad.append(f"overlap {hole:+.2f}s at {a['text']!r} -> {b['text']!r}")
+        elif 0.0 < hole <= gap:
+            bad.append(f"hole {hole:.2f}s at {a['text']!r} -> {b['text']!r}")
     for c in cards:
-        start = max(0.0, c["start"] - lead)
-        end = max(c["end"] - lead, start + min_hold)
-        if out and start < out[-1]["start"] + min_hold:
-            start = out[-1]["start"] + min_hold
-            end = max(end, start + min_hold)
-        out.append({**c, "start": round(start, 3), "end": round(end, 3)})
-    for a, b in zip(out, out[1:]):
-        gap = b["start"] - a["end"]
-        if 0.0 < gap <= tile:
-            # bridge the breath, but do not turn the card into a lower third:
-            # a word that owns the screen for four seconds stops being type and
-            # becomes furniture.
-            a["end"] = round(min(b["start"], a["start"] + max_bridge), 3)
-    return out
+        d = c["end"] - c["start"]
+        if d < min_card - 1e-6:
+            bad.append(f"flash {d:.2f}s on {c['text']!r}")
+        elif d > max_hold:
+            bad.append(f"held {d:.2f}s on {c['text']!r}")
+    return bad
+
+
+def timeline(cards: list[dict]) -> str:
+    """The card table as a viewer experiences it: time, length, gap to the next."""
+    rows = ["    start     end   len  gap  text"]
+    for i, c in enumerate(cards):
+        gap = (cards[i + 1]["start"] - c["end"]) if i + 1 < len(cards) else 0.0
+        rows.append(f"  {c['start']:7.2f} {c['end']:6.2f} {c['end'] - c['start']:5.2f}"
+                    f" {gap:4.2f}  {c['text']}")
+    return "\n".join(rows)
 
 
 TIMED = re.compile(

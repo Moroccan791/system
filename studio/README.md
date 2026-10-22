@@ -295,19 +295,39 @@ smears; read it before every delivery.
 
 ### Caption feel (`captions.polish`)
 
-Accuracy is not the whole job. Two conventions are applied to every card list
-before it is rendered, and both came from watching a delivered edit back:
+One rule, and it is the only rule: **a card stays until the next word arrives.**
 
-* **lead 0.28 s** — the type arrives before the syllable. A card that lands on
-  the attack reads late; the eye needs a moment to arrive.
-* **bridge short gaps (≤1.9 s, max 2.2 s on screen)** — a gap inside a sung
-  passage is a breath, not silence, and a card that vanishes there looks like
-  the system lost its place. A real instrumental break stays blank: type across
-  an instrumental is a lie about where the voice is.
+```
+start = onset - LEAD (0.15)      type leads the syllable by a hair
+end   = next card's start        held, never re-timed
+```
 
-Both numbers are constants at the top of `captions.py` (`LEAD`, `TILE`,
-`MAX_BRIDGE`) — if an edit reads consistently early or late, one number moves,
-not the whole card table.
+Every earlier version had two authorities — the word's audio, and a cap on how
+long a card may sit — and they fought each other, which is why the same
+complaint ("it's too fast here, late there") kept moving to a new timestamp. Now
+a card's duration *is* the distance between two onsets, so there is nothing to
+tune per video.
+
+Four guards, all about the music rather than the mechanism:
+
+| guard | value | what it prevents |
+|---|---|---|
+| `GAP` | 1.80 s | type across an instrumental — a lie about where the voice is |
+| `TAIL` | 0.42 s | a word vanishing while its audio still rings |
+| `MIN_CARD` | 0.45 s | a card that is a flash, or two words merged if they fit |
+| `FINAL_TAIL` | 1.10 s | the last line leaving before the chord dies |
+
+`lint()` fails a card table that breaks any of them (overlaps, holes under `GAP`,
+flashes, cards held past `MAX_HOLD`), and `timeline()` prints the table the way a
+viewer experiences it — time, length, gap. `produce` prints both before it cuts
+a single frame, so a timing problem is a printed line, not a re-render.
+
+Preview without footage (the text track alone, which is the thing under review):
+
+```bash
+python -m studio.produce --track song.mp3 --source pack.mp4 --captions lyric.txt \
+  --out out.mp4 --direct --plan-only   # the caption timeline, linted
+```
 
 ### A lyric the recogniser cannot read (Hindi, Bangla, any non-English)
 

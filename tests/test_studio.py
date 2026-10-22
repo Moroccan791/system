@@ -467,20 +467,45 @@ def test_caption_cards_tile_the_vocal_with_no_gap_or_overlap():
     assert script[0]["beat"] * 60 / 120.0 == pytest.approx(cards[0]["start"])
 
 
-def test_caption_lead_and_bridging():
-    """Type leads the syllable, and never blinks out inside a sung phrase."""
+def test_caption_holds_until_the_next_word():
+    """A card lasts exactly as long as its word is the current word."""
+    from studio.captions import polish, lint
+
+    cards = [
+        {"text": "a", "start": 10.00, "end": 10.40, "line": 0},
+        {"text": "b", "start": 10.90, "end": 11.30, "line": 0},
+        {"text": "c", "start": 11.80, "end": 12.20, "line": 0},
+    ]
+    out = polish(cards, lead=0.15, tail=0.42, gap=1.8)
+    assert out[0]["start"] == 9.85           # led into the syllable
+    assert out[0]["end"] == out[1]["start"]  # held, no hole
+    assert out[1]["end"] == out[2]["start"]
+    assert lint(out, gap=1.8) == []
+
+
+def test_caption_leaves_an_instrumental_bare():
+    """Type over an instrumental is a lie about where the voice is."""
     from studio.captions import polish
 
     cards = [
         {"text": "a", "start": 10.00, "end": 10.40, "line": 0},
-        {"text": "b", "start": 10.60, "end": 11.00, "line": 0},
-        {"text": "c", "start": 15.00, "end": 15.40, "line": 1},
+        {"text": "b", "start": 16.00, "end": 16.40, "line": 1},
     ]
-    out = polish(cards, lead=0.5, tile=1.9, max_bridge=2.2)
-    assert out[0]["start"] == 9.5            # led by LEAD, not placed on the attack
-    assert out[0]["end"] == 10.1             # 0.1s breath inside the phrase: bridged
-    assert out[1]["end"] == 10.5             # a 4s gap is an instrumental: left blank
-    assert out[2]["start"] == 14.5           # and the next card still leads its word
+    out = polish(cards, lead=0.15, tail=0.42, gap=1.8)
+    assert out[0]["end"] == 10.82            # word end + TAIL, then bare
+    assert out[1]["start"] == 15.85
+
+
+def test_two_words_too_close_become_one_card():
+    """0.2s apart is a flash, not two readable cards."""
+    from studio.captions import polish
+
+    cards = [
+        {"text": "hold", "start": 10.00, "end": 10.30, "line": 0},
+        {"text": "on", "start": 10.20, "end": 10.90, "line": 0},
+    ]
+    out = polish(cards, lead=0.0, min_card=0.45)
+    assert len(out) == 1 and out[0]["text"] == "hold on"
 
 
 def test_timed_lyric_parsing():
