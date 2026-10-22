@@ -538,3 +538,48 @@ def test_listing_from_brief():
     assert lst.hashtags[0] == "peterandgwen"
     # an evidence sentence must never become the caption
     assert not any("fandom" in t.lower() for t in lst.titles)
+
+
+def test_look_layer_moves_the_frame():
+    """The push is real: two frames inside one held cut must differ."""
+    import numpy as np
+    from studio.look import apply as look_apply
+
+    f = np.full((108, 192, 3), 90, dtype=np.uint8)
+    f[20:80, 40:150] = 200
+    a = look_apply(f.copy(), "drop", 0.0, 10)
+    b = look_apply(f.copy(), "drop", 0.9, 10)
+    assert not np.array_equal(a, b)
+    assert a.shape == f.shape
+
+
+def test_grade_is_a_lut_and_moves_the_frame():
+    import numpy as np
+    from studio import grade
+
+    # a grey ramp, not noise: the exhale is a per-pixel saturation drop, and
+    # applying it to independent R/G/B noise measures nothing but the input.
+    f = np.repeat(np.arange(0, 255, 4, dtype=np.uint8)[None, :, None], 3,
+                  axis=2)[:, :, :3]
+    f = np.repeat(f, 8, axis=0)[:36, :63]
+    out = grade.premium(f, "drop")
+    assert out.shape == f.shape and out.dtype == np.uint8
+    assert not np.array_equal(out, f)
+    # the exhale drops saturation to near-monochrome: mean channel spread
+    # per pixel collapses compared with the full-colour look
+    def spread(act):
+        x = grade.premium(f, act).astype(int)
+        return float((x.max(axis=2) - x.min(axis=2)).mean())
+    assert spread("out") < 0.45 * spread("drop")
+
+
+def test_colour_match_is_capped():
+    """A dark shot must stay dark: matching may nudge, never relight."""
+    import numpy as np
+    from studio import grade
+
+    shot = {"mean": np.array([20.0, 20.0, 20.0], dtype=np.float32), "p50": 18.0}
+    tgt = {"mean": np.array([90.0, 90.0, 90.0], dtype=np.float32), "p50": 88.0}
+    gain, off = grade.correction(shot, tgt)
+    assert gain.max() <= 1.0 + grade.MAX_GAIN + 1e-6
+    assert abs(float(off)) <= grade.MAX_LIFT + 1e-6

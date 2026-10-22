@@ -145,6 +145,29 @@ Two things that source forced:
   read. Capping holds at 2.6 s widens the choice set — the build now opens on a
   shot at brightness 79 and a close-up at 107.
 
+## The look (`grade.py`, `look.py`)
+
+Two stages, both on by default, both switchable (`--no-premium`, `--no-look`).
+
+**Match, then look.** A scenepack is not one film — 37 shots from a movie means
+the hallway is warm, the rooftop is cyan, the interior is green. `grade.py`
+measures every shot from cheap thumbnails (one ffmpeg pass, 3 fps, 160px) and
+pulls each one toward the pack's own median, capped at 16% gain and 12/255 lift
+so a night shot stays a night shot. Then one filmic LUT per act: lifted blacks,
+rolled highlights, cool shadows against warm highlights, a touch of saturation,
+and a soft vignette. The numbers are deliberately conservative — an edit that is
+obviously graded is dated in eighteen months.
+
+**The move.** `look.py` puts a 2-4.5% push inside every cut (by act), a 3-frame
+scale settle on entry, and fine grain at 2-4/255. The push is what stops a held
+shot from reading as a photograph. Grain also dithers 8-bit gradients, which is
+what removes the banding when a 720p pack is upscaled into 1080p.
+
+There is no shake. Handheld jitter fights type legibility and has a shelf life.
+
+Cost: about 40 ms of compositor per frame (18 ms grade, 22 ms look) on top of the
+decode — the 43s render went from 282s to 333s.
+
 ## Ramps, whips and matte
 
 The three moves the reference used that the first build did not have.
@@ -313,6 +336,13 @@ opens with a sentence nobody would say is a listing nobody clicks.
 Platform limits are enforced (`LIMITS`): TikTok/Reels 2200 chars with the first
 55/125 visible, Shorts title 100. Tags are niche-first and searched-word shaped
 (`#peterandgwen`, not `#edit`).
+
+### The font is chosen, every time
+
+`pipeline.run` refuses to render without `--font`. A render that quietly picks a
+default is a render nobody chose, and the face is part of the edit. Without it
+the job stops, lists the faces in `assets/fonts/edit/` and points at
+`studio/out/font_choice.jpg`.
 
 ### What this engine does NOT have yet
 

@@ -239,6 +239,21 @@ def polish(cards: list[dict], lead: float = LEAD, tail: float = TAIL,
     return merged
 
 
+def save_cards(cards: list[dict], path: str | Path) -> Path:
+    """Write a card table that knows it has already been polished.
+
+    Every second pass through polish() is damage: LEAD applied twice moves the
+    type a third of a second early, and the final tail doubles. The marker is
+    how produce tells the difference between "a table" and "an approved table".
+    """
+    import json
+
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({"polished": True, "cards": cards}, indent=1) + "\n")
+    return p
+
+
 def lint(cards: list[dict], gap: float = GAP, min_card: float = MIN_CARD,
          max_hold: float = MAX_HOLD) -> list[str]:
     """What would a viewer notice? Every line here is a complaint waiting to happen."""

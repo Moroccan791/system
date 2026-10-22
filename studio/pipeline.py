@@ -24,7 +24,7 @@ from pathlib import Path
 
 from . import fonts
 from .captions import (cards_from_words, coverage, parse_lines, preview,
-                       to_script)
+                       save_cards, to_script)
 from .ends import out_point
 from .grid import analyse as analyse_track
 from .lyrics import transcribe_robust
@@ -104,7 +104,7 @@ def run(video: str, audio: str, captions: str, out: str,
     preview(cards, sheet)
     cards_file = Path(out).with_suffix(".cards.json")
     cards_file.parent.mkdir(parents=True, exist_ok=True)
-    cards_file.write_text(json.dumps(cards, indent=1) + "\n")
+    save_cards(cards, cards_file)
     script = Path(out).with_suffix(".script.json")
     script.parent.mkdir(parents=True, exist_ok=True)
     script.write_text(json.dumps({"bpm": grid.bpm,
@@ -129,6 +129,20 @@ def run(video: str, audio: str, captions: str, out: str,
     report["sheet"] = sheet
     report["script"] = str(script)
     report["cards_file"] = str(cards_file)
+
+    # The face is the operator's decision, every time. There is no "default
+    # font" in this pipeline: a render that quietly picks one is a render nobody
+    # chose, and the choice is part of the style. Without --font the job stops
+    # here and prints what is available, with the specimen if it exists.
+    if not font and not dry_run:
+        faces = sorted(fonts.edit_faces())
+        report["needs_font"] = True
+        print("font: not chosen — refusing to render.")
+        print("  faces in assets/fonts/edit/: " + ", ".join(faces))
+        print(f"  current family: {fonts.config()}")
+        print("  pick one:  --font <face> [--accent <face>] [--accent-colour RRGGBB]")
+        print("  the sheet to choose from: studio/out/font_choice.jpg")
+        return report
 
     if font:
         col = None

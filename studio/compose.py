@@ -254,7 +254,7 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
 def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            script_path: str | Path | None = None, cards_until: float | None = None,
            progress=print, preset: str = "medium", crf: int = 18,
-           sfx: bool = True) -> Path:
+           sfx: bool = True, look: bool = True, premium: bool = True) -> Path:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     grid = plan.grid
@@ -310,6 +310,22 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         ct, _c, hold = rendered[ti]
         return ct - 1e-6 < cut.out_end and ct + hold > cut.out_start
 
+    # ---- colour matching, measured once before a single frame is drawn ------
+    # A scenepack is 37 different lighting setups; the edit should read as one.
+    corrections: dict[int, object] = {}
+    if premium:
+        from . import grade as _grade
+
+        try:
+            times, thumbs = _grade.thumbnails(source_path)
+            per = _grade.stats(times, thumbs, plan.source)
+            tgt = _grade.target_for(per, [c.shot for c in plan.cuts])
+            corrections = {i: _grade.correction(per.get(i), tgt) for i in per}
+            moved = sum(1 for c in corrections.values() if c is not None)
+            progress(f"  colour: {moved} shots matched to the pack median")
+        except Exception as exc:                    # measurement must never stop a render
+            progress(f"  colour: measurement skipped ({type(exc).__name__}: {exc})")
+
     total_frames = int(round(plan.duration * OUT_FPS))
     enc = subprocess.Popen(
         [ffmpeg(), "-nostdin", "-v", "error", "-y",
@@ -357,7 +373,20 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             frames.append(frames[-1])
         for fi in range(want):
             t = cut.out_start + fi / OUT_FPS
-            frame = grade(frames[fi], g)
+            if premium:
+                # match the shot to the pack, then the one look, then the move.
+                from . import grade as _grade
+
+                frame = _grade.apply_correction(frames[fi], corrections.get(cut.shot))
+                frame = _grade.premium(frame, cut.act)
+            else:
+                frame = grade(frames[fi], g)
+
+            # the look layer: push inside the shot, settle on entry, grain.
+            # Before the whip/flash so those still read as events ON the picture.
+            from .look import apply as look_apply
+            frame = look_apply(frame, cut.act, fi / max(1, want - 1), fi,
+                               seed=cut.index, on=look)
 
             # whip: the first frames of a marked cut are shared with the shot
             # before it, which is what makes two shots feel like one move

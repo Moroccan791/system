@@ -92,6 +92,10 @@ def main(argv=None):
     ap.add_argument("--direct", action="store_true",
                     help="let the lyric choose the shots (studio/director.py) "
                          "instead of the shot scorer")
+    ap.add_argument("--no-look", action="store_true",
+                    help="skip push-in / entry settle / grain")
+    ap.add_argument("--no-premium", action="store_true",
+                    help="skip colour matching and the filmic grade")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=18)
     a = ap.parse_args(argv)
@@ -130,7 +134,16 @@ def main(argv=None):
             # The cards were placed and approved upstream. Re-deriving them here
             # would transcribe again, disagree by up to a second, and silently
             # render something the operator never saw.
-            cards = json.loads(Path(a.cards).read_text())
+            raw = json.loads(Path(a.cards).read_text())
+            # A card file can say it has already been through polish(). Running
+            # it twice leads every word by 2x LEAD and doubles the final tail,
+            # which is how a 3.3s last card became 4.5s.
+            if isinstance(raw, dict):
+                cards = raw.get("cards", [])
+                already_polished = bool(raw.get("polished"))
+            else:
+                cards = raw
+                already_polished = False
         elif a.timed:
             # The operator supplied the line times. No transcript is consulted:
             # onsets place the words inside each line, which is language-blind.
@@ -145,7 +158,8 @@ def main(argv=None):
             raise SystemExit("refusing to render: no vocal found for the captions")
         # lead into the syllable, hold through breaths — see captions.polish
         from .captions import lint, polish, timeline
-        cards = polish(cards)
+        if not already_polished:
+            cards = polish(cards)
         print(timeline(cards))
         problems = lint(cards)
         if problems:
@@ -202,7 +216,7 @@ def main(argv=None):
 
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
-           sfx=not a.no_sfx)
+           sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium)
     print(f"sound: {len(cues)} cues "
           f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")
     print(f"wrote {out}  ({plan.duration:.2f}s, {time.time() - t0:.0f}s to build)")
