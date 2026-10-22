@@ -6,13 +6,15 @@
  "duration": 46.1,
  "chunks": [
   {
-   "text": "āma marār kārā tu  āma bēcē ta kārā tu",
+   "text": "hamaa ne mora ne karon tumi hamaa ne karon tumi hamaa ne karon tumi",
+   "junk": 0.557,
    "stamps": [],
    "segments": [],
    "offset": 0.0
   },
   {
-   "text": "",
+   "text": "(Hail)",
+   "junk": 0.0,
    "stamps": [],
    "segments": [],
    "offset": 28.0
@@ -21,32 +23,164 @@
  "sweep": [
   {
    "start": 0.0,
-   "text": "A mar mara rar karon tumi"
+   "text": "Aamara mora de karon tu mi"
   },
   {
    "start": 1.0,
-   "text": "i i i i i i"
+   "text": "Amar karoantu mi"
   },
   {
    "start": 2.0,
-   "text": "ārā ūmī"
+   "text": "Thar on to me"
+  },
+  {
+   "start": 3.0,
+   "text": "To me"
+  },
+  {
+   "start": 4.0,
+   "text": "I wanna play a game"
+  },
+  {
+   "start": 5.0,
+   "text": "I want the magic of the god"
+  },
+  {
+   "start": 6.0,
+   "text": "I want to be a better guy than you"
+  },
+  {
+   "start": 7.0,
+   "text": "I want a better day for God's sake"
+  },
+  {
+   "start": 8.0,
+   "text": "Hama de bhej de gaur de"
+  },
+  {
+   "start": 9.0,
+   "text": "ھا ہنے چیتا گا ہنے"
+  },
+  {
+   "start": 10.0,
+   "text": "ھا گا گا گا گا گا گا گا گا گا گا گا گا گا گا گا گا گ"
+  },
+  {
+   "start": 11.0,
+   "text": "I die"
+  },
+  {
+   "start": 12.0,
+   "text": "Halt our life"
   },
   {
    "start": 13.0,
-   "text": "ākārākārākārākārākārākārākārākārā"
+   "text": "Hala walaika"
+  },
+  {
+   "start": 14.0,
+   "text": "I am a god"
+  },
+  {
+   "start": 15.0,
+   "text": "And I want you to be"
+  },
+  {
+   "start": 16.0,
+   "text": "Hanna wa kao to mi"
+  },
+  {
+   "start": 17.0,
+   "text": "I want you to be"
+  },
+  {
+   "start": 18.0,
+   "text": "I got to be"
+  },
+  {
+   "start": 19.0,
+   "text": "Adori"
+  },
+  {
+   "start": 20.0,
+   "text": "I'm a man"
+  },
+  {
+   "start": 21.0,
+   "text": "I'm on the bed, just..."
+  },
+  {
+   "start": 22.0,
+   "text": "I want to be a child of God"
+  },
+  {
+   "start": 23.0,
+   "text": "Hainan, ben jid, to ka, to ni"
   },
   {
    "start": 24.0,
-   "text": "āba nu e e e e e e"
+   "text": "Hainan benjen toka dori"
   },
   {
    "start": 25.0,
-   "text": "ाान ेे ाा िानी"
+   "text": "I want to be in the dark of the night"
   },
   {
-   "start": 27.0,
-   "text": "āāāṇī"
+   "start": 26.0,
+   "text": "Jettakadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadadad"
+  },
+  {
+   "start": 28.0,
+   "text": "(Music)"
+  },
+  {
+   "start": 29.0,
+   "text": "(Music)"
+  },
+  {
+   "start": 30.0,
+   "text": "(Dance)"
+  },
+  {
+   "start": 31.0,
+   "text": "[Music]"
+  },
+  {
+   "start": 32.0,
+   "text": "[Music]"
+  },
+  {
+   "start": 33.0,
+   "text": "[Music]"
+  },
+  {
+   "start": 34.0,
+   "text": "[Music]"
+  },
+  {
+   "start": 35.0,
+   "text": "[Music]"
+  },
+  {
+   "start": 36.0,
+   "text": "(Demonstration)"
+  },
+  {
+   "start": 37.0,
+   "text": "(Dance)"
+  },
+  {
+   "start": 38.0,
+   "text": "(Demonstration)"
+  },
+  {
+   "start": 39.0,
+   "text": "(Dance)"
+  },
+  {
+   "start": 40.0,
+   "text": "[Music]"
   }
  ],
- "full_text": "āma marār kārā tu  āma bēcē ta kārā tu "
+ "full_text": "hamaa ne mora ne karon tumi hamaa ne karon tumi hamaa ne karon tumi (Hail)"
 }
