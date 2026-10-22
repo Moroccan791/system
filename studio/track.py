@@ -51,7 +51,13 @@ class Track:
 
 
 def _face_box(grey: np.ndarray) -> tuple[int, int, int, int] | None:
-    """Largest face in the frame, as (x, y, w, h)."""
+    """The SUBJECT's face, as (x, y, w, h).
+
+    Largest-face is the wrong rule: in a widescreen shot the biggest face is
+    often a background passenger, and a card pinned to them is obviously wrong.
+    The subject is big AND near the middle of frame, so score area against
+    distance from centre and throw away faces too small to be the subject.
+    """
     if not _HAVE_CV2:
         return None
     path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -62,7 +68,21 @@ def _face_box(grey: np.ndarray) -> tuple[int, int, int, int] | None:
                                  minSize=(48, 48))
     if len(faces) == 0:
         return None
-    return tuple(int(v) for v in max(faces, key=lambda f: f[2] * f[3]))
+
+    h_img, w_img = grey.shape[:2]
+    min_area = 0.015 * h_img * w_img          # a face smaller than 1.5% is a crowd
+    best, best_score = None, -1.0
+    for (x, y, w, h) in faces:
+        area = w * h
+        if area < min_area:
+            continue
+        cx, cy = x + w / 2, y + h / 2
+        d = (((cx - w_img / 2) / (w_img / 2)) ** 2
+             + ((cy - h_img / 2) / (h_img / 2)) ** 2) ** 0.5
+        score = (area / (h_img * w_img)) * (1.0 - 0.55 * min(1.0, d))
+        if score > best_score:
+            best, best_score = (int(x), int(y), int(w), int(h)), score
+    return best
 
 
 def track_box(frames: list[np.ndarray], margin: float = 0.6) -> Track | None:

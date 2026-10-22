@@ -177,7 +177,9 @@ cut, and the impact lifts RMS from 0.211 to 0.288 at the drop.
 
 ## Tracking (`track.py`)
 
-Pins a graphic to the subject: Haar finds a face in the first frame of the cut,
+Pins a graphic to the subject: Haar finds a face in the first frame of the cut —
+scored by area against distance from centre, because largest-face picks a
+background passenger in a widescreen frame and the card then follows a stranger —
 pyramidal Lucas-Kanade follows a sparse feature set inside a grown face box, and
 a short median filter removes the per-frame jitter that reads as a bug. A card
 with `"pin": true` in the script follows that point instead of sitting centred,
