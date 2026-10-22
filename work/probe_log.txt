@@ -1,16 +1,17 @@
 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-[in#0 @ 0x5622793c7e40] Error opening input: No such file or directory
-Error opening input file footage/post2/faahun.mp3.
-Error opening input files: No such file or directory
-Traceback (most recent call last):
-  File "/home/runner/work/system/system/.github/probe.py", line 63, in <module>
-    raise SystemExit(main())
-                     ^^^^^^
-  File "/home/runner/work/system/system/.github/probe.py", line 40, in main
-    audio = crop(item["audio"], at, item["dur"])
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/system/system/.github/probe.py", line 25, in crop
-    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", str(start),
-  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py", line 571, in run
-    raise CalledProcessError(retcode, process.args,
-subprocess.CalledProcessError: Command '['ffmpeg', '-nostdin', '-v', 'error', '-y', '-ss', '93.9', '-t', '7.0', '-i', 'footage/post2/faahun.mp3', '-ac', '1', '-ar', '16000', '-f', 'wav', '/tmp/tmp4tt3vowa/w.wav']' returned non-zero exit status 254.
+== 93.90s  Amar morar karon tumi. Amar morar karon tumi.
+   Amar@93.9 morar@94.76 karon@95.72 tumi.@96.44 Amar@99.32 morar@99.32 karon@99.32 tumi.@99.32
+== 101.66s  Amar beche thakar dayi. Abar beche thakar dayi.
+   Amar@101.66 beche@102.98 thakar@103.74 dayi.@105.04 Abar@105.38 beche@105.38 thakar@105.38 dayi.@105.38
+== 110.12s  Amar morar karon tumi. Abar beche thakar dayi.
+   Amar@110.12 morar@111.52 karon@112.56 tumi.@113.28 Abar@116.2 beche@116.2 thakar@116.2 dayi.@116.2
+== 118.50s  Abar beche thakar dayi. Abar beche thakar dayi.
+   Abar@118.5 beche@119.68 thakar@120.46 dayi.@121.68 Abar@121.9 beche@121.9 thakar@121.9 dayi.@121.9
+== 23.00s  Deedaar tera milne ke baad hi chhute meri angdaai.
+   Deedaar@26.08 tera@27.08 milne@27.48 ke@28.18 baad@28.42 hi@28.9 chhute@29.18 meri@29.68 angdaai.@30.3
+== 30.50s  Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi. Kyun is tara se dara...
+   Deedaar@30.5 tera@30.72 milne@31.52 ke@31.52 baad@31.52 hi@31.52 chhute@31.52 meri@31.52 angdaai.@31.52 Tu@31.52 hi@31.86 bata@32.16 de@32.68 kyun@32.94 zaalima@33.22 main@33.94 kehlayi.@34.28 Kyun@36.86 is@37.28 tara@37.62 se@37.9 dara...@38.26
+== 38.00s  Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi.
+   Deedaar@38.0 tera@38.5 milne@38.86 ke@39.7 baad@39.7 hi@39.7 chhute@39.7 meri@40.04 angdaai.@40.96 Tu@42.26 hi@42.38 bata@42.68 de@42.96 kyun@43.54 zaalima@43.54 main@44.62 kehlayi.@44.94
+== 45.50s  Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi.
+   Deedaar@47.4 tera@48.42 milne@48.78 ke@49.32 baad@49.76 hi@50.24 chhute@50.44 meri@51.0 angdaai.@51.68 Tu@53.08 hi@53.14 bata@53.48 de@53.48 kyun@53.48 zaalima@53.48 main@53.48 kehlayi.@53.48

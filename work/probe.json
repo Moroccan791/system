@@ -1,0 +1,632 @@
+[
+ {
+  "at": 93.9,
+  "text": "Amar morar karon tumi. Amar morar karon tumi.",
+  "words": [
+   {
+    "w": "Amar",
+    "start": 93.9,
+    "end": 94.76,
+    "p": 0.46
+   },
+   {
+    "w": "morar",
+    "start": 94.76,
+    "end": 95.72,
+    "p": 0.33
+   },
+   {
+    "w": "karon",
+    "start": 95.72,
+    "end": 96.44,
+    "p": 0.34
+   },
+   {
+    "w": "tumi.",
+    "start": 96.44,
+    "end": 97.32,
+    "p": 0.11
+   },
+   {
+    "w": "Amar",
+    "start": 99.32,
+    "end": 99.32,
+    "p": 0.56
+   },
+   {
+    "w": "morar",
+    "start": 99.32,
+    "end": 99.32,
+    "p": 0.96
+   },
+   {
+    "w": "karon",
+    "start": 99.32,
+    "end": 99.32,
+    "p": 0.7
+   },
+   {
+    "w": "tumi.",
+    "start": 99.32,
+    "end": 99.32,
+    "p": 0.76
+   }
+  ]
+ },
+ {
+  "at": 101.66,
+  "text": "Amar beche thakar dayi. Abar beche thakar dayi.",
+  "words": [
+   {
+    "w": "Amar",
+    "start": 101.66,
+    "end": 102.98,
+    "p": 0.25
+   },
+   {
+    "w": "beche",
+    "start": 102.98,
+    "end": 103.74,
+    "p": 0.0
+   },
+   {
+    "w": "thakar",
+    "start": 103.74,
+    "end": 105.04,
+    "p": 0.09
+   },
+   {
+    "w": "dayi.",
+    "start": 105.04,
+    "end": 105.38,
+    "p": 0.14
+   },
+   {
+    "w": "Abar",
+    "start": 105.38,
+    "end": 105.38,
+    "p": 0.37
+   },
+   {
+    "w": "beche",
+    "start": 105.38,
+    "end": 105.38,
+    "p": 0.77
+   },
+   {
+    "w": "thakar",
+    "start": 105.38,
+    "end": 105.38,
+    "p": 0.83
+   },
+   {
+    "w": "dayi.",
+    "start": 105.38,
+    "end": 107.28,
+    "p": 0.99
+   }
+  ]
+ },
+ {
+  "at": 110.12,
+  "text": "Amar morar karon tumi. Abar beche thakar dayi.",
+  "words": [
+   {
+    "w": "Amar",
+    "start": 110.12,
+    "end": 111.52,
+    "p": 0.03
+   },
+   {
+    "w": "morar",
+    "start": 111.52,
+    "end": 112.56,
+    "p": 0.01
+   },
+   {
+    "w": "karon",
+    "start": 112.56,
+    "end": 113.28,
+    "p": 0.02
+   },
+   {
+    "w": "tumi.",
+    "start": 113.28,
+    "end": 114.18,
+    "p": 0.01
+   },
+   {
+    "w": "Abar",
+    "start": 116.2,
+    "end": 116.2,
+    "p": 0.42
+   },
+   {
+    "w": "beche",
+    "start": 116.2,
+    "end": 116.2,
+    "p": 0.0
+   },
+   {
+    "w": "thakar",
+    "start": 116.2,
+    "end": 116.2,
+    "p": 0.03
+   },
+   {
+    "w": "dayi.",
+    "start": 116.2,
+    "end": 116.2,
+    "p": 0.09
+   }
+  ]
+ },
+ {
+  "at": 118.5,
+  "text": "Abar beche thakar dayi. Abar beche thakar dayi.",
+  "words": [
+   {
+    "w": "Abar",
+    "start": 118.5,
+    "end": 119.68,
+    "p": 0.01
+   },
+   {
+    "w": "beche",
+    "start": 119.68,
+    "end": 120.46,
+    "p": 0.01
+   },
+   {
+    "w": "thakar",
+    "start": 120.46,
+    "end": 121.68,
+    "p": 0.16
+   },
+   {
+    "w": "dayi.",
+    "start": 121.68,
+    "end": 121.9,
+    "p": 0.27
+   },
+   {
+    "w": "Abar",
+    "start": 121.9,
+    "end": 121.9,
+    "p": 0.5
+   },
+   {
+    "w": "beche",
+    "start": 121.9,
+    "end": 121.9,
+    "p": 0.88
+   },
+   {
+    "w": "thakar",
+    "start": 121.9,
+    "end": 121.9,
+    "p": 0.86
+   },
+   {
+    "w": "dayi.",
+    "start": 121.9,
+    "end": 124.08,
+    "p": 0.99
+   }
+  ]
+ },
+ {
+  "at": 23.0,
+  "text": "Deedaar tera milne ke baad hi chhute meri angdaai.",
+  "words": [
+   {
+    "w": "Deedaar",
+    "start": 26.08,
+    "end": 27.08,
+    "p": 0.23
+   },
+   {
+    "w": "tera",
+    "start": 27.08,
+    "end": 27.48,
+    "p": 0.0
+   },
+   {
+    "w": "milne",
+    "start": 27.48,
+    "end": 28.18,
+    "p": 0.33
+   },
+   {
+    "w": "ke",
+    "start": 28.18,
+    "end": 28.42,
+    "p": 0.92
+   },
+   {
+    "w": "baad",
+    "start": 28.42,
+    "end": 28.9,
+    "p": 0.86
+   },
+   {
+    "w": "hi",
+    "start": 28.9,
+    "end": 29.18,
+    "p": 0.5
+   },
+   {
+    "w": "chhute",
+    "start": 29.18,
+    "end": 29.68,
+    "p": 0.52
+   },
+   {
+    "w": "meri",
+    "start": 29.68,
+    "end": 30.3,
+    "p": 0.88
+   },
+   {
+    "w": "angdaai.",
+    "start": 30.3,
+    "end": 30.98,
+    "p": 0.03
+   }
+  ]
+ },
+ {
+  "at": 30.5,
+  "text": "Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi. Kyun is tara se dara...",
+  "words": [
+   {
+    "w": "Deedaar",
+    "start": 30.5,
+    "end": 30.72,
+    "p": 0.0
+   },
+   {
+    "w": "tera",
+    "start": 30.72,
+    "end": 31.52,
+    "p": 0.0
+   },
+   {
+    "w": "milne",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.0
+   },
+   {
+    "w": "ke",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.0
+   },
+   {
+    "w": "baad",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.01
+   },
+   {
+    "w": "hi",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.01
+   },
+   {
+    "w": "chhute",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.0
+   },
+   {
+    "w": "meri",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.16
+   },
+   {
+    "w": "angdaai.",
+    "start": 31.52,
+    "end": 31.52,
+    "p": 0.0
+   },
+   {
+    "w": "Tu",
+    "start": 31.52,
+    "end": 31.86,
+    "p": 0.01
+   },
+   {
+    "w": "hi",
+    "start": 31.86,
+    "end": 32.16,
+    "p": 0.15
+   },
+   {
+    "w": "bata",
+    "start": 32.16,
+    "end": 32.68,
+    "p": 0.53
+   },
+   {
+    "w": "de",
+    "start": 32.68,
+    "end": 32.94,
+    "p": 0.07
+   },
+   {
+    "w": "kyun",
+    "start": 32.94,
+    "end": 33.22,
+    "p": 0.2
+   },
+   {
+    "w": "zaalima",
+    "start": 33.22,
+    "end": 33.94,
+    "p": 0.15
+   },
+   {
+    "w": "main",
+    "start": 33.94,
+    "end": 34.28,
+    "p": 0.03
+   },
+   {
+    "w": "kehlayi.",
+    "start": 34.28,
+    "end": 36.0,
+    "p": 0.36
+   },
+   {
+    "w": "Kyun",
+    "start": 36.86,
+    "end": 37.28,
+    "p": 0.56
+   },
+   {
+    "w": "is",
+    "start": 37.28,
+    "end": 37.62,
+    "p": 0.42
+   },
+   {
+    "w": "tara",
+    "start": 37.62,
+    "end": 37.9,
+    "p": 0.14
+   },
+   {
+    "w": "se",
+    "start": 37.9,
+    "end": 38.26,
+    "p": 0.43
+   },
+   {
+    "w": "dara...",
+    "start": 38.26,
+    "end": 38.48,
+    "p": 0.18
+   }
+  ]
+ },
+ {
+  "at": 38.0,
+  "text": "Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi.",
+  "words": [
+   {
+    "w": "Deedaar",
+    "start": 38.0,
+    "end": 38.5,
+    "p": 0.0
+   },
+   {
+    "w": "tera",
+    "start": 38.5,
+    "end": 38.86,
+    "p": 0.0
+   },
+   {
+    "w": "milne",
+    "start": 38.86,
+    "end": 39.7,
+    "p": 0.0
+   },
+   {
+    "w": "ke",
+    "start": 39.7,
+    "end": 39.7,
+    "p": 0.0
+   },
+   {
+    "w": "baad",
+    "start": 39.7,
+    "end": 39.7,
+    "p": 0.02
+   },
+   {
+    "w": "hi",
+    "start": 39.7,
+    "end": 39.7,
+    "p": 0.01
+   },
+   {
+    "w": "chhute",
+    "start": 39.7,
+    "end": 40.04,
+    "p": 0.0
+   },
+   {
+    "w": "meri",
+    "start": 40.04,
+    "end": 40.96,
+    "p": 0.47
+   },
+   {
+    "w": "angdaai.",
+    "start": 40.96,
+    "end": 41.86,
+    "p": 0.0
+   },
+   {
+    "w": "Tu",
+    "start": 42.26,
+    "end": 42.38,
+    "p": 0.0
+   },
+   {
+    "w": "hi",
+    "start": 42.38,
+    "end": 42.68,
+    "p": 0.0
+   },
+   {
+    "w": "bata",
+    "start": 42.68,
+    "end": 42.96,
+    "p": 0.01
+   },
+   {
+    "w": "de",
+    "start": 42.96,
+    "end": 43.54,
+    "p": 0.0
+   },
+   {
+    "w": "kyun",
+    "start": 43.54,
+    "end": 43.54,
+    "p": 0.0
+   },
+   {
+    "w": "zaalima",
+    "start": 43.54,
+    "end": 44.62,
+    "p": 0.02
+   },
+   {
+    "w": "main",
+    "start": 44.62,
+    "end": 44.94,
+    "p": 0.01
+   },
+   {
+    "w": "kehlayi.",
+    "start": 44.94,
+    "end": 45.88,
+    "p": 0.3
+   }
+  ]
+ },
+ {
+  "at": 45.5,
+  "text": "Deedaar tera milne ke baad hi chhute meri angdaai. Tu hi bata de kyun zaalima main kehlayi.",
+  "words": [
+   {
+    "w": "Deedaar",
+    "start": 47.4,
+    "end": 48.42,
+    "p": 0.0
+   },
+   {
+    "w": "tera",
+    "start": 48.42,
+    "end": 48.78,
+    "p": 0.0
+   },
+   {
+    "w": "milne",
+    "start": 48.78,
+    "end": 49.32,
+    "p": 0.03
+   },
+   {
+    "w": "ke",
+    "start": 49.32,
+    "end": 49.76,
+    "p": 0.35
+   },
+   {
+    "w": "baad",
+    "start": 49.76,
+    "end": 50.24,
+    "p": 0.42
+   },
+   {
+    "w": "hi",
+    "start": 50.24,
+    "end": 50.44,
+    "p": 0.19
+   },
+   {
+    "w": "chhute",
+    "start": 50.44,
+    "end": 51.0,
+    "p": 0.32
+   },
+   {
+    "w": "meri",
+    "start": 51.0,
+    "end": 51.68,
+    "p": 0.18
+   },
+   {
+    "w": "angdaai.",
+    "start": 51.68,
+    "end": 52.48,
+    "p": 0.02
+   },
+   {
+    "w": "Tu",
+    "start": 53.08,
+    "end": 53.14,
+    "p": 0.0
+   },
+   {
+    "w": "hi",
+    "start": 53.14,
+    "end": 53.48,
+    "p": 0.0
+   },
+   {
+    "w": "bata",
+    "start": 53.48,
+    "end": 53.48,
+    "p": 0.01
+   },
+   {
+    "w": "de",
+    "start": 53.48,
+    "end": 53.48,
+    "p": 0.0
+   },
+   {
+    "w": "kyun",
+    "start": 53.48,
+    "end": 53.48,
+    "p": 0.0
+   },
+   {
+    "w": "zaalima",
+    "start": 53.48,
+    "end": 53.48,
+    "p": 0.0
+   },
+   {
+    "w": "main",
+    "start": 53.48,
+    "end": 53.48,
+    "p": 0.0
+   },
+   {
+    "w": "kehlayi.",
+    "start": 53.48,
+    "end": 53.48,
+    "p": 0.2
+   }
+  ]
+ }
+]
