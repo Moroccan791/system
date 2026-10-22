@@ -106,7 +106,9 @@ def run(video: str, audio: str, captions: str, out: str,
     cards_file.write_text(json.dumps(cards, indent=1) + "\n")
     script = Path(out).with_suffix(".script.json")
     script.parent.mkdir(parents=True, exist_ok=True)
-    script.write_text(json.dumps({"cards": to_script(cards, grid.bpm)},
+    script.write_text(json.dumps({"bpm": grid.bpm,
+                                  "cards": to_script(cards, grid.bpm,
+                                                     origin=start)},
                                  indent=1) + "\n")
     report["sheet"] = sheet
     report["script"] = str(script)
@@ -139,6 +141,24 @@ def run(video: str, audio: str, captions: str, out: str,
              "--start", f"{start:.3f}", "--end", f"{end:.3f}",
              "--script", str(script), "--out", out, "--direct",
              "--preset", preset, "--crf", str(crf)])
+
+    # Verification is part of the job, not a follow-up. The render is checked
+    # against its OWN audio: what the words are, and whether they are audible
+    # where they are on screen. A line whose best evidence sits somewhere else
+    # in the song fails, and the take does not ship.
+    from . import sync
+
+    sc = json.loads(script.read_text())
+    bpm = float(sc.get("bpm", grid.bpm))
+    timed = [{"start": c["beat"] * 60.0 / bpm,
+              "end": c.get("until", c["beat"]) * 60.0 / bpm,
+              "text": c["text"], "line": c.get("line", -1)}
+             for c in sc["cards"]]
+    rows = sync.check(timed, sync.window_texts(out, report["duration"]))
+    print(sync.report(rows))
+    Path(out).with_suffix(".sync.txt").write_text(sync.report(rows) + "\n")
+    report["sync"] = {r["text"]: r["state"] for r in rows}
+    report["sync_failures"] = [r["line"] for r in rows if r["state"] == "FAIL"]
     return report
 
 

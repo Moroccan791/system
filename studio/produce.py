@@ -146,7 +146,8 @@ def main(argv=None):
         script_path = Path(a.script) if a.script else out.with_suffix(".script.json")
         script_path.parent.mkdir(parents=True, exist_ok=True)
         script_path.write_text(
-            json.dumps({"cards": to_script(cards, grid.bpm, ACCENT,
+            json.dumps({"bpm": grid.bpm,
+                        "cards": to_script(cards, grid.bpm, ACCENT,
                                            origin=a.start)}, indent=1) + "\n")
         a.script = str(script_path)
         src_desc = (f"{len(lines)} lines" if a.captions and not a.cards

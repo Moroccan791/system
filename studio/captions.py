@@ -204,6 +204,7 @@ def to_script(cards: list[dict], bpm: float, accent: dict | None = None,
         out.append({
             "beat": round((c["start"] - origin) * bpm / 60.0, 3),
             "text": c["text"],
+            "line": c.get("line", -1),
             "accent": word.upper(),
             "pin": False,
             "matte": False,

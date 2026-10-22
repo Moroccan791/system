@@ -398,12 +398,15 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                         else:
                             vals = lum.reshape(-1)
                         plate = float(np.percentile(vals, 90))
-                        amt = max(0.0, min(0.52, (plate - 78.0) / 90.0 * 0.52))
+                        # A brightness-scaled floor: on a plate this busy the
+                        # halo has to be there before the scale even starts, or
+                        # a white word on a white wall is a blank card.
+                        amt = max(0.22, min(0.72, (plate - 70.0) / 80.0 * 0.72))
                         if amt > 0.01:
                             # a bright plate needs a tight halo, or the glow
                             # smears across the face instead of hugging the type
                             scrim(frame, card, amount=amt,
-                                  blur=22 if amt < 0.24 else 9)
+                                  blur=26 if amt < 0.30 else 12)
                     use_matte = matte_for[ti]
                     if use_matte and cut.act == "drop":
                         composite_matte(frame, card)

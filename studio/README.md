@@ -274,7 +274,21 @@ python -m studio.pipeline \
    is encoded before the words have been seen;
 4. **choose the face** from `assets/fonts/edit/` — the choice is a file in
    `assets/fonts/family.json`, not an edit to the compositor;
-5. **render** through the one renderer.
+5. **render** through the one renderer;
+6. **verify the words against the mix** (`sync.py`, runs automatically at the end
+   of `pipeline.run` and writes `<out>.sync.txt`). Every lyric line is matched to
+   a 3-second sliding-window transcription of the finished file, and the report
+   prints the lyric beside what the audio actually says there. A line whose best
+   evidence sits somewhere else in the song is a FAIL and the take does not ship.
 
 The start is the bar before the first word; the end is the bar after the last
 word plus a breath. Neither is typed by hand.
+
+### Why step 6 exists
+
+The same bug shipped three times: captions placed by one estimator, never checked
+by a second. A two-word card is a weak fingerprint (the recogniser returns
+"for ya" as "fire"), so verification works on WHOLE LINES — "It's all 'bout you"
+cannot be confused with "when the music makes you move" — and it reports the
+heard text, not just a score. That column is what catches a line the recogniser
+smears; read it before every delivery.
