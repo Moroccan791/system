@@ -815,3 +815,18 @@ def test_the_handle_is_on_unless_explicitly_turned_off():
         assert watermark.settings()["text"] == ""
     finally:
         fonts.CONFIG = old
+
+
+def test_verification_skips_a_language_it_cannot_hear():
+    """The verifier transcribes with an English recogniser. On a Bangla vocal it
+    heard "i don't know what to do" for a line that says something else entirely,
+    and reported 12 contradicted cards — a statement about the recogniser, not
+    about the placement. A brief declares its language; non-English skips it."""
+    from studio import brief as briefs
+
+    assert briefs.load("post2_bangla").lang == "bn"
+    assert briefs.load("post2_zaalima").lang == "hi"
+    assert briefs.load("tom_holland_bnd").lang == "en"
+    # the language survives the file round trip
+    d = briefs.load("post2_bangla").as_dict()
+    assert briefs.StudioBrief.from_dict(d).lang == "bn"

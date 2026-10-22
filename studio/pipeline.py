@@ -259,11 +259,25 @@ def run(video: str, audio: str, captions: str | None, out: str,
               "end": c.get("until", c["beat"]) * 60.0 / bpm,
               "text": c["text"], "line": c.get("line", -1)}
              for c in sc["cards"]]
-    rows = sync.check(timed, sync.window_texts(out, report["duration"]))
-    print(sync.report(rows))
-    Path(out).with_suffix(".sync.txt").write_text(sync.report(rows) + "\n")
-    report["sync"] = {r["text"]: r["state"] for r in rows}
-    report["sync_failures"] = [r["line"] for r in rows if r["state"] == "FAIL"]
+    lang = str(getattr(studio_brief, "lang", "en") or "en").lower()
+    if lang.startswith("en"):
+        rows = sync.check(timed, sync.window_texts(out, report["duration"]))
+        print(sync.report(rows))
+        Path(out).with_suffix(".sync.txt").write_text(sync.report(rows) + "\n")
+        report["sync"] = {r["text"]: r["state"] for r in rows}
+        report["sync_failures"] = [r["line"] for r in rows if r["state"] == "FAIL"]
+    else:
+        # The verifier transcribes with an ENGLISH recogniser and asks whether
+        # the words it hears match the words on screen. On a Bangla or Hindi
+        # vocal it hears confident nonsense — the first run of this edit was
+        # told the lyric said "i don't know what to do" — so a FAIL here would
+        # be a statement about the recogniser, not about the placement.
+        # Saying so is the honest move; what actually verifies these edits is
+        # the onset check in studio.place, which is language-blind.
+        print(f"sync: not applied — the verifier is English-only and this "
+              f"brief is {lang!r}. Placement rests on the onset check.")
+        report["sync"] = {"skipped": f"english-only verifier, song is {lang}"}
+        report["sync_failures"] = []
 
     # ...and the last word is about the FILE. A take that fails the gate does
     # not ship, and it says so here rather than on the phone after posting.

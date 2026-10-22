@@ -57,6 +57,7 @@ class StudioBrief:
     hooks: list[str] = field(default_factory=list)  # copy written FOR a viewer
     track: str = ""
     song: str = ""          # what the caption calls the track: "Stay — …"
+    lang: str = "en"        # ISO code. Non-English changes how the edit is verified.
     source: str = ""
     window: tuple[float, float] = (0.0, 0.0)
 
@@ -98,6 +99,7 @@ class StudioBrief:
         return {
             "title": self.title, "topic": self.topic, "thesis": self.thesis,
             "track": self.track, "song": self.song, "source": self.source,
+            "lang": self.lang,
             "window": list(self.window),
             "audience": [{"claim": e.claim, "source": e.source}
                          for e in self.audience],
@@ -120,6 +122,7 @@ class StudioBrief:
             hooks=list(d.get("hooks", [])),
             track=d.get("track", ""),
             song=d.get("song", ""),
+            lang=d.get("lang", "en"),
             source=d.get("source", ""),
             window=tuple(d.get("window", (0.0, 0.0))) or (0.0, 0.0),
         )
