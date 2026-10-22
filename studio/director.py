@@ -192,9 +192,9 @@ LINE_DIRECTION_BANGLA: dict[int, dict] = {
     1: dict(shots=(52, 53, 55, 54), div=0.8, note="KARON TUMII — the dark behind her"),
     2: dict(shots=(56, 57, 50, 51), div=0.8, note="ABAR BECHE — what is left of him"),
     3: dict(shots=(96, 97, 98, 99), div=0.8, note="THAKAR DAYII — the reason he stayed"),
-    4: dict(shots=(40, 42, 41, 43), div=0.8, note="AMAR MORAR again — the same wound"),
-    5: dict(shots=(53, 54, 52, 55), div=0.8, note="KARON TUMII again"),
-    6: dict(shots=(104, 105, 106, 103), div=0.8, note="ABAR BECHE again"),
+    4: dict(shots=(102, 103, 104, 105), div=0.8, note="AMAR MORAR again — the wound, further in"),
+    5: dict(shots=(106, 107, 108, 109), div=0.8, note="KARON TUMII again — the dark, later"),
+    6: dict(shots=(110, 92, 93, 94), div=0.8, note="ABAR BECHE again — what is left, later"),
     7: dict(shots=(58, 59, 60, 61), div=1.6, ramp="settle", note="DAYII — hold on the last word"),
 }
 
