@@ -78,6 +78,10 @@ def _load_font(size: int, path: str | Path | None = None) -> ImageFont.FreeTypeF
     raise FileNotFoundError(f"no display font at {p}")
 
 
+def _bare(word: str) -> str:
+    return "".join(c for c in word.upper() if c.isalnum())
+
+
 def _measure(draw, text: str, font, tracking: int) -> tuple[int, int]:
     """Width including tracking, and the cap height we will actually draw."""
     if not text:
@@ -92,10 +96,11 @@ def _measure(draw, text: str, font, tracking: int) -> tuple[int, int]:
 def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
                 width_frac: float = 0.62, accent: str | None = None,
                 colour: tuple[int, int, int] = (255, 255, 255),
-                accent_colour: tuple[int, int, int] = (46, 204, 113),
+                accent_colour: tuple[int, int, int] | None = None,
                 tracking_frac: float = 0.06, shadow: bool = True,
                 font_path: str | Path | None = None,
-                cap_frac: float | None = None) -> Card:
+                cap_frac: float | None = None,
+                accent_font_path: str | Path | None = None) -> Card:
     """Draw one card, sized so its width is a fraction of the frame.
 
     `accent` is a word (or a character range marker) to paint in the accent
@@ -110,6 +115,13 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
     body = " ".join(words).upper()
     if not body:
         body = " "
+
+    from . import fonts
+
+    if accent_colour is None:
+        accent_colour = fonts.accent_colour()
+    if accent_font_path is None:
+        accent_font_path = fonts.accent()
 
     probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
     target_w = int(frame_w * width_frac)
@@ -163,13 +175,43 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
             break
         best = int(best * 0.94)
     font = _load_font(best, font_path)
+    accent_font = None
+    if accent and accent_font_path:
+        # match the accent face's optical size to the main face, or the word
+        # jumps size the moment it changes typeface
+        a_lo, a_hi = 8, int(frame_h * 0.6)
+        target = font.getbbox("H")[3] - font.getbbox("H")[1]
+        while a_lo < a_hi:
+            mid = (a_lo + a_hi) // 2
+            f = _load_font(mid, accent_font_path)
+            b = f.getbbox("H")
+            if b[3] - b[1] < target:
+                a_lo = mid + 1
+            else:
+                a_hi = mid
+        accent_font = _load_font(max(8, a_lo), accent_font_path)
     tracking = max(1, int(best * tracking_frac))
     w, h = _measure(probe, body, font, tracking)
+
+    # The card has to stay inside a sane band of the frame. A face with tall
+    # ascenders can push the line box past that band even at the right cap
+    # height, so shrink until the whole card fits rather than clipping it.
+    while best > 12 and h + 2 * int(best * 0.35) > int(frame_h * 0.42):
+        best = int(best * 0.96)
+        font = _load_font(best, font_path)
+        tracking = max(1, int(best * tracking_frac))
+        w, h = _measure(probe, body, font, tracking)
 
     pad = int(best * 0.35)
     canvas = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
     accent = (accent or "").upper()
+
+    def word_font(word: str):
+        """The accent word gets the accent FACE; everything else the main one."""
+        if accent_font and _bare(word) and _bare(word) == _bare(accent):
+            return accent_font
+        return font
 
     def draw_run(dy: int, fill_white, fill_accent, alpha: int):
         # Word by word, not character by character: drawing glyphs individually
@@ -183,12 +225,14 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
         for wi, word in enumerate(body.split(" ")):
             if wi:
                 x += word_gap
+            wf = word_font(word)
+            colour = (fill_accent if _bare(word) and _bare(word) == _bare(accent)
+                      else fill_white)
             wx = x
             for ch in word:
-                f = fill_accent if accent and ch in accent else fill_white
-                draw.text((wx, pad + dy), ch, font=font,
-                          fill=(f[0], f[1], f[2], alpha))
-                wx += draw.textlength(ch, font=font)
+                draw.text((wx, pad + dy), ch, font=wf,
+                          fill=(colour[0], colour[1], colour[2], alpha))
+                wx += draw.textlength(ch, font=wf)
             x = wx
 
     if shadow:

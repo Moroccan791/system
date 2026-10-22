@@ -70,7 +70,8 @@ def _bar_floor(grid, t: float) -> float:
 def run(video: str, audio: str, captions: str, out: str,
         start: float | None = None, font: str | None = None,
         dry_run: bool = False, preset: str = "medium", crf: int = 18,
-        preview_path: str | None = None) -> dict:
+        preview_path: str | None = None, accent: str | None = None,
+        accent_colour: str | None = None) -> dict:
     grid = analyse_track(audio)
     duration = min(grid.duration, _probe_audio(audio))
     lines = parse_lines(captions)
@@ -108,7 +109,11 @@ def run(video: str, audio: str, captions: str, out: str,
     report["script"] = str(script)
 
     if font:
-        fonts.set_family(font)
+        col = None
+        if accent_colour:
+            h = accent_colour.lstrip("#")
+            col = (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+        fonts.set_family(font, accent, col)
 
     if dry_run:
         from . import director
@@ -143,13 +148,17 @@ def main_cli(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--start", type=float, default=None)
     ap.add_argument("--font", default=None, help="a face from assets/fonts/edit")
+    ap.add_argument("--accent", default=None,
+                    help="face for the one accent word on a card")
+    ap.add_argument("--accent-colour", default=None, help="RRGGBB")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=18)
     ap.add_argument("--dry-run", action="store_true",
                     help="stop after the caption sheet and the plan")
     a = ap.parse_args(argv)
     rep = run(a.video, a.audio, a.captions, a.out, a.start, a.font,
-              a.dry_run, a.preset, a.crf)
+              a.dry_run, a.preset, a.crf, accent=a.accent,
+              accent_colour=a.accent_colour)
     print(json.dumps(rep, indent=1))
     return 0
 

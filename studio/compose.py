@@ -274,8 +274,11 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
         hold = 2.4
         if cut is not None:
             hold = min(0.80 if cut.act == "drop" else 2.4, max(cut.dur * 1.6, 0.30))
+        from . import fonts as _fonts
+
         rendered.append((t, render_card(c.text, OUT_W, OUT_H,
-                                        accent=c.accent or None), hold))
+                                        accent=c.accent or None,
+                                        cap_frac=_fonts.cap_frac()), hold))
     rendered.sort(key=lambda r: r[0])
 
     # Matte is a statement, so it goes on a minority of drop cards: every fourth

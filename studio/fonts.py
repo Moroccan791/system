@@ -104,14 +104,23 @@ def config() -> dict:
             return json.loads(CONFIG.read_text())
         except json.JSONDecodeError:
             pass
-    return {"main": "CabinetGroteskBlack", "accent": None}
+    return {"main": "CabinetGroteskBlack", "accent": None,
+            "accent_colour": [255, 209, 37]}
 
 
-def set_family(main: str, accent: str | None = None) -> Path:
+def set_family(main: str, accent: str | None = None,
+               accent_colour: tuple[int, int, int] | None = None) -> Path:
+    """Pick the face(s). The accent face is used for the ONE word a line turns on.
+
+    Two faces is not decoration: a decorative face is unreadable at 0.3s per card,
+    so it is used where there is time to read it — the word that carries the line.
+    """
     ensure(main)
     if accent:
         ensure(accent)
-    CONFIG.write_text(json.dumps({"main": main, "accent": accent}, indent=1) + "\n")
+    cfg = {"main": main, "accent": accent,
+           "accent_colour": list(accent_colour or (255, 209, 37))}
+    CONFIG.write_text(json.dumps(cfg, indent=1) + "\n")
     _cache.clear()
     return CONFIG
 
@@ -132,6 +141,21 @@ def accent() -> Path | None:
         return ensure(name)
     except Exception:
         return None
+
+
+def cap_frac() -> float:
+    """Optical size of the type, as a fraction of frame height.
+
+    Constant across cards on purpose: sizing every card to the same WIDTH makes
+    a one-word card ("YOU") enormous and a two-word card small, so the type
+    changes size with the phrasing instead of staying one instrument.
+    """
+    return float(config().get("cap_frac") or 0.125)
+
+
+def accent_colour() -> tuple[int, int, int]:
+    c = config().get("accent_colour") or [255, 209, 37]
+    return (int(c[0]), int(c[1]), int(c[2]))
 
 
 def specimen(out: str | Path, text: str = "IS A BEAUTY",
@@ -205,7 +229,8 @@ def main_cli(argv=None):
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--specimen", default=None)
     ap.add_argument("--set", default=None, help="face name to use from now on")
-    ap.add_argument("--accent", default=None)
+    ap.add_argument("--accent", default=None, help="face for the accent word")
+    ap.add_argument("--accent-colour", default=None, help="RRGGBB")
     a = ap.parse_args(argv)
     if a.list:
         cur = config().get("main")
@@ -213,7 +238,11 @@ def main_cli(argv=None):
             print(f"  {n:22s} {'<- in use' if n == cur else ''}")
         return 0
     if a.set:
-        print(set_family(a.set, a.accent))
+        col = None
+        if a.accent_colour:
+            h = a.accent_colour.lstrip("#")
+            col = (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+        print(set_family(a.set, a.accent, col))
         return 0
     if a.specimen:
         print(specimen(a.specimen))

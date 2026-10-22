@@ -1,4 +1,9 @@
 {
- "main": "CabinetGroteskBlack",
- "accent": null
+ "main": "Gefika",
+ "accent": "ButtershineSerif",
+ "accent_colour": [
+  255,
+  209,
+  37
+ ]
 }

@@ -29,6 +29,37 @@ from .lyrics import LyricWord, align_fuzzy, transcribe_robust
 
 SECTION = re.compile(r"^\s*[\[(].*[\])]\s*$")     # [Chorus], (x2)
 
+# The words a lyric turns on. An accent on every card is decoration; one accent
+# per thought is design. Kept as data so a different song is a different list.
+ACCENT_WORDS = {
+    "beauty", "beat", "complete", "yours", "life", "need", "make", "young",
+    "tonight", "coming", "cause", "music", "move", "baby", "do", "all", "you",
+    "she", "her", "gwen", "stay", "gone", "love", "wait", "know",
+}
+
+
+# Words that carry weight, versus words that only connect. "YOU MOVE" accents
+# MOVE; "IT'S ALL" accents ALL because there is nothing stronger on the card.
+STRONG = {"beauty", "beat", "complete", "life", "need", "make", "tonight",
+          "coming", "music", "move", "baby", "gwen", "love", "stay", "gone",
+          "young", "yours", "cause", "know"}
+
+
+def accent_word(text: str) -> str:
+    """The one word on this card that gets the accent face and colour.
+
+    Strong word first, connector second, nothing if the card has neither. A card
+    with no accent is fine — accenting every card is decoration, not design.
+    """
+    words = [w.strip(",.'!?").upper() for w in text.split()]
+    for w in words:
+        if w.lower() in STRONG:
+            return w
+    for w in words:
+        if w.lower() in ACCENT_WORDS:
+            return w
+    return ""
+
 
 def parse_lines(path: str | Path) -> list[str]:
     """Read a caption file: one sung line per line of text.
@@ -157,11 +188,10 @@ def lines_of(cards: list[dict]) -> list[dict]:
 
 def to_script(cards: list[dict], bpm: float, accent: dict | None = None) -> list[dict]:
     """Cards -> the script format compose.py reads (beats from frame one)."""
-    accent = accent or {}
+    accent = accent or ACCENT_WORDS
     out = []
     for c in cards:
-        word = next((w for w in c["text"].split()
-                     if w.lower().strip(",.?!") in accent), "")
+        word = accent_word(c["text"])
         out.append({
             "beat": round(c["start"] * bpm / 60.0, 3),
             "text": c["text"],
@@ -185,6 +215,7 @@ def preview(cards: list[dict], out: str | Path, video: str | Path | None = None,
     import imageio_ffmpeg
     from PIL import Image, ImageDraw
 
+    from . import fonts
     from .typecards import composite, render_card, scrim
 
     ff = imageio_ffmpeg.get_ffmpeg_exe()
@@ -198,7 +229,9 @@ def preview(cards: list[dict], out: str | Path, video: str | Path | None = None,
             frame = Image.open(f).convert("RGB")
         else:
             frame = Image.new("RGB", (1920, 1080), (18, 18, 20))
-        card = render_card(c["text"], 1920, 1080)
+        card = render_card(c["text"], 1920, 1080,
+                           accent=accent_word(c["text"]) or None,
+                           cap_frac=fonts.cap_frac())
         import numpy as np
 
         arr = np.asarray(frame).copy()

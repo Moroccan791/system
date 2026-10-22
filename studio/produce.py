@@ -21,11 +21,7 @@ from pathlib import Path
 from .compose import OUT_FPS, OUT_H, OUT_W, render
 from .grid import analyse as analyse_track
 from .plan import build_plan, summarise
-
-# Words that carry their line, for the accent colour. Kept small on purpose: an
-# accent on every card is decoration, one accent per thought is design.
-ACCENT = {"beauty", "beat", "complete", "yours", "life", "need", "make",
-          "gwen", "her", "you", "do", "want", "music"}
+from .captions import ACCENT_WORDS as ACCENT
 from .shots import analyse as analyse_source
 
 
