@@ -87,6 +87,7 @@ def run(item: dict) -> dict:
 
 def main() -> int:
     req = json.loads(REQUEST.read_text())
+    print("model files:", [str(p) for p in Path(MODEL_DIR).rglob("*.onnx")])
     for item in req["items"]:
         out = Path(item["out"])
         out.parent.mkdir(parents=True, exist_ok=True)

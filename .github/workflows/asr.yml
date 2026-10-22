@@ -55,6 +55,9 @@ jobs:
           set -euo pipefail
           git config user.name "asr-bot"
           git config user.email "asr-bot@users.noreply.github.com"
-          git add -f work/asr_*.json work/asr_*.txt || true
+          # One unmatched glob makes `git add` reject the whole pathspec, so the
+          # log was being dropped whenever the decode failed. Add the directory.
+          git add -f work/ 2>/dev/null || true
+          git status --short | head -20
           git commit -m "asr: word timings for the post2 vocals" || echo "nothing to commit"
           git push origin HEAD:"${{ github.ref_name }}" || echo "push skipped"
