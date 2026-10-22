@@ -1,0 +1,16 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[in#0 @ 0x5622793c7e40] Error opening input: No such file or directory
+Error opening input file footage/post2/faahun.mp3.
+Error opening input files: No such file or directory
+Traceback (most recent call last):
+  File "/home/runner/work/system/system/.github/probe.py", line 63, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/runner/work/system/system/.github/probe.py", line 40, in main
+    audio = crop(item["audio"], at, item["dur"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/system/system/.github/probe.py", line 25, in crop
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-ss", str(start),
+  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ffmpeg', '-nostdin', '-v', 'error', '-y', '-ss', '93.9', '-t', '7.0', '-i', 'footage/post2/faahun.mp3', '-ac', '1', '-ar', '16000', '-f', 'wav', '/tmp/tmp4tt3vowa/w.wav']' returned non-zero exit status 254.
