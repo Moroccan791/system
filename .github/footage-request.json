@@ -1,5 +1,5 @@
 {
-  "tag": "footage-demi-2",
-  "pattern": "gillis_*.mp4",
-  "out_dir": "work/two_bears/src"
+  "tag": "post1-ig-yt",
+  "pattern": "*",
+  "out_dir": "footage/tom_holland"
 }
