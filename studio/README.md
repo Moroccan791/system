@@ -308,3 +308,32 @@ before it is rendered, and both came from watching a delivered edit back:
 Both numbers are constants at the top of `captions.py` (`LEAD`, `TILE`,
 `MAX_BRIDGE`) — if an edit reads consistently early or late, one number moves,
 not the whole card table.
+
+### A lyric the recogniser cannot read (Hindi, Bangla, any non-English)
+
+The ASR in this repo is English-only, and the pipeline uses it for exactly one
+thing: deciding where a sung line sits. That anchor can be supplied by hand
+instead, which is what `--timed` is for. Give the lyric in roman script with the
+start of each line:
+
+```
+[00:28.230] we young tonight
+00:38.840 - 00:43.600  Is a beauty and a beat
+```
+
+```bash
+python -m studio.produce --track song.mp3 --source pack.mp4 \
+  --captions ignored.txt --timed lyric.txt --start 23.83 --end 66.84 \
+  --script out.script.json --out out.mp4 --direct
+```
+
+How it works: each line's words are distributed across that line's span and
+snapped to syllable nuclei (energy peaks in 250–3500 Hz). Onsets are
+language-blind — a Bangla phrase has syllables in the same places an English one
+would. What changes is the verification: `sync.py` cannot check a language the
+model does not speak, so for those jobs the check is a timed proof sheet
+(`work/studio/*.jpg`: the type burned at 12 sampled seconds) which you read
+before delivery.
+
+Give an END time as well wherever a line crosses an instrumental — that is the
+one case the energy trim cannot resolve on a dense mix.

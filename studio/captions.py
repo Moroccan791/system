@@ -200,6 +200,117 @@ def polish(cards: list[dict], lead: float = LEAD, tile: float = TILE,
     return out
 
 
+TIMED = re.compile(
+    r"^\s*[\[(]?(\d{1,2}):(\d{2}(?:[.:]\d{1,3})?)[\])]?"
+    r"(?:\s*(?:-|–|-->)\s*(\d{1,2}):(\d{2}(?:[.:]\d{1,3})?))?\s*(.+)$")
+
+
+def parse_timed(path: str | Path) -> list[tuple[float, float | None, str]]:
+    """Read a lyric whose lines carry their own times.
+
+        [00:28.230] we young tonight
+        00:38.840 - 00:43.600  Is a beauty and a beat
+
+    A start is enough (the line runs to the next one). An end is better where a
+    line crosses an instrumental, and is the only reliable option when the mix
+    is too dense for the energy trim to find the voice.
+    """
+    out: list[tuple[float, float | None, str]] = []
+    for raw in Path(path).read_text(encoding="utf-8").splitlines():
+        s = raw.strip()
+        if not s or SECTION.match(s):
+            continue
+        m = TIMED.match(s)
+        if not m:
+            continue
+        at = int(m.group(1)) * 60 + float(m.group(2).replace(":", "."))
+        end = None
+        if m.group(3) is not None:
+            end = int(m.group(3)) * 60 + float(m.group(4).replace(":", "."))
+        text = re.sub(r"[()\[\]]", "", m.group(5)).strip()
+        if text:
+            out.append((round(at, 3), None if end is None else round(end, 3), text))
+    out.sort(key=lambda r: r[0])
+    return out
+
+
+def from_timed(track: str | Path, timed: list[tuple[float, float | None, str]],
+               duration: float,
+               max_words: int = 2, hold: float = 0.06,
+               min_hold: float = 0.18) -> list[dict]:
+    """Place a lyric that already knows where its LINES start.
+
+    This is the path for a song the recogniser cannot read at all — anything not
+    in English, and any mix where the vocal is buried. It needs no transcript:
+    each line's start is given, and the words inside it are distributed over the
+    sung span and snapped to syllable nuclei, which are language-independent.
+
+    A line's span runs to the next line's start, so the operator's own line
+    breaks are the anchor and nothing has to be inferred from the words.
+    """
+    import imageio_ffmpeg
+
+    from clipper.align.energy_align import align_words
+
+    import subprocess
+
+    import numpy as np
+
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+
+    tmp = "/tmp/studio_timed.raw"
+    subprocess.run([ff, "-nostdin", "-y", "-v", "error", "-i", str(track),
+                    "-ac", "1", "-ar", "16000", "-f", "s16le", tmp], check=True)
+    audio = np.fromfile(tmp, dtype=np.int16).astype(np.float32) / 32768.0
+    rate = 16000
+
+    # A line's span runs to the next line's start, which is generous: the last
+    # line before an instrumental would otherwise spread its words across the
+    # silence. Trim each span to where the voice actually is, then align inside
+    # what is left. Energy, not language — this works on a Hindi or Bangla vocal
+    # exactly as it does on an English one.
+    env = np.abs(audio)
+    k = max(1, int(0.05 * rate))
+    env = np.convolve(env, np.ones(k) / k, mode="same")
+
+    def sung(a: float, b: float) -> tuple[float, float]:
+        i0, i1 = int(max(0.0, a) * rate), int(min(len(audio), b * rate))
+        if i1 - i0 < rate * 0.2:
+            return a, b
+        seg = env[i0:i1]
+        thr = 0.30 * float(seg.max() or 1.0)
+        on = np.flatnonzero(seg > thr)
+        if on.size == 0:
+            return a, b
+        return (max(a, i0 / rate + on[0] / rate - 0.10),
+                min(b, i0 / rate + on[-1] / rate + 0.30))
+
+    chunks: list[dict] = []
+    for i, (at, given_end, text) in enumerate(timed):
+        nxt = timed[i + 1][0] if i + 1 < len(timed) else min(duration, at + 6.0)
+        end = given_end if given_end else nxt
+        if given_end is None:
+            at, end = sung(at, end)
+        words = align_words(text, audio, rate, t0=0.0, intervals=[(at, end)])
+        if not words:
+            continue
+        for k in range(0, len(words), max_words):
+            part = words[k:k + max_words]
+            chunks.append({"text": " ".join(w.text for w in part),
+                           "start": part[0].start, "end_of_words": part[-1].end,
+                           "conf": 1.0, "line": i})
+    cards = []
+    for i, c in enumerate(chunks):
+        t0 = c["start"]
+        t1 = max(c["end_of_words"] + hold, t0 + min_hold)
+        if i + 1 < len(chunks) and chunks[i + 1]["start"] < t1:
+            t1 = chunks[i + 1]["start"]
+        cards.append({"start": round(t0, 3),
+                      "end": round(max(t1, t0 + min_hold * 0.5), 3),
+                      "text": c["text"], "conf": c["conf"], "line": c["line"]})
+    return cards
+
+
 def coverage(cards: list[dict], lines: list[str]) -> dict:
     want = words_of(lines)
     got = " ".join(c["text"] for c in cards).split()

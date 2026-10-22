@@ -481,3 +481,19 @@ def test_caption_lead_and_bridging():
     assert out[0]["end"] == 10.1             # 0.1s breath inside the phrase: bridged
     assert out[1]["end"] == 10.5             # a 4s gap is an instrumental: left blank
     assert out[2]["start"] == 14.5           # and the next card still leads its word
+
+
+def test_timed_lyric_parsing():
+    """Line times are the anchor for vocals no ASR here can read."""
+    import tempfile
+    from pathlib import Path
+    from studio.captions import parse_timed
+
+    f = Path(tempfile.mkdtemp()) / "lyric.txt"
+    f.write_text("[00:28.230] we young tonight\n"
+                 "00:38.840 - 00:43.600  Is a beauty and a beat\n"
+                 "[verse]\n")
+    got = parse_timed(f)
+    assert got[0] == (28.23, None, "we young tonight")
+    assert got[1] == (38.84, 43.6, "Is a beauty and a beat")
+    assert len(got) == 2

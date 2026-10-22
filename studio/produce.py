@@ -80,6 +80,10 @@ def main(argv=None):
     ap.add_argument("--captions", default=None,
                     help="the lyric as text, one sung line per line — the words "
                          "on screen are placed from this, never guessed")
+    ap.add_argument("--timed", default=None,
+                    help="lyric file whose lines carry their own times "
+                         "(mm:ss.mmm text) — the path for a vocal the ASR cannot "
+                         "read, such as Hindi or Bangla sung in roman script")
     ap.add_argument("--start", type=float, default=0.0, help="track start, seconds")
     ap.add_argument("--end", type=float, default=None, help="track end, seconds")
     ap.add_argument("--seed", type=int, default=0)
@@ -108,7 +112,8 @@ def main(argv=None):
 
     if a.direct:
         from . import director
-        from .captions import cards_from_words, parse_lines, to_script
+        from .captions import (cards_from_words, from_timed, parse_lines,
+                               parse_timed, to_script)
         from .ends import out_point
         from .plan import build_directed_plan
 
@@ -126,6 +131,12 @@ def main(argv=None):
             # would transcribe again, disagree by up to a second, and silently
             # render something the operator never saw.
             cards = json.loads(Path(a.cards).read_text())
+        elif a.timed:
+            # The operator supplied the line times. No transcript is consulted:
+            # onsets place the words inside each line, which is language-blind.
+            lines = [t for _a, _b, t in parse_timed(a.timed)]
+            cards = from_timed(a.track, parse_timed(a.timed),
+                               grid.duration - a.start)
         else:
             lines = parse_lines(a.captions)
             cards = cards_from_words(lines, a.track, a.start,
