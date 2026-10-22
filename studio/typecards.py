@@ -193,6 +193,17 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
     tracking = max(1, int(best * tracking_frac))
     w, h = _measure(probe, body, font, tracking)
 
+    # Cap by WIDTH as well as by cap height. `fixed` exists so every face is
+    # judged at the same optical size, but that is a statement about the type,
+    # not a licence to run off the frame: "zaalima main kehlayi" at 12.5% cap
+    # height is three thousand pixels wide, and three words of it were being cut
+    # off both edges. Short cards keep their size; long ones shrink to fit.
+    if w > target_w:
+        best = max(12, int(best * target_w / w))
+        font = _load_font(best, font_path)
+        tracking = max(1, int(best * tracking_frac))
+        w, h = _measure(probe, body, font, tracking)
+
     # The card has to stay inside a sane band of the frame. A face with tall
     # ascenders can push the line box past that band even at the right cap
     # height, so shrink until the whole card fits rather than clipping it.
