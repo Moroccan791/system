@@ -142,6 +142,15 @@ class ScriptCard:
         return f"{self.beat:g}:{self.text}"
 
 
+def card_time(beat: float, bpm: float) -> float:
+    """Seconds from frame one for a script card written at `beat`.
+
+    The contract, in one place because it was wrong once: a script's beats are
+    RELATIVE to frame one, and frame one already sits on the track's grid.
+    """
+    return beat * 60.0 / bpm
+
+
 def load_script(path: str | Path | None) -> list[ScriptCard]:
     if not path or not Path(path).exists():
         return []
@@ -170,11 +179,15 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     out_path.parent.mkdir(parents=True, exist_ok=True)
     grid = plan.grid
     cards = load_script(script_path)
+    period = 60.0 / grid.bpm
 
     # pre-render every card once
     rendered: list[tuple[float, Card, float]] = []
+    # Script beats are RELATIVE to frame one, because that is what someone
+    # writing a card list means by "beat 28". The first cut already sits on the
+    # grid, so beat 0 is exactly 0.000s and every card inherits the track's grid.
     for c in cards:
-        t = grid.t(c.beat) - grid.t(plan.cuts[0].start_beat)
+        t = card_time(c.beat, grid.bpm)
         if t < -0.001:
             continue
         # hold: capped by the act's own cut length, so a card cannot outlive the

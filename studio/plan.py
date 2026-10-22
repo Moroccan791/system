@@ -176,6 +176,7 @@ def _density_at(act: str, progress: float) -> float:
 
 
 _MOTION_RANK: dict[int, dict[int, float]] = {}
+_BRIGHT_RANK: dict[int, dict[int, float]] = {}
 
 
 def _max_shot(source: Source) -> float:
@@ -197,6 +198,13 @@ def _motion_ranks(source: Source) -> dict[int, float]:
     return {s.index: (s.motion - lo) / span for s in source.shots}
 
 
+def _bright_ranks(source: Source) -> dict[int, float]:
+    vals = sorted((s.bright for s in source.shots))
+    lo, hi = vals[0], vals[-1]
+    span = max(1e-9, hi - lo)
+    return {s.index: (s.bright - lo) / span for s in source.shots}
+
+
 def _pick_shot(source: Source, rng: random.Random, act: str, need: float,
                recent: list[int], used: set[int]) -> int:
     """Choose a shot for this cut.
@@ -213,6 +221,9 @@ def _pick_shot(source: Source, rng: random.Random, act: str, need: float,
     if id(source) not in _MOTION_RANK:
         _MOTION_RANK[id(source)] = _motion_ranks(source)
     ranks = _MOTION_RANK[id(source)]
+    if id(source) not in _BRIGHT_RANK:
+        _BRIGHT_RANK[id(source)] = _bright_ranks(source)
+    bright_rank = _BRIGHT_RANK[id(source)]
     scored = []
     for s in source.shots:
         if s.dur * 0.98 < need:
@@ -225,11 +236,16 @@ def _pick_shot(source: Source, rng: random.Random, act: str, need: float,
         # A long hold has to be a shot worth holding. Near-black frames and
         # soft focus look like a mistake for 5 seconds even when they are art.
         if s.dur >= 2.0:
-            if s.bright < 22:
-                score -= 4.0
-            if s.sharp < 250:
-                score -= 2.0
+            # A five-second hold on a near-black frame is not mood, it is a
+            # dead screen. The reference's build was dark but always legible.
+            if s.bright < 45:
+                score -= 6.0 * (1.0 - s.bright / 45.0)
+            if s.sharp < 350:
+                score -= 2.5
             score += min(1.0, s.sharp / 2000.0)
+            # a long hold also wants a frame with something in it: the brightest
+            # shots in a graded scenepack are the ones you can actually read
+            score += bright_rank.get(s.index, 0.5) * 1.5
         score += rng.random() * 1.0
         scored.append((score, s.index))
     if not scored:                      # everything too short: allow a repeat
@@ -291,7 +307,10 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
                     sh = _pick_shot(source, rng, act, nd, recent, used)
                     ss = source.shots[sh]
                     room2 = max(0.0, ss.dur - nd)
-                    si = ss.src_in + (rng.random() * 0.25 * room2 if room2 > 0.2 else 0.0)
+                    if room2 > 0.35 and od >= 1.5:
+                        si = ss.src_in + room2 * (0.34 + 0.30 * rng.random())
+                    else:
+                        si = ss.src_in + (rng.random() * 0.25 * room2 if room2 > 0.2 else 0.0)
                     c2 = Cut(index=idx, act=act, start_beat=beat, length_beats=ln,
                              shot=sh, src_in=si, src_out=si + nd, speed=SPEED[act])
                     c2.out_start = grid.t(beat) - grid.t(0)
@@ -306,9 +325,14 @@ def build_plan(grid: Grid, source: Source, start: float = 0.0,
             shot = _pick_shot(source, rng, act, need, recent, used)
             src_shot = source.shots[shot]
             # in-point: somewhere that leaves enough runway, biased to the head
-            room = src_shot.dur - need
-            src_in = src_shot.src_in + (rng.random() * 0.25 * room if room > 0.2
-                                        else 0.0)
+            room = max(0.0, src_shot.dur - need)
+            # Long holds start mid-shot: the head of a scene in a graded pack is
+            # usually a fade up from black, and holding on a fade looks broken.
+            if room > 0.35 and out_dur >= 1.5:
+                src_in = src_shot.src_in + room * (0.34 + 0.30 * rng.random())
+            else:
+                src_in = src_shot.src_in + (rng.random() * 0.25 * room if room > 0.2
+                                            else 0.0)
             cut = Cut(index=idx, act=act, start_beat=beat, length_beats=length,
                       shot=shot, src_in=src_in, src_out=src_in + need,
                       speed=speed)

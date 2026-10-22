@@ -116,6 +116,17 @@ def test_cuts_land_on_the_grid(grid):
         assert abs(b - round(b * 4) / 4) * period < 0.002
 
 
+def test_card_beats_are_relative_to_frame_one():
+    """A script says "beat 28"; that must mean 28 beats after frame one."""
+    from studio.compose import card_time
+
+    assert card_time(0.0, 122.75) == 0.0
+    assert card_time(28.0, 122.75) == pytest.approx(28 * 60 / 122.75, abs=1e-9)
+    # four beats is one bar, whatever the tempo
+    for bpm in (96.0, 122.75, 174.0):
+        assert card_time(4.0, bpm) == pytest.approx(4 * 60 / bpm)
+
+
 def test_cards_are_sized_to_the_frame():
     for text in ("WAIT", "MOMENT", "STILL HERE", "THEY SAID"):
         c = render_card(text, 1920, 1080)

@@ -100,7 +100,8 @@ python -m studio.produce \
 {"cards": [{"beat": 0, "text": "They said", "accent": "SAID"}]}
 ```
 
-Beats are grid positions, so changing the track moves the words with it.
+Beats are **relative to frame one** (beat 0 = the first frame) and land on the
+track's grid, so changing the track moves the words with it.
 
 ## The real track and the real footage
 
