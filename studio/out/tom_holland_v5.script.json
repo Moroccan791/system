@@ -1,0 +1,536 @@
+{
+ "bpm": 143.25,
+ "cards": [
+  {
+   "beat": 9.884,
+   "text": "I'll be",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 11.259
+  },
+  {
+   "beat": 11.259,
+   "text": "fucked up",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 13.033
+  },
+  {
+   "beat": 13.033,
+   "text": "if you",
+   "line": 0,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 14.108
+  },
+  {
+   "beat": 14.108,
+   "text": "can't be",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 15.411
+  },
+  {
+   "beat": 15.411,
+   "text": "right here",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 17.787
+  },
+  {
+   "beat": 17.787,
+   "text": "I do",
+   "line": 1,
+   "accent": "DO",
+   "pin": false,
+   "matte": false,
+   "until": 18.861
+  },
+  {
+   "beat": 18.861,
+   "text": "the same",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 19.936
+  },
+  {
+   "beat": 19.936,
+   "text": "thing I",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 21.02
+  },
+  {
+   "beat": 21.02,
+   "text": "told you",
+   "line": 1,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 22.094
+  },
+  {
+   "beat": 22.094,
+   "text": "that I",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 23.168
+  },
+  {
+   "beat": 23.168,
+   "text": "never would",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 24.949
+  },
+  {
+   "beat": 24.949,
+   "text": "I told",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 26.114
+  },
+  {
+   "beat": 26.114,
+   "text": "you I",
+   "line": 2,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 27.189
+  },
+  {
+   "beat": 27.189,
+   "text": "changed, even",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 29.137
+  },
+  {
+   "beat": 29.137,
+   "text": "when I",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 30.338
+  },
+  {
+   "beat": 30.338,
+   "text": "knew I",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 31.412
+  },
+  {
+   "beat": 31.412,
+   "text": "never could",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 33.783
+  },
+  {
+   "beat": 33.783,
+   "text": "Know that",
+   "line": 3,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 35.676
+  },
+  {
+   "beat": 35.676,
+   "text": "I can't",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 37.142
+  },
+  {
+   "beat": 37.142,
+   "text": "find nobody",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 39.635
+  },
+  {
+   "beat": 39.635,
+   "text": "else as",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 41.151
+  },
+  {
+   "beat": 41.151,
+   "text": "good as",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 42.667
+  },
+  {
+   "beat": 42.667,
+   "text": "you",
+   "line": 3,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 43.811
+  },
+  {
+   "beat": 43.811,
+   "text": "I need",
+   "line": 4,
+   "accent": "NEED",
+   "pin": false,
+   "matte": false,
+   "until": 45.078
+  },
+  {
+   "beat": 45.078,
+   "text": "you to",
+   "line": 4,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 46.258
+  },
+  {
+   "beat": 46.258,
+   "text": "stay, need",
+   "line": 4,
+   "accent": "STAY",
+   "pin": false,
+   "matte": false,
+   "until": 47.86
+  },
+  {
+   "beat": 47.86,
+   "text": "you to",
+   "line": 4,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 49.137
+  },
+  {
+   "beat": 49.137,
+   "text": "stay, hey",
+   "line": 4,
+   "accent": "STAY",
+   "pin": false,
+   "matte": false,
+   "until": 51.212
+  },
+  {
+   "beat": 51.212,
+   "text": "I do",
+   "line": 5,
+   "accent": "DO",
+   "pin": false,
+   "matte": false,
+   "until": 52.286
+  },
+  {
+   "beat": 52.286,
+   "text": "the same",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 53.361
+  },
+  {
+   "beat": 53.361,
+   "text": "thing I",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 54.664
+  },
+  {
+   "beat": 54.664,
+   "text": "told you",
+   "line": 5,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 55.739
+  },
+  {
+   "beat": 55.739,
+   "text": "that I",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 56.813
+  },
+  {
+   "beat": 56.813,
+   "text": "never would",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 57.897
+  },
+  {
+   "beat": 57.897,
+   "text": "I told",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 58.971
+  },
+  {
+   "beat": 58.971,
+   "text": "you I",
+   "line": 6,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 60.046
+  },
+  {
+   "beat": 60.046,
+   "text": "changed, even",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 61.344
+  },
+  {
+   "beat": 61.344,
+   "text": "when I",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 62.419
+  },
+  {
+   "beat": 62.419,
+   "text": "knew I",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 63.493
+  },
+  {
+   "beat": 63.493,
+   "text": "never could",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 64.582
+  },
+  {
+   "beat": 64.582,
+   "text": "Know that",
+   "line": 7,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 65.687
+  },
+  {
+   "beat": 65.687,
+   "text": "I can't",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 66.762
+  },
+  {
+   "beat": 66.762,
+   "text": "find nobody",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 67.917
+  },
+  {
+   "beat": 67.917,
+   "text": "else as",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 68.992
+  },
+  {
+   "beat": 68.992,
+   "text": "good as you",
+   "line": 7,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 70.551
+  },
+  {
+   "beat": 70.551,
+   "text": "I need",
+   "line": 8,
+   "accent": "NEED",
+   "pin": false,
+   "matte": false,
+   "until": 71.795
+  },
+  {
+   "beat": 71.795,
+   "text": "you to",
+   "line": 8,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 73.043
+  },
+  {
+   "beat": 73.043,
+   "text": "stay, need",
+   "line": 8,
+   "accent": "STAY",
+   "pin": false,
+   "matte": false,
+   "until": 74.514
+  },
+  {
+   "beat": 74.514,
+   "text": "you to",
+   "line": 8,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 75.598
+  },
+  {
+   "beat": 75.598,
+   "text": "stay, hey",
+   "line": 8,
+   "accent": "STAY",
+   "pin": false,
+   "matte": false,
+   "until": 77.713
+  },
+  {
+   "beat": 77.713,
+   "text": "When I'm",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 79.487
+  },
+  {
+   "beat": 79.487,
+   "text": "away from",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 81.6
+  },
+  {
+   "beat": 81.6,
+   "text": "you, I",
+   "line": 9,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 83.001
+  },
+  {
+   "beat": 83.001,
+   "text": "miss your",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 85.083
+  },
+  {
+   "beat": 85.083,
+   "text": "touch ooh",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 88.218
+  },
+  {
+   "beat": 88.218,
+   "text": "You're the",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 90.923
+  },
+  {
+   "beat": 90.923,
+   "text": "reason I",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 92.482
+  },
+  {
+   "beat": 92.482,
+   "text": "believe in",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 94.822
+  },
+  {
+   "beat": 94.822,
+   "text": "love",
+   "line": 10,
+   "accent": "LOVE",
+   "pin": false,
+   "matte": false,
+   "until": 100.18
+  }
+ ]
+}
