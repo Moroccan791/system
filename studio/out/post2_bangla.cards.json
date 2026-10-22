@@ -1,0 +1,61 @@
+{
+ "polished": true,
+ "cards": [
+  {
+   "start": 93.9,
+   "end": 95.72,
+   "text": "AMAR MORAR",
+   "line": 0,
+   "conf": 1.0
+  },
+  {
+   "start": 95.72,
+   "end": 97.44,
+   "text": "KARON TUMII",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 101.66,
+   "end": 103.74,
+   "text": "ABAR BECHE",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 103.74,
+   "end": 106.04,
+   "text": "THAKAR DAYII",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 110.12,
+   "end": 112.56,
+   "text": "AMAR MORAR",
+   "line": 4,
+   "conf": 1.0
+  },
+  {
+   "start": 112.56,
+   "end": 114.28,
+   "text": "KARON TUMII",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 118.5,
+   "end": 120.46,
+   "text": "ABAR BECHE",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 120.46,
+   "end": 122.68,
+   "text": "THAKAR DAYII",
+   "line": 7,
+   "conf": 1.0
+  }
+ ]
+}

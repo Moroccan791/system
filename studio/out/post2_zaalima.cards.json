@@ -1,0 +1,110 @@
+{
+ "polished": true,
+ "cards": [
+  {
+   "start": 25.92,
+   "end": 28.2,
+   "text": "Deedaar tera milne",
+   "conf": 1.0,
+   "line": 0
+  },
+  {
+   "start": 28.2,
+   "end": 29.14,
+   "text": "ke baad hi",
+   "conf": 1.0,
+   "line": 1
+  },
+  {
+   "start": 29.14,
+   "end": 31.2,
+   "text": "chhute meri angdaai",
+   "conf": 1.0,
+   "line": 2
+  },
+  {
+   "start": 31.2,
+   "end": 32.88,
+   "text": "Tu hi bata",
+   "conf": 1.0,
+   "line": 3
+  },
+  {
+   "start": 32.88,
+   "end": 33.68,
+   "text": "de kyun zaalima",
+   "conf": 1.0,
+   "line": 4
+  },
+  {
+   "start": 33.68,
+   "end": 35.96,
+   "text": "main kehlayi",
+   "conf": 1.0,
+   "line": 5
+  },
+  {
+   "start": 36.0,
+   "end": 38.519999999999996,
+   "text": "Kyun is tarah",
+   "conf": 1.0,
+   "line": 6
+  },
+  {
+   "start": 38.519999999999996,
+   "end": 39.480000000000004,
+   "text": "se duniya jahan",
+   "conf": 1.0,
+   "line": 7
+  },
+  {
+   "start": 39.480000000000004,
+   "end": 40.46,
+   "text": "mein karta hai",
+   "conf": 1.0,
+   "line": 8
+  },
+  {
+   "start": 40.46,
+   "end": 41.879999999999995,
+   "text": "meri ruswaai",
+   "conf": 1.0,
+   "line": 9
+  },
+  {
+   "start": 41.879999999999995,
+   "end": 43.9,
+   "text": "Tera kusoor aur",
+   "conf": 1.0,
+   "line": 10
+  },
+  {
+   "start": 43.9,
+   "end": 46.620000000000005,
+   "text": "zaalima main kehlayi",
+   "conf": 1.0,
+   "line": 11
+  },
+  {
+   "start": 48.019999999999996,
+   "end": 49.58,
+   "text": "Deedaar tera milne",
+   "conf": 1.0,
+   "line": 12
+  },
+  {
+   "start": 49.58,
+   "end": 50.58,
+   "text": "ke baad hi",
+   "conf": 1.0,
+   "line": 13
+  },
+  {
+   "start": 50.58,
+   "end": 53.16,
+   "text": "chhute meri angdaai",
+   "conf": 1.0,
+   "line": 14
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 # POST — Peter & Gwen — Faahun · Gefika
 
-_46.0s · 1920x1080 · 30fps_
+_33.1s · 1920x1080 · 30fps_
 
 ## Title
 
