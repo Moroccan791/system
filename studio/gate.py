@@ -33,6 +33,13 @@ def ffmpeg() -> str:
 
 # The frame is 1920x1080 at this studio's only aspect. Vertical was dropped, so
 # anything else here is a mistake rather than a platform choice.
+from . import frame as _frame  # noqa: E402
+
+
+def _want() -> tuple[int, int]:
+    return _frame.size()
+
+
 WANT_W, WANT_H = 1920, 1080
 WANT_FPS = 30.0
 BLACK = 12.0          # a frame this dark has no picture in it
@@ -100,6 +107,8 @@ def handle_delta(path: str | Path, box: tuple[int, int, int, int],
 def run(path: str | Path, script: str | Path | None = None,
         want_handle: bool = True) -> dict:
     """Every check, as data. `ok` is the AND of the blocking ones."""
+    global WANT_W, WANT_H
+    WANT_W, WANT_H = _want()
     p = Path(path)
     info = probe(p)
     checks: list[dict] = []
@@ -131,21 +140,15 @@ def run(path: str | Path, script: str | Path | None = None,
                 tw, th = tile.size
                 mask = np.asarray(tile)[..., 3] > 40
                 rect = watermark.rect_from_video(p, WANT_W, WANT_H)
-                if rect is None:
-                    rect = (0, 0, WANT_W - 1, WANT_H - 1)
-                x0, y0, x1, y1 = rect
-                margin = int(round((y1 - y0) * 0.035))
-                box = (max(x0, min(x0 + ((x1 - x0) - tw) // 2, x1 - tw)),
-                       max(y0, min(y1 - margin - th, y1 - th)), tw, th)
-                delta, n = handle_delta(p, box, mask)
+                ok_x, ok_y = watermark.home(WANT_W, WANT_H, tw, th, rect)
+                delta, n = handle_delta(p, (ok_x, ok_y, tw, th), mask)
                 where = "on the picture"
                 if delta < HANDLE_DELTA:
-                    # Files rendered before the handle was measured against the
-                    # picture have it a margin from the FRAME's edge instead,
-                    # which on a letterboxed pack is inside the black band. The
-                    # check is whether the mark is there, not whether it matches
-                    # today's code — but it says which, so an old file is caught
-                    # rather than quietly passing.
+                    # Files rendered before this rule had the handle a margin
+                    # from the FRAME's bottom edge, which on a letterboxed pack
+                    # is inside the black band. The check is whether the mark is
+                    # there, not whether it matches today's code — but it says
+                    # which, so an old file is caught rather than quietly passing.
                     legacy = (int(round((WANT_W - tw) / 2)),
                               WANT_H - int(round(WANT_H * 0.055)) - th, tw, th)
                     d2, n2 = handle_delta(p, legacy, mask)

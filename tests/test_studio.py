@@ -854,3 +854,86 @@ def test_watermark_lands_on_the_picture_not_in_the_letterbox():
     out2 = wm.stamp(full.copy(), rect=(0, 0, 1919, 1079))
     rows = np.flatnonzero((out2 != 90).any(axis=(1, 2)))
     assert 1000 < rows.max() < 1080
+
+
+# ---------------------------------------------------------------------------
+# frame geometry, safe areas, loop detection, two-song beds
+# ---------------------------------------------------------------------------
+def test_vertical_frame_keeps_type_inside_the_platform_safe_area():
+    """The requirement: a caption may never leave the video, and on a vertical it
+    may never land under the platform's own caption block."""
+    from studio import frame, fonts, typecards
+
+    f = fonts.ensure("Gefika")
+    frame.set_format("vertical")
+    assert frame.size() == (1080, 1920)
+    top, bottom = frame.caption_zone()
+    for text in ("hi", "zaalima main kehlayi", "deedaar tera milne ke baad"):
+        c = typecards.render_card(text, *frame.size(), cap_frac=0.125,
+                                  font_path=str(f))
+        w, h = c.rgba.shape[1], c.rgba.shape[0]
+        assert c.x >= 0 and c.x + w <= 1080, f"{text!r} ran off the width"
+        assert c.y >= top, f"{text!r} sat in the top safe area"
+        assert c.y + h <= bottom, f"{text!r} sat under the platform caption"
+    frame.set_format("landscape")
+
+
+def test_the_handle_follows_the_frame_shape():
+    from studio import frame, watermark as wm
+
+    frame.set_format("vertical")
+    _, y = wm.home(1080, 1920, 160, 18)
+    top, bottom = frame.caption_zone()
+    assert top <= y <= bottom, "vertical handle left the safe band"
+    frame.set_format("landscape")
+    _, y2 = wm.home(1920, 1080, 160, 18, (0, 140, 1860, 930))
+    assert 140 <= y2 <= 930, "landscape handle left the picture"
+
+
+def test_a_letterboxed_file_is_cropped_by_its_picture_not_its_file():
+    from studio import frame
+
+    # a 2.35:1 film inside a 16:9 file, framed for 9:16
+    fit = frame.fit_for(2.35, 1080 / 1920)
+    assert fit.mode == "pad", "a 2.35 picture cropped to 9:16 keeps a third of the frame"
+    # a 1.85 picture has room to crop
+    assert frame.fit_for(1.85, 1.0).mode == "cover"
+
+
+def test_one_word_per_card_keeps_the_card_length():
+    from studio.words import explode
+
+    cards = [{"start": 10.0, "end": 12.0, "text": "deedaar tera milne", "line": 0}]
+    out = explode(cards)
+    assert [c["text"] for c in out] == ["deedaar", "tera", "milne"]
+    assert abs(out[0]["start"] - 10.0) < 1e-6
+    assert abs(out[-1]["end"] - 12.0) < 1e-6
+    for a, b in zip(out, out[1:]):
+        assert abs(a["end"] - b["start"]) < 1e-6, "gap in the exploded card"
+
+
+def test_sound_design_has_a_tape_stop_and_a_sub():
+    from studio import sound
+
+    assert "tape_stop" in sound._BUILDERS
+    assert "sub_drop" in sound._BUILDERS
+    for k in ("tape_stop", "sub_drop"):
+        sig = sound._BUILDERS[k](sound._DURS[k], sound.LEVEL[k])
+        assert len(sig) > 0
+        assert float(abs(sig).max()) <= 1.0
+
+
+def test_loop_detector_ranks_a_closing_shot_above_a_travelling_one(tmp_path):
+    """It cannot MAKE a shot loop — it reports which ones already do."""
+    import numpy as np
+
+    from studio import loop
+
+    # a rolled FLAT image is still flat — use one with structure in it
+    rng = np.random.default_rng(7)
+    base = rng.integers(0, 255, (54, 96)).astype(np.float32)
+    flat = base[None, ...]
+    moved = np.roll(flat, 24, axis=2)
+    # a shot that ends where it began scores near 0; one that travels, near 1
+    assert loop._dist(flat[0], flat[0]) < 0.01
+    assert loop._dist(flat[0], moved[0]) > 0.05

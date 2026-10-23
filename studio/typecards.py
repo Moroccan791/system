@@ -126,7 +126,16 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
         accent_font_path = fonts.accent()
 
     probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
-    target_w = int(frame_w * width_frac)
+    # 0.62 of the frame is the house number on a landscape; on a vertical the
+    # safe area is what counts, so the width budget is the smaller of the two.
+    # Whichever is used, the card is guaranteed to fit: three words at 12.5% cap
+    # height on a 1080-wide frame is wider than the frame.
+    try:
+        from . import frame as _frame
+        safe_w = _frame.safe_width(frame_w)
+    except Exception:
+        safe_w = int(frame_w * 0.9)
+    target_w = int(min(frame_w * width_frac, safe_w))
     # A fixed cap height is how a face is JUDGED: sizing every face to the same
     # width makes a condensed face and a wide one look identical, which is the
     # one thing they are not.
@@ -254,7 +263,16 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
 
     arr = np.asarray(canvas)
     x = (frame_w - arr.shape[1]) // 2
-    y = (frame_h - arr.shape[0]) // 2
+    try:
+        from . import frame as _frame
+        top, bottom = _frame.caption_zone(frame_h)
+        y = (top + bottom) // 2 - arr.shape[0] // 2
+    except Exception:
+        top, bottom = 0, frame_h
+        y = (frame_h - arr.shape[0]) // 2
+    # never outside the safe band, never outside the frame
+    y = max(top, min(y, bottom - arr.shape[0]))
+    y = max(0, min(y, frame_h - arr.shape[0]))
     return Card(body, arr, x, y)
 
 

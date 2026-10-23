@@ -122,6 +122,9 @@ def content_rect(frames: np.ndarray | list[np.ndarray]) -> tuple[int, int, int, 
     return int(x0), int(y0), int(x1), int(y1)
 
 
+_video_rects: dict[tuple[str, int, int], tuple[int, int, int, int] | None] = {}
+
+
 def rect_from_video(path: str | Path, out_w: int, out_h: int,
                     samples: int = 9) -> tuple[int, int, int, int] | None:
     """Measure the picture box of a file, in `out_w` x `out_h` pixels.
@@ -130,6 +133,9 @@ def rect_from_video(path: str | Path, out_w: int, out_h: int,
     line, so a 192-wide sample locates it to within a pixel of the full-size
     answer, and nine frames of a 6-minute pack cost a second.
     """
+    key = (str(path), int(out_w), int(out_h))
+    if key in _video_rects:
+        return _video_rects[key]
     import subprocess
 
     import imageio_ffmpeg
@@ -159,12 +165,43 @@ def rect_from_video(path: str | Path, out_w: int, out_h: int,
         return None
     x0, y0, x1, y1 = content_rect(grabs)
     sx, sy = out_w / w, out_h / h
-    return (int(round(x0 * sx)), int(round(y0 * sy)),
-            int(round(x1 * sx)), int(round(y1 * sy)))
+    out = (int(round(x0 * sx)), int(round(y0 * sy)),
+           int(round(x1 * sx)), int(round(y1 * sy)))
+    _video_rects[key] = out
+    return out
 
 
 _cache: dict[tuple[int, int], np.ndarray | None] = {}
 _rect_cache: dict[tuple[int, int], tuple[int, int, int, int] | None] = {}
+
+
+def home(width: int, height: int, tile_w: int, tile_h: int,
+         rect: tuple[int, int, int, int] | None = None) -> tuple[int, int]:
+    """Where the handle goes — one rule, computed the same way everywhere.
+
+    * On a VERTICAL the platform draws its caption block, handle and action rail
+      across the bottom fifth, so the credit belongs at the bottom of the type
+      band, above all of that — and the picture underneath it is the padded
+      image, not a black band.
+    * On a landscape the credit belongs inside the measured picture box, which
+      is what fixed the letterbox bug.
+
+    Both branches are deterministic from the frame and the source, so the gate
+    can look in exactly the place the renderer used.
+    """
+    from . import frame as _frame
+
+    if height > width:                      # vertical
+        top, bottom = _frame.caption_zone(height)
+        y = bottom - tile_h - int(round(height * 0.012))
+        return (width - tile_w) // 2, max(top, min(y, height - tile_h))
+    if rect is None:
+        return (width - tile_w) // 2, height - int(round(height * 0.055)) - tile_h
+    x0, y0, x1, y1 = rect
+    margin = int(round((y1 - y0) * 0.035))
+    x = x0 + ((x1 - x0) - tile_w) // 2
+    y = y1 - margin - tile_h
+    return (max(x0, min(x, x1 - tile_w)), max(y0, min(y, y1 - tile_h)))
 
 
 def stamp(frame: np.ndarray, st: dict | None = None,
@@ -188,14 +225,9 @@ def stamp(frame: np.ndarray, st: dict | None = None,
         if key not in _rect_cache:
             _rect_cache[key] = _rect_of_frame(frame)
         rect = _rect_cache[key]
-    x0, y0, x1, y1 = rect
     # margin is a fraction of the PICTURE, not of the frame: on a letterboxed
     # file those are very different numbers and the frame one lands in the bar.
-    margin = int(round((y1 - y0) * 0.035))
-    x = x0 + ((x1 - x0) - tw) // 2
-    y = y1 - margin - th
-    y = max(y0, min(y, y1 - th))
-    x = max(x0, min(x, x1 - tw))
+    x, y = home(w, h, tw, th, rect)
     reg = frame[y:y + th, x:x + tw].astype(np.float32) / 255.0
     a = t[..., 3:4]
     reg = reg * (1.0 - a) + t[..., :3] * a

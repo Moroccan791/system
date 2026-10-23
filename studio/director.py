@@ -257,6 +257,20 @@ INTRO_BANGLA: list[Moment] = [
 # shots that bridge an instrumental gap.
 TAIL_BANGLA: tuple[int, ...] = (64, 66, 68, 70, 72, 74, 76, 78, 92, 94, 96, 98, 102, 104, 106, 108)
 
+def _single_intro(first: float, start: float) -> list[Moment]:
+    """The crescendo's opening: ONE image, held, no cuts at all.
+
+    Deliberately not a montage. The whole promise of the format is that nothing
+    has moved yet when the first word lands, so the cut into it is the event.
+    """
+    lead = first - start
+    if lead <= 0.12:
+        return []
+    return [] if False else [Moment(start, first, (40,), 1.0, "build",
+                                   src=95.60, cuts=1,
+                                   note="held — nothing moves until the word")]
+
+
 def _intro_for(first: float, start: float,
                template: list[Moment] | None = None) -> list[Moment]:
     """The build, sized to the air that actually exists before the first word.
@@ -293,6 +307,104 @@ def _intro_for(first: float, start: float,
         m.at, m.until = t, t + d
         t += d
     return picked
+
+
+def _beats(cut_beats: int, at: float, until: float, shots: tuple[int, ...],
+           div: float, act: str, note: str) -> list[Moment]:
+    """One card -> its cuts, stepping through its shots in order.
+
+    `cut_beats` is how many picture changes the card carries: 1 for a hold, 2 for
+    a pair, 3 for a burst. Stepping rather than rotating means two beats never
+    land on the same frame, which is what made a two-beat card read as a freeze.
+    """
+    n = len(shots)
+    out = []
+    for k in range(max(1, cut_beats)):
+        out.append(Moment(at, until, (shots[k % n],), div, act,
+                          note=f"{note} [{k + 1}/{cut_beats}]"))
+    return out
+
+
+def moments_from_words(cards: list[dict], bpm: float, duration: float,
+                       start: float = 0.0, direction: dict | None = None,
+                       word_mode: str = "pair", word_pool: tuple[int, ...] = (),
+                       intro: list[Moment] | None = None,
+                       tail_pool: tuple[int, ...] | None = None) -> list[Moment]:
+    """Cut on the WORD, not on the card.
+
+    The cards know where each word is. Cutting the picture on the card boundary
+    alone means a three-word card is one image for a second and a half; cutting
+    inside it means the shot changes under the word, which is the difference
+    between "edited" and "choreographed". The cadence is chosen by the format:
+
+        pair   — cut every two words (default; matches how the type changes)
+        burst  — cut every word, capped so a fast line does not become a strobe
+        hold   — never cut inside a card: the lyric carries it
+
+    Cards keep their own shots for the first cut of each card; the extra cuts come
+    from `word_pool`, which is the format's own set of images.
+    """
+    if not cards:
+        raise ValueError("no caption cards — nothing to cut to")
+    if intro == "single":
+        out: list[Moment] = _single_intro(cards[0]["start"], start)
+    else:
+        out = _intro_for(cards[0]["start"], start, intro)
+    prev_end = cards[0]["start"]
+    direction = direction or LINE_DIRECTION
+    last_dir = direction[max(direction)]
+    pool = tail_pool or FILL
+    n_pool = len(word_pool) or len(pool)
+    k_pool = 0
+
+    def fill(a: float, b: float, why: str):
+        n = max(1, round((b - a) / FILL_HOLD))
+        step = (b - a) / n
+        for k in range(n):
+            out.append(Moment(a + k * step, a + (k + 1) * step,
+                              (pool[k % len(pool)],), 1.0, "drop", note=why))
+
+    for i, card in enumerate(cards):
+        gap = card["start"] - prev_end
+        if gap > 0.005:
+            if gap <= 0.35 and out:
+                out[-1].until = card["start"]
+            else:
+                fill(prev_end, card["start"], "instrumental")
+        d = direction.get(card["line"], last_dir)
+        shots = list(d["shots"])
+        span = card["end"] - card["start"]
+        words = len(card["text"].split())
+        if word_mode == "burst":
+            cuts = max(1, min(words, 4))
+        elif word_mode == "hold":
+            cuts = 1
+        else:
+            cuts = max(1, min(2, words // 2 + words % 2))
+        cuts = min(cuts, max(1, int(span / 0.34)))
+        step = span / cuts
+        for k in range(cuts):
+            pooled = word_pool and (k > 0 or i % 2 == 1)
+            shot = (word_pool[k_pool % n_pool] if pooled else shots[k % len(shots)])
+            if pooled:
+                k_pool += 1
+            out.append(Moment(card["start"] + k * step,
+                              card["start"] + (k + 1) * step,
+                              (shot,), d.get("div", 1.0), "drop",
+                              ramp=d.get("ramp") if k == cuts - 1 else None,
+                              note=f"{d.get('note', 'line')} "
+                                   f"[{k + 1}/{cuts}]"))
+        prev_end = card["end"]
+
+    # tail
+    if duration > prev_end + 0.2:
+        fill(prev_end, duration - 2.0 if duration - prev_end > 3.0 else duration,
+             "tail — bridge to the end")
+    if duration - prev_end > 3.0:
+        out.append(Moment(duration - 2.0, duration, (58,), 1.0, "out",
+                          src=149.20, cuts=1, note="the exhale"))
+    out.sort(key=lambda m: m.at)
+    return out
 
 
 def moments_for(cards: list[dict], bpm: float, duration: float,
@@ -403,12 +515,27 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
 def segments_for(grid, source, cards: list[dict], duration: float,
                  start: float = 0.0, direction: dict | None = None,
                  intro: list[Moment] | None = None,
-                 tail_pool: tuple[int, ...] | None = None):
+                 tail_pool: tuple[int, ...] | None = None,
+                 behaviour: str | None = None,
+                 word_pool: tuple[int, ...] | None = None):
     """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
-    for m in moments_for(cards, grid.bpm, duration, start, direction, intro,
-                         tail_pool):
-        beats = (m.cuts if m.cuts
+    beh = BEHAVIOURS.get(behaviour or "lyric", BEHAVIOURS["lyric"])
+    if behaviour and behaviour != "lyric":
+        moments = moments_from_words(
+            cards, grid.bpm, duration, start, direction,
+            word_mode=beh.get("word_mode", "pair"),
+            word_pool=word_pool or FILL, intro=intro or beh.get("intro"),
+            tail_pool=tail_pool)
+    else:
+        moments = moments_for(cards, grid.bpm, duration, start, direction,
+                              intro, tail_pool)
+    word_cut = bool(behaviour and behaviour != "lyric")
+    for m in moments:
+        # A word-cut moment is already exactly one cut: re-subdividing it on the
+        # grid is how a per-word edit turned into four cuts per word and read as
+        # a strobe.
+        beats = 1 if word_cut else (m.cuts if m.cuts
                  else max(1, min(4, round(m.span * grid.bpm / 60.0 * m.div))))
         step = m.span / beats
         n = len(m.shots)
@@ -425,6 +552,26 @@ def segments_for(grid, source, cards: list[dict], duration: float,
                 "note": m.note,
             })
     return flat
+
+# ---------------------------------------------------------------------------
+# Behaviours — one format, one way of cutting. These are house rules, not shot
+# lists: they say WHAT KIND of image goes where, and the direction map still
+# says which film moment. Rotating these is how two edits off one pack stop
+# looking like the same video.
+#
+#   lyric     — default. One image per card, held; the type leads.
+#   crescendo — nothing cuts until the first card, then one cut per word. The
+#               stillness is the idea: 90% of edits are cut-cut-cut from frame
+#               one, so holding still is the thing that reads as confident.
+#   mosaic    — one word per card, a new image every word, no hold anywhere.
+#               Busy on purpose; the only format that can carry a fast song.
+# ---------------------------------------------------------------------------
+BEHAVIOURS: dict[str, dict] = {
+    "lyric": {"word_mode": "pair", "intro": None, "fill_hold": 0.55},
+    "crescendo": {"word_mode": "burst", "intro": "single",
+                  "fill_hold": 0.85, "static_intro": True},
+    "mosaic": {"word_mode": "burst", "intro": None, "fill_hold": 0.34},
+}
 
 INTROS = {"post2_bangla": INTRO_BANGLA}
 

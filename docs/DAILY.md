@@ -145,3 +145,36 @@ column profile), and the handle is placed inside that box, a fixed fraction
 above its bottom edge. The gate looks for it there, falls back to the old frame
 position so an already-shipped file still verifies, and prints which one it
 found.
+
+## Formats, behaviours, and the five tools built for them
+
+**Shape** is `--format landscape|vertical|square`. Vertical is 1080x1920, the
+picture is cropped or padded to fill it, and type is placed inside the platform
+safe area (top 10%, bottom 22%) rather than centred on the canvas — the caption
+block on Reels/TikTok/Shorts draws over the bottom fifth, so type there is
+invisible. A 2.35:1 picture is padded over its own blurred enlargement rather
+than cropped to a middle third.
+
+**Behaviour** is `--behaviour lyric|crescendo|mosaic` — how the picture cuts:
+
+| | cuts | use it for |
+|---|---|---|
+| `lyric` | one image per card, held | the default; the type leads |
+| `crescendo` | nothing moves until the first word, then one cut per word | proving confidence; the stillness is the format |
+| `mosaic` | one image per word, no holds | fast tracks; pair with `words.explode` |
+
+**Silence** is `--silence-before-drop MS`: the score is cut dead for that long
+before the drop, with 6ms edges. It measures as digital zero against −15 dBFS
+when the drop lands. This is the "cold open" that needs no dialogue.
+
+**Sound design** is `--design tape_stop`: the music stops itself into the drop
+instead of a riser, plus a sub on the downbeat. Registered beside impact,
+whoosh, riser, tick and swell.
+
+**Loops** — `studio.loop.find(pack, shots)` ranks shots by whether they close on
+themselves (end-vs-start pixel distance against mid-vs-start). It reports; it
+cannot manufacture a loop. A pack with no closing shot simply is not a loop edit.
+
+**Two songs** — `studio.twosong build --a quiet.mp3 --b loud.mp3 --a-secs 20
+--b-secs 40` writes one bed and returns the join. Render that bed normally and
+put the direction sheet's turn on the join.

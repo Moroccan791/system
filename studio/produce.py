@@ -19,6 +19,8 @@ import time
 from pathlib import Path
 
 from .compose import OUT_FPS, OUT_H, OUT_W, render
+
+from . import frame as _frame
 from .grid import analyse as analyse_track
 from .plan import build_plan, summarise
 from .captions import ACCENT_WORDS as ACCENT
@@ -49,7 +51,7 @@ def report(plan, grid, src) -> dict:
     return {
         "bpm": round(grid.bpm, 2),
         "duration": round(plan.duration, 3),
-        "size": f"{OUT_W}x{OUT_H}@{OUT_FPS}",
+        "size": f"{_frame.size()[0]}x{_frame.size()[1]}@{OUT_FPS}",
         "cuts": len(plan.cuts),
         "acts": acts,
         "median_cut": round(sorted(c.dur for c in plan.cuts)[len(plan.cuts) // 2], 3)
@@ -87,6 +89,14 @@ def main(argv=None):
     ap.add_argument("--start", type=float, default=0.0, help="track start, seconds")
     ap.add_argument("--end", type=float, default=None, help="track end, seconds")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--behaviour", default=None,
+                    help="lyric | crescendo | mosaic")
+    ap.add_argument("--design", default=None,
+                    help="sound design gesture into the drop: tape_stop")
+    ap.add_argument("--silence-before-drop", type=float, default=None,
+                    metavar="MS",
+                    help="cut the music dead this many ms before the drop "
+                         "(the 'no dialogue' version of a cold open)")
     ap.add_argument("--no-sfx", action="store_true",
                     help="track only, no beat-locked sound design")
     ap.add_argument("--direct", action="store_true",
@@ -204,7 +214,8 @@ def main(argv=None):
         direction = director.DIRECTIONS.get(name, director.LINE_DIRECTION)
         segs = director.segments_for(grid, src, cards, a.end, a.start, direction,
                                      director.INTROS.get(name),
-                                     director.TAILS.get(name))
+                                     director.TAILS.get(name),
+                                     behaviour=a.behaviour)
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)
@@ -216,11 +227,11 @@ def main(argv=None):
 
     from .sound import cues_for
 
-    cues = cues_for(plan)
+    cues = cues_for(plan, a.design)
     rep["sound"] = {"cues": len(cues),
                     "by_kind": {k: sum(1 for c in cues if c.kind == k)
-                                for k in ("riser", "impact", "whoosh", "tick",
-                                          "swell")},
+                                for k in ("riser", "tape_stop", "impact",
+                                          "sub_drop", "whoosh", "tick", "swell")},
                     "on_grid_problems": __import__("studio.sound",
                                                    fromlist=["x"]).check_on_grid(
                                                         cues, plan)}
@@ -230,9 +241,25 @@ def main(argv=None):
         print(f"plan-only: {out} not rendered")
         return 0
 
+    gap = None
+    if a.silence_before_drop:
+        drop = next((c for c in plan.cuts if c.act == "drop"), None)
+        if drop is not None and drop.out_start < 0.05:
+            # the edit starts ON the drop, so there is no "before" to cut. Saying
+            # so is better than printing a 600ms silence that never happens.
+            print("silence: skipped — this edit begins on the drop, so there is "
+                  "nothing before it to go quiet")
+        elif drop is not None:
+            end = drop.out_start
+            start = max(0.0, end - a.silence_before_drop / 1000.0)
+            gap = (start, end)
+            print(f"silence: {a.silence_before_drop:.0f}ms of nothing "
+                  f"before the drop at {end:.2f}s")
+
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
            sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium,
+           gap=gap, design=a.design,
            watermark=not a.no_watermark)
     print(f"sound: {len(cues)} cues "
           f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")

@@ -15,6 +15,11 @@ What goes where, and why:
   tick       on a flash cut. Short, high, quiet — it marks the join without
              competing with the music.
   swell      on the first frame of the out act: the exhale needs an entrance too.
+  tape_stop  runs INTO the drop, and replaces the riser when the design asks for
+             it: the music stopping itself is the tension, and stacking a riser
+             on top of that is two ideas where one is enough.
+  sub_drop   under the drop downbeat, an octave below everything else. Felt on a
+             phone speaker, audible as weight on a good one.
 
 Levels are relative and conservative: the track is the score, these are accents.
 A hit louder than the music is karaoke.
@@ -123,17 +128,45 @@ class Cue:
 
 
 # level per kind, relative to the track. Conservative on purpose.
+def tape_stop(dur: float = 0.42, gain: float = 1.0) -> np.ndarray:
+    """A tape stopping: pitch falling away, no tail.
+
+    This is the one design move that instantly reads "an editor did this" rather
+    than "an app did this". It is not a sound effect laid over the song — it is
+    the song behaving, which is why it works on a mix that has no room for more
+    layers.
+    """
+    n = int(SR * dur)
+    t = np.arange(n) / SR
+    rate = np.clip(1.0 - (t / dur) ** 0.7, 0.0, 1.0)      # speed falls to zero
+    phase = np.cumsum(rate) / SR
+    sig = (0.55 * np.sin(2 * np.pi * 220 * phase * 2.0)
+           + 0.30 * np.sin(2 * np.pi * 330 * phase * 2.0)
+           + 0.15 * np.sin(2 * np.pi * 110 * phase * 2.0))
+    return (sig * _env(n, 0.02, 1.0, 1.4) * gain).astype(np.float32)
+
+
+def sub_drop(dur: float = 1.1, gain: float = 1.0) -> np.ndarray:
+    """A low sine falling an octave under the drop — felt, not heard."""
+    n = int(SR * dur)
+    t = np.arange(n) / SR
+    f = 55.0 * np.exp(-t * 0.9) + 28.0
+    sig = np.sin(2 * np.pi * np.cumsum(f) / SR)
+    return (sig * _env(n, 0.004, 1.0, 2.2) * gain * 0.9).astype(np.float32)
+
+
 LEVEL = {"impact": 0.62, "whoosh": 0.30, "riser": 0.34, "tick": 0.16,
-         "swell": 0.26}
+         "swell": 0.26, "tape_stop": 0.46, "sub_drop": 0.52}
 
 _BUILDERS = {"impact": impact, "whoosh": whoosh, "riser": riser,
-             "tick": tick, "swell": swell}
+             "tick": tick, "swell": swell,
+             "tape_stop": tape_stop, "sub_drop": sub_drop}
 
-_DURS = {"impact": 0.55, "whoosh": 0.30, "riser": 1.6, "tick": 0.055,
+_DURS = {"tape_stop": 0.42, "sub_drop": 1.1, "impact": 0.55, "whoosh": 0.30, "riser": 1.6, "tick": 0.055,
          "swell": 0.9}
 
 
-def cues_for(plan) -> list[Cue]:
+def cues_for(plan, design: str | None = None) -> list[Cue]:
     """Every sound event, derived from the picture plan.
 
     The rule that keeps this from becoming noise: an event is placed because the
@@ -152,10 +185,17 @@ def cues_for(plan) -> list[Cue]:
     out = acts.get("out")
 
     if drop is not None:
-        # riser lands ON the drop's first frame, not before it
-        cues.append(Cue(max(0.0, drop.out_start - _DURS["riser"] + 0.02),
-                        "riser"))
+        if design == "tape_stop":
+            # the song stops itself; nothing else may play over the gap, so the
+            # riser is replaced rather than stacked
+            cues.append(Cue(max(0.0, drop.out_start - _DURS["tape_stop"] - 0.02),
+                            "tape_stop"))
+        else:
+            # riser lands ON the drop's first frame, not before it
+            cues.append(Cue(max(0.0, drop.out_start - _DURS["riser"] + 0.02),
+                            "riser"))
         cues.append(Cue(drop.out_start, "impact"))
+        cues.append(Cue(drop.out_start, "sub_drop"))
 
     # whip and flash each get a sound, and a cut never gets both
     for c in plan.cuts:

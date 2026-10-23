@@ -30,6 +30,11 @@ from .typecards import Card, composite, composite_matte, render_card, scrim
 
 OUT_W, OUT_H, OUT_FPS = 1920, 1080, 30
 
+# The output shape is a setting, not a constant. `render()` retunes these globals
+# from studio/frame.py before it decodes anything, so every helper below that
+# reads OUT_W/OUT_H gets the right numbers without being rewritten.
+from . import frame as _frame  # noqa: E402
+
 # how loud the track sits in each act, before the final normalise
 ACT_GAIN = {"build": 0.62, "drop": 1.0, "out": 0.78}
 
@@ -85,6 +90,17 @@ def _source_aspect(src: str) -> float:
     return _ASPECT_CACHE[src]
 
 
+def _probe_size(src: str) -> tuple[int, int]:
+    """The file's own pixel size — for measuring the picture box in its units."""
+    key = ("size", src)
+    if key not in _ASPECT_CACHE:
+        from .shots import probe
+
+        m = probe(src)
+        _ASPECT_CACHE[key] = (int(m.get("width") or 1920), int(m.get("height") or 1080))
+    return _ASPECT_CACHE[key]
+
+
 def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.ndarray]:
     """Frames for one cut, already at output size and speed.
 
@@ -98,26 +114,40 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
            This is the standard broadcast answer and it reads as deliberate;
            black bars read as a mistake.
     """
-    aspect = _source_aspect(src)
-    # WIDER than the frame (cinema 2.4:1, 2:1) is cropped to fill — that is what
-    # an editor does with film footage. NARROWER (vertical inserts, 4:3 archive)
-    # is fitted over a blurred fill, because cropping those eats the subject.
-    cover = aspect >= 1.55
+    # The picture, not the file. A 16:9 file with a 2.4:1 film letterboxed into
+    # it has a file aspect of 1.78 and a picture aspect of 2.35 — and cropping by
+    # the file aspect keeps the black bands instead of removing them.
+    from . import watermark as _wm
+    box = _wm.rect_from_video(src, *_probe_size(src))
+    if box:
+        bw, bh = box[2] - box[0], box[3] - box[1]
+        aspect = bw / max(1.0, bh)
+    else:
+        aspect = _source_aspect(src)
+    fit = _frame.fit_for(aspect, OUT_W / OUT_H)
+    cover = fit.mode == "cover"
+
+    # crop the baked-in bands away first, so the fit works on the image
+    pre = ""
+    if box and (box[1] > 0 or box[3] < _probe_size(src)[1] or box[0] > 0
+                or box[2] < _probe_size(src)[0]):
+        pw, ph = box[2] - box[0], box[3] - box[1]
+        pre = f"crop={pw}:{ph}:{box[0]}:{box[1]},"
 
     timing = ""
     if abs(speed - 1.0) > 1e-3:
         timing = f",setpts={speed:.4f}*PTS"
 
     if cover:
-        vf = (f"scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
+        vf = (f"{pre}scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
               f"flags=lanczos,crop={OUT_W}:{OUT_H},setsar=1")
         graph = ["-vf", vf + timing]
     else:
         fc = (
-            f"[0:v]scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
-            f"flags=lanczos,crop={OUT_W}:{OUT_H},boxblur=32:2,"
-            f"eq=brightness=-0.12:saturation=0.7[bg];"
-            f"[0:v]scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=decrease:"
+            f"[0:v]{pre}scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
+            f"flags=lanczos,crop={OUT_W}:{OUT_H},boxblur=40:2,"
+            f"eq=brightness=0.04:contrast=0.92:saturation=0.62[bg];"
+            f"[0:v]{pre}scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=decrease:"
             f"flags=lanczos,setsar=1[fg];"
             f"[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1{timing}[v]"
         )
@@ -269,7 +299,10 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            script_path: str | Path | None = None, cards_until: float | None = None,
            progress=print, preset: str = "medium", crf: int = 18,
            sfx: bool = True, look: bool = True, premium: bool = True,
-           watermark: bool = True) -> Path:
+           watermark: bool = True, gap: tuple[float, float] | None = None,
+           design: str | None = None) -> Path:
+    global OUT_W, OUT_H
+    OUT_W, OUT_H = _frame.size()
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     grid = plan.grid
@@ -489,7 +522,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 
     # ---- sound: track shaped by act, cut to the picture's length ----
     audio = _sound(plan, track_path, out_path.with_suffix(".audio.wav"),
-                   sfx=sfx)
+                   sfx=sfx, gap=gap, design=design, progress=progress)
 
     final = out_path
     subprocess.run(
@@ -509,7 +542,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 
 
 def _sound(plan: Plan, track_path: str, out_wav: Path,
-           sfx: bool = True) -> Path:
+           sfx: bool = True, gap: tuple[float, float] | None = None,
+           design: str | None = None, progress=print) -> Path:
     """Track from plan.start, gain-shaped per act, loudness-normalised."""
     x = load_audio(track_path, channels=2)
     a = max(0, int(round(plan.start * SR)))
@@ -533,8 +567,26 @@ def _sound(plan: Plan, track_path: str, out_wav: Path,
         gain = np.convolve(pad, np.ones(k) / k, mode="valid")[: len(gain)]
     seg = seg * gain[:, None]
 
+    # The silence. Muting the score for a beat before the drop is the oldest
+    # trick in the book and it still works, because the ear assumes the track it
+    # was listening to is gone rather than paused. The edges are 6ms, which is
+    # short enough to read as a drop-out and long enough not to click.
+    if gap is not None:
+        g0, g1 = (max(0.0, gap[0]), max(0.0, gap[1]))
+        i0, i1 = int(g0 * SR), int(min(len(seg), g1 * SR))
+        if i1 > i0:
+            seg = seg.copy()
+            seg[i0:i1] = 0.0
+            ramp = int(0.006 * SR)
+            for k in range(min(ramp, i0, len(seg) - i0)):
+                seg[i0 - k - 1] *= k / ramp
+            for k in range(min(ramp, i1, len(seg) - i1)):
+                seg[i1 + k] *= (ramp - k) / ramp
+            progress(f"sound: silence {g0:.2f}-{g1:.2f}s "
+                     f"({(g1 - g0) * 1000:.0f}ms of no music)")
+
     if sfx:
-        cues = cues_for(plan)
+        cues = cues_for(plan, design)
         bed = render_cues(cues, plan.duration)
         # the track is the score; the design sits under it and never masks it.
         # The design is mono, so it goes into both channels at equal level —

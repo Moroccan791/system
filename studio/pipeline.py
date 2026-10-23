@@ -72,6 +72,8 @@ def run(video: str, audio: str, captions: str | None, out: str,
         dry_run: bool = False, preset: str = "medium", crf: int | None = None,
         preview_path: str | None = None, accent: str | None = None,
         accent_colour: str | None = None, body_colour: str | None = None,
+        shape: str = "landscape", silence_ms: float | None = None,
+        design: str | None = None, behaviour: str | None = None,
         brief_name: str = "peter_gwen",
         tags: list[str] | None = None, timed: str | None = None,
         cards_in: str | None = None, end: float | None = None) -> dict:
@@ -89,6 +91,12 @@ def run(video: str, audio: str, captions: str | None, out: str,
     A second entry point per input type is how two placement rules end up in one
     house; this is one pipeline with three sources.
     """
+    from . import frame as _shape
+
+    _shape.set_format(shape)
+    if shape != "landscape":
+        print(f"frame: {shape} {_shape.size()[0]}x{_shape.size()[1]} "
+              f"— captions held inside the safe band")
     from .captions import from_timed, lint, parse_timed, polish, timeline
 
     grid = analyse_track(audio)
@@ -253,6 +261,12 @@ def run(video: str, audio: str, captions: str | None, out: str,
             "--preset", preset]
     if crf is not None:
         args += ["--crf", str(crf)]
+    if silence_ms:
+        args += ["--silence-before-drop", str(silence_ms)]
+    if design:
+        args += ["--design", design]
+    if behaviour:
+        args += ["--behaviour", behaviour]
     produce(args)
 
     # Verification is part of the job, not a follow-up. The render is checked
@@ -320,6 +334,15 @@ def main_cli(argv=None):
     ap.add_argument("--accent", default=None,
                     help="face for the one accent word on a card")
     ap.add_argument("--accent-colour", default=None, help="RRGGBB")
+    ap.add_argument("--silence-before-drop", type=float, default=None,
+                    metavar="MS", dest="silence_ms",
+                    help="cut the music dead this long before the drop")
+    ap.add_argument("--design", default=None,
+                    help="sound gesture into the drop: tape_stop")
+    ap.add_argument("--behaviour", default=None,
+                    help="lyric | crescendo | mosaic — how the picture cuts")
+    ap.add_argument("--format", default="landscape",
+                    help="landscape | vertical | square")
     ap.add_argument("--colour", default=None,
                     help="RRGGBB — the colour of the type itself")
     ap.add_argument("--preset", default="medium")
@@ -343,7 +366,10 @@ def main_cli(argv=None):
                          "  known: " + ", ".join(briefs.names()))
     rep = run(a.video, a.audio, a.captions, a.out, a.start, a.font,
               a.dry_run, a.preset, a.crf, accent=a.accent,
-              accent_colour=a.accent_colour, body_colour=a.colour, brief_name=a.brief,
+              accent_colour=a.accent_colour, body_colour=a.colour,
+              shape=a.format, silence_ms=a.silence_ms, design=a.design,
+              behaviour=a.behaviour,
+              brief_name=a.brief,
               tags=a.tag, timed=a.timed, cards_in=a.cards, end=a.end)
     # The last thing on screen is the thing that gets used: is it shippable, and
     # what goes in the box. Everything else is in the report files.

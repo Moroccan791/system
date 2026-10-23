@@ -204,6 +204,37 @@ def place_all(lines: list[str], heard: list[dict], thresh: float = 0.45) -> list
     return out
 
 
+def _syllables(w: str) -> int:
+    """A cheap syllable count: vowel groups. Good enough to weight a split."""
+    import re as _re
+    groups = _re.findall(r"[aeiouyAEIOUY]+", w)
+    return max(1, len(groups))
+
+
+def explode(cards: list[dict]) -> list[dict]:
+    """One card per word. The 'mosaic' format's type track.
+
+    The card's span is split by how much of the word each word is — a long word
+    holds longer than "ke" — which keeps the last word landing where the card
+    used to end. Without the weighting, "ke baad hi" gives "hi" a third of a
+    second it was never sung for.
+    """
+    out: list[dict] = []
+    for c in cards:
+        words = c["text"].split()
+        weights = [_syllables(w) for w in words]
+        total = sum(weights) or len(words)
+        span = max(0.12, c["end"] - c["start"])
+        t = c["start"]
+        for w, wt in zip(words, weights):
+            d = span * wt / total
+            out.append({"start": round(t, 3), "end": round(t + d, 3),
+                        "text": w, "line": c.get("line", 0),
+                        "conf": c.get("conf", 1.0)})
+            t += d
+    return out
+
+
 def cards_from_slots(slots: list[dict], per_card: int = 2, hold: float = 0.10,
                      tail: float = 1.1) -> list[dict]:
     """Cards inside one sung line — never one that straddles the silence.
