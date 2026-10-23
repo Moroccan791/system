@@ -136,24 +136,41 @@ we have the fonts (`buttershine_serif.zip`, `couture-font.zip` etc.).
 the brightest of all), fast, and **14 blur-whips in 37 s** — a whip every 2.6 s.
 52 cuts, median 0.53 s, and not one hold over 3.1 s.
 
-**The invariant.** Pace never lets up, and every transition that is not a cut is
-a whip. Nothing is held long enough to be looked at. Type is incidental — 36%,
-mostly small, no consistent position.
+**Read in full — `studio/reference/barrage_v26.md`.** After watching all 1,110
+frames, three things corrected the fingerprint:
+
+- **There is no lyric layer at all.** The "36% type" is branding: a
+  `#PRINCEEDITS` watermark for the whole runtime, a burnt-in title for 2 s, a
+  credit card at 2.83 s, a channel logo for the last 2.4 s. This style is music
+  and picture only.
+- **It has a breakdown.** Loudness sits at −10 dBFS but falls to **−33 at
+  18.0 s**, under the Spider-Verse section, and to −32 at 26.0 s. The instrument
+  said "0% silence" and was right; it still missed the structure.
+- **The tour is the shape.** One hero per section — Cap, Thor, Iron Man,
+  Spider-Man, Panther/Hawkeye/Miles, the Endgame fight, Strange — joined by hard
+  cuts, entered and left by a three-frame flash or a whip. The longest shot is
+  3.10 s and it sits **in the breakdown**, not at the end.
+
+**The invariant.** Half-second cutting, flashes as punctuation, a quiet third in
+the middle where one shot is allowed to hold, and no words on screen except the
+signature. Bright, flat grade so the flashes read white.
 
 **Numbers that matter**
-- 52 cuts / 37.2 s, median 0.53 s, 0 holds.
-- 14 blur-whips — more than every other reel combined.
-- 16/52 cuts on a kick, median offset 0.144 s (tight).
-- Bright, flat, low-saturation grade (0.33).
+- 52 cuts / 37.2 s, median 0.53 s. Six cuts are exactly **0.10 s — three frames**.
+- 14 blur-whips, two of them long runs (3.3 s and 2.4 s).
+- 16/52 cuts on a kick, median offset 0.144 s — the tightest of the five.
+- Type: watermark only. Grade: luma 85, sat 0.33.
 
-**What building it needs.** A fast planner profile, whip-on-transition, a bright
-flat grade. Everything here already exists in `studio/fx.py`. **Cost: lowest.**
+**What building it needs.** Pacing profile, flash-on-beat, whip as join *and*
+texture, a breakdown window at ~65–70% where luma and cut rate both drop, cards
+at both ends. **Cost: lowest.**
 
-**One flag:** the file is named as a Powerpuff Girls TikTok promo, but the
-footage is Marvel/Avengers with a Chinese endcard. If you meant to send
-something else, this is the wrong file.
-
----
+### Correction to the earlier note on v26
+It is not a Powerpuff Girls promo — you confirmed that. The footage is Marvel and
+the burnt-in title reads 無限轉場 ("infinite transitions"), so the file is a
+transition showcase from a Chinese edit account, with that account's watermark
+and endcard inside it. Two ownership layers are baked into the reference; ours go
+where ours always go.
 
 ## What I propose to build, in this order
 
