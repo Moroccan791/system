@@ -253,16 +253,66 @@ Also fixed while building: a barrage hold of 3.10 s was being skipped whenever
 the preceding cut straddled the breakdown boundary, so most plans had no long
 shot at all.
 
+---
+
+## Built: `cold_read`, `hymn`, `hype`
+
+All five references are now styles. Each renders from the same compositor and
+none of them touches the house path.
+
+| style | render | plan | vs reference |
+|---|---|---|---|
+| `cold_read` | `studio/out/cold_read_test.mp4` | 21 cuts, median 1.14 s, closing hold **6.50 s**, 1 whip, no type in the hold | 24 cuts, median 1.03, hold 6.50, 1 whip |
+| `hymn` | `studio/out/hymn_test.mp4` | 16 cuts, median 1.90 s, no whips, two-voice type throughout | 15 cuts, median 1.79, 0 whips, type 69% |
+| `hype` | `studio/out/hype_test.mp4` | 42 cuts, median 0.67 s, longest 1.02 s, 7 whips, cuts snapped to onsets | 38 cuts, median 0.71, longest 2.38, 6 whips |
+
+**`cold_read`** — the fragment dies on its cut. That is enforced in
+`shape_cards` and tested: a card's end is moved to the end of the shot it
+started in, and the closing hold carries nothing. The grade is dark and
+saturated (luma 19, saturation 0.59 in the reference) so faces read warm against
+blue-black.
+
+**`hymn`** — two voices, always paired: DejaVu Serif in white states the line,
+Flaviotte in yellow answers underneath it, offset right. Gamma 1.42 crushes the
+plate to near-black so the type is the brightest thing on screen. One honest
+substitution: the reference sets *different words* in its two voices; with one
+word source the line is divided between them instead.
+
+**`hype`** — one word at 0.30 of frame height, overrunning the edges, with a
+shadow so it reads as a designed layer rather than a ghost. Cut ends snap to the
+nearest onset within 90 ms, which is the habit that makes the reference the
+most beat-locked of the five. **The honest gap stands:** the reference puts its
+type *behind* the subject; ours is *over* the picture. Same scale, same rhythm,
+different composite. Closing that needs a matte.
+
+## The menu
+
+    python -m studio.styles --list
+    python -m studio.produce --track <song> --source <pack> --out out.mp4 \
+        --style <name> --start 0 --end 30 --cards <cards.json>
+
+| name | what it is | pick it when |
+|---|---|---|
+| `reference1` / `house` | the working system — Faahun, Zaalima, Stay | you want the edit you already trust |
+| `barrage` | half-second cuts, flashes, one hold at two-thirds, no words | montage, no lyric |
+| `longtake` | long holds, lyric that stops early | the footage is acting, not action |
+| `cold_read` | slow, dark, fragments that die on the cut | someone is speaking |
+| `hymn` | near-black, serif + yellow script | the song is the point |
+| `hype` | beat-locked, one word too large | a shout, not a story |
+
 ## What I propose to build, in this order
 
 Cheapest and most reusable first, so the shelf fills fast and each one is
 verified before the next starts:
 
-1. ~~**`barrage`**~~ — **built** (see above).
-2. ~~**`square`**~~ — **built as `longtake`**, landscape, no crop.
-3. **`cold_read`** — fragment captions + end hold. One day.
-4. **`hymn`** — two-voice type, crush grade, endcard. Two days.
-5. **`hype`** — needs a subject matte; I'd start with the approximation. Two days.
+All five are built. What remains, in order of what would improve the shelf most:
+
+1. **Cards at the ends** — the reference reels open with a credit card and close
+   on a logo. None of our styles has either.
+2. **A subject matte** — the one thing standing between `hype` and its
+   reference. Without it the type stays over the picture.
+3. **Long blur-whip runs** — barrage's whips are two-frame joins; v26 holds a
+   blur for 3.3 seconds. That is a different effect and it is not built.
 
 Each lands as `studio/stylepacks/<name>.json` plus, where needed, its own module.
 **`house` is untouched throughout** — it stays the default and stays verified.

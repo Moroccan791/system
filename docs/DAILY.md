@@ -144,7 +144,20 @@ pattern, don't reach into the one that works.
 
     python -m studio.styles --list
 
-`longtake` is the v12 reel with its square dropped — landscape only, always.
+The shelf, as of now:
+
+| `--style` | what it is |
+|---|---|
+| *(none)* / `house` / `reference1` / `ref1` | the working system — Faahun, Zaalima, Stay |
+| `barrage` | half-second cuts, three-frame flashes, a hold at two-thirds, no words |
+| `longtake` | long holds, loose cutting, lyric that stops early |
+| `cold_read` | slow and dark; fragments in the lower left that die on their cut |
+| `hymn` | near-black; white serif with a yellow script reply |
+| `hype` | beat-locked; one word far too large |
+| `reference2` | the Gwen build — kept, not developed |
+
+Every one renders landscape. No style may inherit an aspect ratio from a
+reference (`styles.check` refuses it).
 
 `house` / `reference1` / `ref1` are the same entry — the working system — and no
 `--style` still means house. `barrage` is the first style built beside it, from

@@ -147,7 +147,9 @@ def main(argv=None):
     # A style that brings its own planner owns the whole timeline. Both of the
     # built styles are music-and-picture: they do not consult the lyric to
     # decide shots, which is why they run before the caption guard.
-    _own_planner = {"barrage": "barrage", "longtake": "longtake"}.get(a.style)
+    _own_planner = {"barrage": "barrage", "longtake": "longtake",
+                    "cold_read": "coldread", "hymn": "hymn",
+                    "hype": "hype"}.get(a.style)
     if _own_planner:
         from importlib import import_module
 
@@ -171,11 +173,22 @@ def main(argv=None):
             origin_s = a.start or 0.0
             cards = [c for c in cards
                      if (c["start"] - origin_s) < (stop or 1e9)]
+            # A style may reshape its own type — cold_read kills a fragment on
+            # the cut, hymn holds a line across cuts, hype allows one word.
+            shape = getattr(mod, "shape_cards", None)
+            if shape:
+                cards = [dict(c, start=round(c["start"] - origin_s, 3),
+                              end=round(c["end"] - origin_s, 3))
+                         for c in cards]
+                cards = shape(cards, plan)
             script_path = Path(a.script) if a.script else out.with_suffix(".script.json")
             script_path.parent.mkdir(parents=True, exist_ok=True)
             script_path.write_text(json.dumps(
                 {"bpm": grid.bpm,
-                 "cards": to_script(cards, grid.bpm, {}, origin=a.start)},
+                 # origin=0: `shape_cards` already shifted the table into
+                 # edit time, so subtracting the window start again would put
+                 # every card before frame one (it did: beats of -30).
+                 "cards": to_script(cards, grid.bpm, {}, origin=0.0)},
                 indent=1) + "\n")
             a.script = str(script_path)
             if stop:
@@ -341,7 +354,8 @@ def main(argv=None):
            # house curve, which is exactly the look barrage contradicts. Passing
            # premium=False hands the grading to plan.grade_for, which is where
            # the style's numbers live.
-           premium=(not a.no_premium) and a.style not in ("barrage", "longtake"),
+           premium=(not a.no_premium) and a.style not in (
+               "barrage", "longtake", "cold_read", "hymn", "hype"),
            gap=gap, design=a.design, accent_at=accent_at,
            watermark=not a.no_watermark, style=a.style, silences=silences,
            bed_text=a.bed, ghost_cuts=ghosts if a.style == "reference2" else None)

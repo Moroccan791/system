@@ -1,0 +1,54 @@
+{
+ "_what": "hype \u2014 built from the v11 reel ('$2 BILLION'). Beat-locked cutting, one word far too large. Ours sits OVER the picture; the reference puts it BEHIND the subject, which needs a matte we do not have.",
+ "version": "hype_v1",
+ "built_on": "2026-10-23",
+ "engine": {
+  "module": "studio/hype.py",
+  "type_engine": "typefaces.hype \u2014 one word at ~0.3 frame height, overrunning the edges",
+  "grade": "hype, attached to the plan",
+  "fx": [
+   "whip"
+  ],
+  "format": "landscape"
+ },
+ "rules": {
+  "median_shot_s": 0.71,
+  "max_shot_s": 2.4,
+  "whip_every": 6,
+  "flashes": 0,
+  "onsets": "cut ends snap to the nearest onset within 90 ms",
+  "card_hold_s": 1.1
+ },
+ "grade": {
+  "contrast": 1.08,
+  "brightness": -0.012,
+  "gamma": 1.06,
+  "saturation": 0.72,
+  "note": "reference: luma 35, saturation 0.37 \u2014 mid-dark so the type carries the colour"
+ },
+ "verified": {
+  "render": "studio/out/hype_test.mp4",
+  "source": "footage/post2/videoplayback.mp4",
+  "track": "Zaalima 90 BPM, 23.0-53.0s",
+  "plan": {
+   "cuts": 42,
+   "median_s": 0.67,
+   "longest": 1.02,
+   "whips": 7,
+   "flashes": 0
+  },
+  "reference": {
+   "cuts": 38,
+   "median": 0.71,
+   "longest": 2.38,
+   "whips": 6,
+   "type": 0.49
+  }
+ },
+ "known_gaps": [
+  "Type is over the picture, not behind the subject: no matte. Same scale and rhythm, different composite."
+ ],
+ "reproduce": [
+  "python -m studio.produce --track <song> --source <pack> --out out.mp4 --style hype --start 0 --end 30 --cards <cards.json>"
+ ]
+}

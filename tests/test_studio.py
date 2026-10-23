@@ -1342,3 +1342,98 @@ def test_built_styles_do_not_repeat_shots():
     assert len(set(picked)) == len(picked), (
         f"{len(picked) - len(set(picked))} repeated shots in a "
         f"{len(picked)}-cut plan")
+
+
+# ---------------------------------------------------------------------------
+# the three type-led styles
+# ---------------------------------------------------------------------------
+def test_every_built_style_is_landscape_and_loads():
+    from studio import styles
+
+    for name in ("barrage", "longtake", "cold_read", "hymn", "hype"):
+        st = styles.get(name)
+        assert st.format == "landscape", name
+    assert styles.get(None).name == "house"
+
+
+def test_style_layouts_produce_one_card():
+    """Every type layout must hand the compositor ONE Card.
+
+    They differ in placement and voice; none of them may return a list, and a
+    two-line lockup must never come back (the caption rule).
+    """
+    from studio import typefaces
+    from studio.typecards import Card
+
+    for name, fn in typefaces.LAYOUTS.items():
+        c = fn("Deedaar tera milne itna")
+        assert isinstance(c, Card), name
+        assert c.rgba.ndim == 3 and c.rgba.shape[2] == 4, name
+
+
+def test_typecards_still_has_no_multiline_helper():
+    """The one-line rule holds for the new layouts too."""
+    from studio import typecards
+
+    assert not hasattr(typecards, "render_stack")
+    assert not hasattr(typecards, "stack_face")
+
+
+def test_cold_read_kills_a_fragment_on_its_cut():
+    """The defining rule of the style: words die with the shot they sit on."""
+    from pathlib import Path
+
+    import pytest
+
+    from studio import coldread, grid as _grid, shots
+
+    src_path = Path("footage/post2/videoplayback.mp4")
+    trk = Path("footage/post2/YTDown.com_YouTube_Media_PJ3f0_LPlSY_zaalima-"
+               "arijit-singh-harshdeep-kaur-editaudio_009_128k.mp3")
+    if not (src_path.exists() and trk.exists()):
+        pytest.skip("the post2 pack is not in this checkout")
+
+    g = _grid.analyse(trk, 54.0)
+    src = shots.analyse(src_path, None)
+    plan = coldread.build(g, src, 23.0, 53.0)
+    assert plan.cuts[-1].act == "out"
+    assert plan.cuts[-1].dur >= 2.0, "the style ends on a hold"
+
+    cards = [{"start": 2.0, "end": 2.5, "text": "a", "line": 0},
+             {"start": 6.0, "end": 6.4, "text": "b", "line": 1}]
+    out = coldread.shape_cards(cards, plan)
+    for c in out:
+        cut = next((k for k in plan.cuts
+                    if k.out_start - 1e-6 <= c["start"] < k.out_end), None)
+        assert cut is not None
+        assert c["end"] <= cut.out_end + 1e-6, "a fragment outlived its shot"
+
+
+def test_cards_are_never_on_screen_together():
+    """The caption rule, enforced on every style that draws words.
+
+    One card at a time, one line on it. Cards may not overlap in time after a
+    style's own shaping — that is the failure the user called out.
+    """
+    from pathlib import Path
+
+    import pytest
+
+    from studio import grid as _grid, hymn, hype, shots
+
+    src_path = Path("footage/post2/videoplayback.mp4")
+    trk = Path("footage/post2/YTDown.com_YouTube_Media_PJ3f0_LPlSY_zaalima-"
+               "arijit-singh-harshdeep-kaur-editaudio_009_128k.mp3")
+    if not (src_path.exists() and trk.exists()):
+        pytest.skip("the post2 pack is not in this checkout")
+
+    g = _grid.analyse(trk, 54.0)
+    src = shots.analyse(src_path, None)
+    raw = [{"start": 1.0 + i * 2.0, "end": 2.6 + i * 2.0, "text": f"line {i}",
+            "line": i} for i in range(12)]
+    for mod in (hymn, hype):
+        plan = mod.build(g, src, 23.0, 53.0)
+        # shape_cards works in EDIT seconds; these test cards already are
+        out = mod.shape_cards(raw, plan)
+        for a, b in zip(out, out[1:]):
+            assert a["end"] <= b["start"] + 1e-6, (mod.__name__, a, b)

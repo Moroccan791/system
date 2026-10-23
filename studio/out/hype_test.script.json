@@ -1,0 +1,140 @@
+{
+ "bpm": 90.0,
+ "cards": [
+  {
+   "beat": 4.38,
+   "text": "Deedaar tera milne",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 6.03
+  },
+  {
+   "beat": 7.8,
+   "text": "ke baad hi",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 9.45
+  },
+  {
+   "beat": 9.21,
+   "text": "chhute meri angdaai",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 10.86
+  },
+  {
+   "beat": 12.3,
+   "text": "Tu hi bata",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 13.95
+  },
+  {
+   "beat": 14.82,
+   "text": "de kyun zaalima",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 16.47
+  },
+  {
+   "beat": 16.02,
+   "text": "main kehlayi",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 17.67
+  },
+  {
+   "beat": 19.5,
+   "text": "Kyun is tarah",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 21.15
+  },
+  {
+   "beat": 23.28,
+   "text": "se duniya jahan",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 24.93
+  },
+  {
+   "beat": 24.72,
+   "text": "mein karta hai",
+   "line": 8,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 26.37
+  },
+  {
+   "beat": 26.19,
+   "text": "meri ruswaai",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 27.84
+  },
+  {
+   "beat": 28.32,
+   "text": "Tera kusoor aur",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 29.97
+  },
+  {
+   "beat": 31.35,
+   "text": "zaalima main kehlayi",
+   "line": 11,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 33.0
+  },
+  {
+   "beat": 37.53,
+   "text": "Deedaar tera milne",
+   "line": 12,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 39.18
+  },
+  {
+   "beat": 39.87,
+   "text": "ke baad hi",
+   "line": 13,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 41.52
+  },
+  {
+   "beat": 41.37,
+   "text": "chhute meri angdaai",
+   "line": 14,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 43.02
+  }
+ ]
+}

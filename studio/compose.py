@@ -519,9 +519,18 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             hold = max(hold, min(4.0, (c.until - c.beat) * period))
         from . import fonts as _fonts
 
-        rendered.append((t, render_card(c.text, OUT_W, OUT_H,
-                                        accent=c.accent or None,
-                                        cap_frac=_fonts.cap_frac()), hold))
+        # A style that sets words differently supplies the layout. Everything
+        # downstream still receives one Card, so the drawing loop below does
+        # not branch on the style at all.
+        from . import typefaces as _typefaces
+
+        layout = _typefaces.for_style(style)
+        if layout is not None:
+            rendered.append((t, layout(c.text, OUT_W, OUT_H), hold))
+        else:
+            rendered.append((t, render_card(c.text, OUT_W, OUT_H,
+                                            accent=c.accent or None,
+                                            cap_frac=_fonts.cap_frac()), hold))
     rendered.sort(key=lambda r: r[0])
 
     # Matte is a statement, so it goes on a minority of drop cards: every fourth

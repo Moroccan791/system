@@ -1,0 +1,60 @@
+{
+ "bpm": 90.0,
+ "duration": 30.0,
+ "size": "1920x1080@30",
+ "cuts": 16,
+ "acts": {
+  "build": {
+   "cuts": 4,
+   "seconds": 7.54,
+   "shots": 4,
+   "flash": 0
+  },
+  "drop": {
+   "cuts": 12,
+   "seconds": 22.46,
+   "shots": 12,
+   "flash": 0
+  }
+ },
+ "median_cut": 1.903,
+ "min_cut": 1.045,
+ "max_cut": 2.286,
+ "distinct_shots_used": 16,
+ "shots_available": 111,
+ "grid_error_ms_median": 47.6,
+ "grid_error_ms_max": 82.4,
+ "sections": [
+  {
+   "start": 0.0,
+   "end": 24.998,
+   "level": 0,
+   "label": "build"
+  },
+  {
+   "start": 24.998,
+   "end": 41.496,
+   "level": 1,
+   "label": "build"
+  },
+  {
+   "start": 41.496,
+   "end": 53.0,
+   "level": 2,
+   "label": "drop"
+  }
+ ],
+ "sound": {
+  "cues": 3,
+  "by_kind": {
+   "riser": 1,
+   "tape_stop": 0,
+   "impact": 1,
+   "sub_drop": 1,
+   "whoosh": 0,
+   "tick": 0,
+   "swell": 0
+  },
+  "on_grid_problems": []
+ }
+}

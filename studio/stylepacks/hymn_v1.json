@@ -1,0 +1,54 @@
+{
+ "_what": "hymn \u2014 built from the v13 reel ('Sapne Sajaave'). Near-black, two type voices, slow, almost a lyric video.",
+ "version": "hymn_v1",
+ "built_on": "2026-10-23",
+ "engine": {
+  "module": "studio/hymn.py",
+  "type_engine": "typefaces.hymn \u2014 white serif statement over a yellow script reply",
+  "grade": "hymn, attached to the plan",
+  "fx": [],
+  "format": "landscape"
+ },
+ "rules": {
+  "median_shot_s": 1.79,
+  "card_hold_s": 1.8,
+  "first_card_s": 0.7,
+  "whips": 0,
+  "flashes": 0,
+  "type_share_target": 0.69
+ },
+ "grade": {
+  "contrast": 1.22,
+  "brightness": -0.055,
+  "gamma": 1.42,
+  "saturation": 0.9,
+  "note": "gamma > 1 crushes to black; reference luma 11, the darkest of the five by 2x"
+ },
+ "verified": {
+  "render": "studio/out/hymn_test.mp4",
+  "source": "footage/post2/videoplayback.mp4",
+  "track": "Zaalima 90 BPM, 23.0-53.0s",
+  "plan": {
+   "cuts": 16,
+   "median_s": 1.9,
+   "whips": 0,
+   "flashes": 0
+  },
+  "type": "15 two-voice cards",
+  "reference": {
+   "cuts": 15,
+   "median": 1.79,
+   "longest": 4.04,
+   "whips": 0,
+   "type": 0.69
+  }
+ },
+ "known_gaps": [
+  "The reference sets DIFFERENT words in its two voices; one word source means dividing the line instead.",
+  "No endcard (the reference ends on a studio card).",
+  "The script voice is Flaviotte, which sets the Latin line in a script face; it is not the reference's Devanagari hand."
+ ],
+ "reproduce": [
+  "python -m studio.produce --track <song> --source <pack> --out out.mp4 --style hymn --start 0 --end 30 --cards <cards.json>"
+ ]
+}

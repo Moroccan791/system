@@ -72,6 +72,24 @@ HOUSE = Style(
 # ---------------------------------------------------------------------------
 REGISTRY: dict[str, Style] = {
     "house": HOUSE,
+    # The v5 reel: slow, dark, a subtitle that dies on its cut.
+    "cold_read": Style(
+        name="cold_read", label="Cold read — v5",
+        note="slow cut, dark and saturated, fragments in the lower left that "
+             "die with their shot, and a long clean hold to finish",
+        type_engine="layout", grade="cold_read", fx=("whip",)),
+    # The v13 reel: near-black, two type voices, almost a lyric video.
+    "hymn": Style(
+        name="hymn", label="Hymn — v13",
+        note="slow, near-black, white serif with a yellow script under it, "
+             "type on screen most of the run",
+        type_engine="layout", grade="hymn", fx=()),
+    # The v11 reel: giant type. Ours sits over the picture, not behind it.
+    "hype": Style(
+        name="hype", label="Hype — v11",
+        note="beat-locked cutting, one word at more than frame width; the "
+             "reference puts it behind the subject, we cannot without a matte",
+        type_engine="layout", grade="hype", fx=("whip",)),
     # The v12 reel with its square dropped: long takes, plain type, no flashes.
     "longtake": Style(
         name="longtake",

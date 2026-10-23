@@ -1,0 +1,55 @@
+{
+ "_what": "cold_read \u2014 built from the v5 reel ('Arey Peter'). Dark, slow, and a subtitle that dies on the cut it sits on.",
+ "version": "cold_read_v1",
+ "built_on": "2026-10-23",
+ "engine": {
+  "module": "studio/coldread.py",
+  "type_engine": "typefaces.cold_read \u2014 small caps, lower left, fixed size, no halo",
+  "grade": "cold_read, attached to the plan",
+  "fx": [
+   "whip x1"
+  ],
+  "format": "landscape"
+ },
+ "rules": {
+  "median_shot_s": 1.03,
+  "closing_hold_s": 6.5,
+  "fragment_dies_on_cut": true,
+  "whips": 1,
+  "flashes": 0,
+  "type": "a fragment's end = the end of the shot it started in; the closing hold carries no type"
+ },
+ "grade": {
+  "contrast": 1.1,
+  "brightness": -0.028,
+  "gamma": 1.16,
+  "saturation": 1.45,
+  "note": "reference: luma 19, saturation 0.59 \u2014 dark with faces warm against blue-black"
+ },
+ "verified": {
+  "render": "studio/out/cold_read_test.mp4",
+  "source": "footage/post2/videoplayback.mp4",
+  "track": "Zaalima 90 BPM, 23.0-53.0s",
+  "plan": {
+   "cuts": 21,
+   "median_s": 1.14,
+   "closing_hold": 6.5,
+   "whips": 1,
+   "flashes": 0
+  },
+  "type": "10 fragments, none in the closing hold",
+  "reference": {
+   "cuts": 24,
+   "median": 1.03,
+   "longest": 6.5,
+   "whips": 1,
+   "type": 0.27
+  }
+ },
+ "known_gaps": [
+  "The reference's fragments are dialogue; ours are the song's lyric in the same broken rhythm."
+ ],
+ "reproduce": [
+  "python -m studio.produce --track <song> --source <pack> --out out.mp4 --style cold_read --start 0 --end 30 --cards <cards.json>"
+ ]
+}
