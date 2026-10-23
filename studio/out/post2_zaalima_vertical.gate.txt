@@ -1,0 +1,8 @@
+ship gate — z_grad3.mp4
+  PASS  resolution       1080x1920
+  PASS  frame rate       30.00 fps
+  PASS  audio            2 channel(s)
+  PASS  no dead frames   0 frame(s) below luma 12
+  PASS  handle           brightness +97 over its surround (105 frames), on the picture
+  PASS  captions fit     last card 30.16s vs 35.03s of picture
+  READY TO POST
