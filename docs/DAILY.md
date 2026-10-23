@@ -122,6 +122,15 @@ line, in order, six deep per line so no shot returns inside a second.
 
 ## Fixed decisions, so they are not re-litigated per video
 
+- **One card at a time. One line on it.** The lyric is shown a line at a time
+  and then it is gone. Never stacked, never accumulated, never two lines at
+  once, never a paragraph. This was violated once — in a reference-2 test render
+  where each line joined the ones above it — and it is the single clearest
+  "this was made by someone who does not edit" tell on the screen. The
+  compositor can only ever draw one card per frame, cards may not overlap in
+  time, and the two-line lockup helper has been deleted rather than left lying
+  around to be reached for again.
+
 - **1920×1080, horizontal only.** Vertical was dropped.
 - **The handle is `@fayzann.edits`**, bottom centre, plain DejaVu Sans, 62%
   white with a hairline shadow — never one of the edit faces. It comes from

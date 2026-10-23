@@ -3,6 +3,12 @@
 In an overedit the words are not subtitles — they are the only thing moving
 during the build. Three consequences shape this module:
 
+  * ONE CARD AT A TIME, ONE LINE ON IT. A lyric line is not a paragraph. If two
+    lines are on screen together the viewer reads instead of watching, and the
+    picture underneath stops mattering. `render_stack` lived here for a while
+    and was removed on 2026-10-23: a two-line lockup is the shape of the mistake
+    that produced a screen full of text in a reference-2 render.
+
   * the card is sized to the FRAME, not to a font size someone guessed. A card
     that is 15-20% of frame height reads at arm's length on a phone; anything
     smaller is decoration.
@@ -274,26 +280,6 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
     y = max(top, min(y, bottom - arr.shape[0]))
     y = max(0, min(y, frame_h - arr.shape[0]))
     return Card(body, arr, x, y)
-
-
-def render_stack(lines: list[str], frame_w: int = 1920, frame_h: int = 1080,
-                 gap_frac: float = 0.012) -> Card:
-    """Two-line lockup, for the one card per edit that deserves weight."""
-    cards = [render_card(t, frame_w, frame_h, width_frac=0.62) for t in lines if t.strip()]
-    if not cards:
-        return render_card(" ", frame_w, frame_h)
-    gap = int(frame_h * gap_frac)
-    total_h = sum(c.rgba.shape[0] for c in cards) + gap * (len(cards) - 1)
-    widths = max(c.rgba.shape[1] for c in cards)
-    canvas = Image.new("RGBA", (widths, total_h), (0, 0, 0, 0))
-    y = 0
-    for c in cards:
-        im = Image.fromarray(c.rgba, "RGBA")
-        canvas.alpha_composite(im, ((widths - im.size[0]) // 2, y))
-        y += im.size[1] + gap
-    arr = np.asarray(canvas)
-    return Card("\n".join(lines), arr, (frame_w - widths) // 2,
-                (frame_h - total_h) // 2, role="stack")
 
 
 def scrim(frame: np.ndarray, card: Card, amount: float = 0.22,

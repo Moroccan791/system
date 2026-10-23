@@ -1064,3 +1064,32 @@ def test_ref2_ghost_cuts_pick_the_longest_drop_cuts():
                             dur=d) for i, d in enumerate([0.4, 1.9, 0.3, 2.2, 0.2, 1.1])]
     picked = ref2.ghost_cuts(cuts, count=2)
     assert picked == [1, 3], picked
+
+
+def test_one_card_at_a_time_and_one_line_on_it():
+    """The rule that was broken once: no stacking, no overlapping cards.
+
+    Every delivered edit shows a lyric line, then removes it. A screen with the
+    last four lines still on it reads as a paragraph and stops being an edit.
+    """
+    import json
+    from pathlib import Path
+
+    for f in ("studio/out/post2_zaalima.cards.json",
+              "studio/out/post2_bangla.cards.json"):
+        p = Path(f)
+        if not p.exists():
+            continue
+        cards = json.loads(p.read_text())["cards"]
+        for a, b in zip(cards, cards[1:]):
+            assert b["start"] >= a["end"] - 1e-3, (
+                f"two cards on screen at once in {f}: {a['text']!r} / {b['text']!r}")
+        for c in cards:
+            assert "\n" not in c["text"], f"a card holds more than one line: {c['text']!r}"
+
+
+def test_typecards_has_no_multiline_helper():
+    from studio import typecards
+
+    assert not hasattr(typecards, "render_stack"), (
+        "a two-line lockup helper is back in the type system")
