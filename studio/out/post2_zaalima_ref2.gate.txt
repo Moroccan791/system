@@ -1,0 +1,8 @@
+ship gate — post2_zaalima_ref2.mp4
+  PASS  resolution       1920x1080
+  PASS  frame rate       30.00 fps
+  PASS  audio            2 channel(s)
+  PASS  no dead frames   0 frame(s) below luma 12
+  PASS  handle           brightness +75 over its surround (105 frames), on the picture
+  PASS  captions fit     last card 30.16s vs 35.03s of picture
+  READY TO POST
