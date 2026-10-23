@@ -24,6 +24,7 @@ So:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 FROZEN_NOTE = (
     "the arrangement that produced post2_bangla and post2_zaalima; "
@@ -101,12 +102,65 @@ def names() -> list[str]:
     return sorted(REGISTRY)
 
 
+PACKS = Path(__file__).resolve().parent / "stylepacks"
+
+
+def pack(name: str = "house_v1") -> dict:
+    """Load a frozen style pack — the copy of a system, not a description of it."""
+    import json
+
+    p = PACKS / f"{name}.json"
+    if not p.exists():
+        raise KeyError(f"no pack {name!r} in {PACKS}")
+    return json.loads(p.read_text())
+
+
+def show_pack(name: str = "house_v1") -> str:
+    """Everything needed to re-run the frozen system, plus a live check that the
+    delivered files are still the files that pack describes."""
+    import hashlib
+    from pathlib import Path as _P
+
+    d = pack(name)
+    out = [f"{d['version']} — frozen {d['frozen_on']}",
+           f"  {d['_what']}", ""]
+    out.append("engine")
+    for k, v in d["engine"].items():
+        out.append(f"  {k:20s} {v}")
+    out.append("")
+    for e in d["edits"]:
+        out.append(f"edit  {e['name']}  ({e['font']}, #{e['colour']}, "
+                   f"{e['window']['start']}->{e['window']['end']}s)")
+        fp = e["fingerprint"]
+        out.append(f"      {fp['cuts']} cuts over {fp['duration']}s at {fp['bpm']} BPM")
+        for act in ("build", "drop", "out"):
+            a = fp[act]
+            extra = "".join(f"  {k} {a[k]}" for k in ("flash", "whip", "ramp") if k in a)
+            out.append(f"      {act:6s} {a['cuts']:3d} cuts  {a['seconds']:6.2f}s  "
+                       f"median {a['median']:.2f}s{extra}")
+        f = _P(e["delivered"])
+        if f.exists():
+            h = hashlib.sha256(f.read_bytes()).hexdigest()[:12]
+            ok = "matches" if h == e["sha256_12"] else f"CHANGED ({h})"
+            out.append(f"      delivered: {e['delivered']} — {ok}")
+        else:
+            out.append(f"      delivered: {e['delivered']} — not in this checkout")
+        out.append("")
+    out.append("re-run with:  --style house   (or no --style at all)")
+    return "\n".join(out)
+
+
 def main(argv=None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description="the look registry")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--pack", default=None, metavar="NAME",
+                    help="print a frozen style pack and verify its delivered files")
     a = ap.parse_args(argv)
+    if a.pack:
+        print(show_pack(a.pack))
+        return 0
     if a.list:
         for n in names():
             st = REGISTRY[n]

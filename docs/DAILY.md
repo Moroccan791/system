@@ -140,6 +140,18 @@ and fails if any of it shifts.
 grade, an fx stack). It may not edit the house path. When in doubt, copy the
 pattern, don't reach into the one that works.
 
+### The copy
+
+`studio/stylepacks/house_v1.json` is the working system written down as a file:
+every parameter, the plan fingerprint of both delivered edits (cut counts per act,
+median cut length, flash/whip/ramp budget), and the sha256 of each delivered mp4.
+
+    python -m studio.styles --pack house_v1
+
+prints it and verifies both files still match. A test does the same check, so a
+change that alters a delivered edit fails the suite rather than being noticed on
+a phone after posting. New looks get their own pack; this one is never edited.
+
 ## Fixed decisions, so they are not re-litigated per video
 
 - **One card at a time. One line on it.** The lyric is shown a line at a time

@@ -1158,3 +1158,30 @@ def test_house_plan_for_the_delivered_zaalima_is_unchanged():
     assert "drop    45 cuts" in plan, plan
     assert "out      1 cuts" in plan, plan
     assert "6 flash" in plan and "6 whip" in plan and "2 ramp" in plan, plan
+
+
+def test_house_pack_still_describes_the_delivered_files():
+    """The frozen copy must keep matching what actually shipped.
+
+    `studio/stylepacks/house_v1.json` is a copy of the working system: the
+    parameters, the plan fingerprints and the hashes of the two delivered edits.
+    If a future change alters either edit, this fails — which is the whole point
+    of freezing it instead of trusting a memory of what the settings were.
+    """
+    import hashlib
+    from pathlib import Path
+
+    from studio import styles
+
+    d = styles.pack("house_v1")
+    assert d["engine"]["type_engine"] == "cards"
+    assert d["engine"]["fx"] == []
+    assert d["engine"]["caption_rule"].startswith("one card at a time")
+    for e in d["edits"]:
+        f = Path(e["delivered"])
+        if not f.exists():
+            continue
+        h = hashlib.sha256(f.read_bytes()).hexdigest()[:12]
+        assert h == e["sha256_12"], (
+            f"{e['name']} is no longer the file the house pack describes "
+            f"({h} vs {e['sha256_12']})")
