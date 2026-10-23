@@ -121,8 +121,7 @@ def main(argv=None):
                     help="reference2: the phrase held behind the picture "
                          "(default: the lyric's own most-repeated short phrase)")
     ap.add_argument("--style", default=None,
-                    help="reference2 — the Gwen-death system: stack/single/bed "
-                         "type, one dark teal grade, silence holes, long holds")
+                    help="a look from studio/styles.py (default: house)")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=None,
                     help="default 18 clean, 23 when the look layer is on: grain "

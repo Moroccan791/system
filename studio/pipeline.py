@@ -96,6 +96,19 @@ def run(video: str, audio: str, captions: str | None, out: str,
     from . import frame as _shape
 
     _shape.set_format(shape)
+    # A style is a table, not a rewrite: resolve it once, here, and let every
+    # later decision read the resolved values. An unknown name raises rather
+    # than falling back to the house look — a silent fallback renders the wrong
+    # video and never says so.
+    from . import styles as _styles
+
+    st = _styles.get(style)
+    if st.behaviour and behaviour is None:
+        behaviour = st.behaviour
+    if st.design and design is None:
+        design = st.design
+    if st.silence_ms and silence_ms is None:
+        silence_ms = st.silence_ms
     if style == "reference2" and behaviour is None:
         # Reference 2's rhythm is the picture HOLDING while the type moves: 21
         # shots in 58 s. The per-word behaviours belong to the other system, so
@@ -362,8 +375,9 @@ def main_cli(argv=None):
     ap.add_argument("--bed", default=None,
                     help="reference2: the phrase held behind the picture")
     ap.add_argument("--style", default=None,
-                    help="reference2 — the Gwen-death system (stack type, one "
-                         "dark grade, silence holes, long holds)")
+                    help="a look from studio/styles.py (default: house, the "
+                         "system that made the delivered edits). "
+                         "See: python -m studio.styles --list")
     ap.add_argument("--format", default="landscape",
                     help="landscape | vertical | square")
     ap.add_argument("--colour", default=None,

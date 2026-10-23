@@ -120,6 +120,26 @@ exactly the bug that made the last chorus read a line early.
 3. `studio/director.py` — `LINE_DIRECTION_<name>`: which shots answer which
 line, in order, six deep per line so no shot returns inside a second.
 
+## The style shelf — and why the house one is frozen
+
+`studio/styles.py` is a registry with one entry per look. `--style` picks one;
+no style at all means **house**, which is the system that made `post2_bangla`
+and `post2_zaalima`.
+
+    python -m studio.styles --list
+    python -m studio.pipeline ... --style house      # the delivered arrangement
+    python -m studio.pipeline ... --style reference2 # the Gwen-death system
+
+House is deliberately a table of `None`s: it does not set anything, it lets the
+pipeline's own defaults decide. That means adding a style elsewhere cannot move
+a house render by accident. `tests/test_studio.py` pins the delivered Zaalima
+plan to the cut — 49 cuts, 3 build / 45 drop / 1 out, 6 flash, 6 whip, 2 ramp —
+and fails if any of it shifts.
+
+**Rule for anything new:** a style may add a layer of its own (a type engine, a
+grade, an fx stack). It may not edit the house path. When in doubt, copy the
+pattern, don't reach into the one that works.
+
 ## Fixed decisions, so they are not re-litigated per video
 
 - **One card at a time. One line on it.** The lyric is shown a line at a time

@@ -1093,3 +1093,68 @@ def test_typecards_has_no_multiline_helper():
 
     assert not hasattr(typecards, "render_stack"), (
         "a two-line lockup helper is back in the type system")
+
+
+# ---------------------------------------------------------------------------
+# the house contract — the system that made the delivered edits must not drift
+# ---------------------------------------------------------------------------
+def test_house_style_is_the_default_and_changes_nothing():
+    """`--style house` (and no style at all) must mean 'what we already had'.
+
+    Every field on the house entry is None on purpose: the pipeline's own
+    defaults decide. If someone ever fills these in, the two delivered edits
+    stop being reproducible and this test is the alarm.
+    """
+    from studio import styles
+
+    for name in (None, "", "house"):
+        st = styles.get(name)
+        assert st.name == "house"
+        for f in ("behaviour", "design", "silence_ms", "accent_at"):
+            assert getattr(st, f) is None, f"house drifted: {f} = {getattr(st, f)}"
+        assert st.type_engine == "cards"
+        assert st.grade == "premium"
+        assert st.fx == ()
+
+
+def test_unknown_style_raises_instead_of_falling_back():
+    from studio import styles
+
+    import pytest
+
+    with pytest.raises(KeyError) as e:
+        styles.get("not_a_style")
+    assert "house" in str(e.value)
+
+
+def test_house_plan_for_the_delivered_zaalima_is_unchanged():
+    """The cut structure of post2_zaalima, regenerated, to the number.
+
+    49 cuts over 35.06 s: 3 build, 45 drop, 1 out; 6 flash, 6 whip, 2 ramp.
+    These are the numbers the delivered file was built from. If a change to the
+    director, the planner or the cards moves ANY of them, the house system has
+    been altered — which is the one thing that must not happen silently.
+    """
+    from pathlib import Path
+
+    from studio import pipeline
+
+    video = Path("footage/post2/videoplayback.mp4")
+    audio = Path("footage/post2/YTDown.com_YouTube_Media_PJ3f0_LPlSY_zaalima-"
+                 "arijit-singh-harshdeep-kaur-editaudio_009_128k.mp3")
+    cards = Path("studio/out/post2_zaalima.cards.json")
+    if not (video.exists() and audio.exists() and cards.exists()):
+        import pytest
+
+        pytest.skip("the post2 pack is not in this checkout")
+
+    rep = pipeline.run(str(video), str(audio), None, "work/house_contract.mp4",
+                       start=23.0, font="Gefika", dry_run=True,
+                       brief_name="post2_zaalima", cards_in=str(cards),
+                       end=58.06)
+    plan = "\n".join(rep["plan"])
+    assert "plan: 49 cuts over 35.06s" in plan, plan
+    assert "build    3 cuts    2.92s" in plan, plan
+    assert "drop    45 cuts" in plan, plan
+    assert "out      1 cuts" in plan, plan
+    assert "6 flash" in plan and "6 whip" in plan and "2 ramp" in plan, plan
