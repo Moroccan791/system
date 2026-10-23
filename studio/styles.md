@@ -172,12 +172,52 @@ transition showcase from a Chinese edit account, with that account's watermark
 and endcard inside it. Two ownership layers are baked into the reference; ours go
 where ours always go.
 
+---
+
+## Built: `barrage` (v1)
+
+Landed and rendering. `studio/barrage.py`, with the numbers in
+`studio/stylepacks/barrage_v1.json`.
+
+    python -m studio.produce --track <song.mp3> --source <pack.mp4> \
+        --out out.mp4 --style barrage --start 0 --end 30
+
+Two test renders, on footage the style was never built from:
+
+| render | pack | plan | measured grade |
+|---|---|---|---|
+| `studio/out/barrage_test_th.mp4` | Brand New Day | 54 cuts, median 0.54, 6 flashes, 10 whips, one 3.10 s hold | luma 83, sat 0.26 |
+| `studio/out/barrage_test_gwen.mp4` | Peter & Gwen | 54 cuts, median 0.53, 5 flashes, 10 whips, one hold | luma 82.9, sat 0.263 |
+
+Reference row: 52 cuts, median 0.53, 6 flashes, 14 whips, longest shot 3.10,
+luma 85, sat 0.33.
+
+**What survives the change of footage** — which is the only thing that counts:
+median shot, flash cadence, the single hold at two-thirds, the flat bright
+grade, no words. The Tom Holland render looks like the style; the Gwen render
+looks like the style *applied to one balcony scene*, because that pack is one
+balcony scene. The style is right and the footage was thin.
+
+**Three honest gaps.**
+
+1. **The breakdown is conditional.** The reference drops 22 dB at two-thirds.
+   If the song has a quiet section there, the plan moves the hold onto it and
+   ducks the track. If it does not, the picture still slows and the music is
+   left alone — the first build ducked Zaalima anyway, which invented a moment
+   the song does not have. Fixed, and a test now enforces it.
+2. **No cards.** The reference opens with a credit card and ends on a logo.
+   Neither is built; ours ends on picture.
+3. **The instrument over-reads our own renders.** It counts 89 cuts on a
+   54-cut plan, because the look layer's entry settle registers as a cut; the
+   reference file measures 52 against a true 52. Compare plan to plan, or
+   ratios — not raw detected counts.
+
 ## What I propose to build, in this order
 
 Cheapest and most reusable first, so the shelf fills fast and each one is
 verified before the next starts:
 
-1. **`barrage`** — pure pacing + whips + grade, all existing parts. Half a day.
+1. ~~**`barrage`**~~ — **built** (see above).
 2. **`square`** — needs your yes on the crop. Half a day.
 3. **`cold_read`** — fragment captions + end hold. One day.
 4. **`hymn`** — two-voice type, crush grade, endcard. Two days.

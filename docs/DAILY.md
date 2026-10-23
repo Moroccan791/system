@@ -140,6 +140,15 @@ and fails if any of it shifts.
 grade, an fx stack). It may not edit the house path. When in doubt, copy the
 pattern, don't reach into the one that works.
 
+### Choosing a style
+
+    python -m studio.styles --list
+
+`house` / `reference1` / `ref1` are the same entry — the working system — and no
+`--style` still means house. `barrage` is the first style built beside it, from
+the v26 reel: `--style barrage`. It renders through the same compositor and
+touches none of the house path.
+
 ### The copy
 
 `studio/stylepacks/house_v1.json` is the working system written down as a file:

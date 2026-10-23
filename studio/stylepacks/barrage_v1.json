@@ -1,0 +1,53 @@
+{
+ "_what": "barrage — built from the v26 reference (a Marvel character tour). First style on the shelf that is not the house system. Read studio/reference/barrage_v26.md for the frame-by-frame it came from.",
+ "version": "barrage_v1",
+ "built_on": "2026-10-23",
+ "engine": {
+  "module": "studio/barrage.py",
+  "type_engine": "none",
+  "grade": "barrage, attached to the plan and applied by compose.grade",
+  "fx": ["flash (3 frames)", "whip join"],
+  "behaviour": "n/a — no lyric layer"
+ },
+ "rules": {
+  "median_shot_s": 0.50,
+  "open_s": 2.8,
+  "breakdown_at": 0.66,
+  "breakdown_len": 0.09,
+  "hold_s": 3.10,
+  "flash": "every 9th cut (idx % 9 == 5), exactly 3 frames",
+  "whip": "every 4th cut (idx % 4 == 2), never on a flash",
+  "breakdown_audio": "only when the track has a genuinely quieter section inside 50-85%; never faked"
+ },
+ "grade": {
+  "contrast": 1.00,
+  "brightness": 0.030,
+  "gamma": 0.92,
+  "saturation": 1.25,
+  "note": "bright and flat so a three-frame flash reads as white, not grey. Target: luma ~85, saturation ~0.33."
+ },
+ "tests_run": [
+  {
+   "source": "footage/post2/videoplayback.mp4 (Peter & Gwen pack)",
+   "track": "Zaalima, 90 BPM, 23.0-53.0s",
+   "render": "studio/out/barrage_test_gwen.mp4",
+   "plan": {"cuts": 54, "median_s": 0.53, "flashes": 5, "whips": 10, "holds_1.5s": 1},
+   "measured": {"luma": 82.9, "saturation": 0.263}
+  },
+  {
+   "source": "footage/tom_holland/scenepack.mp4 (Brand New Day pack)",
+   "track": "Stay, 143 BPM, 0.0-30.0s",
+   "render": "studio/out/barrage_test_th.mp4",
+   "plan": {"cuts": 54, "median_s": 0.54, "flashes": 6, "whips": 10, "holds_1.5s": 1},
+   "verdict": "passes on footage it was not built on — the style is the rules, not the shots"
+  }
+ ],
+ "known_gaps": [
+  "No endcard and no credit card yet. The reference has a credit card at 2.83s and a logo for its last 2.4s; both are institution-specific and neither is built.",
+  "The instrument reads our own renders at ~1.5x the plan's cut count, because the look layer's entry settle registers as a cut. The reference file measures 52 and its plan is 52. Compare plan-to-plan, or ratios.",
+  "Whips are two-frame joins, not the reference's 3.3s blur runs."
+ ],
+ "reproduce": [
+  "python -m studio.produce --track <song.mp3> --source <pack.mp4> --out out.mp4 --style barrage --start 0 --end 30 --crf 26"
+ ]
+}

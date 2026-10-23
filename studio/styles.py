@@ -72,6 +72,18 @@ HOUSE = Style(
 # ---------------------------------------------------------------------------
 REGISTRY: dict[str, Style] = {
     "house": HOUSE,
+    # Built from reference 2's reel, and the one that produced
+    # post2_zaalima_ref2. Kept on the shelf, never the default.
+    "barrage": Style(
+        name="barrage",
+        label="Barrage — v26",
+        note="half-second cuts, three-frame flashes, a breakdown at two-thirds, "
+             "no words on screen",
+        behaviour=None,
+        type_engine="none",
+        grade="barrage",
+        fx=("flash", "whip"),
+    ),
     # The Gwen-death system. Kept because it is built and tested, not because it
     # is the direction: its type accumulates, which was the wrong call for a
     # lyric-led edit. Selected explicitly, never by default.
@@ -87,19 +99,26 @@ REGISTRY: dict[str, Style] = {
 }
 
 
+# The working system answers to the name it is called by in conversation, the
+# name in the docs, and to nothing at all. All three resolve to the same entry.
+ALIASES = {"reference1": "house", "ref1": "house"}
+
+
 def get(name: str | None) -> Style:
     """Resolve a style name. No name means the house system, exactly as before."""
     if not name:
         return HOUSE
+    name = ALIASES.get(name, name)
     if name not in REGISTRY:
         raise KeyError(
-            f"no style {name!r}. Known styles: {', '.join(sorted(REGISTRY))}\n"
+            f"no style {name!r}. Known styles: "
+            f"{', '.join(sorted(set(REGISTRY) | set(ALIASES)))}\n"
             f"  add one in studio/styles.py — a table, not a rewrite")
     return REGISTRY[name]
 
 
 def names() -> list[str]:
-    return sorted(REGISTRY)
+    return sorted(set(REGISTRY) | set(ALIASES))
 
 
 PACKS = Path(__file__).resolve().parent / "stylepacks"
@@ -163,7 +182,7 @@ def main(argv=None) -> int:
         return 0
     if a.list:
         for n in names():
-            st = REGISTRY[n]
+            st = get(n)
             print(f"{n:12s} {st.label}")
             if st.note:
                 print(f"{'':12s} {st.note}")

@@ -1185,3 +1185,93 @@ def test_house_pack_still_describes_the_delivered_files():
         assert h == e["sha256_12"], (
             f"{e['name']} is no longer the file the house pack describes "
             f"({h} vs {e['sha256_12']})")
+
+
+# ---------------------------------------------------------------------------
+# barrage — a style built from a reference reel, not from the house
+# ---------------------------------------------------------------------------
+def test_reference1_is_another_name_for_the_house_system():
+    """The system that made Faahun, Zaalima and Stay answers to three names.
+
+    The user calls it reference1. The registry calls it house. Both must be the
+    same object, with every field still None, or the working system has been
+    quietly changed by vocabulary.
+    """
+    from studio import styles
+
+    house = styles.get(None)
+    for name in ("house", "reference1", "ref1"):
+        assert styles.get(name) is house
+    assert house.behaviour is None and house.grade == "premium"
+
+
+def test_barrage_is_on_the_shelf_and_asks_for_no_type():
+    from studio import styles
+
+    st = styles.get("barrage")
+    assert st.type_engine == "none"
+    assert st.grade == "barrage"
+    assert styles.get(None).name == "house"      # still the default
+
+
+def test_barrage_plan_has_the_reference_shape():
+    """Half-second cutting, one three-second hold at two-thirds, three-frame
+    flashes, and no cards. These are the invariants from the v26 pass; if the
+    builder drifts, this fails before a render does."""
+    from pathlib import Path
+
+    import pytest
+
+    from studio import barrage, grid as _grid, shots
+
+    src_path = Path("footage/tom_holland/scenepack.mp4")
+    trk = Path("footage/tom_holland/track.mp3")
+    if not (src_path.exists() and trk.exists()):
+        pytest.skip("the tom_holland pack is not in this checkout")
+
+    g = _grid.analyse(trk, 31.0)
+    src = shots.analyse(src_path, None)
+    plan = barrage.build(g, src, 0.0, 30.0)
+
+    d = sorted(c.dur for c in plan.cuts)
+    median = d[len(d) // 2]
+    assert 0.42 <= median <= 0.62, median            # reference median 0.53
+    holds = [c for c in plan.cuts if c.dur >= 1.5]
+    assert len(holds) == 1, f"{len(holds)} long shots, reference has one"
+    # 3.10 s in the reference. It can only be as long as the shot feeding it,
+    # so a pack whose longest single take is 2.7 s gets 2.70 — the clamp is the
+    # plan being honest, not the style drifting.
+    assert 2.3 <= holds[0].dur <= 3.4, holds[0].dur
+    assert 0.55 <= holds[0].out_start / plan.duration <= 0.78
+    flashes = [c for c in plan.cuts if c.flash]
+    assert 4 <= len(flashes) <= 8, f"{len(flashes)} flashes"
+    assert all(c.flash_frames == 3 for c in flashes)  # 0.10s, not 2 frames
+    assert not any(c.flash and c.transition == "whip" for c in plan.cuts)
+
+
+def test_barrage_never_fakes_a_breakdown():
+    """A duck only happens where the song itself steps back.
+
+    The first build ducked the track at two-thirds whatever the song was doing,
+    which invents a moment that is not there. A track with no quiet section
+    must come back with no breakdown at all.
+    """
+    from pathlib import Path
+
+    import pytest
+
+    from studio import barrage, grid as _grid, shots
+
+    src_path = Path("footage/post2/videoplayback.mp4")
+    trk = Path("footage/post2/YTDown.com_YouTube_Media_PJ3f0_LPlSY_zaalima-"
+               "arijit-singh-harshdeep-kaur-editaudio_009_128k.mp3")
+    if not (src_path.exists() and trk.exists()):
+        pytest.skip("the post2 pack is not in this checkout")
+
+    g = _grid.analyse(trk, 54.0)
+    src = shots.analyse(src_path, None)
+    plan = barrage.build(g, src, 23.0, 53.0)
+    # Zaalima has no quiet passage near two-thirds; the picture still slows,
+    # but the audio must be left alone.
+    assert plan.breakdown is None
+    assert any(c.dur >= 1.5 for c in plan.cuts)

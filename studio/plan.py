@@ -91,6 +91,7 @@ class Cut:
     src_out: float
     speed: float
     flash: bool = False
+    flash_frames: int = 2            # house flashes two frames; barrage uses three
     ramp: str | None = None          # name in ramp.RAMPS, or None for constant
     transition: str = "cut"          # cut | whip
 
@@ -123,12 +124,20 @@ class Plan:
     end: float = 0.0
     bpm: float = 0.0
     seed: int = 0
+    # A style may bring its own grade. None means "the house grades", which is
+    # what every delivered edit uses — so this cannot move them.
+    grade_override: dict | None = None
+    # (in, out) in edit seconds: the window where a style lets the picture and
+    # the music both step back. None for every house edit.
+    breakdown: tuple[float, float] | None = None
 
     @property
     def duration(self) -> float:
         return self.end - self.start
 
     def grade_for(self, act: str) -> dict:
+        if self.grade_override:
+            return self.grade_override
         return GRADE.get(act, GRADE["build"])
 
     def as_dict(self):

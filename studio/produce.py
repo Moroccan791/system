@@ -144,7 +144,15 @@ def main(argv=None):
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
 
-    if a.direct:
+    if a.style == "barrage":
+        # Barrage is a music-and-picture style: there is no lyric layer, so the
+        # caption guard below does not apply and the plan comes from
+        # studio/barrage.py instead of the director.
+        from . import barrage as _barrage
+
+        plan = _barrage.build(grid, src, a.start, a.end, a.seed)
+        print(_barrage.summarise(plan))
+    elif a.direct:
         from . import director
         from .captions import (cards_from_words, from_timed, parse_lines,
                                parse_timed, to_script)
@@ -229,7 +237,8 @@ def main(argv=None):
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)
-    print(summarise(plan))
+    if a.style != "barrage":
+        print(summarise(plan))
 
     rep = report(plan, grid, src)
     out.with_suffix(".plan.json").write_text(json.dumps(plan.as_dict(), indent=1) + "\n")
@@ -297,7 +306,13 @@ def main(argv=None):
 
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
-           sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium,
+           sfx=not a.no_sfx, look=not a.no_look,
+           # A style that brings its own grade must not be run through premium:
+           # premium matches every shot to the pack median and then applies the
+           # house curve, which is exactly the look barrage contradicts. Passing
+           # premium=False hands the grading to plan.grade_for, which is where
+           # the style's numbers live.
+           premium=(not a.no_premium) and a.style != "barrage",
            gap=gap, design=a.design, accent_at=accent_at,
            watermark=not a.no_watermark, style=a.style, silences=silences,
            bed_text=a.bed, ghost_cuts=ghosts if a.style == "reference2" else None)

@@ -649,9 +649,11 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             if cut.transition == "whip" and prev_last is not None and fi < 2:
                 frame = whip_frame(prev_last, frame, 0.62 if fi == 0 else 0.88)
 
-            # flash: the first two frames of a marked cut
-            if cut.flash and fi < 2:
-                k = 0.85 if fi == 0 else 0.55
+            # flash: the first frames of a marked cut (two by default, three
+            # when a style asks — the barrage reference flashes for exactly
+            # three frames, 0.10 s at 30 fps)
+            if cut.flash and fi < getattr(cut, "flash_frames", 2):
+                k = 0.85 if fi == 0 else (0.55 if fi == 1 else 0.30)
                 frame = (frame.astype(np.float32) * (1 - k) + 255.0 * k).astype(np.uint8)
 
             # reference 2's phrase bed sits behind everything, including the
@@ -800,6 +802,25 @@ def _sound(plan: Plan, track_path: str, out_wav: Path,
         pad = np.pad(gain, (k // 2, k // 2), mode="edge")
         gain = np.convolve(pad, np.ones(k) / k, mode="valid")[: len(gain)]
     seg = seg * gain[:, None]
+
+    # The breakdown. A style whose reference drops the music away for three
+    # seconds gets that drop here, as a duck rather than a silence: the track
+    # steps back to about a fifth and comes back up, which is what the ear
+    # hears on the reel at 18 s. House plans have no breakdown, so nothing
+    # changes for them.
+    if getattr(plan, "breakdown", None):
+        d0, d1 = plan.breakdown
+        i0, i1 = int(max(0.0, d0) * SR), int(min(len(seg), d1 * SR))
+        if i1 > i0:
+            duck = np.ones(i1 - i0, dtype=np.float32) * 0.22
+            ramp = int(0.30 * SR)
+            n = min(ramp, len(duck) // 2)
+            if n > 1:
+                w = np.linspace(0.0, 1.0, n, dtype=np.float32)
+                duck[:n] = 1.0 + (0.22 - 1.0) * w
+                duck[-n:] = 0.22 + (1.0 - 0.22) * w
+            seg[i0:i1] = seg[i0:i1] * duck[:, None]
+            progress(f"sound: breakdown {d0:.2f}-{d1:.2f}s (track down to 22%)")
 
     # The silence. Muting the score for a beat before the drop is the oldest
     # trick in the book and it still works, because the ear assumes the track it
