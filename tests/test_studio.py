@@ -1008,3 +1008,59 @@ def test_ref2_grade_keeps_black_and_never_blows_out():
     assert white.max() <= 236, "the grade clipped highlights instead of rolling them"
     mid = compose.ref2_grade(np.full((4, 4, 3), 60, np.uint8))
     assert mid.mean() > 60, "the grade did not lift the midtones"
+
+
+def test_fx_halation_lifts_highlights_and_leaves_black_alone():
+    import numpy as np
+
+    from studio import fx
+
+    plate = np.zeros((60, 80, 3), np.uint8)
+    plate[20:40, 30:50] = 235          # one bright patch, everything else black
+    out = fx.halation(plate)
+    assert out.max() >= 235
+    # A halo is a blur, so it reaches into the black — the corner of a 60x80
+    # plate 30 px from a 235 patch picks up ~8/255. That is deliberate and safe:
+    # in the pipeline halation runs AFTER decode_segment has cropped the
+    # source's own bars away, so there is never a bar underneath it. What is
+    # asserted here is that it stays a halo and does not lift a black field.
+    assert out[0, 0].max() <= 10, "the bloom lifted the black field"
+    # the pixels just outside the patch gained light; that is the halo
+    assert out[18, 40].mean() > plate[18, 40].mean() + 8
+
+
+def test_fx_ghost_only_ever_lightens():
+    import numpy as np
+
+    from studio import fx
+
+    dark = np.full((40, 60, 3), 10, np.uint8)
+    bright = np.full((40, 60, 3), 120, np.uint8)
+    out = fx.ghost(bright, dark, alpha=0.4)
+    assert out.mean() > dark.mean()
+    out2 = fx.ghost(dark, bright, alpha=0.4)
+    assert out2.mean() >= bright.mean() - 1, "a screen blend darkened the frame"
+
+
+def test_fx_jolt_moves_the_picture_and_then_stops():
+    import numpy as np
+
+    from studio import fx
+
+    a = np.zeros((80, 120, 3), np.uint8)
+    a[30:50, 40:80] = 200
+    moved = fx.jolt(a, 0, amp=9)
+    assert np.abs(moved.astype(int) - a.astype(int)).max() > 0
+    still = fx.jolt(a, 5, amp=9, frames=5)
+    assert np.array_equal(still, a), "the jolt never settled"
+
+
+def test_ref2_ghost_cuts_pick_the_longest_drop_cuts():
+    from types import SimpleNamespace
+
+    from studio import ref2
+
+    cuts = [SimpleNamespace(index=i, act=("drop" if i % 2 else "out"),
+                            dur=d) for i, d in enumerate([0.4, 1.9, 0.3, 2.2, 0.2, 1.1])]
+    picked = ref2.ghost_cuts(cuts, count=2)
+    assert picked == [1, 3], picked

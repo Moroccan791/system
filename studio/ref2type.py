@@ -126,12 +126,17 @@ def stack_face(lines: list[str], frame_w: int, frame_h: int,
                font_path: str | Path | None = None,
                right: float = STACK_RIGHT, top: float = STACK_TOP,
                cap: float = LINE_CAP, pitch: float = LINE_PITCH,
-               colour: tuple[int, int, int] | None = None) -> "Card":
+               colour: tuple[int, int, int] | None = None,
+               lift: float = 0.0) -> "Card":
     """A right-aligned stack of up to four lines, oldest dimmed.
 
     `lines` is the whole visible stack, oldest first. The caller decides what has
     dropped off; this function only draws it, which keeps the accumulation logic
     where the timings are.
+
+    `lift` 0..1 raises the newest line toward the flash value — the reference's
+    cards arrive a stop brighter and settle, which is why they read as events
+    rather than as a caption changing.
     """
     from .typecards import Card
 
@@ -164,6 +169,10 @@ def stack_face(lines: list[str], frame_w: int, frame_h: int,
             rgba[..., :3] = np.clip(np.array(colour) * (0.55 + 0.65 * lum), 0, 255)
         alpha = 1.0 if i == len(masks) - 1 else OLDER_ALPHA[max(0, len(masks) - 2 - i)
                                                              % len(OLDER_ALPHA)]
+        if lift > 0 and i == len(masks) - 1:
+            # toward white, not toward a colour: a flash is light
+            rgb = rgba[..., :3].astype(np.float32)
+            rgba[..., :3] = np.clip(rgb + (255.0 - rgb) * 0.55 * lift, 0, 255)
         rgba[..., 3] = (rgba[..., 3].astype(np.float32) * alpha).astype(np.uint8)
         layer = Image.fromarray(rgba, "RGBA")
         at = (width - pad - m.size[0], pad + i * step)

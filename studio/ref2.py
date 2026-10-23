@@ -279,3 +279,29 @@ def describe() -> str:
         "reference2 — stack / single / bed type, one dark teal grade, "
         "silence holes, long holds"
     )
+
+
+def ghost_cuts(cuts, count: int = 4) -> list[int]:
+    """Which cuts get a double exposure.
+
+    Not every cut: a ghost on every transition is a smear, and the effect stops
+    meaning anything. The reference uses it four times in 58 s, always on a long
+    emotional close-up. So: the longest cuts in the drop, which on any pack is
+    where the held face is.
+    """
+    drop = [c for c in cuts if getattr(c, "act", "") == "drop"
+            # a flash is already a white frame and a whip already blends two
+            # shots; stacking a third blend on either is a whiteout, not depth
+            and not getattr(c, "flash", False)
+            and getattr(c, "transition", "cut") == "cut"]
+    ranked = sorted(drop, key=lambda c: -c.dur)
+    picked: list[int] = []
+    for c in ranked:
+        if len(picked) >= count:
+            break
+        # two ghosts on consecutive cuts is a chain, not a moment: leave at
+        # least one clean cut between them
+        if any(abs(c.index - p) <= 1 for p in picked):
+            continue
+        picked.append(c.index)
+    return sorted(picked)

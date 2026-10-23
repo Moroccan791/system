@@ -236,3 +236,27 @@ its time is `beat` and its length is `until` in beats — so the stanza grouping
 measured every card from 0.0, saw an enormous gap before each one, and broke the
 block into single lines. The compositor now builds plain `{start, end, text}`
 rows before grouping. Anything that reads card timings must accept both shapes.
+
+## The photographic layer — `studio/fx.py`
+
+Reference 2's *look* is not only its grade. Measured side by side with ours on
+the same metric, the reference's highlights bleed (bloom index −71) where a clean
+render's do not, and it double-exposes two shots over each other four times in
+58 s. That is the difference an audience reads as "shot" versus "exported".
+
+| effect | what it is | where |
+|---|---|---|
+| `halation` | highlights above 150 bloom warm into their surround, screen-blended | every frame of a reference2 edit |
+| `chroma` | red/blue planes separated radially, strongest at the frame edge | every frame |
+| `ghost` | the previous shot screened back at 55% → 40% → 26% → 14% → 6% over five frames | four cuts, chosen by `ref2.ghost_cuts` |
+| `jolt` | five-frame decaying camera knock on a flash cut | impact cuts only |
+| type flash | the newest line arrives driven 55% toward white for two frames | every card |
+
+Measured after the layer, text-free frames only (type inflates every statistic):
+
+    reference, no type    bloom −71.1    mean luma 44.9    median 34.1
+    ours, no type         bloom −67.9    mean luma 49.6    median 33.6
+
+Halation runs AFTER `decode_segment`, which means it is applied to a frame whose
+own letterbox has already been cropped away — so the bloom can never lift a bar
+into the picture-box detector. There is a test for exactly that.

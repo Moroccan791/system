@@ -292,13 +292,16 @@ def main(argv=None):
                         if g[1] <= gap[0] or g[0] >= gap[1]]
         for g0, g1 in silences:
             print(f"silence: {g0:.2f}-{g1:.2f}s ({(g1 - g0):.2f}s of nothing)")
+        ghosts = ref2.ghost_cuts(plan.cuts)
+        print("ghosting: cuts " + ", ".join(str(i) for i in ghosts)
+              + " (double exposure on entry)")
 
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
            sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium,
            gap=gap, design=a.design, accent_at=accent_at,
            watermark=not a.no_watermark, style=a.style, silences=silences,
-           bed_text=a.bed)
+           bed_text=a.bed, ghost_cuts=ghosts if a.style == "reference2" else None)
     print(f"sound: {len(cues)} cues "
           f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")
     print(f"wrote {out}  ({plan.duration:.2f}s, {time.time() - t0:.0f}s to build)")

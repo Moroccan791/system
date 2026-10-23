@@ -350,6 +350,15 @@ def _ref2_bed_card(text: str):
     return ref2type.bed(OUT_W, OUT_H, text)
 
 
+def _brighten(card, k: float):
+    """The same card driven toward white — the two-frame entry flash."""
+    from .typecards import Card
+
+    rgba = card.rgba.astype(np.float32)
+    rgba[..., :3] = np.clip(rgba[..., :3] + (255.0 - rgba[..., :3]) * k, 0, 255)
+    return Card(card.text, rgba.astype(np.uint8), card.x, card.y, card.role)
+
+
 def _ref2_cards(cards, plan, times=None):
     """Build the reference2 type register for every script card.
 
@@ -387,14 +396,16 @@ def _ref2_cards(cards, plan, times=None):
         if (nxt - t) < 0.55:
             # too quick to read two lines: this is the single-beat register, low
             # right, exactly where the reference puts "GO" and "OKAY"
-            out.append((t, ref2type.single(text, OUT_W, OUT_H, fp), None))
+            card = ref2type.single(text, OUT_W, OUT_H, fp)
+            hot = _brighten(card, 0.55)
         else:
             # everything else goes in the stack, which is the register that
             # makes the type feel PRINTED: the line joins the lines above it
             # and the block grows until it is four deep
             lines = ref2.stack_at(rows, i)
-            out.append((t, ref2type.stack_face(lines, OUT_W, OUT_H, font_path=fp),
-                        None))
+            card = ref2type.stack_face(lines, OUT_W, OUT_H, font_path=fp)
+            hot = ref2type.stack_face(lines, OUT_W, OUT_H, font_path=fp, lift=1.0)
+        out.append((t, card, hot))
     return out
 
 
@@ -431,7 +442,9 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            design: str | None = None, accent_at: float | None = None,
            style: str | None = None,
            silences: list[tuple[float, float]] | None = None,
-           bed_text: str | None = None) -> Path:
+           bed_text: str | None = None,
+           ghost_cuts: list[int] | None = None,
+           fx_ghost: bool = True, fx_bloom: bool = True) -> Path:
     global OUT_W, OUT_H
     OUT_W, OUT_H = _frame.size()
     out_path = Path(out_path)
@@ -457,6 +470,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     # pre-render every card once
     rendered: list[tuple[float, Card, float]] = []
     r2 = style == "reference2"
+    r2_hot: dict[int, Card] = {}
     # Script beats are RELATIVE to frame one, because that is what someone
     # writing a card list means by "beat 28". The first cut already sits on the
     # grid, so beat 0 is exactly 0.000s and every card inherits the track's grid.
@@ -471,7 +485,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                           "text": c.text})
         for i, c in enumerate(cards):
             c._at = ats[i]
-        for i, (t, card, _h) in enumerate(_ref2_cards(cards, plan, ats)):
+        for i, (t, card, hot) in enumerate(_ref2_cards(cards, plan, ats)):
             hold = ((ats[i + 1] - t) if i + 1 < len(ats)
                     else max(1.2, plan.duration - t))
             # The reference never lets type own the last shot: its final 6 s are
@@ -479,6 +493,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             # caption. Type also never sits for longer than one held shot.
             hold = min(hold, 2.6, max(0.12, plan.duration - t - 1.6))
             rendered.append((t, card, max(0.12, hold)))
+            r2_hot[len(rendered) - 1] = hot
         rendered.sort(key=lambda r: r[0])
         # the phrase bed: one phrase, four times, drawn behind the picture
         r2_beds = []
@@ -606,11 +621,28 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                 if r2:
                     frame = ref2_grade(frame)
 
+            # the photographic layer, BEFORE the look: light has to bleed from
+            # the graded plate, not from a frame that has already been pushed
+            # and grained. Both are off unless there is a style that asks.
+            if r2 and fx_bloom:
+                from . import fx as _fx
+                frame = _fx.halation(frame)
+                frame = _fx.chroma(frame, 1.1)
+
             # the look layer: push inside the shot, settle on entry, grain.
             # Before the whip/flash so those still read as events ON the picture.
             from .look import apply as look_apply
             frame = look_apply(frame, cut.act, fi / max(1, want - 1), fi,
                                seed=cut.index, on=look)
+
+            # ghosting: the previous shot is still on screen as this one
+            # arrives. Screen blend, scaled, decaying over the first frames —
+            # two faces overlap for a moment instead of one replacing the other.
+            if (r2 and fx_ghost and cut.index in (ghost_cuts or ())
+                    and prev_last is not None and fi < 5):
+                from . import fx as _fx
+                k = (0.55, 0.40, 0.26, 0.14, 0.06)[fi]
+                frame = _fx.ghost(prev_last, frame, alpha=k)
 
             # whip: the first frames of a marked cut are shared with the shot
             # before it, which is what makes two shots feel like one move
@@ -671,7 +703,11 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                             scrim(frame, card, amount=amt,
                                   blur=26 if amt < 0.30 else 12)
                     if r2:
-                        composite(frame, card, alpha=1.0)
+                        # two frames of the card driven to white, then the card
+                        # itself — the reference's type arrives as an event and
+                        # settles rather than simply being there
+                        use = r2_hot.get(ti, card) if age < 2.0 / OUT_FPS else card
+                        composite(frame, use, alpha=1.0)
                         break
                     use_matte = matte_for[ti]
                     if use_matte and cut.act == "drop":
@@ -681,6 +717,13 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                     else:
                         composite(frame, card, alpha=1.0)
                     break
+
+            # an impact knocks the whole frame, type included — a shake applied
+            # under the type looks like the background slipped, not like a camera
+            if r2 and cut.flash and t < 0.45:
+                from . import fx as _fx
+                frame = _fx.jolt(frame, fi, amp=7, seed=cut.index,
+                                 frames=5 if cut.dur >= 0.17 else 1)
 
             # the handle last, so nothing in the design ever covers it
             if watermark:
