@@ -1,6 +1,6 @@
 # POST — Peter & Gwen — Zaalima · vertical · crescendo
 
-_35.1s · 1920x1080 · 30fps_
+_35.1s · 1080x1920 · 30fps · vertical_
 
 ## Title
 
