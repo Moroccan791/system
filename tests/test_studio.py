@@ -895,7 +895,7 @@ def test_a_letterboxed_file_is_cropped_by_its_picture_not_its_file():
 
     # a 2.35:1 film inside a 16:9 file, framed for 9:16
     fit = frame.fit_for(2.35, 1080 / 1920)
-    assert fit.mode == "pad", "a 2.35 picture cropped to 9:16 keeps a third of the frame"
+    assert fit.mode == "slice", "a 2.35 picture fitted whole leaves a band, not a frame"
     # a 1.85 picture has room to crop
     assert frame.fit_for(1.85, 1.0).mode == "cover"
 

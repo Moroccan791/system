@@ -142,6 +142,26 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
         vf = (f"{pre}scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
               f"flags=lanczos,crop={OUT_W}:{OUT_H},setsar=1")
         graph = ["-vf", vf + timing]
+    elif fit.mode == "slice":
+        # Crop the picture to a 4:5 slice first, then fill the frame with it and
+        # put the remainder of the height over a blurred enlargement. The slice
+        # is what keeps the subject at a size worth watching.
+        k = _frame.VERTICAL_CROP                    # 0.8 -> 4:5
+        # commas inside a filter argument are argument separators; they have to
+        # be escaped, and the whole expression is used twice (foreground and
+        # background), so it is built once.
+        cw = f"min(iw\\,ih*{k:.3f})"
+        fg_h = int(round(OUT_W / k))
+        fc = (
+            f"[0:v]{pre}crop={cw}:ih:(iw-{cw})/2:0,"
+            f"scale={OUT_W}:{fg_h}:flags=lanczos,setsar=1[fg];"
+            f"[0:v]{pre}crop={cw}:ih:(iw-{cw})/2:0,"
+            f"scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
+            f"flags=lanczos,crop={OUT_W}:{OUT_H},boxblur=44:2,"
+            f"eq=brightness=0.02:contrast=0.90:saturation=0.55[bg];"
+            f"[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1{timing}[v]"
+        )
+        graph = ["-filter_complex", fc, "-map", "[v]"]
     else:
         fc = (
             f"[0:v]{pre}scale={OUT_W}:{OUT_H}:force_original_aspect_ratio=increase:"
@@ -300,7 +320,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            progress=print, preset: str = "medium", crf: int = 18,
            sfx: bool = True, look: bool = True, premium: bool = True,
            watermark: bool = True, gap: tuple[float, float] | None = None,
-           design: str | None = None) -> Path:
+           design: str | None = None, accent_at: float | None = None) -> Path:
     global OUT_W, OUT_H
     OUT_W, OUT_H = _frame.size()
     out_path = Path(out_path)
@@ -522,7 +542,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 
     # ---- sound: track shaped by act, cut to the picture's length ----
     audio = _sound(plan, track_path, out_path.with_suffix(".audio.wav"),
-                   sfx=sfx, gap=gap, design=design, progress=progress)
+                   sfx=sfx, gap=gap, design=design, progress=progress,
+                   accent_at=accent_at)
 
     final = out_path
     subprocess.run(
@@ -543,7 +564,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 
 def _sound(plan: Plan, track_path: str, out_wav: Path,
            sfx: bool = True, gap: tuple[float, float] | None = None,
-           design: str | None = None, progress=print) -> Path:
+           design: str | None = None, progress=print,
+           accent_at: float | None = None) -> Path:
     """Track from plan.start, gain-shaped per act, loudness-normalised."""
     x = load_audio(track_path, channels=2)
     a = max(0, int(round(plan.start * SR)))
@@ -586,7 +608,7 @@ def _sound(plan: Plan, track_path: str, out_wav: Path,
                      f"({(g1 - g0) * 1000:.0f}ms of no music)")
 
     if sfx:
-        cues = cues_for(plan, design)
+        cues = cues_for(plan, design, accent_at)
         bed = render_cues(cues, plan.duration)
         # the track is the score; the design sits under it and never masks it.
         # The design is mono, so it goes into both channels at equal level —

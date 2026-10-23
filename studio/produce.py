@@ -91,6 +91,9 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--behaviour", default=None,
                     help="lyric | crescendo | mosaic")
+    ap.add_argument("--accent-at", type=float, default=None, metavar="SEC",
+                    help="edit time of the song's real drop — the impact, sub, "
+                         "tape-stop and the silence all go here")
     ap.add_argument("--design", default=None,
                     help="sound design gesture into the drop: tape_stop")
     ap.add_argument("--silence-before-drop", type=float, default=None,
@@ -215,7 +218,8 @@ def main(argv=None):
         segs = director.segments_for(grid, src, cards, a.end, a.start, direction,
                                      director.INTROS.get(name),
                                      director.TAILS.get(name),
-                                     behaviour=a.behaviour)
+                                     behaviour=a.behaviour,
+                                     word_pool=director.WORD_POOLS.get(name))
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)
@@ -227,7 +231,7 @@ def main(argv=None):
 
     from .sound import cues_for
 
-    cues = cues_for(plan, a.design)
+    cues = cues_for(plan, a.design, a.accent_at)
     rep["sound"] = {"cues": len(cues),
                     "by_kind": {k: sum(1 for c in cues if c.kind == k)
                                 for k in ("riser", "tape_stop", "impact",
@@ -241,8 +245,16 @@ def main(argv=None):
         print(f"plan-only: {out} not rendered")
         return 0
 
+    accent_at = a.accent_at
+    if accent_at is not None:
+        print(f"accent: the drop is at {accent_at:.2f}s of the edit")
+
     gap = None
-    if a.silence_before_drop:
+    if a.silence_before_drop and accent_at is not None:
+        gap = (max(0.0, accent_at - a.silence_before_drop / 1000.0), accent_at)
+        print(f"silence: {a.silence_before_drop:.0f}ms of nothing before "
+              f"{accent_at:.2f}s")
+    elif a.silence_before_drop:
         drop = next((c for c in plan.cuts if c.act == "drop"), None)
         if drop is not None and drop.out_start < 0.05:
             # the edit starts ON the drop, so there is no "before" to cut. Saying
@@ -259,7 +271,7 @@ def main(argv=None):
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
            sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium,
-           gap=gap, design=a.design,
+           gap=gap, design=a.design, accent_at=accent_at,
            watermark=not a.no_watermark)
     print(f"sound: {len(cues)} cues "
           f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")

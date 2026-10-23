@@ -575,4 +575,11 @@ BEHAVIOURS: dict[str, dict] = {
 
 INTROS = {"post2_bangla": INTRO_BANGLA}
 
+# The extra images a word-cut needs, beyond the ones each card already names.
+# Kept inside the brief's own half of the pack: a burst cut that borrows from
+# another edit's shots is how two videos off one pack start to look alike.
+WORD_POOLS = {
+    "post2_zaalima": (7, 24, 27, 37, 46, 81, 86, 89),
+}
+
 TAILS = {"post2_bangla": TAIL_BANGLA}

@@ -74,6 +74,7 @@ def run(video: str, audio: str, captions: str | None, out: str,
         accent_colour: str | None = None, body_colour: str | None = None,
         shape: str = "landscape", silence_ms: float | None = None,
         design: str | None = None, behaviour: str | None = None,
+        accent_at: float | None = None,
         brief_name: str = "peter_gwen",
         tags: list[str] | None = None, timed: str | None = None,
         cards_in: str | None = None, end: float | None = None) -> dict:
@@ -245,7 +246,10 @@ def run(video: str, audio: str, captions: str | None, out: str,
             grid, src,
             director.segments_for(grid, src, cards, end, start, direction,
                                   director.INTROS.get(brief_name),
-                                  director.TAILS.get(brief_name)), start)
+                                  director.TAILS.get(brief_name),
+                                  behaviour=behaviour,
+                                  word_pool=director.WORD_POOLS.get(brief_name)),
+            start)
         report["plan"] = summarise(plan).splitlines()
         print(summarise(plan))
         print(f"cards {len(cards)}  {start:.2f} -> {end:.2f}s  "
@@ -267,6 +271,8 @@ def run(video: str, audio: str, captions: str | None, out: str,
         args += ["--design", design]
     if behaviour:
         args += ["--behaviour", behaviour]
+    if accent_at is not None:
+        args += ["--accent-at", str(accent_at)]
     produce(args)
 
     # Verification is part of the job, not a follow-up. The render is checked
@@ -339,6 +345,8 @@ def main_cli(argv=None):
                     help="cut the music dead this long before the drop")
     ap.add_argument("--design", default=None,
                     help="sound gesture into the drop: tape_stop")
+    ap.add_argument("--accent-at", type=float, default=None, metavar="SEC",
+                    help="edit time of the song's real drop")
     ap.add_argument("--behaviour", default=None,
                     help="lyric | crescendo | mosaic — how the picture cuts")
     ap.add_argument("--format", default="landscape",
@@ -368,7 +376,7 @@ def main_cli(argv=None):
               a.dry_run, a.preset, a.crf, accent=a.accent,
               accent_colour=a.accent_colour, body_colour=a.colour,
               shape=a.format, silence_ms=a.silence_ms, design=a.design,
-              behaviour=a.behaviour,
+              behaviour=a.behaviour, accent_at=a.accent_at,
               brief_name=a.brief,
               tags=a.tag, timed=a.timed, cards_in=a.cards, end=a.end)
     # The last thing on screen is the thing that gets used: is it shippable, and

@@ -96,24 +96,30 @@ def safe_width(width: int | None = None) -> int:
 @dataclass
 class Fit:
     """What to do with a source picture when the frame is a different shape."""
-    mode: str          # "cover" | "pad"
+    mode: str          # "cover" | "slice" | "pad"
     because: str
 
 
-def fit_for(picture_aspect: float, target_aspect: float) -> Fit:
-    """Cover or pad, decided by the PICTURE, not by the file.
+# For a vertical frame, a wide picture is cropped to this aspect and then sat
+# inside the frame. 4:5 is the number that matters: a 2.35:1 picture cropped to
+# 4:5 keeps a third of its width and FILLS 70% of the height, which is a real
+# crop. Fitting the whole 2.35 width instead leaves a 445px strip of picture in a
+# 1920px frame — the subject is a band in the middle and everything above and
+# below it is filler. That is the mistake this constant exists to prevent.
+VERTICAL_CROP = 0.80          # 4:5
 
-    * A picture within reach of the target is cropped to fill — that is what an
-      editor does, and the loss is a slice of each side.
-    * A much wider picture (2.2:1 and up) holds faces near the edges; cropping it
-      to 9:16 keeps a middle third and throws the performance away. Those are
-      fitted over a blurred enlargement of themselves, which is the standard
-      broadcast answer and reads as a choice. Black bars read as a mistake.
-    """
+
+def fit_for(picture_aspect: float, target_aspect: float) -> Fit:
+    """Cover, crop-then-pad, or pad — decided by the PICTURE, not by the file."""
     if target_aspect >= 1.0:            # landscape or square frame
         return Fit("cover" if picture_aspect >= 1.35 else "pad",
                    "landscape target")
-    ratio = picture_aspect / target_aspect
-    if ratio >= 2.4:
-        return Fit("pad", "picture far wider than 9:16 — cropping keeps a third")
-    return Fit("cover", "picture close enough to crop")
+    # vertical frame
+    if picture_aspect <= target_aspect + 0.05:
+        return Fit("cover", "already tall enough to fill")
+    if picture_aspect >= 1.9:
+        # far wider than 9:16: a full cover keeps ~23% of the width and cuts the
+        # second person out of every two-shot. Crop to 4:5 instead, which keeps a
+        # third and still puts a face at a usable size.
+        return Fit("slice", "wide picture — crop to 4:5, not to a sliver")
+    return Fit("cover", "close enough to crop to 9:16")

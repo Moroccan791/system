@@ -166,7 +166,8 @@ _DURS = {"tape_stop": 0.42, "sub_drop": 1.1, "impact": 0.55, "whoosh": 0.30, "ri
          "swell": 0.9}
 
 
-def cues_for(plan, design: str | None = None) -> list[Cue]:
+def cues_for(plan, design: str | None = None,
+             accent_at: float | None = None) -> list[Cue]:
     """Every sound event, derived from the picture plan.
 
     The rule that keeps this from becoming noise: an event is placed because the
@@ -183,6 +184,15 @@ def cues_for(plan, design: str | None = None) -> list[Cue]:
 
     drop = acts.get("drop")
     out = acts.get("out")
+
+    # An explicit accent time wins. The plan calls the first sung line "the drop"
+    # because that is where the words start — but the song's own lift is often
+    # somewhere else, and putting the impact on the wrong bar is worse than
+    # putting it nowhere.
+    if accent_at is not None and drop is not None:
+        class _At:
+            out_start = float(accent_at)
+        drop = _At()  # type: ignore[assignment]
 
     if drop is not None:
         if design == "tape_stop":
