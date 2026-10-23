@@ -276,6 +276,16 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     cards = load_script(script_path)
     period = 60.0 / grid.bpm
 
+    # The handle goes on the PICTURE. Many scenepacks are a 16:9 file with the
+    # film's wider image letterboxed into it, and the black bands are part of the
+    # footage — so the box is measured from the file, once, and every frame is
+    # stamped against the same box. Measuring per frame would let the handle
+    # drift on a dark shot.
+    wm_rect = None
+    if watermark:
+        from . import watermark as _wm0
+        wm_rect = _wm0.rect_from_video(source_path, OUT_W, OUT_H)
+
     # pre-render every card once
     rendered: list[tuple[float, Card, float]] = []
     # Script beats are RELATIVE to frame one, because that is what someone
@@ -463,7 +473,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             # the handle last, so nothing in the design ever covers it
             if watermark:
                 from . import watermark as _wm
-                frame = _wm.stamp(frame)
+                frame = _wm.stamp(frame, rect=wm_rect)
 
             prev_last = frame
             enc.stdin.write(frame.tobytes())

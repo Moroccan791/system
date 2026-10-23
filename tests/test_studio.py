@@ -830,3 +830,27 @@ def test_verification_skips_a_language_it_cannot_hear():
     # the language survives the file round trip
     d = briefs.load("post2_bangla").as_dict()
     assert briefs.StudioBrief.from_dict(d).lang == "bn"
+
+
+def test_watermark_lands_on_the_picture_not_in_the_letterbox():
+    """The pack is 16:9 with the film letterboxed inside it, and the bars are
+    baked into the footage. Measuring the margin from the FRAME's bottom edge
+    put the handle 60px below the image, floating in black — a credit on the
+    canvas instead of on the edit. The box is measured from the pixels now."""
+    import numpy as np
+
+    from studio import watermark as wm
+
+    frame = np.full((1080, 1920, 3), 8, np.uint8)      # the bars
+    frame[140:930, 0:1860] = 90                        # the picture
+    rect = (0, 140, 1860, 930)
+    out = wm.stamp(frame.copy(), rect=rect)
+    touched = np.flatnonzero((out != 8).any(axis=(1, 2)))
+    assert touched.min() >= rect[1], "handle bled into the top bar"
+    assert touched.max() < rect[3], "handle landed in the bottom bar"
+
+    # ...and nothing changes for a file that has no bars at all
+    full = np.full((1080, 1920, 3), 90, np.uint8)
+    out2 = wm.stamp(full.copy(), rect=(0, 0, 1919, 1079))
+    rows = np.flatnonzero((out2 != 90).any(axis=(1, 2)))
+    assert 1000 < rows.max() < 1080

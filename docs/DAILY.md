@@ -130,3 +130,18 @@ line, in order, six deep per line so no shot returns inside a second.
 - **Grading is the studio's call**, premium and not obviously filtered.
 - **Length follows the vocal**, not a target: the edit ends 1.2 s after the last
   placed word, and refuses an `--end` that would cut a line.
+
+## The handle goes on the picture
+
+Scenepacks are often a 16:9 file with the film's own 2.05:1 image letterboxed
+inside it, and those black bands are baked into the footage — the renderer did
+not add them. Positioning the handle a margin from the frame's bottom edge puts
+it *in the band*: a white handle floating on black, under the picture, which
+reads as a caption on the canvas rather than a credit on the edit.
+
+So the picture box is measured from the pixels once per source
+(`watermark.rect_from_video`, sampling nine frames and taking the median row and
+column profile), and the handle is placed inside that box, a fixed fraction
+above its bottom edge. The gate looks for it there, falls back to the old frame
+position so an already-shipped file still verifies, and prints which one it
+found.

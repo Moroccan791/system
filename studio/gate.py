@@ -129,12 +129,30 @@ def run(path: str | Path, script: str | Path | None = None,
                 check("handle", False, "no handle configured in family.json")
             else:
                 tw, th = tile.size
-                margin = int(round(WANT_H * 0.055))
-                box = ((WANT_W - tw) // 2, WANT_H - margin - th, tw, th)
                 mask = np.asarray(tile)[..., 3] > 40
+                rect = watermark.rect_from_video(p, WANT_W, WANT_H)
+                if rect is None:
+                    rect = (0, 0, WANT_W - 1, WANT_H - 1)
+                x0, y0, x1, y1 = rect
+                margin = int(round((y1 - y0) * 0.035))
+                box = (max(x0, min(x0 + ((x1 - x0) - tw) // 2, x1 - tw)),
+                       max(y0, min(y1 - margin - th, y1 - th)), tw, th)
                 delta, n = handle_delta(p, box, mask)
+                where = "on the picture"
+                if delta < HANDLE_DELTA:
+                    # Files rendered before the handle was measured against the
+                    # picture have it a margin from the FRAME's edge instead,
+                    # which on a letterboxed pack is inside the black band. The
+                    # check is whether the mark is there, not whether it matches
+                    # today's code — but it says which, so an old file is caught
+                    # rather than quietly passing.
+                    legacy = (int(round((WANT_W - tw) / 2)),
+                              WANT_H - int(round(WANT_H * 0.055)) - th, tw, th)
+                    d2, n2 = handle_delta(p, legacy, mask)
+                    if d2 >= HANDLE_DELTA:
+                        delta, n, where = d2, n2, "in the letterbox (legacy placement)"
                 check("handle", delta >= HANDLE_DELTA and n > 0,
-                      f"brightness +{delta:.0f} over its surround ({n} frames)")
+                      f"brightness +{delta:.0f} over its surround ({n} frames), {where}")
 
     if script:
         sc = json.loads(Path(script).read_text())
