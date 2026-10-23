@@ -1,0 +1,453 @@
+{
+ "polished": true,
+ "cards": [
+  {
+   "start": 4.14,
+   "end": 4.716,
+   "text": "I'll be",
+   "line": 0,
+   "conf": 1.0
+  },
+  {
+   "start": 4.716,
+   "end": 5.459,
+   "text": "fucked up",
+   "line": 0,
+   "conf": 1.0
+  },
+  {
+   "start": 5.459,
+   "end": 5.909,
+   "text": "if you",
+   "line": 0,
+   "conf": 1.0
+  },
+  {
+   "start": 5.909,
+   "end": 6.455,
+   "text": "can't be",
+   "line": 0,
+   "conf": 1.0
+  },
+  {
+   "start": 6.455,
+   "end": 7.45,
+   "text": "right here",
+   "line": 0,
+   "conf": 1.0
+  },
+  {
+   "start": 7.45,
+   "end": 7.9,
+   "text": "I do",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 7.9,
+   "end": 8.35,
+   "text": "the same",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 8.35,
+   "end": 8.804,
+   "text": "thing I",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 8.804,
+   "end": 9.254,
+   "text": "told you",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 9.254,
+   "end": 9.704,
+   "text": "that I",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 9.704,
+   "end": 10.45,
+   "text": "never would",
+   "line": 1,
+   "conf": 1.0
+  },
+  {
+   "start": 10.45,
+   "end": 10.938,
+   "text": "I told",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 10.938,
+   "end": 11.388,
+   "text": "you I",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 11.388,
+   "end": 12.204,
+   "text": "changed, even",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 12.204,
+   "end": 12.707,
+   "text": "when I",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 12.707,
+   "end": 13.157,
+   "text": "knew I",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 13.157,
+   "end": 14.15,
+   "text": "never could",
+   "line": 2,
+   "conf": 1.0
+  },
+  {
+   "start": 14.15,
+   "end": 14.943,
+   "text": "Know that",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 14.943,
+   "end": 15.557,
+   "text": "I can't",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 15.557,
+   "end": 16.601,
+   "text": "find nobody",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 16.601,
+   "end": 17.236,
+   "text": "else as",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 17.236,
+   "end": 17.871,
+   "text": "good as",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 17.871,
+   "end": 18.35,
+   "text": "you",
+   "line": 3,
+   "conf": 1.0
+  },
+  {
+   "start": 18.35,
+   "end": 18.881,
+   "text": "I need",
+   "line": 4,
+   "conf": 1.0
+  },
+  {
+   "start": 18.881,
+   "end": 19.375,
+   "text": "you to",
+   "line": 4,
+   "conf": 1.0
+  },
+  {
+   "start": 19.375,
+   "end": 20.046,
+   "text": "stay, need",
+   "line": 4,
+   "conf": 1.0
+  },
+  {
+   "start": 20.046,
+   "end": 20.581,
+   "text": "you to",
+   "line": 4,
+   "conf": 1.0
+  },
+  {
+   "start": 20.581,
+   "end": 21.45,
+   "text": "stay, hey",
+   "line": 4,
+   "conf": 1.0
+  },
+  {
+   "start": 21.45,
+   "end": 21.9,
+   "text": "I do",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 21.9,
+   "end": 22.35,
+   "text": "the same",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 22.35,
+   "end": 22.896,
+   "text": "thing I",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 22.896,
+   "end": 23.346,
+   "text": "told you",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 23.346,
+   "end": 23.796,
+   "text": "that I",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 23.796,
+   "end": 24.25,
+   "text": "never would",
+   "line": 5,
+   "conf": 1.0
+  },
+  {
+   "start": 24.25,
+   "end": 24.7,
+   "text": "I told",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 24.7,
+   "end": 25.15,
+   "text": "you I",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 25.15,
+   "end": 25.694,
+   "text": "changed, even",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 25.694,
+   "end": 26.144,
+   "text": "when I",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 26.144,
+   "end": 26.594,
+   "text": "knew I",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 26.594,
+   "end": 27.05,
+   "text": "never could",
+   "line": 6,
+   "conf": 1.0
+  },
+  {
+   "start": 27.05,
+   "end": 27.513,
+   "text": "Know that",
+   "line": 7,
+   "conf": 1.0
+  },
+  {
+   "start": 27.513,
+   "end": 27.963,
+   "text": "I can't",
+   "line": 7,
+   "conf": 1.0
+  },
+  {
+   "start": 27.963,
+   "end": 28.447,
+   "text": "find nobody",
+   "line": 7,
+   "conf": 1.0
+  },
+  {
+   "start": 28.447,
+   "end": 28.897,
+   "text": "else as",
+   "line": 7,
+   "conf": 1.0
+  },
+  {
+   "start": 28.897,
+   "end": 29.55,
+   "text": "good as you",
+   "line": 7,
+   "conf": 1.0
+  },
+  {
+   "start": 29.55,
+   "end": 30.071,
+   "text": "I need",
+   "line": 8,
+   "conf": 1.0
+  },
+  {
+   "start": 30.071,
+   "end": 30.594,
+   "text": "you to",
+   "line": 8,
+   "conf": 1.0
+  },
+  {
+   "start": 30.594,
+   "end": 31.21,
+   "text": "stay, need",
+   "line": 8,
+   "conf": 1.0
+  },
+  {
+   "start": 31.21,
+   "end": 31.664,
+   "text": "you to",
+   "line": 8,
+   "conf": 1.0
+  },
+  {
+   "start": 31.664,
+   "end": 32.4,
+   "text": "stay, hey",
+   "line": 8,
+   "conf": 1.0
+  },
+  {
+   "start": 32.4,
+   "end": 32.888,
+   "text": "I need",
+   "line": 9,
+   "conf": 1.0
+  },
+  {
+   "start": 32.888,
+   "end": 33.409,
+   "text": "you to",
+   "line": 9,
+   "conf": 1.0
+  },
+  {
+   "start": 33.409,
+   "end": 33.954,
+   "text": "stay, need",
+   "line": 9,
+   "conf": 1.0
+  },
+  {
+   "start": 33.954,
+   "end": 34.467,
+   "text": "you to",
+   "line": 9,
+   "conf": 1.0
+  },
+  {
+   "start": 34.467,
+   "end": 34.95,
+   "text": "stay, hey",
+   "line": 9,
+   "conf": 1.0
+  },
+  {
+   "start": 34.95,
+   "end": 35.4,
+   "text": "When I'm",
+   "line": 10,
+   "conf": 1.0
+  },
+  {
+   "start": 35.4,
+   "end": 35.85,
+   "text": "away from",
+   "line": 10,
+   "conf": 1.0
+  },
+  {
+   "start": 35.85,
+   "end": 36.3,
+   "text": "you, I",
+   "line": 10,
+   "conf": 1.0
+  },
+  {
+   "start": 36.3,
+   "end": 36.75,
+   "text": "miss your",
+   "line": 10,
+   "conf": 1.0
+  },
+  {
+   "start": 36.75,
+   "end": 37.2,
+   "text": "touch ooh",
+   "line": 10,
+   "conf": 1.0
+  },
+  {
+   "start": 37.2,
+   "end": 38.342,
+   "text": "You're the",
+   "line": 11,
+   "conf": 1.0
+  },
+  {
+   "start": 38.342,
+   "end": 38.895,
+   "text": "reason I",
+   "line": 11,
+   "conf": 1.0
+  },
+  {
+   "start": 38.895,
+   "end": 39.725,
+   "text": "believe in",
+   "line": 11,
+   "conf": 1.0
+  },
+  {
+   "start": 39.725,
+   "end": 41.96,
+   "text": "love",
+   "line": 11,
+   "conf": 1.0
+  }
+ ]
+}
