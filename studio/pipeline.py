@@ -71,7 +71,8 @@ def run(video: str, audio: str, captions: str | None, out: str,
         start: float | None = None, font: str | None = None,
         dry_run: bool = False, preset: str = "medium", crf: int | None = None,
         preview_path: str | None = None, accent: str | None = None,
-        accent_colour: str | None = None, brief_name: str = "peter_gwen",
+        accent_colour: str | None = None, body_colour: str | None = None,
+        brief_name: str = "peter_gwen",
         tags: list[str] | None = None, timed: str | None = None,
         cards_in: str | None = None, end: float | None = None) -> dict:
     """One video, end to end.
@@ -218,6 +219,11 @@ def run(video: str, audio: str, captions: str | None, out: str,
             h = accent_colour.lstrip("#")
             col = (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
         fonts.set_family(font, accent, col)
+        if body_colour:
+            h = body_colour.lstrip("#")
+            fonts.set_colour((int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)))
+        else:
+            fonts.set_colour(None)
 
     if dry_run:
         from . import director
@@ -229,7 +235,9 @@ def run(video: str, audio: str, captions: str | None, out: str,
         direction = DIRECTIONS.get(brief_name, director.LINE_DIRECTION)
         plan = build_directed_plan(
             grid, src,
-            director.segments_for(grid, src, cards, end, start, direction), start)
+            director.segments_for(grid, src, cards, end, start, direction,
+                                  director.INTROS.get(brief_name),
+                                  director.TAILS.get(brief_name)), start)
         report["plan"] = summarise(plan).splitlines()
         print(summarise(plan))
         print(f"cards {len(cards)}  {start:.2f} -> {end:.2f}s  "
@@ -312,6 +320,8 @@ def main_cli(argv=None):
     ap.add_argument("--accent", default=None,
                     help="face for the one accent word on a card")
     ap.add_argument("--accent-colour", default=None, help="RRGGBB")
+    ap.add_argument("--colour", default=None,
+                    help="RRGGBB — the colour of the type itself")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=None,
                     help="23 by default when the look layer is on: grain costs "
@@ -333,7 +343,7 @@ def main_cli(argv=None):
                          "  known: " + ", ".join(briefs.names()))
     rep = run(a.video, a.audio, a.captions, a.out, a.start, a.font,
               a.dry_run, a.preset, a.crf, accent=a.accent,
-              accent_colour=a.accent_colour, brief_name=a.brief,
+              accent_colour=a.accent_colour, body_colour=a.colour, brief_name=a.brief,
               tags=a.tag, timed=a.timed, cards_in=a.cards, end=a.end)
     # The last thing on screen is the thing that gets used: is it shippable, and
     # what goes in the box. Everything else is in the report files.

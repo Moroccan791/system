@@ -209,7 +209,7 @@ LINE_DIRECTION_ZAALIMA: dict[int, dict] = {
     5: dict(shots=(18, 19, 20), div=1.0, note="main kehlayi — the blame lands on her"),
     6: dict(shots=(34, 35, 36), div=1.0, note="Kyun is tarah — the rooftop"),
     7: dict(shots=(37, 38, 39), div=1.0, note="se duniya jahan — city below"),
-    8: dict(shots=(44, 45, 46), div=1.0, note="mein karta hai — both of them"),
+    8: dict(shots=(43, 44, 47), div=1.0, note="mein karta hai — both of them"),
     9: dict(shots=(80, 81, 86), div=1.0, note="meri ruswaai — the closest they got"),
     10: dict(shots=(87, 88, 89), div=1.0, note="Tera kusoor — tenderness"),
     11: dict(shots=(90, 91, 100), div=1.2, ramp="settle", note="zaalima main kehlayi — hold"),
@@ -236,7 +236,29 @@ FILL_HOLD = 0.55            # seconds per cut in a bridge
 INTRO_TOTAL = sum(m.span for m in INTRO)
 
 
-def _intro_for(first: float, start: float) -> list[Moment]:
+
+# The two post-2 edits are the same pack cut two ways, so they cannot open on
+# the same images. The grief edit gets its own build: the silhouette, then him,
+# then her, then the drop.
+INTRO_BANGLA: list[Moment] = [
+    Moment(0.00, 1.60, (40,), 0, "build", src=95.60, note="her face — the first thing you see"),
+    Moment(1.60, 3.20, (56,), 0, "build", src=139.40, note="him, in the dark"),
+    Moment(3.20, 4.80, (40,), 0, "build", src=95.60, note="her face, close"),
+    Moment(4.80, 6.40, (60,), 0, "build", src=152.80, note="she looks up — the last good moment"),
+    Moment(6.40, 8.00, (52,), 0, "build", src=130.60, note="the wound"),
+    Moment(8.00, 9.60, (45,), 0, "build", src=117.10, note="headlights, rain — with light in it"),
+    Moment(9.60, 11.20, (41,), 0, "build", src=99.80, note="her, again"),
+    Moment(11.20, 12.80, (39,), 0, "build", src=88.90, note="the last look before the word"),
+]
+
+# The hook stops at 2:02 and the operator asked for the tape to 2:20. Eighteen
+# seconds of music with no words is not dead air — it is the part of the edit
+# the audience watches twice, so it gets its own images instead of the four
+# shots that bridge an instrumental gap.
+TAIL_BANGLA: tuple[int, ...] = (64, 66, 68, 70, 72, 74, 76, 78, 92, 94, 96, 98, 102, 104, 106, 108)
+
+def _intro_for(first: float, start: float,
+               template: list[Moment] | None = None) -> list[Moment]:
     """The build, sized to the air that actually exists before the first word.
 
     INTRO is written for a long instrumental. This track's first word lands about
@@ -245,6 +267,8 @@ def _intro_for(first: float, start: float) -> list[Moment]:
     drop — instead of the last cut being stretched to thirteen seconds, which is
     what happened and reads as a freeze.
     """
+    INTRO = template or globals()["INTRO"]
+    INTRO_TOTAL = sum(m.span for m in INTRO)
     lead = first - start
     if lead <= 0.12:
         return []
@@ -272,7 +296,9 @@ def _intro_for(first: float, start: float) -> list[Moment]:
 
 
 def moments_for(cards: list[dict], bpm: float, duration: float,
-                start: float = 0.0, direction: dict | None = None) -> list[Moment]:
+                start: float = 0.0, direction: dict | None = None,
+                intro: list[Moment] | None = None,
+                tail_pool: tuple[int, ...] | None = None) -> list[Moment]:
     """Cards + sung lines -> a directed timeline with NO holes in it.
 
     One cut per card, because the picture should change when the word does. Two
@@ -289,19 +315,21 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
         raise ValueError("no caption cards — nothing to cut to")
 
     first = cards[0]["start"]
-    out: list[Moment] = _intro_for(first, start)
+    out: list[Moment] = _intro_for(first, start, intro)
 
     direction = direction or LINE_DIRECTION
     last_dir = direction[max(direction)]
     line_first: dict[int, bool] = {}
     prev_end = first
 
+    pool = tail_pool or FILL
+
     def fill(a: float, b: float, why: str):
         n = max(1, round((b - a) / FILL_HOLD))
         step = (b - a) / n
         for k in range(n):
             out.append(Moment(a + k * step, a + (k + 1) * step,
-                              (FILL[k % len(FILL)],), 1.0, "drop",
+                              (pool[k % len(pool)],), 1.0, "drop",
                               note=why))
 
     # cards of one sung line, in order — the unit a direction is written for
@@ -373,10 +401,13 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
 
 
 def segments_for(grid, source, cards: list[dict], duration: float,
-                 start: float = 0.0, direction: dict | None = None):
+                 start: float = 0.0, direction: dict | None = None,
+                 intro: list[Moment] | None = None,
+                 tail_pool: tuple[int, ...] | None = None):
     """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
-    for m in moments_for(cards, grid.bpm, duration, start, direction):
+    for m in moments_for(cards, grid.bpm, duration, start, direction, intro,
+                         tail_pool):
         beats = (m.cuts if m.cuts
                  else max(1, min(4, round(m.span * grid.bpm / 60.0 * m.div))))
         step = m.span / beats
@@ -395,4 +426,6 @@ def segments_for(grid, source, cards: list[dict], duration: float,
             })
     return flat
 
+INTROS = {"post2_bangla": INTRO_BANGLA}
 
+TAILS = {"post2_bangla": TAIL_BANGLA}

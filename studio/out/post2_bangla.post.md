@@ -1,6 +1,6 @@
-# POST — Peter & Gwen — Faahun · Gefika
+# POST — Peter & Gwen — Faahun · Gefika · yellow
 
-_33.1s · 1920x1080 · 30fps_
+_60.5s · 1920x1080 · 30fps_
 
 ## Title
 

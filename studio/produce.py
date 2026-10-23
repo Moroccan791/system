@@ -202,7 +202,9 @@ def main(argv=None):
 
         name = a.direction or a.brief
         direction = director.DIRECTIONS.get(name, director.LINE_DIRECTION)
-        segs = director.segments_for(grid, src, cards, a.end, a.start, direction)
+        segs = director.segments_for(grid, src, cards, a.end, a.start, direction,
+                                     director.INTROS.get(name),
+                                     director.TAILS.get(name))
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)

@@ -95,7 +95,7 @@ def _measure(draw, text: str, font, tracking: int) -> tuple[int, int]:
 
 def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
                 width_frac: float = 0.62, accent: str | None = None,
-                colour: tuple[int, int, int] = (255, 255, 255),
+                colour: tuple[int, int, int] | None = None,
                 accent_colour: tuple[int, int, int] | None = None,
                 tracking_frac: float = 0.06, shadow: bool = True,
                 font_path: str | Path | None = None,
@@ -118,6 +118,8 @@ def render_card(text: str, frame_w: int = 1920, frame_h: int = 1080,
 
     from . import fonts
 
+    if colour is None:
+        colour = fonts.body_colour() or (255, 255, 255)
     if accent_colour is None:
         accent_colour = fonts.accent_colour()
     if accent_font_path is None:

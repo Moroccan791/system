@@ -158,6 +158,28 @@ def cap_frac() -> float:
     return float(config().get("cap_frac") or 0.125)
 
 
+def body_colour() -> tuple[int, int, int] | None:
+    """The colour of the type itself, when the operator wants something other
+    than white. None means white — the default is a decision, not an accident."""
+    c = config().get("colour")
+    if not c:
+        return None
+    if isinstance(c, str):
+        h = c.lstrip("#")
+        return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+    return (int(c[0]), int(c[1]), int(c[2]))
+
+
+def set_colour(rgb: tuple[int, int, int] | None) -> None:
+    cfg = dict(config())
+    if rgb is None:
+        cfg.pop("colour", None)
+    else:
+        cfg["colour"] = list(rgb)
+    (Path(__file__).resolve().parent.parent / "assets/fonts/family.json").write_text(
+        json.dumps(cfg, indent=1) + "\n")
+
+
 def accent_colour() -> tuple[int, int, int]:
     c = config().get("accent_colour") or [255, 209, 37]
     return (int(c[0]), int(c[1]), int(c[2]))
