@@ -178,3 +178,61 @@ cannot manufacture a loop. A pack with no closing shot simply is not a loop edit
 **Two songs** — `studio.twosong build --a quiet.mp3 --b loud.mp3 --a-secs 20
 --b-secs 40` writes one bed and returns the join. Render that bed normally and
 put the direction sheet's turn on the join.
+
+## Reference 2: the system behind "Gwen Stacy's death" (58.5 s, 3.7M likes)
+
+Reference 1 is what this house already does: the lyric as a centred card that
+changes with the vocal, cuts on the music grid. Reference 2 is a different
+machine, and it is measurable rather than a vibe. Decomposed frame by frame
+(scene-cut detection, 10 fps type masks, digital-silence runs, 2 fps grade
+statistics) — the full numbers are in `studio/reference/gwen_death.md`.
+
+**It is not a beat edit.** 21 shots in 58.5 s: mean 2.78 s, median 1.47 s, with
+one shot held 11.07 s. Only 7 of its 20 cut points sit within 60 ms of an audio
+onset. Copying it by cutting faster is copying it backwards.
+
+What makes it feel expensive:
+
+| | what it is | in the engine |
+|---|---|---|
+| **the stack** | a right-aligned block of lyric lines that ACCUMULATES, newest bright, older lines at 0.34/0.58/0.78, four deep, then a fresh stanza | `studio/ref2type.py: stack_face`, `ref2.stacks/stack_at` |
+| **the silver fill** | a vertical gradient, cool at the cap line, warm at the baseline, plus a drop shadow — flat white reads as a subtitle | `ref2type._fill`, `SILVER` |
+| **the bed** | one phrase set enormous in crimson BEHIND the subject, cropped at the frame edge, repeating every few seconds across cuts | `ref2type.bed`, `ref2.beds` |
+| **the single word** | one line, low right, when the picture is doing the talking | `ref2type.single` |
+| **the silence holes** | digital zero — 0.70 s, 0.95 s, then 2.78 s ending exactly on the biggest move | `ref2.holes`, `compose._sound(gaps=)` |
+| **the grade** | median luma 31/255, saturation 0.49, teal shadows, and **nothing above 235** | `compose.ref2_grade` |
+| **the long hold** | one cut per lyric line, so a shot can sit for 2.6 s while the type moves | `director.segments_for(max_cuts=1)` |
+
+One command:
+
+```
+python -m studio.pipeline --video pack.mp4 --audio song.mp3 \
+  --cards studio/out/<edit>.cards.json --brief <brief> --font <face> \
+  --style reference2 --bed "<the phrase>" --accent-at <hit in edit time> \
+  --out studio/out/<edit>_ref2.mp4
+```
+
+`--style reference2` also switches the behaviour to `lyric` unless told
+otherwise: the per-word behaviours belong to reference 1, and a reference 2 edit
+that cuts on every word is neither system.
+
+## Two bugs this pass earned
+
+**The handle measured 0 on a bright render.** The gate looks for the handle at
+the position the renderer computed, and the renderer was computing it from the
+SOURCE file's picture box (0,140,1860,930) while writing a frame with no bars at
+all. Two fixes: `compose._out_box` derives the box from the OUTPUT layout, and
+`watermark.rect_from_video` snaps a full-frame box to the frame, because the
+192x108 sampler returns 1910x1070 for a picture that fills the frame and a
+ten-pixel error moves the mark ten pixels.
+
+**A render "finished" with no video in it.** The encoder's exit code was read
+and discarded; x264 had died and the job went on to mux a file that did not
+exist. `compose.render` now raises with the encoder's last 800 characters rather
+than continuing.
+
+**The stack silently collapsed to one line.** `ScriptCard` has no `start` field —
+its time is `beat` and its length is `until` in beats — so the stanza grouping
+measured every card from 0.0, saw an enormous gap before each one, and broke the
+block into single lines. The compositor now builds plain `{start, end, text}`
+rows before grouping. Anything that reads card timings must accept both shapes.

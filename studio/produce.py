@@ -117,6 +117,12 @@ def main(argv=None):
     ap.add_argument("--no-watermark", action="store_true",
                     help="leave the account handle off the frame (it is read "
                          "from assets/fonts/family.json)")
+    ap.add_argument("--bed", default=None,
+                    help="reference2: the phrase held behind the picture "
+                         "(default: the lyric's own most-repeated short phrase)")
+    ap.add_argument("--style", default=None,
+                    help="reference2 — the Gwen-death system: stack/single/bed "
+                         "type, one dark teal grade, silence holes, long holds")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=None,
                     help="default 18 clean, 23 when the look layer is on: grain "
@@ -219,7 +225,8 @@ def main(argv=None):
                                      director.INTROS.get(name),
                                      director.TAILS.get(name),
                                      behaviour=a.behaviour,
-                                     word_pool=director.WORD_POOLS.get(name))
+                                     word_pool=director.WORD_POOLS.get(name),
+                                     max_cuts=1 if a.style == "reference2" else None)
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)
@@ -268,11 +275,30 @@ def main(argv=None):
             print(f"silence: {a.silence_before_drop:.0f}ms of nothing "
                   f"before the drop at {end:.2f}s")
 
+    silences = None
+    if a.style == "reference2":
+        from . import ref2
+
+        # holes are in EDIT time (0 = first frame of the edit), which is what the
+        # mix and the picture both count in — not track time.
+        cuts = [c.out_start for c in plan.cuts]
+        silences = ref2.holes(0.0, plan.duration, cuts=cuts,
+                              accent_at=a.accent_at)
+        # A hole placed by the style and a hole placed by --silence-before-drop
+        # must not overlap: the second one would punch a gap inside a gap and
+        # the longer silence would be read as a rendering fault.
+        if gap is not None:
+            silences = [g for g in silences
+                        if g[1] <= gap[0] or g[0] >= gap[1]]
+        for g0, g1 in silences:
+            print(f"silence: {g0:.2f}-{g1:.2f}s ({(g1 - g0):.2f}s of nothing)")
+
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
            sfx=not a.no_sfx, look=not a.no_look, premium=not a.no_premium,
            gap=gap, design=a.design, accent_at=accent_at,
-           watermark=not a.no_watermark)
+           watermark=not a.no_watermark, style=a.style, silences=silences,
+           bed_text=a.bed)
     print(f"sound: {len(cues)} cues "
           f"({', '.join(f'{k} {v}' for k, v in rep['sound']['by_kind'].items() if v)})")
     print(f"wrote {out}  ({plan.duration:.2f}s, {time.time() - t0:.0f}s to build)")

@@ -937,3 +937,74 @@ def test_loop_detector_ranks_a_closing_shot_above_a_travelling_one(tmp_path):
     # a shot that ends where it began scores near 0; one that travels, near 1
     assert loop._dist(flat[0], flat[0]) < 0.01
     assert loop._dist(flat[0], moved[0]) > 0.05
+
+
+# ---------------------------------------------------------------------------
+# reference 2 — the "Gwen Stacy's death" system
+# ---------------------------------------------------------------------------
+def _r2_cards():
+    return [
+        {"start": 25.9, "end": 28.2, "text": "Deedaar tera milne"},
+        {"start": 28.2, "end": 29.1, "text": "ke baad hi"},
+        {"start": 29.1, "end": 31.2, "text": "chhute meri angdaai"},
+        {"start": 31.2, "end": 32.9, "text": "Tu hi bata"},
+        {"start": 32.9, "end": 33.7, "text": "de kyun zaalima"},
+        {"start": 40.0, "end": 41.9, "text": "meri ruswaai"},
+        {"start": 41.9, "end": 43.9, "text": "Tera kusoor aur"},
+    ]
+
+
+def test_ref2_stack_accumulates_then_starts_again():
+    """The whole idea of the format: the line JOINS the lines above it."""
+    from studio import ref2
+
+    cards = _r2_cards()
+    assert ref2.stack_at(cards, 1) == ["Deedaar tera milne", "ke baad hi"]
+    four = ref2.stack_at(cards, 3)
+    assert len(four) == 4 and four[-1] == "Tu hi bata"
+    # a four-line stack never grows to five; the oldest line drops off
+    assert len(ref2.stacks(cards)[0]) == 4
+    # a long pause is a stanza break, not a fifth line
+    assert ref2.stack_at(cards, 5) == ["meri ruswaai"]
+
+
+def test_ref2_bed_is_a_short_repeated_refrain():
+    from studio import ref2
+
+    cards = _r2_cards() + _r2_cards()[4:6]
+    bed = ref2.beds(cards, 0.0, 40.0, count=4)
+    assert bed, "no bed placed"
+    assert all(len(b.text.split()) <= 3 for b in bed), "the bed grew into a sentence"
+    # never two beds at once, and never one running past the end
+    for a, b in zip(bed, bed[1:]):
+        assert a.t + a.dur < b.t
+    assert bed[-1].t + bed[-1].dur <= 40.0
+
+
+def test_ref2_holes_never_overlap_and_sit_on_cuts():
+    from studio import ref2
+
+    cuts = [0.0, 4.0, 8.2, 12.0, 16.0, 20.0, 24.0, 28.0]
+    holes = ref2.holes(0.0, 32.0, cuts=cuts)
+    assert holes, "no silences placed"
+    for a, b in zip(holes, holes[1:]):
+        assert a[1] <= b[0], "two silence windows overlapped"
+    for start, _end in holes:
+        assert min(abs(start - c) for c in cuts) < 1e-6, "a hole missed the cut"
+    # the long hole belongs BEFORE the hit, and ends on it
+    accented = ref2.holes(0.0, 32.0, cuts=cuts, accent_at=20.0, scale=1.0)
+    assert any(abs(end - 20.0) < 1e-6 and end - start > 2.0
+               for start, end in accented)
+
+
+def test_ref2_grade_keeps_black_and_never_blows_out():
+    import numpy as np
+
+    from studio import compose
+
+    black = compose.ref2_grade(np.zeros((4, 4, 3), np.uint8))
+    assert black.max() == 0, "the grade lifted absolute black — bars stop reading"
+    white = compose.ref2_grade(np.full((4, 4, 3), 255, np.uint8))
+    assert white.max() <= 236, "the grade clipped highlights instead of rolling them"
+    mid = compose.ref2_grade(np.full((4, 4, 3), 60, np.uint8))
+    assert mid.mean() > 60, "the grade did not lift the midtones"

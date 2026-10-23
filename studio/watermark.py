@@ -164,6 +164,16 @@ def rect_from_video(path: str | Path, out_w: int, out_h: int,
     if not grabs:
         return None
     x0, y0, x1, y1 = content_rect(grabs)
+    # A box that covers the whole frame IS the frame. The detector samples at
+    # 192x108 and the edge of a shot is soft, so a picture with no bars comes
+    # back as 1910x1070 — and a ten-pixel error in the box moves the handle ten
+    # pixels away from where the renderer put it, which is the difference
+    # between a handle that measures +70 over its surround and one that
+    # measures 0. Snapping is not cosmetic; it is what makes the renderer and
+    # the gate agree about where the mark is.
+    if (x1 - x0) >= 0.95 * w and (y1 - y0) >= 0.95 * h:
+        _video_rects[key] = (0, 0, int(out_w), int(out_h))
+        return _video_rects[key]
     sx, sy = out_w / w, out_h / h
     out = (int(round(x0 * sx)), int(round(y0 * sy)),
            int(round(x1 * sx)), int(round(y1 * sy)))

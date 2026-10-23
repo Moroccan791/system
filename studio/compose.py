@@ -313,6 +313,114 @@ def load_script(path: str | Path | None) -> list[ScriptCard]:
 
 
 # --------------------------------------------------------------------------
+# reference 2
+# --------------------------------------------------------------------------
+def ref2_grade(frame: np.ndarray) -> np.ndarray:
+    """The reference's one look: dark, low saturation, teal shadows.
+
+    Measured on the reference: median luma 31/255, saturation 0.49, shadow
+    channels R:G:B = 0.68 : 0.90 : 1.00, and not one pixel above 235. The last
+    of those is the one that matters most and the one an ordinary "cinematic"
+    LUT gets wrong: the reference has no blown highlights anywhere, so the
+    brightest thing in the frame is still information.
+    """
+    f = frame.astype(np.float32)
+    luma = (f[..., 0] * 0.2126 + f[..., 1] * 0.7152 + f[..., 2] * 0.0722)[..., None]
+    f = luma + (f - luma) * 1.70                      # saturation 0.32 -> 0.47
+    # The lift is a GAMMA, not an offset. An offset raises the black bars of a
+    # letterboxed file along with the picture, and then the picture-box detector
+    # stops seeing a bar at all — which put the handle, and the gate's check of
+    # it, half a frame away from where either belonged. A power curve takes 0 to
+    # 0 and still lifts the midtones.
+    g = 0.80
+    f = 255.0 * (np.clip(f, 0, 255) / 255.0) ** g     # median luma 23 -> 34
+    luma = (f[..., 0] * 0.2126 + f[..., 1] * 0.7152 + f[..., 2] * 0.0722)[..., None]
+    # shadows pulled toward the reference's tint, weighted by darkness
+    w = np.clip(1.0 - luma / 110.0, 0.0, 1.0)
+    tint = np.array([0.72, 0.94, 1.10], dtype=np.float32)
+    f = f * (1.0 + (tint - 1.0) * w * 0.95)
+    # highlight rolloff into a 235 ceiling, never a clip
+    f = np.where(f > 235.0, 235.0 - (f - 235.0) * 0.35, f)
+    return np.clip(f, 0, 255).astype(np.uint8)
+
+
+def _ref2_bed_card(text: str):
+    from . import ref2type
+
+    return ref2type.bed(OUT_W, OUT_H, text)
+
+
+def _ref2_cards(cards, plan, times=None):
+    """Build the reference2 type register for every script card.
+
+    Two registers, chosen by how much time the card has:
+
+      * STACK — the lines accumulate right-aligned until they are four deep.
+        Used wherever a card lives long enough to be read (>= 0.55 s) and we are
+        not inside the drop.
+      * SINGLE — one line, low right. Used in the drop, where a stack would be a
+        puddle of text by the third card.
+
+    The stack's own text is *all* the lines that are still visible, so the same
+    card renders differently at 0.2 s and at 1.4 s of its life; the newest line
+    is the bright one.
+    """
+    from . import fonts, ref2type, ref2
+
+    fp = fonts.main()
+    # The grouping works on plain {start, end, text} rows. A ScriptCard has no
+    # `start` at all — its time is `beat` and its length is `until` in beats —
+    # so handing the grouping the dataclasses made every card measure from 0.0,
+    # every gap enormous, every stanza one line, and the stack silently became
+    # the caption it is supposed to replace.
+    at = [float(t) for t in (times or [getattr(c, "_at", 0.0) for c in cards])]
+    rows = [{"start": at[i],
+             "end": at[i + 1] if i + 1 < len(at) else at[i] + 0.6,
+             "text": str(getattr(c, "text", ""))}
+            for i, c in enumerate(cards)]
+
+    out = []
+    for i, c in enumerate(cards):
+        t = float(times[i]) if times else float(getattr(c, "_at", 0.0))
+        text = str(getattr(c, "text", ""))
+        nxt = float(times[i + 1]) if times and i + 1 < len(times) else t + 99
+        if (nxt - t) < 0.55:
+            # too quick to read two lines: this is the single-beat register, low
+            # right, exactly where the reference puts "GO" and "OKAY"
+            out.append((t, ref2type.single(text, OUT_W, OUT_H, fp), None))
+        else:
+            # everything else goes in the stack, which is the register that
+            # makes the type feel PRINTED: the line joins the lines above it
+            # and the block grows until it is four deep
+            lines = ref2.stack_at(rows, i)
+            out.append((t, ref2type.stack_face(lines, OUT_W, OUT_H, font_path=fp),
+                        None))
+    return out
+
+
+def _out_box(src: str) -> tuple[int, int, int, int]:
+    """The picture box in the FRAME that is being written.
+
+    cover and slice both fill the frame; pad leaves a centred band of picture
+    with a blurred enlargement behind it. Either way the answer is in output
+    pixels, which is the only coordinate system the handle and the gate share.
+    """
+    from . import watermark as _wm
+
+    box = _wm.rect_from_video(src, *_probe_size(src))
+    if box:
+        aspect = (box[2] - box[0]) / max(1.0, box[3] - box[1])
+    else:
+        aspect = _source_aspect(src)
+    fit = _frame.fit_for(aspect, OUT_W / OUT_H)
+    if fit.mode in ("cover", "slice"):
+        return (0, 0, OUT_W, OUT_H)
+    h = min(OUT_H, int(round(OUT_W / max(0.2, aspect))))
+    y0 = (OUT_H - h) // 2
+    return (0, y0, OUT_W, y0 + h)
+
+
+# --------------------------------------------------------------------------
 # render
 # --------------------------------------------------------------------------
 def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
@@ -320,7 +428,10 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
            progress=print, preset: str = "medium", crf: int = 18,
            sfx: bool = True, look: bool = True, premium: bool = True,
            watermark: bool = True, gap: tuple[float, float] | None = None,
-           design: str | None = None, accent_at: float | None = None) -> Path:
+           design: str | None = None, accent_at: float | None = None,
+           style: str | None = None,
+           silences: list[tuple[float, float]] | None = None,
+           bed_text: str | None = None) -> Path:
     global OUT_W, OUT_H
     OUT_W, OUT_H = _frame.size()
     out_path = Path(out_path)
@@ -336,15 +447,44 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     # drift on a dark shot.
     wm_rect = None
     if watermark:
-        from . import watermark as _wm0
-        wm_rect = _wm0.rect_from_video(source_path, OUT_W, OUT_H)
+        # The handle is placed against the picture, and the picture is now the
+        # OUTPUT frame: decode_segment crops the source's letterbox away and
+        # cover-fits what is left. Placing the handle with the SOURCE's box put
+        # it at the right height for a file that no longer exists, 130px above
+        # where the gate — correctly reading the finished file — looked for it.
+        wm_rect = _out_box(source_path)
 
     # pre-render every card once
     rendered: list[tuple[float, Card, float]] = []
+    r2 = style == "reference2"
     # Script beats are RELATIVE to frame one, because that is what someone
     # writing a card list means by "beat 28". The first cut already sits on the
     # grid, so beat 0 is exactly 0.000s and every card inherits the track's grid.
-    for c in cards:
+    if r2:
+        from . import ref2
+
+        ats = [card_time(c.beat, grid.bpm) for c in cards]
+        plain = []
+        for i, c in enumerate(cards):
+            nxt = ats[i + 1] if i + 1 < len(ats) else plan.duration
+            plain.append({"start": ats[i], "end": max(ats[i] + 0.05, nxt),
+                          "text": c.text})
+        for i, c in enumerate(cards):
+            c._at = ats[i]
+        for i, (t, card, _h) in enumerate(_ref2_cards(cards, plan, ats)):
+            hold = ((ats[i + 1] - t) if i + 1 < len(ats)
+                    else max(1.2, plan.duration - t))
+            # The reference never lets type own the last shot: its final 6 s are
+            # clean picture, and the edit ends on the film rather than on a
+            # caption. Type also never sits for longer than one held shot.
+            hold = min(hold, 2.6, max(0.12, plan.duration - t - 1.6))
+            rendered.append((t, card, max(0.12, hold)))
+        rendered.sort(key=lambda r: r[0])
+        # the phrase bed: one phrase, four times, drawn behind the picture
+        r2_beds = []
+        for b in ref2.beds(plain, 0.0, plan.duration, text=bed_text):
+            r2_beds.append((b.t, b.dur, _ref2_bed_card(b.text)))
+    for c in cards if not r2 else []:
         t = card_time(c.beat, grid.bpm)
         if t < -0.001:
             continue
@@ -375,7 +515,9 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     n_seen = 0
     for ti, (ct, _c, _h) in enumerate(rendered):
         explicit = cards[ti].matte if ti < len(cards) else None
-        if explicit is not None:
+        if r2:
+            matte_for[ti] = False
+        elif explicit is not None:
             matte_for[ti] = bool(explicit)
         else:
             matte_for[ti] = (n_seen % 4 == 2)
@@ -457,8 +599,12 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 
                 frame = _grade.apply_correction(frames[fi], corrections.get(cut.shot))
                 frame = _grade.premium(frame, cut.act)
+                if r2:
+                    frame = ref2_grade(frame)
             else:
                 frame = grade(frames[fi], g)
+                if r2:
+                    frame = ref2_grade(frame)
 
             # the look layer: push inside the shot, settle on entry, grain.
             # Before the whip/flash so those still read as events ON the picture.
@@ -475,6 +621,16 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             if cut.flash and fi < 2:
                 k = 0.85 if fi == 0 else 0.55
                 frame = (frame.astype(np.float32) * (1 - k) + 255.0 * k).astype(np.uint8)
+
+            # reference 2's phrase bed sits behind everything, including the
+            # lyric, and it is the one element that survives a cut
+            if r2:
+                for b_t, b_dur, b_card in r2_beds:
+                    if b_t - 0.30 <= t < b_t + b_dur + 0.45:
+                        a_in = (t - (b_t - 0.30)) / 0.30
+                        a_out = ((b_t + b_dur + 0.45) - t) / 0.45
+                        a = max(0.0, min(1.0, a_in, a_out))
+                        composite(frame, b_card, alpha=0.92 * a)
 
             # type
             for ti, (ct, card, hold) in enumerate(rendered):
@@ -514,6 +670,9 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                             # smears across the face instead of hugging the type
                             scrim(frame, card, amount=amt,
                                   blur=26 if amt < 0.30 else 12)
+                    if r2:
+                        composite(frame, card, alpha=1.0)
+                        break
                     use_matte = matte_for[ti]
                     if use_matte and cut.act == "drop":
                         composite_matte(frame, card)
@@ -536,14 +695,23 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 
     enc.stdin.close()
     err = enc.stderr.read().decode()[-800:]
-    enc.wait()
-    if err.strip():
-        progress(err)
+    rc = enc.wait()
+    # A swallow here is how a render "finishes" with no video in it and fails
+    # 400 lines later inside the mux, pointing at a file that was never written.
+    # The encoder's own words are the only useful diagnosis, so they are fatal.
+    if rc != 0 or written == 0:
+        raise RuntimeError(
+            f"the encoder wrote {written} of {total_frames} frames and exited "
+            f"{rc}: {err.strip() or 'no message'}")
 
     # ---- sound: track shaped by act, cut to the picture's length ----
+    gaps = list(silences or [])
+    if gap is not None:
+        gaps.append(gap)
     audio = _sound(plan, track_path, out_path.with_suffix(".audio.wav"),
-                   sfx=sfx, gap=gap, design=design, progress=progress,
-                   accent_at=accent_at)
+                   sfx=sfx, gap=(gaps[0] if gaps else None), design=design,
+                   progress=progress, accent_at=accent_at,
+                   gaps=gaps)
 
     final = out_path
     subprocess.run(
@@ -565,7 +733,8 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
 def _sound(plan: Plan, track_path: str, out_wav: Path,
            sfx: bool = True, gap: tuple[float, float] | None = None,
            design: str | None = None, progress=print,
-           accent_at: float | None = None) -> Path:
+           accent_at: float | None = None,
+           gaps: list[tuple[float, float]] | None = None) -> Path:
     """Track from plan.start, gain-shaped per act, loudness-normalised."""
     x = load_audio(track_path, channels=2)
     a = max(0, int(round(plan.start * SR)))
@@ -593,8 +762,11 @@ def _sound(plan: Plan, track_path: str, out_wav: Path,
     # trick in the book and it still works, because the ear assumes the track it
     # was listening to is gone rather than paused. The edges are 6ms, which is
     # short enough to read as a drop-out and long enough not to click.
-    if gap is not None:
-        g0, g1 = (max(0.0, gap[0]), max(0.0, gap[1]))
+    windows = list(gaps or [])
+    if gap is not None and gap not in windows:
+        windows.append(gap)
+    for g0, g1 in windows:
+        g0, g1 = (max(0.0, g0), max(0.0, g1))
         i0, i1 = int(g0 * SR), int(min(len(seg), g1 * SR))
         if i1 > i0:
             seg = seg.copy()

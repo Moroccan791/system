@@ -517,7 +517,8 @@ def segments_for(grid, source, cards: list[dict], duration: float,
                  intro: list[Moment] | None = None,
                  tail_pool: tuple[int, ...] | None = None,
                  behaviour: str | None = None,
-                 word_pool: tuple[int, ...] | None = None):
+                 word_pool: tuple[int, ...] | None = None,
+                 max_cuts: int | None = None):
     """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
     beh = BEHAVIOURS.get(behaviour or "lyric", BEHAVIOURS["lyric"])
@@ -537,6 +538,12 @@ def segments_for(grid, source, cards: list[dict], duration: float,
         # a strobe.
         beats = 1 if word_cut else (m.cuts if m.cuts
                  else max(1, min(4, round(m.span * grid.bpm / 60.0 * m.div))))
+        # A format can cap the subdivision. Reference 2 holds a shot for two to
+        # four seconds and lets the type carry the rhythm, so its moments are
+        # one cut each; the default grid subdivision is what turns that into a
+        # metronome.
+        if max_cuts:
+            beats = max(1, min(beats, max_cuts))
         step = m.span / beats
         n = len(m.shots)
         for k in range(beats):

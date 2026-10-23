@@ -74,7 +74,8 @@ def run(video: str, audio: str, captions: str | None, out: str,
         accent_colour: str | None = None, body_colour: str | None = None,
         shape: str = "landscape", silence_ms: float | None = None,
         design: str | None = None, behaviour: str | None = None,
-        accent_at: float | None = None,
+        accent_at: float | None = None, style: str | None = None,
+        bed_text: str | None = None,
         brief_name: str = "peter_gwen",
         tags: list[str] | None = None, timed: str | None = None,
         cards_in: str | None = None, end: float | None = None) -> dict:
@@ -95,6 +96,11 @@ def run(video: str, audio: str, captions: str | None, out: str,
     from . import frame as _shape
 
     _shape.set_format(shape)
+    if style == "reference2" and behaviour is None:
+        # Reference 2's rhythm is the picture HOLDING while the type moves: 21
+        # shots in 58 s. The per-word behaviours belong to the other system, so
+        # asking for reference2 without naming a behaviour gets one cut per line.
+        behaviour = "lyric"
     if shape != "landscape":
         print(f"frame: {shape} {_shape.size()[0]}x{_shape.size()[1]} "
               f"— captions held inside the safe band")
@@ -273,6 +279,10 @@ def run(video: str, audio: str, captions: str | None, out: str,
         args += ["--behaviour", behaviour]
     if accent_at is not None:
         args += ["--accent-at", str(accent_at)]
+    if style:
+        args += ["--style", style]
+    if bed_text:
+        args += ["--bed", bed_text]
     produce(args)
 
     # Verification is part of the job, not a follow-up. The render is checked
@@ -349,6 +359,11 @@ def main_cli(argv=None):
                     help="edit time of the song's real drop")
     ap.add_argument("--behaviour", default=None,
                     help="lyric | crescendo | mosaic — how the picture cuts")
+    ap.add_argument("--bed", default=None,
+                    help="reference2: the phrase held behind the picture")
+    ap.add_argument("--style", default=None,
+                    help="reference2 — the Gwen-death system (stack type, one "
+                         "dark grade, silence holes, long holds)")
     ap.add_argument("--format", default="landscape",
                     help="landscape | vertical | square")
     ap.add_argument("--colour", default=None,
@@ -376,7 +391,7 @@ def main_cli(argv=None):
               a.dry_run, a.preset, a.crf, accent=a.accent,
               accent_colour=a.accent_colour, body_colour=a.colour,
               shape=a.format, silence_ms=a.silence_ms, design=a.design,
-              behaviour=a.behaviour, accent_at=a.accent_at,
+              behaviour=a.behaviour, accent_at=a.accent_at, style=a.style, bed_text=a.bed,
               brief_name=a.brief,
               tags=a.tag, timed=a.timed, cards_in=a.cards, end=a.end)
     # The last thing on screen is the thing that gets used: is it shippable, and
