@@ -123,3 +123,119 @@ Not copied, and why:
   corner boxes and its picture is wide. Nothing in the system depends on the
   picture being cropped, so a vertical should letterbox and let the type own the
   frame — not slice a band out of the middle (`studio/frame.py`, `VERTICAL_CROP`).
+
+---
+
+# Frame-accurate pass (second study)
+
+The first pass sampled at 2 fps and missed things. This one read every one of
+the 1,750 frames at 30 fps, classified each transition as a cut / a dissolve /
+a blur-whip, measured motion inside every shot, isolated the kick band (35–120
+Hz) and the cymbal band (6–10 kHz), and pulled single frames around every event.
+Corrections and new findings:
+
+## Structure, corrected
+
+**24 hard cuts, not 21.** The earlier count merged three pairs that are real
+0.2–0.4 s cuts. Shot lengths: min 0.17 s, median 1.27 s, mean 2.37 s, max 11.90 s.
+
+The distribution is violently uneven on purpose:
+
+| | cuts | what happens |
+|---|---|---|
+| 0.00–10.6 | 6 | establishing, dialogue, the stack of four lines |
+| 10.6–19.7 | **0** | **one shot held 9.17 s** — the ceiling hole, the fall begins |
+| 19.7–19.97 | **4 in 0.27 s** | the fireball |
+| 19.97–24.9 | 1 | the explosion, held 4.9 s |
+| 24.9–33.4 | 8 | the fall, accelerating |
+| 33.4–36.8 | 1 | the lens, held 3.4 s |
+| 36.8–41.8 | 0 | held 5.0 s |
+| 41.8–52.8 | **0** | **held 11.06 s** — the catch |
+| 52.8–58.3 | 6 in 5.5 s | the end, intercut with the web |
+
+## The four-frame event at 19.73–19.93
+
+The most deliberate thing in the edit. Frame by frame:
+
+    19.70  Spider-Man's back, over the gantry
+    19.73  fireball fills the frame (orange)
+    19.77  fireball, brighter
+    19.80  whiteout begins — luma 228 (local median 105)
+    19.83  whiteout, luma 245
+    19.87  whiteout, luma 245
+    19.90  whiteout, luma 242
+    19.93  whiteout, luma 232
+    19.97  the gears, blown orange, from underneath
+
+Four hard cuts in 0.27 s, then five frames of near-white, then the wide. The
+white is not a flash ON a cut — it is the cut. Also note the 0.75 s before it:
+the music is already falling (18.0 −33 dB, 18.5 −39, 19.0 −42) so the whiteout
+lands where the track has gone thin.
+
+## The blur-whiplash at 12.0–13.7
+
+Frame differencing shows 40–60 consecutive frames at diff 18–28 with no single
+peak and no still frame between them: the picture is in continuous motion, not
+cutting. It is a speed-warp/zoom-blur burst — the shutter, not the edit. Our
+engine can approximate it with a strong ramp inside one long shot; it cannot
+reproduce it with cuts.
+
+## The lens reveal at 35.0–36.8 (3.4 s, one shot)
+
+A slow push into Spider-Man's mask until the right lens fills a third of the
+frame, and the web pattern inside the lens becomes a portal: at 35.0 it is
+texture, at 35.8 a blurred kiss starts to resolve inside it, by 36.6 the kiss
+is sharp inside the lens while the mask stays sharp around it. This is a masked
+composite with a fade-in, tracked to a curved surface. It is the single most
+expensive-looking shot in the reference and it is the one no template copies
+without a mask and a tracker.
+
+## Motion inside the shots
+
+Classified by comparing first-half to second-half motion:
+
+- accelerating (ramp in): 19.93, 28.23, 29.13, 52.83, 54.50 — the action beats
+- decelerating / slow-mo: 5.90, 33.37, 36.80
+- near-still, push only: 30.97–33.37
+- the two long holds are *steady*, not frozen: the camera moves the whole 11 s
+
+Two genuine freezes only: 9.63–9.97 and 10.07–10.53, inside the Times Square
+establishing shot.
+
+## Cuts vs kicks, corrected
+
+54 kicks detected in the whole file and they are not spread evenly: the first
+kick is at **7.58 s**, and 29 of the 54 fall after 34 s where the track turns
+into 16ths (median interval 0.16 s).
+
+| cuts | on a kick (<80 ms) |
+|---|---|
+| before 33 s (18 cuts) | **1 / 18** |
+| after 33 s (6 cuts) | 2 / 6 |
+
+So: the edit is cut on the action for the first two thirds and starts cutting
+near the kick grid only in the last third. "Every transition is on a downbeat"
+is not what this file does, and building that way would produce a different,
+busier video.
+
+## Sound, corrected
+
+The RMS table (0.25 s windows) shows the "bed at −17 to −19 dBFS throughout"
+claim is only true after 31 s. Before that the level is *moving*: drops to
+−120 dBFS at 5.0, 6.5, 24.5–26.9, 30.0–31.0, and falls to −33/−39/−42 dBFS
+going into the whiteout at 19.8. The silences are not just holes punched in a
+flat bed — the whole first half is being ducked and slammed.
+
+## Text inventory (what is actually on screen)
+
+| t | text | register |
+|---|---|---|
+| 0.0–2.9 | YOU / AND ME / YOU WANNA / FIGHT ME | stack, right, 4 lines, silver |
+| 3.2 | GO | single, low centre-right |
+| 4.9 | OKAY | single, red |
+| 8.4–10.0, 12.9–14.6, 20.8–22.4, 27.5–29.1 | LOVE ME | bed: huge crimson ghost + solid small |
+| 16.0 | YOU | stack, single line |
+| 34.0 | OH BABY | bed (red, two lines of scale) |
+| scattered | YOU / ME / ALL I NEED / I SAVE HER … | single, low right, 0.4–1.0 s |
+
+Text is present in roughly 55% of the runtime and **absent for the final 2.2 s**.
