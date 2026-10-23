@@ -212,13 +212,54 @@ balcony scene. The style is right and the footage was thin.
    reference file measures 52 against a true 52. Compare plan to plan, or
    ratios — not raw detected counts.
 
+---
+
+## Built: `longtake` (v1) — the square reel, without the square
+
+`studio/longtake.py`, numbers in `studio/stylepacks/longtake_v1.json`.
+Render: `studio/out/longtake_test.mp4`.
+
+**The 1:1 is not the style.** v12 is square because it is a phone interview;
+cropping a 16:9 pack to 1:1 throws away the sides of every frame. Landscape only
+is now enforced in `styles.check`, with a test, so it cannot come back by
+accident. What transfers is everything else:
+
+| | reference (v12) | ours |
+|---|---|---|
+| cuts | 14 | 16 |
+| median shot | 1.33 s | 1.33 s |
+| shots 4 s+ | 3 | 3 |
+| share of runtime in them | 44% | 45% |
+| whips | 3 | 2 |
+| flashes | 0 | 0 |
+| type stops | 22 s before the end | 30% of the edit left clean |
+
+One honest difference: the reference's type is **dialogue fragments** — what
+people actually say — and we set the song's lyric instead, because that is the
+only word source that exists for these packs.
+
+### A defect found while building it
+
+The first render drew 16 cuts from **4 shots**. The house shot picker penalises
+a repeat by 1.2, which on a real pack is smaller than the spread from its
+motion and brightness preferences, so the same four shots won every time. That
+is a bug, not a look. `studio/repertoire.py` fixes it for the built styles —
+use up the pack before going back to it — and both now draw **every cut from a
+different shot** (16/16 and 55/55). The house system keeps the picker it
+shipped with, because its plans are frozen and hash-checked: the fix lives in
+the new styles, not on the working path.
+
+Also fixed while building: a barrage hold of 3.10 s was being skipped whenever
+the preceding cut straddled the breakdown boundary, so most plans had no long
+shot at all.
+
 ## What I propose to build, in this order
 
 Cheapest and most reusable first, so the shelf fills fast and each one is
 verified before the next starts:
 
 1. ~~**`barrage`**~~ — **built** (see above).
-2. **`square`** — needs your yes on the crop. Half a day.
+2. ~~**`square`**~~ — **built as `longtake`**, landscape, no crop.
 3. **`cold_read`** — fragment captions + end hold. One day.
 4. **`hymn`** — two-voice type, crush grade, endcard. Two days.
 5. **`hype`** — needs a subject matte; I'd start with the approximation. Two days.

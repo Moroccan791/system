@@ -144,14 +144,43 @@ def main(argv=None):
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
 
-    if a.style == "barrage":
-        # Barrage is a music-and-picture style: there is no lyric layer, so the
-        # caption guard below does not apply and the plan comes from
-        # studio/barrage.py instead of the director.
-        from . import barrage as _barrage
+    # A style that brings its own planner owns the whole timeline. Both of the
+    # built styles are music-and-picture: they do not consult the lyric to
+    # decide shots, which is why they run before the caption guard.
+    _own_planner = {"barrage": "barrage", "longtake": "longtake"}.get(a.style)
+    if _own_planner:
+        from importlib import import_module
 
-        plan = _barrage.build(grid, src, a.start, a.end, a.seed)
-        print(_barrage.summarise(plan))
+        mod = import_module(f"studio.{_own_planner}")
+        plan = mod.build(grid, src, a.start, a.end, a.seed)
+        print(mod.summarise(plan))
+        if a.cards:
+            # These styles still DRAW type when a card table is supplied; they
+            # just do not let it choose the shots. The table is copied into the
+            # script the compositor reads, unchanged.
+            from .captions import to_script
+
+            raw = json.loads(Path(a.cards).read_text())
+            cards = raw.get("cards", []) if isinstance(raw, dict) else raw
+            card_until = getattr(mod, "type_until", None)
+            stop = card_until(plan) if card_until else None
+            # The card table is in TRACK seconds; the type rule is in EDIT
+            # seconds (it describes the finished video). Comparing the two
+            # directly dropped every card, because neither numbering starts at
+            # the window's first frame.
+            origin_s = a.start or 0.0
+            cards = [c for c in cards
+                     if (c["start"] - origin_s) < (stop or 1e9)]
+            script_path = Path(a.script) if a.script else out.with_suffix(".script.json")
+            script_path.parent.mkdir(parents=True, exist_ok=True)
+            script_path.write_text(json.dumps(
+                {"bpm": grid.bpm,
+                 "cards": to_script(cards, grid.bpm, {}, origin=a.start)},
+                indent=1) + "\n")
+            a.script = str(script_path)
+            if stop:
+                print(f"type: {len(cards)} cards, stops at {stop:.1f}s "
+                      f"({(1 - stop / plan.duration) * 100:.0f}% of the edit is clean)")
     elif a.direct:
         from . import director
         from .captions import (cards_from_words, from_timed, parse_lines,
@@ -237,7 +266,7 @@ def main(argv=None):
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)
-    if a.style != "barrage":
+    if not _own_planner:
         print(summarise(plan))
 
     rep = report(plan, grid, src)
@@ -312,7 +341,7 @@ def main(argv=None):
            # house curve, which is exactly the look barrage contradicts. Passing
            # premium=False hands the grading to plan.grade_for, which is where
            # the style's numbers live.
-           premium=(not a.no_premium) and a.style != "barrage",
+           premium=(not a.no_premium) and a.style not in ("barrage", "longtake"),
            gap=gap, design=a.design, accent_at=accent_at,
            watermark=not a.no_watermark, style=a.style, silences=silences,
            bed_text=a.bed, ghost_cuts=ghosts if a.style == "reference2" else None)

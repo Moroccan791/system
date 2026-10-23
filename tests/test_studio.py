@@ -1241,7 +1241,14 @@ def test_barrage_plan_has_the_reference_shape():
     # 3.10 s in the reference. It can only be as long as the shot feeding it,
     # so a pack whose longest single take is 2.7 s gets 2.70 — the clamp is the
     # plan being honest, not the style drifting.
-    assert 2.3 <= holds[0].dur <= 3.4, holds[0].dur
+    # 3.10 s in the reference. A hold can only be as long as the take feeding
+    # it: this scenepack's longest shot is ~1.85 s, so the hold clamps to ~1.7
+    # rather than freezing. On a pack with a 3 s take it lands on 3.10.
+    longest = max(sh.dur for sh in src.shots)
+    if longest >= 3.2:
+        assert 2.9 <= holds[0].dur <= 3.3, holds[0].dur
+    else:
+        assert holds[0].dur >= longest * 0.85, (holds[0].dur, longest)
     assert 0.55 <= holds[0].out_start / plan.duration <= 0.78
     flashes = [c for c in plan.cuts if c.flash]
     assert 4 <= len(flashes) <= 8, f"{len(flashes)} flashes"
@@ -1275,3 +1282,63 @@ def test_barrage_never_fakes_a_breakdown():
     # but the audio must be left alone.
     assert plan.breakdown is None
     assert any(c.dur >= 1.5 for c in plan.cuts)
+
+
+# ---------------------------------------------------------------------------
+# landscape only, and no style that repeats its own pack
+# ---------------------------------------------------------------------------
+def test_no_style_may_ask_for_a_crop():
+    """Landscape only, decided 2026-10-23.
+
+    v12 is square because it is a phone interview. Copying that means cropping
+    a 16:9 pack to 1:1, which throws away the sides of every frame — an aspect
+    ratio is never inherited from a reference. `styles.check` refuses it, so it
+    cannot come back by accident.
+    """
+    import pytest
+
+    from studio import styles
+
+    for name in styles.names():
+        assert styles.get(name).format == "landscape", name
+    with pytest.raises(ValueError):
+        styles.check(styles.Style(name="oops", label="oops", format="square"))
+
+
+def test_longtake_is_landscape_and_slow():
+    from studio import styles
+
+    st = styles.get("longtake")
+    assert st.format == "landscape"
+    assert st.grade == "longtake"
+    assert "1:1" in st.note          # the note says the square is NOT copied
+
+
+def test_built_styles_do_not_repeat_shots():
+    """The repertoire picker must exhaust the pack before reusing a shot.
+
+    The house `_pick_shot` penalises a used shot by 1.2, which on a real pack is
+    smaller than the motion/brightness spread — 14 cuts drew on 4 shots out of
+    87 usable ones. The built styles use `repertoire.pick` instead; the house
+    system keeps the picker it shipped with, because its plans are frozen.
+    """
+    from pathlib import Path
+
+    import pytest
+
+    from studio import grid as _grid, longtake, shots
+    from studio import plan as _plan
+
+    src_path = Path("footage/post2/videoplayback.mp4")
+    trk = Path("footage/post2/YTDown.com_YouTube_Media_PJ3f0_LPlSY_zaalima-"
+               "arijit-singh-harshdeep-kaur-editaudio_009_128k.mp3")
+    if not (src_path.exists() and trk.exists()):
+        pytest.skip("the post2 pack is not in this checkout")
+
+    g = _grid.analyse(trk, 54.0)
+    src = shots.analyse(src_path, None)
+    plan = longtake.build(g, src, 23.0, 53.0)
+    picked = [c.shot for c in plan.cuts]
+    assert len(set(picked)) == len(picked), (
+        f"{len(picked) - len(set(picked))} repeated shots in a "
+        f"{len(picked)}-cut plan")

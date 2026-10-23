@@ -20,7 +20,8 @@ from __future__ import annotations
 
 import random
 
-from .plan import Cut, Plan, _in_point, _pick_shot
+from .plan import Cut, Plan, _in_point
+from .repertoire import pick
 
 # The reference's numbers, from the frame-by-frame pass.
 OPEN_S = 2.8          # the cold open, before the first real section
@@ -88,13 +89,21 @@ def build(grid, source, start: float = 0.0, end: float | None = None,
     used: set[int] = set()
     idx = 0
     t = 0.0                     # seconds into the edit
+    # The hold belongs to the first cut that BEGINS inside the window. Testing
+    # `t == bd_in` missed it whenever the preceding cut straddled the boundary,
+    # which is most of the time — the window then had no long shot in it at all.
+    placed_hold = False
     while t < total - 1e-6:
         quiet = bd_in <= t < bd_out
         if quiet:
             # one long shot at the top of the window, then two shorter ones;
             # the reference's window is 3.10 s + a 1.60 s + a 1.77 s.
             span = min(bd_out - t, total - t)
-            want = min(HOLD_S, span) if t < bd_in + 0.01 else min(1.70, span)
+            if not placed_hold:
+                want = min(HOLD_S, max(span, HOLD_S))
+                placed_hold = True
+            else:
+                want = min(1.70, span)
         else:
             want = _length(rng, MEDIAN_S)
         want = max(3.0 / grid.fps if hasattr(grid, "fps") else 0.10, want)
@@ -108,7 +117,7 @@ def build(grid, source, start: float = 0.0, end: float | None = None,
         if need > longest * 0.95:
             need = longest * 0.90
             want = need
-        shot = _pick_shot(source, rng, act, need, recent, used)
+        shot = pick(source, rng, act, need, recent, used)
         ss = source.shots[shot]
         room = max(0.0, ss.dur - need)
         src_in = _in_point(ss, room, need, want, rng)

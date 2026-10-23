@@ -1,0 +1,63 @@
+{
+ "_what": "longtake \u2014 built from the v12 reference (the square interview reel) with the square dropped. Landscape only, by decision.",
+ "version": "longtake_v1",
+ "built_on": "2026-10-23",
+ "engine": {
+  "module": "studio/longtake.py",
+  "type_engine": "cards (plain centred, stops at 70%)",
+  "grade": "longtake, attached to the plan",
+  "fx": [
+   "whip on short shots only"
+  ],
+  "format": "landscape 1920x1080 \u2014 the reference's 1:1 is NOT copied"
+ },
+ "rules": {
+  "median_shot_s": 1.33,
+  "hold_s": [
+   4.0,
+   4.6
+  ],
+  "hold_share": 0.44,
+  "whip_every_n_short": 5,
+  "type_stops_at": 0.7,
+  "flashes": 0,
+  "aspect": "never inherited from a reference"
+ },
+ "grade": {
+  "contrast": 1.02,
+  "brightness": 0.008,
+  "gamma": 0.99,
+  "saturation": 1.1
+ },
+ "verified": {
+  "render": "studio/out/longtake_test.mp4",
+  "source": "footage/post2/videoplayback.mp4",
+  "track": "Zaalima 90 BPM, 23.0-53.0s",
+  "plan": {
+   "cuts": 16,
+   "median_s": 1.33,
+   "holds_4s": 3,
+   "share_in_holds": 0.45,
+   "whips": 2,
+   "flashes": 0
+  },
+  "type": "12 cards, stops at 21.0s \u2014 the last 30% of the edit is clean picture",
+  "reference": {
+   "cuts": 14,
+   "median": 1.33,
+   "holds_4s": 3,
+   "share": 0.44,
+   "whips": 3,
+   "type": 0.16
+  }
+ },
+ "also_fixed": "studio/repertoire.py \u2014 the built styles now exhaust the pack before repeating a shot (the house picker drew 14 cuts from 4 shots; now 16/16 and 55/55 distinct).",
+ "known_gaps": [
+  "The reference's type is dialogue fragments; ours is the song's lyric, because that is the only word source we have for these packs.",
+  "No endcard (the reference ends on the studio's card).",
+  "The reference's interview framing is not reproduced \u2014 that is a camera, not a style."
+ ],
+ "reproduce": [
+  "python -m studio.produce --track <song.mp3> --source <pack.mp4> --out out.mp4 --style longtake --start 0 --end 30 --cards <cards.json>"
+ ]
+}

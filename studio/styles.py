@@ -72,6 +72,17 @@ HOUSE = Style(
 # ---------------------------------------------------------------------------
 REGISTRY: dict[str, Style] = {
     "house": HOUSE,
+    # The v12 reel with its square dropped: long takes, plain type, no flashes.
+    "longtake": Style(
+        name="longtake",
+        label="Long take — v12",
+        note="long holds, loose cutting, plain centred type that stops; "
+             "landscape only, the reference's 1:1 is not copied",
+        behaviour=None,
+        type_engine="cards",
+        grade="longtake",
+        fx=("whip",),
+    ),
     # Built from reference 2's reel, and the one that produced
     # post2_zaalima_ref2. Kept on the shelf, never the default.
     "barrage": Style(
@@ -107,7 +118,7 @@ ALIASES = {"reference1": "house", "ref1": "house"}
 def get(name: str | None) -> Style:
     """Resolve a style name. No name means the house system, exactly as before."""
     if not name:
-        return HOUSE
+        return check(HOUSE)
     name = ALIASES.get(name, name)
     if name not in REGISTRY:
         raise KeyError(
@@ -115,6 +126,25 @@ def get(name: str | None) -> Style:
             f"{', '.join(sorted(set(REGISTRY) | set(ALIASES)))}\n"
             f"  add one in studio/styles.py — a table, not a rewrite")
     return REGISTRY[name]
+
+
+LANDSCAPE_ONLY = (
+    "every style renders landscape 1920x1080. Cropping a reference's 1:1 or "
+    "2.4:1 frame is not a look, it is lost picture — the decision on 2026-10-23 "
+    "was horizontal only, so an aspect ratio is never copied from a reference")
+
+
+def check(st: Style) -> Style:
+    """Refuse a style that asks for a different shape.
+
+    A reference's aspect ratio does not transfer: v12 is square because it is a
+    phone interview, and cropping our 16:9 packs to 1:1 would throw away the
+    sides of every frame to imitate a camera. What transfers is pacing, type
+    and grade. This is enforced here so it cannot be added back by accident.
+    """
+    if st.format != "landscape":
+        raise ValueError(f"style {st.name!r} asks for {st.format!r}. {LANDSCAPE_ONLY}")
+    return st
 
 
 def names() -> list[str]:

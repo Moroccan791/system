@@ -1,0 +1,113 @@
+{
+ "bpm": 90.0,
+ "cards": [
+  {
+   "beat": 4.38,
+   "text": "Deedaar tera milne",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 7.8
+  },
+  {
+   "beat": 7.8,
+   "text": "ke baad hi",
+   "line": 1,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 9.21
+  },
+  {
+   "beat": 9.21,
+   "text": "chhute meri angdaai",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 12.3
+  },
+  {
+   "beat": 12.3,
+   "text": "Tu hi bata",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 14.82
+  },
+  {
+   "beat": 14.82,
+   "text": "de kyun zaalima",
+   "line": 4,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 16.02
+  },
+  {
+   "beat": 16.02,
+   "text": "main kehlayi",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 19.44
+  },
+  {
+   "beat": 19.5,
+   "text": "Kyun is tarah",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 23.28
+  },
+  {
+   "beat": 23.28,
+   "text": "se duniya jahan",
+   "line": 7,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 24.72
+  },
+  {
+   "beat": 24.72,
+   "text": "mein karta hai",
+   "line": 8,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 26.19
+  },
+  {
+   "beat": 26.19,
+   "text": "meri ruswaai",
+   "line": 9,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 28.32
+  },
+  {
+   "beat": 28.32,
+   "text": "Tera kusoor aur",
+   "line": 10,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 31.35
+  },
+  {
+   "beat": 31.35,
+   "text": "zaalima main kehlayi",
+   "line": 11,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 35.43
+  }
+ ]
+}

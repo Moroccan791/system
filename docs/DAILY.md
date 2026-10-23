@@ -144,6 +144,8 @@ pattern, don't reach into the one that works.
 
     python -m studio.styles --list
 
+`longtake` is the v12 reel with its square dropped — landscape only, always.
+
 `house` / `reference1` / `ref1` are the same entry — the working system — and no
 `--style` still means house. `barrage` is the first style built beside it, from
 the v26 reel: `--style barrage`. It renders through the same compositor and
