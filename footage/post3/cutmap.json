@@ -1,0 +1,38 @@
+{
+ "_what": "Hand-cut map for the Gwen clocktower. Every entry was chosen by watching the frame, not by scoring it. `at` = edit seconds, `in` = source seconds, `len` = time on screen, `speed` = 0.35 means a third speed (slow motion).",
+ "cuts": [
+  {"at": 0.00,  "in": 112.0, "len": 2.40, "speed": 1.0,  "note": "the two of them, falling together"},
+  {"at": 2.40,  "in": 115.0, "len": 1.70, "speed": 1.0,  "note": "she pulls away"},
+  {"at": 4.10,  "in": 117.0, "len": 1.60, "speed": 1.0,  "note": "he reaches for her"},
+
+  {"at": 5.76,  "in": 119.0, "len": 1.60, "speed": 0.60, "note": "her face, falling"},
+  {"at": 7.36,  "in": 120.2, "len": 1.60, "speed": 0.55, "note": "her eyes"},
+  {"at": 8.96,  "in": 121.5, "len": 1.60, "speed": 0.45, "note": "her mouth open"},
+
+  {"at": 11.70, "in": 122.8, "len": 1.90, "speed": 0.50, "note": "still falling"},
+  {"at": 13.60, "in": 124.2, "len": 1.90, "speed": 0.70, "note": "hair across her face"},
+
+  {"at": 15.60, "in": 117.4, "len": 2.30, "speed": 1.0,  "note": "he comes after her"},
+  {"at": 17.90, "in": 127.5, "len": 2.30, "speed": 1.0,  "note": "the drop, wide"},
+
+  {"at": 20.30, "in": 126.0, "len": 2.00, "speed": 1.0,  "note": "swinging down after her"},
+  {"at": 22.30, "in": 132.5, "len": 1.80, "speed": 0.60, "note": "the web, pulling taut"},
+  {"at": 24.10, "in": 134.5, "len": 1.70, "speed": 0.70, "note": "the gears turning"},
+
+  {"at": 25.80, "in": 133.2, "len": 1.60, "speed": 0.55, "note": "the web again"},
+  {"at": 27.40, "in": 135.5, "len": 2.10, "speed": 1.0,  "note": "the mechanism"},
+  {"at": 29.50, "in": 143.0, "len": 2.30, "speed": 0.60, "note": "her, falling again"},
+  {"at": 31.80, "in": 144.6, "len": 2.20, "speed": 0.55, "note": "her face"},
+
+  {"at": 34.00, "in": 146.0, "len": 1.70, "speed": 1.0,  "note": "he reaches"},
+  {"at": 35.70, "in": 150.0, "len": 1.70, "speed": 1.0,  "note": "the clock face"},
+  {"at": 37.40, "in": 155.0, "len": 1.70, "speed": 1.0,  "note": "the fall, wide"},
+  {"at": 39.10, "in": 160.0, "len": 1.60, "speed": 1.0,  "note": "he turns"},
+
+  {"at": 41.08, "in": 129.0, "len": 1.60, "speed": 0.35, "note": "THE WEB — the shot, held slow"},
+  {"at": 42.68, "in": 120.0, "len": 1.50, "speed": 0.30, "note": "her face, the fall"},
+  {"at": 44.18, "in": 143.0, "len": 1.26, "speed": 0.40, "note": "she is gone"},
+
+  {"at": 45.44, "in": 166.0, "len": 2.26, "speed": 1.0,  "note": "he is alone", "act": "out"}
+ ]
+}

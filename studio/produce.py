@@ -122,6 +122,9 @@ def main(argv=None):
                          "(default: the lyric's own most-repeated short phrase)")
     ap.add_argument("--style", default=None,
                     help="a look from studio/styles.py (default: house)")
+    ap.add_argument("--map", default=None, metavar="FILE",
+                    help="a hand-written cut map (studio/segments.py) — every "
+                         "cut chosen by watching, with per-cut speed")
     ap.add_argument("--scale", type=float, default=1.0,
                     help="render at a fraction of the delivery size (memory "
                          "budget, not a style) — 0.6667 gives 1280x720")
@@ -163,8 +166,17 @@ def main(argv=None):
         from importlib import import_module
 
         mod = import_module(f"studio.{_own_planner}")
-        plan = mod.build(grid, src, a.start, a.end, a.seed)
-        print(mod.summarise(plan))
+        if a.map:
+            # An editor's cut, not a scorer's: the map names every shot.
+            from . import segments as _segments
+
+            picks = _segments.load(a.map)
+            plan = _segments.build(grid, src, picks, a.start, a.end, a.seed,
+                                   grade=getattr(mod, "GRADE", None))
+            print(_segments.summarise(picks))
+        else:
+            plan = mod.build(grid, src, a.start, a.end, a.seed)
+            print(mod.summarise(plan))
 
         # The words. A style that plans its own shots still puts the lyric on
         # screen, so the caption sources have to be read HERE too — before this,

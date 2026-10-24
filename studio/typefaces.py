@@ -53,8 +53,16 @@ def cold_read(text: str, w: int = 1920, h: int = 1080) -> Card:
     from PIL import Image, ImageDraw
 
     body = text.strip().upper()
-    px = int(h * 0.034)
-    font = _font(ASSETS / "Montserrat-SemiBold.ttf", px)
+    px = int(h * 0.045)
+    # THE FACE IS A DECISION, NOT A DEFAULT. This was hardcoded to Montserrat,
+    # so every cold_read edit ignored assets/fonts/family.json and used a face
+    # nobody picked. `fonts.main()` returns whatever that file names.
+    from . import fonts as _fonts
+
+    try:
+        font = _font(Path(_fonts.main()), px)
+    except Exception:
+        font = _font(ASSETS / "Montserrat-SemiBold.ttf", px)
 
     probe = ImageDraw.Draw(Image.new("RGB", (8, 8)))
     tw = int(probe.textlength(body, font=font))
