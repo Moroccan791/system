@@ -796,6 +796,42 @@ def test_choosing_a_font_does_not_delete_the_handle():
         fonts.CONFIG = old
 
 
+def test_a_dry_run_does_not_change_the_saved_font():
+    """A preview is not a decision.
+
+    `pipeline.run(..., font=..., dry_run=True)` used to call fonts.set_family
+    anyway, so every test that previewed with a face rewrote
+    assets/fonts/family.json — the suite silently changed which typeface the
+    operator had chosen. That is the one setting they pick themselves.
+    """
+    import json
+    import tempfile
+    from pathlib import Path
+
+    from studio import fonts
+
+    old = fonts.CONFIG
+    tmp = Path(tempfile.mkdtemp()) / "family.json"
+    tmp.write_text(json.dumps({"main": "Couture", "accent": None,
+                               "watermark": "@fayzann.edits"}))
+    fonts.CONFIG = tmp
+    try:
+        video = Path("studio/out/post2_zaalima.mp4")
+        audio = Path("footage/post2/track.mp3")
+        if not (video.exists() and audio.exists()):
+            return          # the pack is not in this checkout; nothing to preview
+        from studio import pipeline
+
+        pipeline.run(str(video), str(audio), None, "work/dry_font.mp4",
+                     start=23.0, font="Gefika", dry_run=True,
+                     brief_name="post2_zaalima", end=58.06)
+        cfg = json.loads(tmp.read_text())
+        assert cfg["main"] == "Couture", f"a dry run saved the face: {cfg}"
+        assert cfg["watermark"] == "@fayzann.edits"
+    finally:
+        fonts.CONFIG = old
+
+
 def test_the_handle_is_on_unless_explicitly_turned_off():
     """A missing key used to mean "no watermark" — one config rewrite shipped a
     watermark-free video and nothing said so. Absent key = the default handle;

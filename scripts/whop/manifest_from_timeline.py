@@ -43,6 +43,34 @@ def measure(path: Path) -> float:
     return 0.0
 
 
+# A poster's `zone` is a NAME, not a coordinate pair. build_whop_clip picks one
+# of these and a real plan uses it (`plans/post3.json` sets "low"), so reading
+# the value as [y0, y1] hit `round("l")` and took the whole manifest down with
+# `TypeError: type str doesn't define __round__`. The gate then failed to build
+# for every render that used a named zone. A list is still accepted, because the
+# schema allows one.
+ZONES = {
+    "face":    [0.55, 0.66],
+    "graphic": [0.30, 0.36],
+    "scene":   [0.30, 0.36],
+    "payoff":  [0.73, 0.84],
+    "low":     [0.82, 0.90],
+    "lower":   [0.745, 0.835],
+}
+
+
+def _zone_band(zone) -> list[float] | None:
+    """The vertical band a poster occupies, from a zone name or a pair."""
+    if isinstance(zone, str):
+        return ZONES.get(zone)
+    if isinstance(zone, (list, tuple)) and len(zone) >= 2:
+        try:
+            return [float(zone[0]), float(zone[1])]
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
 def build(work: Path) -> dict:
     timeline = json.loads((work / "timeline.json").read_text())
     slice_path = work / "slice.json"
@@ -60,8 +88,9 @@ def build(work: Path) -> dict:
     # places its captions higher earns a band that matches, so the face check
     # judges the text that is on screen rather than a fixed strip.
     band = list(CAPTION_BAND)
-    zones = [item.get("zone") for item in timeline.get("items", [])
+    zones = [_zone_band(item.get("zone")) for item in timeline.get("items", [])
              if item.get("type") == "poster" and item.get("zone")]
+    zones = [z for z in zones if z]
     if zones:
         band = [int(round(min(z[0] for z in zones) * 1920)),
                 int(round(max(z[1] for z in zones) * 1920))]

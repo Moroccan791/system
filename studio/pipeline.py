@@ -246,12 +246,21 @@ def run(video: str, audio: str, captions: str | None, out: str,
         if accent_colour:
             h = accent_colour.lstrip("#")
             col = (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
-        fonts.set_family(font, accent, col)
-        if body_colour:
-            h = body_colour.lstrip("#")
-            fonts.set_colour((int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)))
+        if dry_run:
+            # A DRY RUN MUST NOT REMEMBER A CHOICE. It is a preview: it says what
+            # the edit would look like without committing to it. Persisting the
+            # face here meant `--font X --dry-run` — and every test that previews
+            # with a font — rewrote assets/fonts/family.json, so running the
+            # suite quietly changed the operator's saved typeface. The face is
+            # the operator's decision; a practice run is not a decision.
+            report["font_not_saved"] = True
         else:
-            fonts.set_colour(None)
+            fonts.set_family(font, accent, col)
+            if body_colour:
+                h = body_colour.lstrip("#")
+                fonts.set_colour((int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)))
+            else:
+                fonts.set_colour(None)
 
     if dry_run:
         from . import director
