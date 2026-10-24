@@ -1,0 +1,7 @@
+codec_name=vp9
+width=3840
+height=1606
+r_frame_rate=60/1
+nb_frames=N/A
+duration=262.064000
+size=228144092
