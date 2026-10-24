@@ -38,7 +38,7 @@ SAFE: dict[str, dict[str, float]] = {
     "square": {"top": 0.07, "bottom": 0.16, "side": 0.05},
 }
 
-_state: dict[str, str] = {"name": "landscape"}
+_state: dict[str, str] = {"name": "landscape", "scale": 1.0}
 
 
 def set_format(name: str) -> str:
@@ -52,8 +52,30 @@ def name() -> str:
     return _state["name"]
 
 
+def set_scale(k: float) -> float:
+    """Render at a fraction of the delivery size.
+
+    Not a style, a memory budget. `compose.decode_segment` holds every frame of
+    a cut before it composites, so a 6.5 s hold at 1080p is ~1.2 GB of RGB and
+    the box this ran on has 3.9 GB — the render was OOM-killed at exit 137. Half
+    size is a quarter of the pixels, which is the difference between a review
+    copy and no copy at all.
+    """
+    _state["scale"] = max(0.1, min(1.0, float(k)))
+    return _state["scale"]
+
+
+def scale() -> float:
+    return _state.get("scale", 1.0)
+
+
 def size() -> tuple[int, int]:
-    return FORMATS[_state["name"]]
+    w, h = FORMATS[_state["name"]]
+    k = _state.get("scale", 1.0)
+    if k != 1.0:
+        # even numbers only: x264 wants them, and an odd height is rejected
+        return (int(round(w * k / 2)) * 2, int(round(h * k / 2)) * 2)
+    return (w, h)
 
 
 def is_vertical() -> bool:

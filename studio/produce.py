@@ -122,6 +122,9 @@ def main(argv=None):
                          "(default: the lyric's own most-repeated short phrase)")
     ap.add_argument("--style", default=None,
                     help="a look from studio/styles.py (default: house)")
+    ap.add_argument("--scale", type=float, default=1.0,
+                    help="render at a fraction of the delivery size (memory "
+                         "budget, not a style) — 0.6667 gives 1280x720")
     ap.add_argument("--preset", default="medium")
     ap.add_argument("--crf", type=int, default=None,
                     help="default 18 clean, 23 when the look layer is on: grain "
@@ -129,6 +132,12 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.crf is None:
         a.crf = 23 if not a.no_look else 18
+
+    from . import frame as _frame
+
+    if a.scale != 1.0:
+        _frame.set_scale(a.scale)
+        print(f"scale {a.scale:g} -> {_frame.size()[0]}x{_frame.size()[1]}")
 
     t0 = time.time()
     grid = analyse_track(a.track, a.end)
@@ -169,7 +178,19 @@ def main(argv=None):
             raw = json.loads(Path(a.cards).read_text())
             placed = raw.get("cards", []) if isinstance(raw, dict) else raw
         elif a.timed:
-            placed = from_timed(a.track, parse_timed(a.timed), grid.duration)
+            # Line-level cards, not word-level. `from_timed` splits a line into
+            # per-word cards, which suits the house's one-word beats; these
+            # styles set a FRAGMENT — the whole line — and kill it on the cut.
+            # Passing words produced "is a" alone on screen, which is not a
+            # fragment, it is half a sentence.
+            lines = parse_timed(a.timed)
+            placed = []
+            for i, (t0, t1, text) in enumerate(lines):
+                if not text.strip():
+                    continue
+                nxt = lines[i + 1][0] if i + 1 < len(lines) else grid.duration
+                placed.append({"start": t0, "end": min(t1 or nxt, nxt),
+                               "text": text.strip(), "line": i})
         elif a.captions:
             lines = parse_lines(a.captions)
             placed = cards_from_words(lines, a.track, a.start,
@@ -262,6 +283,10 @@ def main(argv=None):
             lines = [t for _a, _b, t in parse_timed(a.timed)]
             cards = from_timed(a.track, parse_timed(a.timed),
                                grid.duration - a.start)
+            # These lines carry their own times, so polish() would move words
+            # that are already placed. It was never set on this branch, so
+            # --timed crashed with UnboundLocalError before it could render.
+            already_polished = True
         else:
             lines = parse_lines(a.captions)
             cards = cards_from_words(lines, a.track, a.start,

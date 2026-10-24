@@ -1,0 +1,140 @@
+{
+ "bpm": 119.0,
+ "cards": [
+  {
+   "beat": 0.198,
+   "text": "Ooh, ooh",
+   "line": 0,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 2.816
+  },
+  {
+   "beat": 14.651,
+   "text": "know, all",
+   "line": 1,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 17.136
+  },
+  {
+   "beat": 17.997,
+   "text": "I know",
+   "line": 1,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 19.403
+  },
+  {
+   "beat": 23.205,
+   "text": "Loving you",
+   "line": 2,
+   "accent": "YOU",
+   "pin": false,
+   "matte": false,
+   "until": 23.788
+  },
+  {
+   "beat": 26.15,
+   "text": "is a",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 26.868
+  },
+  {
+   "beat": 27.866,
+   "text": "losing game",
+   "line": 2,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 28.986
+  },
+  {
+   "beat": 30.94,
+   "text": "Ooh, ooh",
+   "line": 3,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 31.608
+  },
+  {
+   "beat": 43.614,
+   "text": "know, all",
+   "line": 4,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 45.256
+  },
+  {
+   "beat": 47.497,
+   "text": "I know",
+   "line": 4,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 48.623
+  },
+  {
+   "beat": 54.095,
+   "text": "is a",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 54.734
+  },
+  {
+   "beat": 55.43,
+   "text": "losing game",
+   "line": 5,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 56.878
+  },
+  {
+   "beat": 58.508,
+   "text": "Ooh, ooh",
+   "line": 6,
+   "accent": "",
+   "pin": false,
+   "matte": false,
+   "until": 59.792
+  },
+  {
+   "beat": 67.433,
+   "text": "All I",
+   "line": 7,
+   "accent": "ALL",
+   "pin": false,
+   "matte": false,
+   "until": 68.976
+  },
+  {
+   "beat": 71.709,
+   "text": "know, all",
+   "line": 7,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 72.675
+  },
+  {
+   "beat": 76.033,
+   "text": "I know",
+   "line": 7,
+   "accent": "KNOW",
+   "pin": false,
+   "matte": false,
+   "until": 77.761
+  }
+ ]
+}

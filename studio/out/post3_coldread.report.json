@@ -1,0 +1,90 @@
+{
+ "bpm": 119.0,
+ "duration": 47.49,
+ "size": "1920x1080@30",
+ "cuts": 38,
+ "acts": {
+  "build": {
+   "cuts": 6,
+   "seconds": 7.36,
+   "shots": 6,
+   "flash": 0
+  },
+  "drop": {
+   "cuts": 31,
+   "seconds": 33.63,
+   "shots": 31,
+   "flash": 0
+  },
+  "out": {
+   "cuts": 1,
+   "seconds": 6.5,
+   "shots": 1,
+   "flash": 0
+  }
+ },
+ "median_cut": 1.081,
+ "min_cut": 0.749,
+ "max_cut": 6.5,
+ "distinct_shots_used": 38,
+ "shots_available": 112,
+ "grid_error_ms_median": 29.2,
+ "grid_error_ms_max": 61.0,
+ "sections": [
+  {
+   "start": 0.0,
+   "end": 4.75,
+   "level": 0,
+   "label": "build"
+  },
+  {
+   "start": 4.75,
+   "end": 14.999,
+   "level": 1,
+   "label": "build"
+  },
+  {
+   "start": 14.999,
+   "end": 29.747,
+   "level": 0,
+   "label": "build"
+  },
+  {
+   "start": 29.747,
+   "end": 35.997,
+   "level": 2,
+   "label": "drop"
+  },
+  {
+   "start": 35.997,
+   "end": 37.997,
+   "level": 1,
+   "label": "mid"
+  },
+  {
+   "start": 37.997,
+   "end": 45.246,
+   "level": 2,
+   "label": "loud"
+  },
+  {
+   "start": 45.246,
+   "end": 47.7,
+   "level": 0,
+   "label": "quiet"
+  }
+ ],
+ "sound": {
+  "cues": 4,
+  "by_kind": {
+   "riser": 1,
+   "tape_stop": 0,
+   "impact": 1,
+   "sub_drop": 1,
+   "whoosh": 0,
+   "tick": 0,
+   "swell": 1
+  },
+  "on_grid_problems": []
+ }
+}
