@@ -85,7 +85,9 @@ jobs:
           # branch keeps the delivery copy, the probe and the audio
           rm -f studio/raw/post3/clip_*.webm studio/raw/post3/joined.webm \
                 studio/raw/post3/list.txt
-          git add -A studio/raw/post3
+          # -f because .gitignore excludes *.mp4 and *.mp3: a plain `git add`
+          # committed only the probe and nothing else (the first run proved it)
+          git add -f studio/raw/post3
           du -sh studio/raw/post3
           git commit -m "post3: four parts joined and transcoded to 1080p" || echo "nothing to commit"
           git push origin HEAD:${{ github.ref_name }}
