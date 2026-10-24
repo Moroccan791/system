@@ -184,6 +184,61 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
             .reshape(OUT_H, OUT_W, 3).copy() for i in range(n)]
 
 
+def push_in(frame: np.ndarray, k: float) -> np.ndarray:
+    """A slow push: crop a shrinking centre window and scale it back.
+
+    A shot that is still in the source has no motion of its own, so on screen it
+    reads as a frozen video — which is exactly how the last shot of an edit gets
+    called a mistake. Moving the FRAME over it is the standard answer: the
+    picture keeps breathing while the subject stays still.
+    """
+    if k <= 1.0005:
+        return frame
+    h, w = frame.shape[:2]
+    cw, ch = int(round(w / k)), int(round(h / k))
+    x, y = (w - cw) // 2, (h - ch) // 2
+    from PIL import Image as _Image
+
+    crop = _Image.fromarray(frame[y:y + ch, x:x + cw])
+    return np.asarray(crop.resize((w, h), _Image.LANCZOS))
+
+
+def resample(buf: list[np.ndarray], want: int) -> list[np.ndarray]:
+    """Stretch or squeeze a decoded cut to exactly `want` frames.
+
+    Slow motion is a TIME problem, not a decode problem. At 0.35x the source
+    span for a 1.6s cut is only 0.56s, so ffmpeg hands back 17 frames and the
+    renderer used to pad the remaining 31 by repeating the last one — a one
+    second freeze in the middle of the edit.
+
+    Mapping position instead of index, and BLENDING the two frames either side,
+    turns those repeats into intermediate frames: the movement keeps going,
+    smoothly, instead of stopping dead. That is what a real 0.35x looks like
+    when it is made from 30fps material without an optical-flow plug-in.
+    """
+    n = len(buf)
+    if n == 0:
+        return buf
+    if n == want:
+        return buf
+    if n > want:
+        # faster than realtime: pick evenly spaced frames, no blending needed
+        return [buf[min(n - 1, int(round(i * (n - 1) / max(1, want - 1))))]
+                for i in range(want)]
+    out: list[np.ndarray] = []
+    for i in range(want):
+        pos = i * (n - 1) / max(1, want - 1)
+        i0 = int(pos)
+        i1 = min(n - 1, i0 + 1)
+        w = pos - i0
+        if w < 1e-3:
+            out.append(buf[i0].copy())
+        else:
+            out.append((buf[i0].astype(np.float32) * (1.0 - w)
+                        + buf[i1].astype(np.float32) * w).astype(np.uint8))
+    return out
+
+
 def ramp_span(out_dur: float, ramp, speed: float | None = None) -> float:
     """How much SOURCE a ramped cut may consume.
 
@@ -613,8 +668,9 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                 f"cut {cut.index}: decoded no frames from {source_path} at "
                 f"{cut.src_in:.3f}s (+{cut.src_dur:.3f}s). Refusing to write "
                 f"black frames.")
-        while len(frames) < want:
-            frames.append(frames[-1])
+        # Slow motion decoded fewer frames than the cut lasts. Resample with
+        # blending; padding with the last frame is what froze the picture.
+        frames = resample(frames, want)
         for fi in range(want):
             t = cut.out_start + fi / OUT_FPS
             if premium:
@@ -637,6 +693,10 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                 from . import fx as _fx
                 frame = _fx.halation(frame)
                 frame = _fx.chroma(frame, 1.1)
+
+            # a still shot gets a slow push so it does not read as a stall
+            if cut.zoom and cut.zoom > 1.0005:
+                frame = push_in(frame, 1.0 + (cut.zoom - 1.0) * (fi / max(1, want - 1)))
 
             # the look layer: push inside the shot, settle on entry, grain.
             # Before the whip/flash so those still read as events ON the picture.

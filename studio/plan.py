@@ -94,6 +94,7 @@ class Cut:
     flash_frames: int = 2            # house flashes two frames; barrage uses three
     ramp: str | None = None          # name in ramp.RAMPS, or None for constant
     transition: str = "cut"          # cut | whip
+    zoom: float = 1.0                # 1.0 none; 1.12 = push in 12% over the cut
 
     # derived
     out_start: float = 0.0

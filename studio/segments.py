@@ -41,9 +41,22 @@ def load(path: str | Path) -> list[dict]:
             "len": float(c.get("len", 1.0)),
             "speed": float(c.get("speed", 1.0)),
             "note": c.get("note", ""),
+            "zoom": float(c.get("zoom", 1.0)),
             "act": c.get("act"),
         })
     out.sort(key=lambda c: c["at"])
+    # A gap is not a pause, because the renderer concatenates cuts. It is time
+    # that silently disappears, which shows up as every card landing late and
+    # the whole edit running short of the song. A small overlap is fine — that
+    # is a deliberate cross-cut — but a hole never is.
+    for a, b in zip(out, out[1:]):
+        end = a["at"] + a["len"]
+        if b["at"] - end > 0.02:
+            raise ValueError(
+                f"cut map has a {b['at'] - end:.2f}s HOLE at {end:.2f}s "
+                f"({a['note']!r} -> {b['note']!r}). The renderer concatenates "
+                f"cuts, so a hole is dropped time, not silence. Extend the "
+                f"previous cut instead.")
     return out
 
 
@@ -64,7 +77,7 @@ def build(grid, source, segments: list[dict], start: float = 0.0,
                   shot=_nearest_shot(source, s["in"]),
                   src_in=s["in"],
                   src_out=s["in"] + src_span,
-                  speed=s["speed"])
+                  speed=s["speed"], zoom=s["zoom"])
         cut.out_start = s["at"]
         cut.out_end = s["at"] + s["len"]
         if s.get("whip"):
