@@ -1,0 +1,769 @@
+{
+ "audio": "work/ref_remap.mp3",
+ "language": "en",
+ "start": 0.0,
+ "end": 182.0,
+ "duration": 182.0,
+ "chunks": [
+  {
+   "text": "it's pretty straightforward. So let's get right into this. So you want to press Ctrl+LT on the 28 highlight clip, so Ctrl+LT, and you see this time and map opens right here. So for this particular clip, you have the CanSwap at the start right here. So we want to put that right here. So if you can listen to a song on Marker 2, the B will start.",
+   "junk": 0.348,
+   "stamps": [],
+   "segments": [],
+   "offset": 0.0
+  },
+  {
+   "text": "So what we want to do right here is we want to cut our ear already that all the markers and place a clips and order bad away so we don't have to go through that on this the third time I'm recording this so that's why everything is already there but that's all the boring stuff you guys don't want to see that anyways all right so you want to go into the end pressing I will go to the start and pressing oh we'll go to the end of the flip and if you want to cut a one-up",
+   "junk": 0.428,
+   "stamps": [],
+   "segments": [],
+   "offset": 28.0
+  },
+  {
+   "text": "So if I want to cut right here, you can show shift D like that. Okay, so this is where he shoots. And this part will be where he will scope in. So we're going to move it forward a little bit and go like right here. Now for this one. Alright, so that is a party nice point. Like right before he opens the scoreboard, because we don't want to see that. Alright, so highlight this and press F9 or right click.",
+   "junk": 0.333,
+   "stamps": [],
+   "segments": [],
+   "offset": 56.0
+  },
+  {
+   "text": "click this and go Keyframe Assistance and go Easy. As you can see, it says F9. You can also edit the Keyboard Shortcuts. If you have a 6% Keyboard like me, anyone to go easy ease. And so you want to click on this and then you want to change it to whatever you want. Make sure it's not already selected. You can check right here. I think if you click on it, you can see what is what. So make sure you're not overwriting any Keyboard",
+   "junk": 0.324,
+   "stamps": [],
+   "segments": [],
+   "offset": 84.0
+  },
+  {
+   "text": "keyboard short keys. So get rid of this one right here. And then this one, so we start at 154, so let's go like there. So it's like a second. Alright, so I like this in an F9. And go into the graph editor right here. Now you want to click on this right here. And hold shift and click and drag. Now you see they're going to see through. So before they were",
+   "junk": 0.324,
+   "stamps": [],
+   "segments": [],
+   "offset": 112.0
+  },
+  {
+   "text": "click on it and shift and hold drag like that and now press the link you have a lot more space to work with. So for this since this is this start I want this to be starting slow so if I do this it will be very fast. If I do this it will start slow and I want to do it towards the middle not straight up",
+   "junk": 0.417,
+   "stamps": [],
+   "segments": [],
+   "offset": 140.0
+  },
+  {
+   "text": "under half. For this one is very easy because it has 80 at the top and zero so under 40 but that's different for each part and for this one I'm going to go over half. Also not straight down towards",
+   "junk": 0.205,
+   "stamps": [],
+   "segments": [],
+   "offset": 168.0
+  }
+ ],
+ "sweep": [
+  {
+   "start": 0.0,
+   "text": "It's pretty straightforward. So let's get right into this. So you want to press Ctrl+T."
+  },
+  {
+   "start": 1.0,
+   "text": "It's pretty straightforward. So let's get rid of this. So you want to press control alt T on 20"
+  },
+  {
+   "start": 2.0,
+   "text": "So let's get right into this. So you want to press Ctrl+Alt+T on 28 highlight clip."
+  },
+  {
+   "start": 3.0,
+   "text": "So let's get rid of this. So you want to press Ctrl+LT on when you highlight the clip, so Ctrl+LT, any..."
+  },
+  {
+   "start": 4.0,
+   "text": "So you want to press control alt t on when a high-light clip so control alt t and you see this time remap oh"
+  },
+  {
+   "start": 5.0,
+   "text": "Ctrl Alt + T on the... when a high-light clip, so Ctrl Alt + T, and you see this time remap opens right here."
+  },
+  {
+   "start": 6.0,
+   "text": "on the, when you highlight the clip, so you can control all T, and you see this time remap opens right here."
+  },
+  {
+   "start": 7.0,
+   "text": "Highlight Clip, so Control Alt + T, and you see this time remap opens right here."
+  },
+  {
+   "start": 8.0,
+   "text": "and you see this time remap opens right here. So for this particular clip,"
+  },
+  {
+   "start": 9.0,
+   "text": "this time map opens right here. So for this particular clip,"
+  },
+  {
+   "start": 10.0,
+   "text": "So for this particular clip,"
+  },
+  {
+   "start": 11.0,
+   "text": "So for this particular clip, you have the cancel."
+  },
+  {
+   "start": 12.0,
+   "text": "So for this particular clip, you have the can swap at the side right here."
+  },
+  {
+   "start": 13.0,
+   "text": "your killer clip, you have the can swap at the side right here."
+  },
+  {
+   "start": 14.0,
+   "text": "You have the can swap at this side right here. So we want to"
+  },
+  {
+   "start": 15.0,
+   "text": "You have the can swap at the start right here. So we want to put that right here."
+  },
+  {
+   "start": 16.0,
+   "text": "you have the can swap that is already here. So we want to put that right here. So if you're going to listen to some"
+  },
+  {
+   "start": 17.0,
+   "text": "that are here. So we want to put that here. So if you can listen to a song"
+  },
+  {
+   "start": 18.0,
+   "text": "So we want to put that here. So if you can listen to a song on Mark"
+  },
+  {
+   "start": 19.0,
+   "text": "We want to put that here. So if you can listen to song on marker 2 the B"
+  },
+  {
+   "start": 20.0,
+   "text": "better here so if you can listen to song on marker 2 the B will start"
+  },
+  {
+   "start": 21.0,
+   "text": "If you can listen to a song on Marker 2, the B will serve."
+  },
+  {
+   "start": 22.0,
+   "text": "on marker 2 the B will surf."
+  },
+  {
+   "start": 23.0,
+   "text": "on marker 2 that B will serve."
+  },
+  {
+   "start": 24.0,
+   "text": "So what we want to do"
+  },
+  {
+   "start": 25.0,
+   "text": "So what we want to do right here is"
+  },
+  {
+   "start": 26.0,
+   "text": "So what we want to do right here is we want to cut our ear"
+  },
+  {
+   "start": 27.0,
+   "text": "So what we want to do right here is we want to cut our ear already the all the marker"
+  },
+  {
+   "start": 28.0,
+   "text": "So what we want to do right here is we want to cut our ear already that all the markers and place it"
+  },
+  {
+   "start": 29.0,
+   "text": "So what we want to do right here is we want to cut our ear. Already the all the markers and place the clips in order."
+  },
+  {
+   "start": 30.0,
+   "text": "right here is we want to cut a rear. Already the all the markers and place a clips and order bad away so"
+  },
+  {
+   "start": 31.0,
+   "text": "want to cut or you're already the all the markers and place a clips and order bad away so we don't have to go through"
+  },
+  {
+   "start": 32.0,
+   "text": "already that all the markers and place a clips and order battleways, so we don't have to go through that."
+  },
+  {
+   "start": 33.0,
+   "text": "and place a clips and order a bad way. So we don't have to go through that. This is the third time I record"
+  },
+  {
+   "start": 34.0,
+   "text": "clips and order battleways so we don't have to go through that on this the third time I'm recording this so"
+  },
+  {
+   "start": 35.0,
+   "text": "So we don't have to go through that and this is the third time I'm recording this so that's why everything is already"
+  },
+  {
+   "start": 36.0,
+   "text": "We don't have to go through that. This is the third time I'm recording this, so that's why everything is already there. Bye!"
+  },
+  {
+   "start": 37.0,
+   "text": "that and this is the third time I'm recording this so that's why everything is already there but that's all the boring stuff"
+  },
+  {
+   "start": 38.0,
+   "text": "the third time I'm recording this so that's why everything is already there. But that's all the boring stuff you guys don't want to see that in."
+  },
+  {
+   "start": 39.0,
+   "text": "that's why everything is already there. But that's all the boring stuff you guys don't want to see that anyways."
+  },
+  {
+   "start": 40.0,
+   "text": "That's why everything is already there. But that's all the boring stuff you guys don't want to see that anyways. Alright, so..."
+  },
+  {
+   "start": 41.0,
+   "text": "there. But that's all the boring stuff you guys don't want to see that anyways. Alright, so you want to go into this"
+  },
+  {
+   "start": 42.0,
+   "text": "That's all the boring stuff you guys don't want to see that anyways. Alright, so you want to go into the end."
+  },
+  {
+   "start": 43.0,
+   "text": "If you guys don't want to see that anyways, so you want to go into the end. Press"
+  },
+  {
+   "start": 44.0,
+   "text": "Anyways, alright, so you want to go into the end pressing I"
+  },
+  {
+   "start": 45.0,
+   "text": "So you want to go into the the end pressing I will go to the start"
+  },
+  {
+   "start": 46.0,
+   "text": "want to go into the end pressing I will go to the start and pressing O"
+  },
+  {
+   "start": 47.0,
+   "text": "the end. Pressing \"I\" will go to the \"Sar\" and pressing \"O\" will go to the end of the..."
+  },
+  {
+   "start": 48.0,
+   "text": "Pressing \"I\" will go to the start and pressing \"O\" will go to the end of the loop."
+  },
+  {
+   "start": 49.0,
+   "text": "I will go to the star and pressing oh we'll go to the end of the clip and if you want to cut it"
+  },
+  {
+   "start": 50.0,
+   "text": "We'll go to the star and pressing oh we'll go to the end of the loop. And if you want to cut it one of press control shape."
+  },
+  {
+   "start": 51.0,
+   "text": "and pressing \"oh we'll go to the end of the flip\" and if you want to cut it one of Pres Control Shift D so"
+  },
+  {
+   "start": 52.0,
+   "text": "will go to the end of the clip. And if you want to cut it, one of Prescontrol Shift D, so if I want to cut it right here."
+  },
+  {
+   "start": 53.0,
+   "text": "And if you want to cut it, you want to press Ctrl+Shift+D. So if I want to cut right here, you're Ctrl+Shift+D"
+  },
+  {
+   "start": 54.0,
+   "text": "And if you want to cut it, you want to press Ctrl+Shift+D. So if I want to cut right here, you're Ctrl+Shift+D"
+  },
+  {
+   "start": 55.0,
+   "text": "one of presidential shift D so if I want to cut right here your presidential shift D like that."
+  },
+  {
+   "start": 56.0,
+   "text": "D so if I want to cut right here your control shift D like that. Okay, so this is where he shoots."
+  },
+  {
+   "start": 57.0,
+   "text": "So if I want to cut right here, your console shift D like that. So this is where he shoots."
+  },
+  {
+   "start": 58.0,
+   "text": "your console shift D like that. So this is where it shoots. And this part will be"
+  },
+  {
+   "start": 59.0,
+   "text": "like that. Okay, so this is ratio. And this part will be where"
+  },
+  {
+   "start": 60.0,
+   "text": "Okay, so this is ratio and this part will be where he will"
+  },
+  {
+   "start": 61.0,
+   "text": "This is where he shoots. And this part will be where he will scope in."
+  },
+  {
+   "start": 62.0,
+   "text": "and this part will be where he will scope in. So we're going to move."
+  },
+  {
+   "start": 63.0,
+   "text": "this part will be where he will scope in. So we're going to move it forward a little bit."
+  },
+  {
+   "start": 64.0,
+   "text": "where he will scope in so we're gonna move it forward a little bit and go"
+  },
+  {
+   "start": 65.0,
+   "text": "will scope in. So we're going to move it forward a little bit and go like right here."
+  },
+  {
+   "start": 66.0,
+   "text": "So we're going to move it forward a little bit and go like right here. Now..."
+  },
+  {
+   "start": 67.0,
+   "text": "So we're going to move it forward a little bit and go like right here. Now for this one."
+  },
+  {
+   "start": 68.0,
+   "text": "forward a little bit and go like right here. Now for this one, I saved that"
+  },
+  {
+   "start": 69.0,
+   "text": "and go right here. Now for this one, I can save that as a pretty nice"
+  },
+  {
+   "start": 70.0,
+   "text": "like right here. Now for this one. Alright, so that is a pretty nice point, like right before."
+  },
+  {
+   "start": 71.0,
+   "text": "Now for this one. Alright, so that is a pretty nice point, like right before he opens the..."
+  },
+  {
+   "start": 72.0,
+   "text": "for this one."
+  },
+  {
+   "start": 73.0,
+   "text": "Alright, so that is a pretty nice point like right before he opens the scoreboard because we don't want to see that"
+  },
+  {
+   "start": 74.0,
+   "text": "That is a pretty nice point, like right before he opens the scoreboard, because we don't want to see that."
+  },
+  {
+   "start": 75.0,
+   "text": "point like right before he opens the scoreboard because we don't want to see that. Alright so highlight"
+  },
+  {
+   "start": 76.0,
+   "text": "for you opens the scoreboard because we don't want to see that. Alright, so highlight this and"
+  },
+  {
+   "start": 77.0,
+   "text": "forward because we don't want to see that. Alright so highlight this and press F9."
+  },
+  {
+   "start": 78.0,
+   "text": "I want to see that. Alright, so highlight this and press F9 or right-click."
+  },
+  {
+   "start": 79.0,
+   "text": "Alright, so highlight this and press F9 or right-click this."
+  },
+  {
+   "start": 80.0,
+   "text": "So highlight this and press F9 or right click this and go"
+  },
+  {
+   "start": 81.0,
+   "text": "this and press F9 or right click this and go key from assistance and"
+  },
+  {
+   "start": 82.0,
+   "text": "press F9 or right click this and go key from assistance and go easy."
+  },
+  {
+   "start": 83.0,
+   "text": "or right-click this and go key from assistance and go easy. As you can see it says F9."
+  },
+  {
+   "start": 84.0,
+   "text": "click this and go key from assistance and go easy as you can see it says F9. You can also"
+  },
+  {
+   "start": 85.0,
+   "text": "and go key from assistance and go easy as you can see it says F9 you can also edit the"
+  },
+  {
+   "start": 86.0,
+   "text": "key from assistance and go easy. As you can see, it says F9. You can also edit the keyboard shortcuts."
+  },
+  {
+   "start": 87.0,
+   "text": "easy as an execute system says f9 you can also edit the keyboard shortcuts if you have a six-princing"
+  },
+  {
+   "start": 88.0,
+   "text": "He says f9. You can also edit the keyboard shortcuts. If you have a 6% keyboard like me."
+  },
+  {
+   "start": 89.0,
+   "text": "You can also edit the keyboard shortcuts. If you have a 6% keyboard like me,"
+  },
+  {
+   "start": 90.0,
+   "text": "edit the keyboard shortcuts. If you have a 6% keyboard like me, anyone to go easy."
+  },
+  {
+   "start": 91.0,
+   "text": "keyboard shortcuts. If you have a 6% keyboard like me and you want to go easy ease and"
+  },
+  {
+   "start": 92.0,
+   "text": "If you have a 6% Keyboard like me, and you want to go easy ease, and so you want to..."
+  },
+  {
+   "start": 93.0,
+   "text": "you where it like me and you want to go easy ease and so you want to click on this"
+  },
+  {
+   "start": 94.0,
+   "text": "and you want to go easy ease and so you want to click on this and then you want to change"
+  },
+  {
+   "start": 95.0,
+   "text": "and you want to go easy ease and so you want to click on this and then you want to change it to whatever you want."
+  },
+  {
+   "start": 96.0,
+   "text": "use and so you want to click on this and then you want to change it to whatever you want. Make sure"
+  },
+  {
+   "start": 97.0,
+   "text": "So you want to click on this and then you want to change it to whatever you want. Make sure it's not already selected."
+  },
+  {
+   "start": 98.0,
+   "text": "click on this and then you want to change it to whatever you want. Make sure it's not already selected."
+  },
+  {
+   "start": 99.0,
+   "text": "and then you want to change it to whatever you want. Make sure it's not already selected. You can check right here."
+  },
+  {
+   "start": 100.0,
+   "text": "it to whatever you want. Make sure it's not already selected. You can check right here. I think"
+  },
+  {
+   "start": 101.0,
+   "text": "Make sure it's not already selected. You can check right here. I think you click on it."
+  },
+  {
+   "start": 102.0,
+   "text": "It's not already selected. You can check right here. I think if you click on it, you can see what is left."
+  },
+  {
+   "start": 103.0,
+   "text": "You can check right here. I think if you click on it you can see what is what so"
+  },
+  {
+   "start": 104.0,
+   "text": "Check right here. I think if you click on it you can see what is what. So make sure you're not..."
+  },
+  {
+   "start": 105.0,
+   "text": "I think if you click on it you can see what is what so make sure you're not overwriting"
+  },
+  {
+   "start": 106.0,
+   "text": "Click on it and you can see what is what. So make sure you're not overwriting any keyfurchs."
+  },
+  {
+   "start": 107.0,
+   "text": "can see what is what. So make sure you're not overwriting any keyboard short keys."
+  },
+  {
+   "start": 108.0,
+   "text": "it so make sure you're not overwriting any keyboard short keys."
+  },
+  {
+   "start": 109.0,
+   "text": "make sure you're not overwriting any keyboard short keys. So get rid of this one right here."
+  },
+  {
+   "start": 110.0,
+   "text": "overwriting any keyboard short keys. So get rid of this one right here."
+  },
+  {
+   "start": 111.0,
+   "text": "any keyboard short keys. So get rid of this one right here and then this one."
+  },
+  {
+   "start": 112.0,
+   "text": "keyboard short keys. So get rid of this one right here. And then this one, so we start"
+  },
+  {
+   "start": 113.0,
+   "text": "So get rid of this one right here. And then this one, so we start at 150."
+  },
+  {
+   "start": 114.0,
+   "text": "Get rid of this one right here. And then this one, so we start at 154."
+  },
+  {
+   "start": 115.0,
+   "text": "And then this one, so we start at 154, so let's go"
+  },
+  {
+   "start": 116.0,
+   "text": "And then this one, so we start at 154, so let's go..."
+  },
+  {
+   "start": 117.0,
+   "text": "So we start at 154 so let's go Like there so it's like a"
+  },
+  {
+   "start": 118.0,
+   "text": "at 154 so let's go like there so it's like a second"
+  },
+  {
+   "start": 119.0,
+   "text": "four so let's go like there so it's like a second all right so highlight"
+  },
+  {
+   "start": 120.0,
+   "text": "go like there. So it's like a second. Alright, so I like this in an F."
+  },
+  {
+   "start": 121.0,
+   "text": "Like there, so it's like a second. Alright, so I like this in an F9"
+  },
+  {
+   "start": 122.0,
+   "text": "there so it's like a second. Alright so I like this in an F9."
+  },
+  {
+   "start": 123.0,
+   "text": "Alright, so I like this in an F9 and go into the graph and"
+  },
+  {
+   "start": 124.0,
+   "text": "Alright, so I like this in an F9 and go into the graph editor right here."
+  },
+  {
+   "start": 125.0,
+   "text": "this in an f9 and go into the graph editor right here now you"
+  },
+  {
+   "start": 126.0,
+   "text": "9 and go into the graph editor right here now you want to click on this"
+  },
+  {
+   "start": 127.0,
+   "text": "and go into the graph editor right here now you want to click on this right here"
+  },
+  {
+   "start": 128.0,
+   "text": "Then go into the graph editor right here. Now you want to click on this right here and hold"
+  },
+  {
+   "start": 129.0,
+   "text": "right here now you want to click on this right here and hold shift and click"
+  },
+  {
+   "start": 130.0,
+   "text": "Now you want to click on this right here and hold Shift and click and drag."
+  },
+  {
+   "start": 131.0,
+   "text": "click on this and hold shift and click and drag now you see"
+  },
+  {
+   "start": 132.0,
+   "text": "Right here and hold shift and click and drag now you see there to like see through"
+  },
+  {
+   "start": 133.0,
+   "text": "and hold shift and click and drag now you see there to like see through so before they're"
+  },
+  {
+   "start": 134.0,
+   "text": "shift and click and drag. Now you see they're like see through. So before they were like this."
+  },
+  {
+   "start": 135.0,
+   "text": "click and drag, now you see they're like see through. So before they were like this,"
+  },
+  {
+   "start": 136.0,
+   "text": "Now you see they like see through so before they were like this so you click on it"
+  },
+  {
+   "start": 137.0,
+   "text": "to like see through. So before they were like this, so you click on it and then shift."
+  },
+  {
+   "start": 138.0,
+   "text": "So before they were like this, so you click on it and then shift and hold"
+  },
+  {
+   "start": 139.0,
+   "text": "where we're like this. So you click on it and then shift and hold drag like that."
+  },
+  {
+   "start": 140.0,
+   "text": "click on it and shift and hold drag like that and now press the lead"
+  },
+  {
+   "start": 141.0,
+   "text": "click on it and shift and hold drag like that and now press the lead you have a lot more"
+  },
+  {
+   "start": 142.0,
+   "text": "and shift and hold drag like that and now press the lead you have a lot more space to work with"
+  },
+  {
+   "start": 143.0,
+   "text": "and hold drag like that and now press the lead, you have a lot more space to work with."
+  },
+  {
+   "start": 144.0,
+   "text": "Try like that and now press the lead you have a lot more space to work with so for this"
+  },
+  {
+   "start": 145.0,
+   "text": "and now press the link, you have a lot more space to work with. So for this, since this is this"
+  },
+  {
+   "start": 146.0,
+   "text": "You have a lot more space to work with. So for this since this is this starboard."
+  },
+  {
+   "start": 147.0,
+   "text": "space to work with. So for this, since this is this star, I want this"
+  },
+  {
+   "start": 148.0,
+   "text": "So for this since this is this star I want this to be"
+  },
+  {
+   "start": 149.0,
+   "text": "So for this, since this is the start, I want this to be starting slow."
+  },
+  {
+   "start": 150.0,
+   "text": "Since this is the start, I want this to be starting slow."
+  },
+  {
+   "start": 151.0,
+   "text": "I want this to be starting slow. So if I do this..."
+  },
+  {
+   "start": 152.0,
+   "text": "I want this to be starting slow so if I do this it will be very fast"
+  },
+  {
+   "start": 153.0,
+   "text": "to be starting slow. So if I do this it will be very fast. If I do this"
+  },
+  {
+   "start": 154.0,
+   "text": "Starting slow so if I do this it will be very fast if I do this it will start"
+  },
+  {
+   "start": 155.0,
+   "text": "So if I do this it will be very fast if I do this it will start slow"
+  },
+  {
+   "start": 156.0,
+   "text": "If I do this, it will be very fast. If I do this, it will start slow."
+  },
+  {
+   "start": 157.0,
+   "text": "will be very fast. If I do this, it will start slow. And I want to do it towards the middle"
+  },
+  {
+   "start": 158.0,
+   "text": "If I do this it will start slow and I want to do it towards the middle not straight up"
+  },
+  {
+   "start": 159.0,
+   "text": "it will start slow and I want to do it towards the middle not straight up it's gonna be still"
+  },
+  {
+   "start": 160.0,
+   "text": "slow and I want to do it towards the middle not straight up it's going to be still very fast so"
+  },
+  {
+   "start": 161.0,
+   "text": "and I want to do it towards the middle not straight up, it's going to be still very fine."
+  },
+  {
+   "start": 162.0,
+   "text": "Towards the middle not straight up. It's gonna be still very fast so like some really towards the middle"
+  },
+  {
+   "start": 163.0,
+   "text": "not straight up, it's gonna be still very fast. So like some are like towards the middle and under half."
+  },
+  {
+   "start": 164.0,
+   "text": "it's gonna be still very fast. So like some are like towards the middle and under half."
+  },
+  {
+   "start": 165.0,
+   "text": "very fast, so like some are like towards the middle and under half. For this one is very..."
+  },
+  {
+   "start": 166.0,
+   "text": "like some are like towards the middle and under half. For this one is very easy because this"
+  },
+  {
+   "start": 167.0,
+   "text": "towards the middle and under half. For this one is very easy because there's 80"
+  },
+  {
+   "start": 168.0,
+   "text": "and under half. For this one is very easy because there's 80 at the top and"
+  },
+  {
+   "start": 169.0,
+   "text": "For this one is very easy because there's 80 at the top and 0 so under"
+  },
+  {
+   "start": 170.0,
+   "text": "This one is very easy because it has 80 at the top and 0, so under 40."
+  },
+  {
+   "start": 171.0,
+   "text": "because there's 80 at the top and 0 so under 40 but that's different for e"
+  },
+  {
+   "start": 172.0,
+   "text": "80 at the top and 0 so under 40 but that's different for each part"
+  },
+  {
+   "start": 173.0,
+   "text": "at the top and zero, so under 40, but that's different for each part. And for the"
+  },
+  {
+   "start": 174.0,
+   "text": "So under 40, but that's different for each part and for this one I'm gonna go over how"
+  },
+  {
+   "start": 175.0,
+   "text": "40 but that's different for each part and for this one I'm gonna go over half also not straight"
+  },
+  {
+   "start": 176.0,
+   "text": "That's different for each part and for this one I'm gonna go over half also not straight down towards"
+  }
+ ],
+ "full_text": "it's pretty straightforward. So let's get right into this. So you want to press Ctrl+LT on the 28 highlight clip, so Ctrl+LT, and you see this time and map opens right here. So for this particular clip, you have the CanSwap at the start right here. So we want to put that right here. So if you can listen to a song on Marker 2, the B will start. So what we want to do right here is we want to cut our ear already that all the markers and place a clips and order bad away so we don't have to go through that on this the third time I'm recording this so that's why everything is already there but that's all the boring stuff you guys don't want to see that anyways all right so you want to go into the end pressing I will go to the start and pressing oh we'll go to the end of the flip and if you want to cut a one-up So if I want to cut right here, you can show shift D like that. Okay, so this is where he shoots. And this part will be where he will scope in. So we're going to move it forward a little bit and go like right here. Now for this one. Alright, so that is a party nice point. Like right before he opens the scoreboard, because we don't want to see that. Alright, so highlight this and press F9 or right click. click this and go Keyframe Assistance and go Easy. As you can see, it says F9. You can also edit the Keyboard Shortcuts. If you have a 6% Keyboard like me, anyone to go easy ease. And so you want to click on this and then you want to change it to whatever you want. Make sure it's not already selected. You can check right here. I think if you click on it, you can see what is what. So make sure you're not overwriting any Keyboard keyboard short keys. So get rid of this one right here. And then this one, so we start at 154, so let's go like there. So it's like a second. Alright, so I like this in an F9. And go into the graph editor right here. Now you want to click on this right here. And hold shift and click and drag. Now you see they're going to see through. So before they were click on it and shift and hold drag like that and now press the link you have a lot more space to work with. So for this since this is this start I want this to be starting slow so if I do this it will be very fast. If I do this it will start slow and I want to do it towards the middle not straight up under half. For this one is very easy because it has 80 at the top and zero so under 40 but that's different for each part and for this one I'm going to go over half. Also not straight down towards"
+}
