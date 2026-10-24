@@ -156,23 +156,55 @@ def main(argv=None):
         mod = import_module(f"studio.{_own_planner}")
         plan = mod.build(grid, src, a.start, a.end, a.seed)
         print(mod.summarise(plan))
+
+        # The words. A style that plans its own shots still puts the lyric on
+        # screen, so the caption sources have to be read HERE too — before this,
+        # --captions was silently ignored by every own-planner style and the
+        # edit rendered clean with no type at all.
+        from .captions import (cards_from_words, from_timed, parse_lines,
+                               parse_timed)
+
+        placed = None
+        if a.cards:
+            raw = json.loads(Path(a.cards).read_text())
+            placed = raw.get("cards", []) if isinstance(raw, dict) else raw
+        elif a.timed:
+            placed = from_timed(a.track, parse_timed(a.timed), grid.duration)
+        elif a.captions:
+            lines = parse_lines(a.captions)
+            placed = cards_from_words(lines, a.track, a.start,
+                                      grid.duration - a.start)
+        if placed:
+            # placed[] is in TRACK seconds; a style works in EDIT seconds
+            placed = [dict(c, start=round(c["start"] - (a.start or 0.0), 3),
+                           end=round(c["end"] - (a.start or 0.0), 3))
+                      for c in placed]
+            print(f"words: {len(placed)} placed from "
+                  f"{'cards' if a.cards else 'timed lines' if a.timed else 'the lyric'}")
+            cards = placed
+            a.cards = "__placed__"
+
         if a.cards:
             # These styles still DRAW type when a card table is supplied; they
             # just do not let it choose the shots. The table is copied into the
             # script the compositor reads, unchanged.
             from .captions import to_script
 
-            raw = json.loads(Path(a.cards).read_text())
-            cards = raw.get("cards", []) if isinstance(raw, dict) else raw
+            if a.cards == "__placed__":
+                cards = placed
+            else:
+                raw = json.loads(Path(a.cards).read_text())
+                cards = raw.get("cards", []) if isinstance(raw, dict) else raw
             card_until = getattr(mod, "type_until", None)
             stop = card_until(plan) if card_until else None
-            # The card table is in TRACK seconds; the type rule is in EDIT
-            # seconds (it describes the finished video). Comparing the two
-            # directly dropped every card, because neither numbering starts at
-            # the window's first frame.
-            origin_s = a.start or 0.0
-            cards = [c for c in cards
-                     if (c["start"] - origin_s) < (stop or 1e9)]
+            # A card FILE is in track seconds; `placed` above is already in
+            # edit seconds. Only the file needs the window start subtracted —
+            # doing it twice moves every card before frame one.
+            if a.cards == "__placed__":
+                origin_s = 0.0
+            else:
+                origin_s = a.start or 0.0
+            cards = [c for c in cards if (c["start"] - origin_s) < (stop or 1e9)]
             # A style may reshape its own type — cold_read kills a fragment on
             # the cut, hymn holds a line across cuts, hype allows one word.
             shape = getattr(mod, "shape_cards", None)

@@ -92,7 +92,14 @@ def probe(path: str | Path) -> dict:
 # structure
 # ---------------------------------------------------------------------------
 def _frames(path: str, info: dict, w: int = 240) -> tuple[np.ndarray, np.ndarray]:
-    """Every frame: small RGB for colour work, grey for motion."""
+    """Every frame: small RGB for colour work, grey for motion.
+
+    Memory is the constraint, not speed: a 262 s clip is 7,862 frames, and
+    converting all of it to float32 at once asked for 4.2 GB and took the
+    process down with an ArrayMemoryError. The decode stays whole (it is one
+    ffmpeg process), but the grey conversion runs in blocks and writes into a
+    preallocated float32 buffer, which peaks at a few hundred MB instead.
+    """
     h = max(2, int(round(w * info["h"] / max(1, info["w"]))))
     raw = subprocess.run(
         [ffmpeg(), "-nostdin", "-v", "error", "-i", path,
@@ -100,7 +107,11 @@ def _frames(path: str, info: dict, w: int = 240) -> tuple[np.ndarray, np.ndarray
         capture_output=True).stdout
     n = len(raw) // (w * h * 3)
     rgb = np.frombuffer(raw[: n * w * h * 3], np.uint8).reshape(n, h, w, 3)
-    grey = (rgb.astype(np.float32) * [0.2126, 0.7152, 0.0722]).sum(axis=3)
+    grey = np.empty((n, h, w), np.float32)
+    weights = np.array([0.2126, 0.7152, 0.0722], np.float32)
+    for i0 in range(0, n, 512):
+        block = rgb[i0:i0 + 512].astype(np.float32)
+        grey[i0:i0 + 512] = (block * weights).sum(axis=3)
     return rgb, grey
 
 
