@@ -74,3 +74,48 @@ music-led edit anywhere in the repo to measure against — the only edit-like
 material is the four reels above plus Premiere/AE tutorials whose frame
 differences are screen-capture UI changes, not cuts. Anything claimed about that
 style would be invented, so none of it is claimed here.
+
+---
+
+# The tutorials, transcribed
+
+The four reels show *what* the edits look like. The tutorials show *how they are
+made*, so I transcribed the time-remap one rather than inferring it from
+thumbnails (ASR runs in CI; the audio slice is `work/ref_remap.mp3`).
+
+What he actually says, verbatim:
+
+> "you want to press ctrl-alt-T … and you see this timer map opens"
+> "if you listen to a song on marker 2 the B will start"
+> "pressing I will go to the start and pressing O will go to the end"
+> "press F9 or right click and go keyframe assistant and go Easy Ease"
+> "since this is the start, I want this to be starting slow. If I do this it'll
+>  be very fast; if I do this it will start slow, and I want to do it towards
+>  the middle, not straight up"
+> "there's 80 at the top and zero, so under 40"
+
+## The method, in three rules
+
+1. **Time remap, not slow motion.** The speed is a *curve* over the clip, not a
+   constant. He opens the speed graph and drags the handles.
+2. **Easy Ease every keyframe (F9).** Both edges are flat. The change of pace is
+   approached smoothly from a normal-speed moment, never stepped into.
+3. **Never let the curve hit zero or go vertical.** "Towards the middle, not
+   straight up." A speed of zero is a freeze; a vertical jump is a snap. He
+   works in the middle of the graph on purpose.
+
+Plus two timing habits: clips are laid on **music markers**, and cuts are made
+against the **action** ("this is where he shoots", "right before you open the
+scoreboard" — i.e. cut *before* the beat you want to hide).
+
+## What that changed in the engine
+
+`studio/ramp.py` gained eased ramps — `sink` (normal → slow) and `surface`
+(slow → normal) — which use a smoothstep edge instead of a power curve, the
+software equivalent of F9. Eleven cuts in `footage/post3/cutmap.json` now use
+`sink` instead of one flat speed.
+
+Measured on the render: inside the ramped section (41.0–45.4 s) the
+frame-to-frame difference never reaches zero — **minimum 0.75, median 2.98, no
+dead frames**. The picture keeps moving through the whole slow-motion passage,
+which is the entire point of the rule.

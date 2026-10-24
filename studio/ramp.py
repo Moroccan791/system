@@ -28,6 +28,13 @@ RAMPS = {
     "launch": (0.55, 1.85, 0.8),
     # gentle drift, for the out act
     "drift": (0.75, 0.45, 1.0),
+    # ease from normal speed INTO slow motion and stay there. The 4th value is
+    # `smooth`: an eased (smoothstep) edge instead of a power curve, which is
+    # what F9 Easy Ease does in the reference — the speed graph leaves the
+    # keyframe flat, so the change of pace is felt rather than stepped into.
+    "sink": (1.00, 0.34, 1.0, True),
+    # come OUT of slow motion and pick up again, eased at both edges
+    "surface": (0.34, 1.00, 1.0, True),
 }
 
 
@@ -36,10 +43,11 @@ class Ramp:
     start_speed: float
     end_speed: float
     curve: float = 1.0      # >1 = change happens late, <1 = happens early
+    smooth: bool = False    # eased at both ends (keyframe "Easy Ease")
 
     def speed(self, u: float) -> float:
         u = min(1.0, max(0.0, u))
-        e = u ** self.curve
+        e = (u * u * (3.0 - 2.0 * u)) if self.smooth else (u ** self.curve)
         return self.start_speed + (self.end_speed - self.start_speed) * e
 
     def offset(self, u: float, steps: int = 240) -> float:
@@ -60,12 +68,15 @@ class Ramp:
         return {"start_speed": round(self.start_speed, 3),
                 "end_speed": round(self.end_speed, 3),
                 "curve": self.curve,
+                "smooth": self.smooth,
                 "mean_speed": round(self.mean_speed, 3)}
 
 
 def make(name: str) -> Ramp:
-    a, b, c = RAMPS[name]
-    return Ramp(a, b, c)
+    spec = RAMPS[name]
+    a, b, c = spec[:3]
+    smooth = bool(spec[3]) if len(spec) > 3 else False
+    return Ramp(a, b, c, smooth)
 
 
 def mean_speed_of(spec) -> float:

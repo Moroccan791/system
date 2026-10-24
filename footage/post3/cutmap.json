@@ -26,22 +26,25 @@
    "at": 5.66,
    "in": 119.0,
    "len": 1.2,
-   "speed": 0.5,
-   "note": "her face"
+   "speed": 0.67,
+   "note": "her face",
+   "ramp": "sink"
   },
   {
    "at": 6.86,
    "in": 120.4,
    "len": 1.2,
-   "speed": 0.45,
-   "note": "her eyes"
+   "speed": 0.67,
+   "note": "her eyes",
+   "ramp": "sink"
   },
   {
    "at": 8.06,
    "in": 121.6,
    "len": 1.2,
-   "speed": 0.45,
-   "note": "her mouth"
+   "speed": 0.67,
+   "note": "her mouth",
+   "ramp": "sink"
   },
   {
    "at": 9.26,
@@ -75,8 +78,9 @@
    "at": 9.66,
    "in": 124.0,
    "len": 1.94,
-   "speed": 0.7,
-   "note": "hair across her face"
+   "speed": 0.67,
+   "note": "hair across her face",
+   "ramp": "sink"
   },
   {
    "at": 11.6,
@@ -124,8 +128,9 @@
    "at": 12.38,
    "in": 129.0,
    "len": 3.12,
-   "speed": 0.35,
-   "note": "THE WEB, held"
+   "speed": 0.67,
+   "note": "THE WEB, held",
+   "ramp": "sink"
   },
   {
    "at": 15.5,
@@ -208,8 +213,9 @@
    "at": 23.26,
    "in": 145.0,
    "len": 1.4,
-   "speed": 0.6,
-   "note": "her face"
+   "speed": 0.67,
+   "note": "her face",
+   "ramp": "sink"
   },
   {
    "at": 24.66,
@@ -250,8 +256,9 @@
    "at": 29.4,
    "in": 143.0,
    "len": 1.15,
-   "speed": 0.55,
-   "note": "her, falling again"
+   "speed": 0.67,
+   "note": "her, falling again",
+   "ramp": "sink"
   },
   {
    "at": 30.55,
@@ -264,8 +271,9 @@
    "at": 30.68,
    "in": 144.6,
    "len": 1.15,
-   "speed": 0.5,
-   "note": "her face"
+   "speed": 0.67,
+   "note": "her face",
+   "ramp": "sink"
   },
   {
    "at": 31.83,
@@ -348,22 +356,25 @@
    "at": 40.98,
    "in": 129.0,
    "len": 1.6,
-   "speed": 0.35,
-   "note": "THE WEB"
+   "speed": 0.67,
+   "note": "THE WEB",
+   "ramp": "sink"
   },
   {
    "at": 42.58,
    "in": 120.0,
    "len": 1.5,
-   "speed": 0.3,
-   "note": "her face"
+   "speed": 0.67,
+   "note": "her face",
+   "ramp": "sink"
   },
   {
    "at": 44.08,
    "in": 143.0,
    "len": 1.26,
-   "speed": 0.4,
-   "note": "she is gone"
+   "speed": 0.67,
+   "note": "she is gone",
+   "ramp": "sink"
   },
   {
    "at": 45.34,

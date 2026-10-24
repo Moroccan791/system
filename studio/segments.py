@@ -42,6 +42,7 @@ def load(path: str | Path) -> list[dict]:
             "speed": float(c.get("speed", 1.0)),
             "note": c.get("note", ""),
             "zoom": float(c.get("zoom", 1.0)),
+            "ramp": c.get("ramp"),
             "act": c.get("act"),
         })
     out.sort(key=lambda c: c["at"])
@@ -77,7 +78,7 @@ def build(grid, source, segments: list[dict], start: float = 0.0,
                   shot=_nearest_shot(source, s["in"]),
                   src_in=s["in"],
                   src_out=s["in"] + src_span,
-                  speed=s["speed"], zoom=s["zoom"])
+                  speed=s["speed"], zoom=s["zoom"], ramp=s["ramp"])
         cut.out_start = s["at"]
         cut.out_end = s["at"] + s["len"]
         if s.get("whip"):
