@@ -24,7 +24,10 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from scripts.whop import runtime
+# Run as a script by make_post, so sys.path[0] is this directory and the
+# package is not importable. Put the repo root on the path first.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.whop import runtime  # noqa: E402
 
 ROOT = Path("/home/user/system")
 SRC = ROOT / "work" / "street" / "raw" / "street_full.mp4"

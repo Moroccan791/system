@@ -32,7 +32,10 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from scripts.whop import runtime
+# Run as a script by make_post, so sys.path[0] is this directory and the
+# package is not importable. Put the repo root on the path first.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.whop import runtime  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGNS = ROOT / "campaigns" / "street_you_grew_up_on"
@@ -117,7 +120,18 @@ def load_words(span, transcript_path=EPISODE, offset=0.0):
     t=0 at the window start), so `offset` maps it to source time -
     the same convention tight_base.py uses.
     """
-    data = json.loads(Path(transcript_path).read_text())
+    tp = Path(transcript_path)
+    if not tp.exists():
+        # A reset takes work/ with it, so this is the normal first failure on a
+        # fresh sandbox — say what it is and what fixes it, rather than a
+        # FileNotFoundError twenty frames deep in a caption matcher.
+        raise SystemExit(
+            f"no transcript at {tp}.\n"
+            f"  work/ is gitignored, so a workspace reset removes it.\n"
+            f"  rebuild:  python scripts/whop/transcribe_episode.py <episode>\n"
+            f"  or check everything at once:  python scripts/whop/doctor.py "
+            f"--post {Path(transcript_path).name.split('_')[0]}")
+    data = json.loads(tp.read_text())
     return [{"text": w["text"], "start": w["start"] + offset,
              "end": w["end"] + offset}
             for w in data["words"]

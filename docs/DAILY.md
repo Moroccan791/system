@@ -325,3 +325,51 @@ Measured after the layer, text-free frames only (type inflates every statistic):
 Halation runs AFTER `decode_segment`, which means it is applied to a frame whose
 own letterbox has already been cropped away — so the bloom can never lift a bar
 into the picture-box detector. There is a test for exactly that.
+
+---
+
+# When the workspace resets
+
+The sandbox rolls the checkout back without warning. What that costs, and the
+one command that pays it back:
+
+    bash scripts/whop/restore.sh          # code, interpreter, renderer, footage
+
+It resets to **the branch you are on** — it used to reset to a hardcoded
+`arena/5a6e6ca9-system`, a stale branch, which threw away current work. It
+rebuilds whichever environment already exists (`.venv` or `venv`) and repairs
+cv2, because pip will happily install both opencv distributions at once and the
+GUI one then wants `libGL.so.1`, which this sandbox does not have.
+
+`--no-footage` skips the 680 MB download; `--env-only` just rebuilds the
+interpreter.
+
+## What a reset always takes
+
+`work/` is gitignored, so the **raw footage and every transcript** go with it.
+The footage comes back from the `footage` branch. The transcripts cannot — they
+have to be re-cut from the audio, because ASR does not run in this sandbox:
+
+    python scripts/whop/transcribe_episode.py <episode.mp4>
+    # or push a request to .github/workflows/asr-words.yml
+
+## Ask before you cut
+
+    python scripts/whop/doctor.py --post post6
+    python scripts/whop/doctor.py --new-campaign <name>
+
+Five things have to be true and four of them live outside git: an interpreter
+with the packages, the source, the transcript, an approved style card, a plan.
+The doctor checks all five in two seconds, prints the command that fixes each
+one, and exits 1 if anything blocks — so it can gate a batch.
+
+    ✓ interpreter   /home/user/system/venv/bin/python
+    ✓ packages      numpy, pillow, cv2, jsonschema
+    ✓ plan          scripts/whop/plans/post6.json (post6)
+    ✗ source        work/street/raw_parts/part_006.mp4 is not here
+    ✗ transcript    work/street/asr/post6_transcript.json is not here
+    ✓ style card    street_you_grew_up_on/post6 approved
+    ✓ theme         motion/themes/street_you_grew_up_on__post6.json
+
+A missing source is no longer a `FileNotFoundError` forty frames into a caption
+matcher — `build_whop_clip` says what is gone and which command rebuilds it.

@@ -62,6 +62,20 @@ echo "interpreter: $PYDIR/bin/python"
 "$PYDIR/bin/pip" install -q --upgrade pip >/dev/null 2>&1
 "$PYDIR/bin/pip" install -q -r requirements.txt >/dev/null 2>&1
 "$PYDIR/bin/pip" install -q pillow jsonschema >/dev/null 2>&1
+
+# ONE cv2, and it must be the headless one. requirements.txt asks for two
+# opencv distributions (the plain headless wheel and mediapipe's contrib build),
+# and resolving them can leave the GUI build installed too — which imports
+# libGL.so.1, a library this sandbox does not have, so `import cv2` dies with
+# "cannot open shared object file" even though pip says opencv is installed.
+# Drop every variant, then put back exactly the headless contrib wheel.
+if ! "$PYDIR/bin/python" -c "import cv2" >/dev/null 2>&1; then
+  echo "opencv: repairing (headless only)"
+  "$PYDIR/bin/pip" uninstall -y -q opencv-python opencv-contrib-python \
+      opencv-python-headless opencv-contrib-python-headless >/dev/null 2>&1
+  "$PYDIR/bin/pip" install -q --force-reinstall --no-deps \
+      opencv-contrib-python-headless==4.11.0.86 >/dev/null 2>&1
+fi
 "$PYDIR/bin/python" - <<'EOF'
 import importlib, sys
 need = {"numpy": "numpy", "PIL": "pillow", "cv2": "opencv", "jsonschema": "jsonschema"}
