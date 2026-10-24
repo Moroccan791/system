@@ -1205,13 +1205,28 @@ def test_reference1_is_another_name_for_the_house_system():
     assert house.behaviour is None and house.grade == "premium"
 
 
-def test_barrage_is_on_the_shelf_and_asks_for_no_type():
+def test_barrage_is_parked_and_asks_for_no_type():
     from studio import styles
 
-    st = styles.get("barrage")
+    st = styles.get("barrage", parked_ok=True)
     assert st.type_engine == "none"
     assert st.grade == "barrage"
     assert styles.get(None).name == "house"      # still the default
+
+
+def test_parked_styles_are_not_offered():
+    """reference1 is the system. A parked style must not resolve by name."""
+    import pytest
+
+    from studio import styles
+
+    assert styles.names() == ["house", "ref1", "reference1"]
+    assert "cold_read" not in styles.names()
+    for name in styles.PARKED:
+        with pytest.raises(KeyError) as e:
+            styles.get(name)
+        assert "parked" in str(e.value)
+        assert "reference1" in str(e.value)
 
 
 def test_barrage_plan_has_the_reference_shape():
@@ -1299,8 +1314,8 @@ def test_no_style_may_ask_for_a_crop():
 
     from studio import styles
 
-    for name in styles.names():
-        assert styles.get(name).format == "landscape", name
+    for name in styles.names(include_parked=True):
+        assert styles.get(name, parked_ok=True).format == "landscape", name
     with pytest.raises(ValueError):
         styles.check(styles.Style(name="oops", label="oops", format="square"))
 
@@ -1308,7 +1323,7 @@ def test_no_style_may_ask_for_a_crop():
 def test_longtake_is_landscape_and_slow():
     from studio import styles
 
-    st = styles.get("longtake")
+    st = styles.get("longtake", parked_ok=True)
     assert st.format == "landscape"
     assert st.grade == "longtake"
     assert "1:1" in st.note          # the note says the square is NOT copied
@@ -1351,7 +1366,7 @@ def test_every_built_style_is_landscape_and_loads():
     from studio import styles
 
     for name in ("barrage", "longtake", "cold_read", "hymn", "hype"):
-        st = styles.get(name)
+        st = styles.get(name, parked_ok=True)
         assert st.format == "landscape", name
     assert styles.get(None).name == "house"
 

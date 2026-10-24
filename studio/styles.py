@@ -72,6 +72,17 @@ HOUSE = Style(
 # ---------------------------------------------------------------------------
 REGISTRY: dict[str, Style] = {
     "house": HOUSE,
+}
+
+# PARKED — built and tested, and none of them is the system we run.
+#
+# On 2026-10-24 the call was made in the plainest terms: the new styles do not
+# work, reference1 is what is being used, stick to reference1. So reference1
+# (which IS `house`, and always was) is the only entry in REGISTRY. The rest are
+# kept here rather than deleted because the work is real and the packs are
+# frozen — but nothing lists them, nothing defaults to them, and asking for one
+# by name is refused unless you say you want it.
+PARKED: dict[str, Style] = {
     # The v5 reel: slow, dark, a subtitle that dies on its cut.
     "cold_read": Style(
         name="cold_read", label="Cold read — v5",
@@ -133,16 +144,27 @@ REGISTRY: dict[str, Style] = {
 ALIASES = {"reference1": "house", "ref1": "house"}
 
 
-def get(name: str | None) -> Style:
-    """Resolve a style name. No name means the house system, exactly as before."""
+def get(name: str | None, parked_ok: bool = False) -> Style:
+    """Resolve a style name. No name means the house system, exactly as before.
+
+    reference1 is the system. A parked style is only reachable when the caller
+    says so, by which point nobody is under the illusion that it is supported.
+    """
     if not name:
         return check(HOUSE)
     name = ALIASES.get(name, name)
+    if name in PARKED:
+        if not parked_ok:
+            raise KeyError(
+                f"{name!r} is parked. reference1 is the system we run — pass no "
+                f"--style, or --style reference1. ({len(PARKED)} parked styles "
+                f"are kept on the shelf: {', '.join(sorted(PARKED))})")
+        return check(PARKED[name])
     if name not in REGISTRY:
         raise KeyError(
-            f"no style {name!r}. Known styles: "
+            f"no style {name!r}. The styles: "
             f"{', '.join(sorted(set(REGISTRY) | set(ALIASES)))}\n"
-            f"  add one in studio/styles.py — a table, not a rewrite")
+            f"  {len(PARKED)} more are parked in studio/styles.py (PARKED)")
     return REGISTRY[name]
 
 
@@ -165,8 +187,11 @@ def check(st: Style) -> Style:
     return st
 
 
-def names() -> list[str]:
-    return sorted(set(REGISTRY) | set(ALIASES))
+def names(include_parked: bool = False) -> list[str]:
+    offered = set(REGISTRY) | set(ALIASES)
+    if include_parked:
+        offered |= set(PARKED)
+    return sorted(offered)
 
 
 PACKS = Path(__file__).resolve().parent / "stylepacks"
@@ -222,6 +247,8 @@ def main(argv=None) -> int:
 
     ap = argparse.ArgumentParser(description="the look registry")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--parked", action="store_true",
+                    help="with --list: also show the styles kept on the shelf")
     ap.add_argument("--pack", default=None, metavar="NAME",
                     help="print a frozen style pack and verify its delivered files")
     a = ap.parse_args(argv)
@@ -229,13 +256,17 @@ def main(argv=None) -> int:
         print(show_pack(a.pack))
         return 0
     if a.list:
-        for n in names():
-            st = get(n)
+        shown = names(include_parked=a.parked)
+        for n in shown:
+            st = get(n, parked_ok=a.parked)
             print(f"{n:12s} {st.label}")
             if st.note:
                 print(f"{'':12s} {st.note}")
             print(f"{'':12s} type={st.type_engine} grade={st.grade} "
                   f"fx={','.join(st.fx) or '-'} behaviour={st.behaviour or 'default'}")
+        if not a.parked:
+            print(f"\nreference1 is the system. {len(PARKED)} parked styles are "
+                  f"kept on the shelf; --list --parked to see them.")
         return 0
     ap.print_help()
     return 0
