@@ -68,10 +68,24 @@ jobs:
         run: |
           set -euo pipefail
           cd studio/raw/post3
+          # 30 fps because that is the delivery rate: the source is 60 fps 4K and
+          # nothing downstream can use the extra frames. crf 21 rather than 18
+          # because the last attempt encoded to a file GitHub refuses to accept
+          # (100 MB per-file limit) — and a scenepack is not an archive master.
           ffmpeg -y -v error -i joined.webm \
-            -vf "scale=-2:1080" -c:v libx264 -preset medium -crf 18 \
+            -vf "scale=-2:1080,fps=30" -c:v libx264 -preset medium -crf 21 \
             -pix_fmt yuv420p -an pack_1080.mp4
           ls -l pack_1080.mp4
+          BYTES=$(stat -c%s pack_1080.mp4)
+          echo "pack_1080.mp4 = $BYTES bytes"
+          if [ "$BYTES" -gt 95000000 ]; then
+            echo "over the 100 MB push limit, splitting into parts"
+            DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 pack_1080.mp4)
+            HALF=$(python3 -c "print(f'{$DUR/2:.3f}')")
+            ffmpeg -y -v error -i pack_1080.mp4 -t "$HALF" -c copy pack_1080_a.mp4
+            ffmpeg -y -v error -ss "$HALF" -i pack_1080.mp4 -c copy pack_1080_b.mp4
+            rm -f pack_1080.mp4
+          fi
           # the track gets a plain name so no later command has a URL in it
           mv YTDown*Arcade*128k.mp3 arcade.mp3
           ls -l
