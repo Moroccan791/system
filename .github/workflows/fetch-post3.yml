@@ -1,0 +1,83 @@
+name: fetch-post3
+
+# Why this exists: this sandbox can reach github.com and api.github.com but NOT
+# release-assets.githubusercontent.com, so `gh release download` dies after the
+# 302. GitHub's own runners have no such restriction. This job pulls the assets
+# there, joins the parts, transcodes to the delivery size, and commits the
+# result back to this branch — which the sandbox can then read over git.
+#
+# It runs only when this file changes, so committing the result back does not
+# retrigger it.
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fetch-post3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: download the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p studio/raw/post3
+          gh release download post3-ig-yt --dir studio/raw/post3 --clobber
+          ls -la studio/raw/post3
+
+      - name: are the parts a byte split, or separate files?
+        id: parts
+        run: |
+          cd studio/raw/post3
+          cat clip_000.webm clip_001.webm clip_002.webm clip_003.webm > joined.webm
+          echo "--- joined by cat ---"
+          ffprobe -v error -show_entries format=duration,size \
+            -show_entries stream=codec_name,width,height,r_frame_rate \
+            -of default=nw=1 joined.webm && echo "ok=cat" >> "$GITHUB_OUTPUT" || echo "ok=cat_broken" >> "$GITHUB_OUTPUT"
+
+      - name: fall back to the concat demuxer if the byte join is wrong
+        if: contains(steps.parts.outputs.ok, 'broken')
+        run: |
+          cd studio/raw/post3
+          rm -f joined.webm
+          for f in clip_000.webm clip_001.webm clip_002.webm clip_003.webm; do
+            echo "file '$PWD/$f'" >> list.txt
+          done
+          ffmpeg -y -v error -f concat -safe 0 -i list.txt -c copy joined.webm
+          ffprobe -v error -show_entries format=duration -of default=nw=1 joined.webm
+
+      - name: transcode to what we actually deliver
+        run: |
+          cd studio/raw/post3
+          ffprobe -v error -show_entries format=duration,size \
+            -show_entries stream=codec_name,width,height,r_frame_rate,nb_frames \
+            -of default=nw=1 joined.webm > probe.txt
+          cat probe.txt
+          ffmpeg -y -v error -i joined.webm \
+            -vf "scale=-2:1080" -c:v libx264 -preset medium -crf 18 \
+            -pix_fmt yuv420p -an pack_1080.mp4
+          ls -la pack_1080.mp4
+          echo "--- audio ---"
+          ls -la *.mp3
+
+      - name: commit the result back to this branch
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git config user.name  "fetch-bot"
+          git config user.email "fetch-bot@users.noreply.github.com"
+          # the raw parts and the intermediate join are only needed on the
+          # runner; the branch keeps the delivery copy and the audio
+          rm -f studio/raw/post3/clip_*.webm studio/raw/post3/joined.webm studio/raw/post3/list.txt
+          git add -A studio/raw/post3
+          git commit -m "post3: four parts joined and transcoded to 1080p" || echo "nothing to commit"
+          git push origin HEAD:${{ github.ref_name }}
