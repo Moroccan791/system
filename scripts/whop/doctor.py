@@ -183,7 +183,6 @@ def check_new_campaign(rep: Report, name: str) -> None:
     check_campaign(rep, name)
     plans = sorted((ROOT / "scripts" / "whop" / "plans").glob("*.json"))
     rep.add("plans", OK if plans else WARN, f"{len(plans)} on file")
-    check_env(rep)
     # what a new campaign is missing is unavoidable: its own footage.
     rep.add("source footage", WARN,
             "a new campaign needs its raw before anything else",
