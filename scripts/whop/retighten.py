@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tight re-edit of a shipped Whop clip - the "campaign brief" pass.
 
-    .venv/bin/python scripts/whop/retighten.py post4
+    python scripts/whop/retighten.py post4
 
 The shipped cut was assembled before the campaign brief landed. This pass
 keeps the same footage, the same look and the same captions, and fixes the

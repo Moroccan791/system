@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Font refresh: re-typeset a shipped Whop clip in the user's own fonts.
 
-    .venv/bin/python scripts/whop/font_refresh.py post4
+    python scripts/whop/font_refresh.py post4
 
 The shipped cuts for posts 4/6/7 were rendered before the user supplied
 their own faces (now vendored in assets/fonts/). The clean source part

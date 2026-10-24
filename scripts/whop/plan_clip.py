@@ -16,6 +16,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from scripts.whop import runtime
 
 ROOT = Path("/home/user/system")
 SRC = ROOT / "work" / "street" / "raw" / "street_full.mp4"
@@ -28,7 +29,7 @@ TWO_SHOT = [560, 90, 760, 854]
 
 
 def ffmpeg() -> str:
-    return subprocess.run([str(ROOT / ".venv/bin/python"), "-c",
+    return subprocess.run([runtime.python_exe(), "-c",
                            "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"],
                           capture_output=True, text=True).stdout.strip()
 

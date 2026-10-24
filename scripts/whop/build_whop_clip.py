@@ -32,6 +32,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from scripts.whop import runtime
 
 ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGNS = ROOT / "campaigns" / "street_you_grew_up_on"
@@ -69,7 +70,7 @@ def face_zone(base: Path):
     report = base.parent / "face_report.json"
     if not report.exists():
         try:
-            out = subprocess.run([str(ROOT / ".venv/bin/python"),
+            out = subprocess.run([runtime.python_exe(),
                                   str(ROOT / "motion" / "reframe.py"),
                                   "--report", str(base)],
                                  capture_output=True, text=True, cwd=ROOT)
@@ -93,7 +94,7 @@ def base_seconds(base: Path):
         return None
     try:
         out = subprocess.run(
-            [str(ROOT / ".venv/bin/python"), "-c",
+            [runtime.python_exe(), "-c",
              "import imageio_ffmpeg,subprocess,sys;"
              "ff=imageio_ffmpeg.get_ffmpeg_exe();"
              "print(subprocess.run([ff,'-i',sys.argv[1]],capture_output=True,"

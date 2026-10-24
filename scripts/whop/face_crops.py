@@ -24,6 +24,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+from scripts.whop import runtime
 
 ROOT = Path("/home/user/system")
 SRC = ROOT / "work" / "street" / "raw" / "street_full.mp4"
@@ -31,7 +32,7 @@ MODEL = ROOT / "assets" / "models" / "face_detection_yunet_2023mar.onnx"
 
 
 def ffmpeg() -> str:
-    return subprocess.run([str(ROOT / ".venv/bin/python"), "-c",
+    return subprocess.run([runtime.python_exe(), "-c",
                            "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"],
                           capture_output=True, text=True).stdout.strip()
 

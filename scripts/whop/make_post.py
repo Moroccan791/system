@@ -21,8 +21,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from scripts.whop import runtime
+
 ROOT = Path("/home/user/system")
-PY = str(ROOT / ".venv/bin/python")
+# The interpreter running this script, not a directory name that happens to
+# exist on one machine. See scripts/whop/runtime.py.
+PY = runtime.python_exe()
 CAMPAIGNS = ROOT / "campaigns" / "street_you_grew_up_on"
 
 
@@ -76,9 +81,7 @@ def main() -> int:
     run([PY, ROOT / "motion/validate.py", work / "timeline.json"])
 
     # 5. render
-    import os
-    env = dict(os.environ)
-    env["LD_LIBRARY_PATH"] = "/tmp/al2023/lib"
+    env = runtime.render_env()
     theme = ROOT / "motion" / "themes" / f"{campaign}__{post}"
     music = ROOT / "assets" / "music" / plan.get("music", "chill.wav")
     run([PY, ROOT / "motion/produce.py", work / "timeline.json", work / "base.mp4",
