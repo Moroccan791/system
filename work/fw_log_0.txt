@@ -1,3 +1,16 @@
 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
---- footage/post2/YTDown.com_YouTube_Media_PJ3f0_LPlSY_zaalima-arijit-singh-harshdeep-kaur-editaudio_009_128k.mp3 -> work/fw_zaalima.json: 51 words
-तीरार@2.92 तेरा@4.08 मिनने@4.68 के@5.2 बाड़ी@5.48 चुटे@6.14 मेरी@6.8 अगलाई@7.3 तो@8.2 ली@8.88 बताद@9.22 क्यो@9.88 जाल@10.24 मामे@10.68 के@11.3 राई@11.5 क्यो@13.0 इस@14.24 तरास@14.58 तो@15.2 नी@15.5 आजहाम@15.7 में@16.48 करता@16.66 है@17.22 मेरी@17.46 रुसराई@17.94 तेरा@18.88 कुसुरा@19.92 और@20.78 जाल@20.9 मामे@21.32 के@21.96 राई@22.14 तिरान@24.22 तिरा@25.38 मिनने@26.04 कि@26.58 बाने@26.8 ही@27.38
+[in#0 @ 0x5605fd328e40] Error opening input: No such file or directory
+Error opening input file footage/post3/track.mp3.
+Error opening input files: No such file or directory
+Traceback (most recent call last):
+  File "/home/runner/work/system/system/.github/asr_words.py", line 72, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/runner/work/system/system/.github/asr_words.py", line 46, in main
+    audio = crop(item["audio"], item["start"], item["end"])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/system/system/.github/asr_words.py", line 29, in crop
+    subprocess.run(
+  File "/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ffmpeg', '-nostdin', '-v', 'error', '-y', '-ss', '0.0', '-to', '47.7', '-i', 'footage/post3/track.mp3', '-ac', '1', '-ar', '16000', '-f', 'wav', '/tmp/tmpe507mqj_/w.wav']' returned non-zero exit status 254.
