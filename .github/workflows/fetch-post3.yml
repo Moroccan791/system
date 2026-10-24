@@ -90,18 +90,44 @@ jobs:
           mv YTDown*Arcade*128k.mp3 arcade.mp3
           ls -l
 
+      - name: diagnostics first, so a failed media push still explains itself
+        run: |
+          set -euo pipefail
+          cd studio/raw/post3
+          {
+            echo "date: $(date -u)"
+            echo "git: $(git --version)"
+            echo "repo size limit check, largest files:"
+            ls -lS | head -8
+            echo "du: $(du -sh . | cut -f1)"
+            echo "github free file limit is 100 MB per file, 2 GB per push"
+          } > diag.txt
+          cat diag.txt
+          git config user.name  "fetch-bot"
+          git config user.email "fetch-bot@users.noreply.github.com"
+          git add -f diag.txt probe.txt
+          git commit -m "post3: diagnostics" || echo "nothing to commit"
+          git push origin HEAD:${{ github.ref_name }}
+
       - name: commit the result back to this branch
         run: |
           set -euo pipefail
           git config user.name  "fetch-bot"
           git config user.email "fetch-bot@users.noreply.github.com"
-          # the parts and the intermediate join live only on the runner; the
-          # branch keeps the delivery copy, the probe and the audio
+          # the parts and the intermediate join live only on the runner
           rm -f studio/raw/post3/clip_*.webm studio/raw/post3/joined.webm \
                 studio/raw/post3/list.txt
-          # -f because .gitignore excludes *.mp4 and *.mp3: a plain `git add`
-          # committed only the probe and nothing else (the first run proved it)
+          # -f because .gitignore excludes *.mp4 and *.mp3
           git add -f studio/raw/post3
           du -sh studio/raw/post3
-          git commit -m "post3: four parts joined and transcoded to 1080p" || echo "nothing to commit"
-          git push origin HEAD:${{ github.ref_name }}
+          git commit -m "post3: parts joined and transcoded to 1080p30" || echo "nothing to commit"
+          # if the push is refused, keep the reason instead of losing it: reset
+          # the media out of the commit and publish the error text alone
+          if ! git push origin HEAD:${{ github.ref_name }} 2> push_err.txt; then
+            echo "--- push refused ---"; cat push_err.txt
+            git reset --soft HEAD~1
+            git reset
+            git add -f studio/raw/post3/push_err.txt
+            git commit -m "post3: the push was refused, here is why" || true
+            git push origin HEAD:${{ github.ref_name }} || true
+          fi
