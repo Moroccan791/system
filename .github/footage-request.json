@@ -1,5 +1,6 @@
 {
-  "tag": "post2-ig-yt",
-  "pattern": "*",
-  "out_dir": "footage/post2"
+ "tag": "post4-ig-yt",
+ "pattern": "*",
+ "out_dir": "studio/raw/ghost",
+ "run": 1792900000
 }
