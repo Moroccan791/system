@@ -102,6 +102,13 @@ def main(argv=None):
                          "(the 'no dialogue' version of a cold open)")
     ap.add_argument("--no-sfx", action="store_true",
                     help="track only, no beat-locked sound design")
+    ap.add_argument("--sfx", action="store_true",
+                    help="force the beat-locked sound design back on. It is OFF "
+                         "for reference1: a song edit carries the artist's audio "
+                         "and nothing else. The Ghost cut shipped with 21 cues "
+                         "(9 whooshes, 8 ticks, riser, impact, sub-drop, swell) "
+                         "sitting under the vocal, and they were audible as "
+                         "sounds that are not in the track.")
     ap.add_argument("--direct", action="store_true",
                     help="let the lyric choose the shots (studio/director.py) "
                          "instead of the shot scorer")
@@ -467,7 +474,10 @@ def main(argv=None):
 
     render(plan, a.source, a.track, out, a.script,
            progress=lambda m: None, preset=a.preset, crf=a.crf,
-           sfx=not a.no_sfx, look=not a.no_look,
+           # A reference edit is a re-cut of the artist's record: the audio is
+           # the track and nothing else. Sound design has to be asked for.
+           sfx=(not a.no_sfx) and (a.sfx or a.style != "reference1"),
+           look=not a.no_look,
            # A style that brings its own grade must not be run through premium:
            # premium matches every shot to the pack median and then applies the
            # house curve, which is exactly the look barrage contradicts. Passing

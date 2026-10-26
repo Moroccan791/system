@@ -177,11 +177,31 @@ def decode_segment(src: str, t_in: float, dur: float, speed: float) -> list[np.n
            "-ss", f"{max(0.0, t_in):.4f}", "-i", src,
            "-t", f"{max(0.04, dur):.4f}"] + graph + [
            "-r", str(OUT_FPS), "-pix_fmt", "rgb24", "-f", "rawvideo", "-"]
-    raw = subprocess.run(cmd, capture_output=True, check=False).stdout
+    # One copy of the cut, not two. `subprocess.run(...).stdout` returns bytes,
+    # and slicing them into `.copy()` arrays held the cut twice over: at 1080p a
+    # 3.4s hold is 1.25 GB, so a 2.5 GB peak on a 3.9 GB box — the render was
+    # OOM-killed (exit 137) and the only way left to ship a review copy was to
+    # render at two-thirds size, which is soft. Reading into ONE bytearray and
+    # handing out writable views of it keeps the peak at the size of the cut.
     fb = OUT_W * OUT_H * 3
-    n = len(raw) // fb
-    return [np.frombuffer(raw[i * fb:(i + 1) * fb], dtype=np.uint8)
-            .reshape(OUT_H, OUT_W, 3).copy() for i in range(n)]
+    buf = bytearray()
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.DEVNULL)
+    try:
+        while True:
+            chunk = proc.stdout.read(1 << 20)
+            if not chunk:
+                break
+            buf += chunk
+    finally:
+        proc.stdout.close()
+        proc.wait()
+    n = len(buf) // fb
+    if not n:
+        return []
+    arr = np.frombuffer(buf, dtype=np.uint8, count=n * fb)
+    arr = arr.reshape(n, OUT_H, OUT_W, 3)
+    return [arr[i] for i in range(n)]
 
 
 def push_in(frame: np.ndarray, k: float) -> np.ndarray:

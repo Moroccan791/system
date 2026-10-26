@@ -1641,3 +1641,12 @@ def test_the_closing_breath_is_not_the_held_image():
     assert _idx not in pool
     # and an end pool really is from the end
     assert min(pool) > 20, pool
+
+
+def test_reference1_carries_no_sound_design():
+    """The Ghost cut shipped with 21 synthesized cues under the vocal — 9
+    whooshes and 8 ticks — and they read as sounds that are not in the song.
+    A reference edit is a re-cut of the record: the audio is the track."""
+    src = Path("studio/produce.py").read_text()
+    assert 'ap.add_argument("--sfx", action="store_true"' in src
+    assert 'sfx=(not a.no_sfx) and (a.sfx or a.style != "reference1")' in src

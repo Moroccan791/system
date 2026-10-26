@@ -54,3 +54,12 @@ is the only abstract word in the chorus, so it is the one that can take colour.
 - the audio (the cut to music)
 - the line times, once there is audio to measure — taken from the track, not
   guessed, the way every other edit in this house has been timed
+
+## delivery (v9, 2026-10-26)
+- **no sound design.** reference1 renders now default to `sfx=False`; the v8
+  cut had 21 cues (9 whoosh, 8 tick, riser, impact, sub-drop, swell) mixed
+  under the vocal. `--sfx` brings them back if ever wanted.
+- 1920x1080, crf 22, ~8 Mb/s. v8 was 1280x720 at 620 kb/s — softer than the
+  source pack itself (which is 1.2 Mb/s).
+- the 1080p OOM is fixed at the cause: `compose.decode_segment` held each cut
+  twice (bytes + copies); it now reads into one bytearray and returns views.
