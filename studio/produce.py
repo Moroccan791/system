@@ -125,6 +125,13 @@ def main(argv=None):
     ap.add_argument("--map", default=None, metavar="FILE",
                     help="a hand-written cut map (studio/segments.py) — every "
                          "cut chosen by watching, with per-cut speed")
+    ap.add_argument("--emphasis", default=None, metavar="FILE",
+                    help="words to accent for THIS video, one per line or "
+                         "comma separated. The general list knows nothing "
+                         "about this song.")
+    ap.add_argument("--bpm", type=float, default=None,
+                    help="force the tempo (a ballad read as its own double is "
+                         "the usual reason: Ghost is 71.75, the detector says 143.8)")
     ap.add_argument("--scale", type=float, default=1.0,
                     help="render at a fraction of the delivery size (memory "
                          "budget, not a style) — 0.6667 gives 1280x720")
@@ -144,6 +151,19 @@ def main(argv=None):
 
     t0 = time.time()
     grid = analyse_track(a.track, a.end)
+    if a.emphasis:
+        from .captions import set_emphasis
+
+        raw = Path(a.emphasis).read_text()
+        words = [w for line in raw.splitlines() for w in line.replace(",", " ").split()]
+        got = set_emphasis(words)
+        print(f"emphasis: {len(got)} words — {', '.join(sorted(got))}")
+
+    if a.bpm:
+        before = grid.bpm
+        grid = grid.retimed(a.bpm)
+        print(f"tempo forced: {before:.2f} -> {grid.bpm:.2f} BPM "
+              f"(phase {grid.phase:.3f}s)")
     print(f"track: {grid.bpm:.1f} BPM, {len(grid.sections)} sections, "
           f"beat0 {grid.phase:.3f}s")
     for s in grid.sections:

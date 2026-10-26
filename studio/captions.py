@@ -57,6 +57,34 @@ STRONG = {"beauty", "beat", "complete", "life", "need", "make", "tonight",
           "young", "yours", "cause", "know"}
 
 
+# Words the OPERATOR called out for this video, on top of the general list. A
+# lyric is not a corpus: "ghost" and "hollow" carry this song and appear in no
+# vocabulary, while "you" is in the general list and means nothing here.
+_EMPHASIS: set[str] = set()
+_EXCLUSIVE: list[bool] = [True]
+
+
+def set_emphasis(words, exclusive: bool = True) -> set[str]:
+    """Replace the per-video emphasis words. Lower case, punctuation stripped.
+
+    `exclusive` is the point: once the operator names the words for a video,
+    those are the words. Falling back to the general vocabulary on top of them
+    accented 22 of Ghost's 42 cards — "love", "all", "you" — and at that density
+    the colour stops meaning anything.
+    """
+    _EMPHASIS.clear()
+    for w in words:
+        w = str(w).strip().strip(",.'\"!?-").lower()
+        if w:
+            _EMPHASIS.add(w)
+    _EXCLUSIVE[0] = bool(exclusive and _EMPHASIS)
+    return set(_EMPHASIS)
+
+
+def emphasis() -> set[str]:
+    return set(_EMPHASIS)
+
+
 def accent_word(text: str) -> str:
     """The one word on this card that gets the accent face and colour.
 
@@ -64,6 +92,12 @@ def accent_word(text: str) -> str:
     with no accent is fine — accenting every card is decoration, not design.
     """
     words = [w.strip(",.'!?").upper() for w in text.split()]
+    # what the operator marked for this video wins over the general vocabulary
+    for w in words:
+        if w.lower() in _EMPHASIS:
+            return w
+    if _EMPHASIS and _EXCLUSIVE[0]:
+        return ""              # the operator's list is the whole list
     for w in words:
         if w.lower() in STRONG:
             return w

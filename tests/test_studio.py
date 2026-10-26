@@ -1532,3 +1532,22 @@ def test_the_default_toe_is_still_the_default():
             grade.premium(frame.copy(), "drop", 0.012)).all()
     # and the lut cache must not confuse the two
     assert not (grade.lut("drop") == grade.lut("drop", 0.055)).all()
+
+
+def test_tempo_can_be_forced_without_losing_the_downbeat():
+    """A ballad read as its own double is the one call evidence cannot settle.
+
+    Measured on Ghost: a dense mix puts an onset on every eighth note, so 144
+    BPM covers 66% of its grid lines and 72 BPM covers 75% — both defensible.
+    The operator decides, and the phase has to survive the change.
+    """
+    from studio.grid import Grid
+
+    g = Grid(bpm=143.75, phase=0.397, duration=51.0)
+    r = g.retimed(71.75)
+    assert r.bpm == 71.75
+    # the downbeat stays on the same beat of the bar, to the new period
+    assert r.phase == pytest.approx(round(0.397 / (60 / 143.75)) * (60 / 71.75))
+    assert r.duration == g.duration
+    # and it is still a usable grid
+    assert r.t(0) == r.phase

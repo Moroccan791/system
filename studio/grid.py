@@ -254,6 +254,27 @@ class Grid:
                 return s
         return self.sections[-1] if self.sections else None
 
+    def retimed(self, bpm: float) -> "Grid":
+        """This grid at another tempo, keeping the phase on the same beat.
+
+        Tempo estimation cannot always tell a song from its own double: a dense
+        mix has an onset on every eighth note, so a 72 BPM ballad scores well at
+        144 and the grid is ambiguous by evidence alone (measured on Ghost: 66%
+        of grid lines hit an onset at 144, 75% at 72 — both plausible). Rather
+        than guess, the operator sets it:
+
+            --bpm 71.75        # Ghost, a ballad the detector doubled
+
+        The phase is moved to the nearest beat of the new grid so the first
+        downbeat stays where it was.
+        """
+        old_period = 60.0 / self.bpm
+        new_period = 60.0 / bpm
+        k = round(self.phase / old_period)          # which beat we were on
+        return Grid(bpm=bpm, phase=k * new_period, duration=self.duration,
+                    onsets=self.onsets, sections=self.sections,
+                    rms_db=self.rms_db)
+
     def as_dict(self):
         return {
             "bpm": round(self.bpm, 2),
