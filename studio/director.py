@@ -218,6 +218,52 @@ LINE_DIRECTION_ZAALIMA: dict[int, dict] = {
     14: dict(shots=(101, 84, 85), div=1.4, ramp="settle", note="angdaai — the last word"),
 }
 
+def pack_direction(source, n_lines: int, per_line: int = 4) -> dict:
+    """A per-line shot pool built from the PACK, for a lyric we have no table for.
+
+    `LINE_DIRECTION` and its siblings are hand-written: each line of one
+    particular lyric mapped to shot indices that were chosen by watching one
+    particular pack. Handing that table a different video is what produced the
+    worst defect in the Ghost cut — lines with no entry inherited the previous
+    line's pool (`direction.get(line, last_dir)`), every gap was filled from
+    `FILL = (31, 27, 26, 35)`, and the table never names a shot above 35. On a
+    451-second pack that meant the edit drew on 17 of 100 shots, never touched
+    the last four and a half minutes, and repeated four shots for fifty seconds.
+
+    So: divide the pack into one band of shots per line, in source order, and
+    give each line its own band. The edit then walks the whole video from the
+    first bar to the last, which is also how a montage cut to a song behaves —
+    early lines look like the beginning, the last line looks like the end.
+
+    Bands are ordered by source time and the longest shots in a band are
+    preferred, because a line usually needs to hold.
+    """
+    shots = sorted(source.shots, key=lambda sh: sh.src_in)
+    n = len(shots)
+    if n == 0:
+        return {}
+    out: dict = {}
+    for line in range(n_lines):
+        lo = int(round(line * n / n_lines))
+        hi = int(round((line + 1) * n / n_lines))
+        band = shots[lo:hi] or shots[max(0, lo - 1):lo + 1] or shots
+        # longest first, but keep the source order stable inside a band
+        picks = sorted(band, key=lambda sh: -sh.dur)[:per_line]
+        pool = tuple(sh.index for sh in sorted(picks, key=lambda sh: sh.src_in))
+        out[line] = dict(shots=pool, div=1.0,
+                         note=f"pack band {line + 1}/{n_lines}")
+    return out
+
+
+def pack_fill(source, n: int = 6) -> tuple[int, ...]:
+    """A bridge pool from the whole pack, not four shots of one scene."""
+    shots = sorted(source.shots, key=lambda sh: sh.src_in)
+    if not shots:
+        return FILL
+    step = max(1, len(shots) // n)
+    return tuple(shots[i].index for i in range(0, len(shots), step))[:n] or FILL
+
+
 DIRECTIONS = {"peter_gwen": LINE_DIRECTION,
               "tom_holland_bnd": LINE_DIRECTION_TOM,
               "post2_bangla": LINE_DIRECTION_BANGLA,

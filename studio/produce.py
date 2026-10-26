@@ -105,8 +105,11 @@ def main(argv=None):
     ap.add_argument("--direct", action="store_true",
                     help="let the lyric choose the shots (studio/director.py) "
                          "instead of the shot scorer")
-    ap.add_argument("--brief", default="peter_gwen",
-                    help="brief + direction set name")
+    ap.add_argument("--brief", default=None,
+                    help="brief + direction set name. NO DEFAULT: it used to be "
+                         "'peter_gwen', so a render that did not name a brief "
+                         "silently got the Peter & Gwen shot table — 17 of a "
+                         "451s pack's 100 shots, and nothing past 3:07")
     ap.add_argument("--direction", default=None,
                     help="line-direction set in director.DIRECTIONS "
                          "(default: the brief name, else peter_gwen)")
@@ -358,10 +361,22 @@ def main(argv=None):
         print(f"captions: {len(cards)} cards from {src_desc} -> {script_path}")
 
         name = a.direction or a.brief
-        direction = director.DIRECTIONS.get(name, director.LINE_DIRECTION)
+        if name in director.DIRECTIONS:
+            direction = director.DIRECTIONS[name]
+            tail_pool = director.TAILS.get(name)
+        else:
+            # No hand-written table for this lyric. Falling back to
+            # LINE_DIRECTION is what made a 451s pack yield 17 of its 100 shots:
+            # that table belongs to one video and names no shot above 35.
+            # Build the pools from the pack itself so the edit uses all of it.
+            n_lines = len({c["line"] for c in cards}) or 1
+            direction = director.pack_direction(src, n_lines)
+            tail_pool = director.pack_fill(src)
+            print(f"direction: none for {name!r} — pools built from the pack "
+                  f"({n_lines} lines over {len(src.shots)} shots)")
         segs = director.segments_for(grid, src, cards, a.end, a.start, direction,
                                      director.INTROS.get(name),
-                                     director.TAILS.get(name),
+                                     tail_pool,
                                      behaviour=a.behaviour,
                                      word_pool=director.WORD_POOLS.get(name),
                                      max_cuts=1 if a.style == "reference2" else None)

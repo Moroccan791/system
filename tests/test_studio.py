@@ -1551,3 +1551,61 @@ def test_tempo_can_be_forced_without_losing_the_downbeat():
     assert r.duration == g.duration
     # and it is still a usable grid
     assert r.t(0) == r.phase
+
+
+# ---------------------------------------------------------------------------
+# a lyric with no hand-written direction must not borrow another video's
+# ---------------------------------------------------------------------------
+def _fake_source(n_shots=40, span=400.0):
+    from studio.plan import Source
+    from studio.shots import Shot
+
+    step = span / n_shots
+    shots = [Shot(index=i, src_in=i * step, src_out=(i + 1) * step,
+                  motion=0.5, bright=100.0, sharp=800.0) for i in range(n_shots)]
+    return Source(path="x.mp4", duration=span, shots=shots,
+                  width=1920, height=1080, fps=30.0)
+
+
+def test_pack_direction_covers_the_whole_video():
+    """The Ghost cut drew on 17 of 100 shots and never passed 3:07 of 7:31.
+
+    The cause was a hand-written shot table for one video (which names no shot
+    above index 35) being applied to another, with `FILL` filling the gaps. A
+    generated direction has to touch every part of the pack instead.
+    """
+    from studio import director
+
+    src = _fake_source()
+    d = director.pack_direction(src, n_lines=11)
+    assert len(d) == 11
+    every = [n for entry in d.values() for n in entry["shots"]]
+    # every line has its own pool, and the pools run across the whole source
+    assert min(every) <= 4, every
+    assert max(every) >= 32, every
+    # and lines are ordered: the first line looks earlier than the last
+    first = min(d[0]["shots"])
+    last = max(d[10]["shots"])
+    assert first < last
+
+
+def test_pack_fill_is_not_four_shots_of_one_scene():
+    from studio import director
+
+    src = _fake_source()
+    pool = director.pack_fill(src, 6)
+    assert len(set(pool)) == len(pool) > 4
+    assert max(pool) - min(pool) > 10       # spread, not a cluster
+
+
+def test_the_brief_has_no_default():
+    """`--brief` defaulted to "peter_gwen", so any render that did not name one
+    silently borrowed the Peter & Gwen shot table."""
+    import argparse
+
+    from studio import produce
+
+    # the parser is built inside main(); assert on the source of truth instead
+    src = Path("studio/produce.py").read_text()
+    assert 'ap.add_argument("--brief", default=None' in src
+    assert 'default="peter_gwen"' not in src
