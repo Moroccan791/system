@@ -1488,3 +1488,47 @@ def test_cards_are_never_on_screen_together():
         out = mod.shape_cards(raw, plan)
         for a, b in zip(out, out[1:]):
             assert a["end"] <= b["start"] + 1e-6, (mod.__name__, a, b)
+
+
+# ---------------------------------------------------------------------------
+# the grade has to answer for the pack it is given
+# ---------------------------------------------------------------------------
+def test_lift_for_uses_the_pack_and_is_capped():
+    """A dark pack needs its shadows opened; a normal one does not.
+
+    The Ghost montage has a median luma of 11/255. The standard curve toe took
+    it DOWN to 14 and the faces went with it.
+    """
+    from studio import grade
+
+    assert grade.lift_for(110) == 0.0        # correctly exposed: leave it alone
+    assert grade.lift_for(60) > 0.0
+    assert grade.lift_for(11) > grade.lift_for(30)
+    assert grade.lift_for(1) <= 0.065        # capped: night must stay night
+    assert grade.lift_for(11) <= 0.065
+
+
+def test_a_lifted_curve_does_not_crush_a_dark_frame():
+    """On a dark plate, the lifted look must be brighter, not darker."""
+    import numpy as np
+
+    from studio import grade
+
+    frame = np.full((120, 200, 3), 18, dtype=np.uint8)
+    plain = grade.premium(frame.copy(), "drop").mean()
+    lifted = grade.premium(frame.copy(), "drop", grade.lift_for(11)).mean()
+    assert lifted > plain, f"lift made it darker: {lifted:.1f} vs {plain:.1f}"
+    assert lifted > float(frame.mean())        # and brighter than the raw plate
+
+
+def test_the_default_toe_is_still_the_default():
+    """A normal pack must grade exactly as it did before the lift existed."""
+    import numpy as np
+
+    from studio import grade
+
+    frame = np.random.default_rng(0).integers(40, 210, (60, 90, 3), dtype=np.uint8)
+    assert (grade.premium(frame.copy(), "drop") ==
+            grade.premium(frame.copy(), "drop", 0.012)).all()
+    # and the lut cache must not confuse the two
+    assert not (grade.lut("drop") == grade.lut("drop", 0.055)).all()

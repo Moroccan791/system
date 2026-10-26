@@ -612,6 +612,10 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
     # ---- colour matching, measured once before a single frame is drawn ------
     # A scenepack is 37 different lighting setups; the edit should read as one.
     corrections: dict[int, object] = {}
+    # How much the pack needs its shadows opened. Measured, not assumed: the
+    # standard curve toe is right for a correctly exposed pack and wrong for an
+    # underexposed one, where it takes the picture DOWN and the detail with it.
+    lift = 0.012
     if premium:
         from . import grade as _grade
 
@@ -622,6 +626,14 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
             corrections = {i: _grade.correction(per.get(i), tgt) for i in per}
             moved = sum(1 for c in corrections.values() if c is not None)
             progress(f"  colour: {moved} shots matched to the pack median")
+            if thumbs is not None and getattr(thumbs, "size", 0):
+                import numpy as _np
+
+                med = float(_np.median(
+                    (thumbs.astype(_np.float32) * _grade.LUMA).sum(axis=3)))
+                lift = _grade.lift_for(med)
+                progress(f"  colour: pack median luma {med:.1f} -> "
+                         f"curve toe {lift:.3f}")
         except Exception as exc:                    # measurement must never stop a render
             progress(f"  colour: measurement skipped ({type(exc).__name__}: {exc})")
 
@@ -678,7 +690,7 @@ def render(plan: Plan, source_path: str, track_path: str, out_path: str | Path,
                 from . import grade as _grade
 
                 frame = _grade.apply_correction(frames[fi], corrections.get(cut.shot))
-                frame = _grade.premium(frame, cut.act)
+                frame = _grade.premium(frame, cut.act, lift)
                 if r2:
                     frame = ref2_grade(frame)
             else:

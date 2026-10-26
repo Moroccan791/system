@@ -141,20 +141,28 @@ _LUT: dict[str, np.ndarray] = {}
 _VIG: dict[tuple, np.ndarray] = {}
 
 
-def _curve(strength: float) -> np.ndarray:
-    """Smoothstep contrast with lifted blacks and rolled highlights."""
+def _curve(strength: float, lift: float = 0.012) -> np.ndarray:
+    """Smoothstep contrast with lifted blacks and rolled highlights.
+
+    `lift` is the toe of the curve. The default 0.012 is right for a pack that
+    is already correctly exposed. On a very dark pack it is wrong: the curve
+    holds the shadows where they are and the edit reads as mush, so the caller
+    can raise the toe instead of pretending the footage is brighter than it is.
+    """
     x = np.linspace(0.0, 1.0, 256, dtype=np.float32)
     s = x * x * (3.0 - 2.0 * x)                 # contrast, no clipping
     y = x * (1.0 - strength) + s * strength
-    y = 0.012 + y * (0.985 - 0.012)             # lift the toe, cap the shoulder
+    lift = min(max(lift, 0.0), 0.20)
+    y = lift + y * (0.985 - lift)               # lift the toe, cap the shoulder
     return np.clip(y, 0.0, 1.0)
 
 
-def lut(act: str) -> np.ndarray:
-    if act in _LUT:
-        return _LUT[act]
+def lut(act: str, lift: float = 0.012) -> np.ndarray:
+    key = act if abs(lift - 0.012) < 1e-6 else f"{act}@{lift:.3f}"
+    if key in _LUT:
+        return _LUT[key]
     strength, shadow, high, sat, _vig = LOOK.get(act, LOOK["drop"])
-    base = _curve(strength)                     # (256,) 0..1
+    base = _curve(strength, lift)               # (256,) 0..1
     xs = (base * 255.0)[:, None]                # (256, 1)
     # split tone: weights by how dark the value is
     dark = np.clip(1.0 - (xs / 120.0), 0.0, 1.0)
@@ -165,8 +173,8 @@ def lut(act: str) -> np.ndarray:
     # saturation around the curve's own luma
     lum = (rgb * LUMA[None, :]).sum(axis=1, keepdims=True)
     rgb = lum + (rgb - lum) * sat
-    _LUT[act] = np.clip(rgb, 0, 255).astype(np.uint8)      # (256, 3)
-    return _LUT[act]
+    _LUT[key] = np.clip(rgb, 0, 255).astype(np.uint8)      # (256, 3)
+    return _LUT[key]
 
 
 def vignette(h: int, w: int, strength: float) -> np.ndarray:
@@ -181,9 +189,9 @@ def vignette(h: int, w: int, strength: float) -> np.ndarray:
     return _VIG[key]
 
 
-def premium(frame: np.ndarray, act: str) -> np.ndarray:
+def premium(frame: np.ndarray, act: str, lift: float = 0.012) -> np.ndarray:
     """The look, one LUT and one multiply."""
-    table = lut(act)                      # (256, 3)
+    table = lut(act, lift)                # (256, 3)
     out = np.empty(frame.shape, dtype=np.uint8)
     for c in range(3):
         out[..., c] = table[:, c][frame[..., c]]
@@ -192,3 +200,25 @@ def premium(frame: np.ndarray, act: str) -> np.ndarray:
     # the error is under one code value, which is below the grain anyway.
     out = ((out.astype(np.uint16) * vig) >> 8).astype(np.uint8)
     return out
+
+
+# ---------------------------------------------------------------------------
+# how much a pack needs lifting
+# ---------------------------------------------------------------------------
+def lift_for(median_luma: float) -> float:
+    """The curve toe a pack needs, from its own median luma.
+
+    A correctly exposed pack sits around 90-110 of 255 and needs the default
+    toe. The Ghost montage has a median of **16-20**, which is not a look, it is
+    an underexposure: the standard grade was taking it DOWN to 14 and the
+    shadow detail went with it. The lift is deliberately capped — this opens
+    the shadows and keeps the blacks black, it does not pretend the scene was
+    lit.
+
+    Calibrated so that a median of 20 lands near a toe of 0.06, which is the
+    most that can be lifted before night starts reading as grey.
+    """
+    m = max(1.0, float(median_luma))
+    # 0 below ~75, rising to the cap as the pack gets darker
+    need = max(0.0, (75.0 - m) / 75.0)
+    return round(min(0.065, 0.065 * need), 4)
