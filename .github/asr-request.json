@@ -1,12 +1,12 @@
 {
  "items": [
   {
-   "audio": "work/ref_remap.mp3",
+   "audio": "footage/ghost/track.mp3",
    "language": "en",
    "start": 0.0,
-   "end": 182.0,
-   "out": "work/asr_remap.json"
+   "end": 50.9,
+   "out": "work/asr_ghost.json"
   }
  ],
- "run": 1792828515
+ "run": 1793010676
 }
