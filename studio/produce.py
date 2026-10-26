@@ -361,6 +361,7 @@ def main(argv=None):
         print(f"captions: {len(cards)} cards from {src_desc} -> {script_path}")
 
         name = a.direction or a.brief
+        local_fill, exhale_shot, settle = False, None, False
         if name in director.DIRECTIONS:
             direction = director.DIRECTIONS[name]
             tail_pool = director.TAILS.get(name)
@@ -369,9 +370,20 @@ def main(argv=None):
             # LINE_DIRECTION is what made a 451s pack yield 17 of its 100 shots:
             # that table belongs to one video and names no shot above 35.
             # Build the pools from the pack itself so the edit uses all of it.
-            n_lines = len({c["line"] for c in cards}) or 1
-            direction = director.pack_direction(src, n_lines)
-            tail_pool = director.pack_fill(src)
+            # line texts, in order, so a repeated hook can be found
+            by_line: dict[int, list[str]] = {}
+            for c in cards:
+                by_line.setdefault(c["line"], []).append(c.get("text", ""))
+            line_texts = [" ".join(by_line[k]).strip() for k in sorted(by_line)]
+            n_lines = len(line_texts) or 1
+            direction = director.pack_direction(src, line_texts)
+            # breaths stay where the walk is, and the edit ends on the pack's
+            # own last image rather than shot 34 of another video
+            local_fill = settle = True
+            held = direction[max(direction)]["shots"][0]
+            exhale_shot = director.pack_exhale(src, exclude=held)
+            tail_pool = director.pack_fill(src, at="end",
+                                           exclude=exhale_shot[0])
             print(f"direction: none for {name!r} — pools built from the pack "
                   f"({n_lines} lines over {len(src.shots)} shots)")
         segs = director.segments_for(grid, src, cards, a.end, a.start, direction,
@@ -379,7 +391,10 @@ def main(argv=None):
                                      tail_pool,
                                      behaviour=a.behaviour,
                                      word_pool=director.WORD_POOLS.get(name),
-                                     max_cuts=1 if a.style == "reference2" else None)
+                                     max_cuts=1 if a.style == "reference2" else None,
+                                     local_fill=local_fill,
+                                     exhale_shot=exhale_shot,
+                                     settle=settle)
         plan = build_directed_plan(grid, src, segs, a.start)
     else:
         plan = build_plan(grid, src, a.start, a.end, a.seed)

@@ -218,36 +218,70 @@ LINE_DIRECTION_ZAALIMA: dict[int, dict] = {
     14: dict(shots=(101, 84, 85), div=1.4, ramp="settle", note="angdaai — the last word"),
 }
 
-def pack_direction(source, n_lines: int, per_line: int = 4) -> dict:
+def pack_direction(source, lines, per_line: int = 4) -> dict:
     """A per-line shot pool built from the PACK, for a lyric we have no table for.
 
     `LINE_DIRECTION` and its siblings are hand-written: each line of one
-    particular lyric mapped to shot indices that were chosen by watching one
-    particular pack. Handing that table a different video is what produced the
-    worst defect in the Ghost cut — lines with no entry inherited the previous
-    line's pool (`direction.get(line, last_dir)`), every gap was filled from
+    particular lyric mapped to shot indices chosen by watching one particular
+    pack. Handing that table a different video produced the worst defect in the
+    Ghost cut — lines with no entry inherited the previous line's pool
+    (`direction.get(line, last_dir)`), every gap was filled from
     `FILL = (31, 27, 26, 35)`, and the table never names a shot above 35. On a
-    451-second pack that meant the edit drew on 17 of 100 shots, never touched
-    the last four and a half minutes, and repeated four shots for fifty seconds.
+    451-second pack that drew on 17 of 100 shots, never touched the last four
+    and a half minutes, and repeated four shots for fifty seconds.
 
     So: divide the pack into one band of shots per line, in source order, and
     give each line its own band. The edit then walks the whole video from the
-    first bar to the last, which is also how a montage cut to a song behaves —
-    early lines look like the beginning, the last line looks like the end.
+    first bar to the last, which is how a montage cut to a song behaves — early
+    lines look like the beginning, the last line looks like the end.
 
-    Bands are ordered by source time and the longest shots in a band are
-    preferred, because a line usually needs to hold.
+    A line the song keeps coming back to — a hook — is the one place a band is
+    not enough. The spine of "Ghost" is "I miss you more than life", sung three
+    times; bands put it in three different slices of the pack, but those three
+    slices are all the same scene, so the second and third readings came out as
+    the same kind of picture and the line stopped escalating. The last
+    occurrence therefore gets ONE shot, the final image of the pack, held for
+    the whole line: the hook lands on an empty wide instead of another close-up.
+    `cuts=1` is what makes it a hold rather than a subdivision.
+
+    `lines` is either the list of timed lyric lines (repeat detection) or a
+    plain count.
     """
     shots = sorted(source.shots, key=lambda sh: sh.src_in)
     n = len(shots)
     if n == 0:
         return {}
+    texts = list(lines) if not isinstance(lines, int) else []
+    n_lines = len(texts) or max(1, int(lines))
+    seen: dict[str, int] = {}
+    for t in texts:
+        seen[t.strip().lower()] = seen.get(t.strip().lower(), 0) + 1
+    last_of = {}
+    for k, t in enumerate(texts):
+        if seen[t.strip().lower()] > 1:
+            last_of[t.strip().lower()] = k
+
     out: dict = {}
     for line in range(n_lines):
         lo = int(round(line * n / n_lines))
         hi = int(round((line + 1) * n / n_lines))
         band = shots[lo:hi] or shots[max(0, lo - 1):lo + 1] or shots
-        # longest first, but keep the source order stable inside a band
+        key = texts[line].strip().lower() if line < len(texts) else ""
+        if key and last_of.get(key) == line:
+            # The hook, last time: one held image from the END of the pack.
+            # Not literally the last shot — a pack's final shot is often a
+            # 3-frame sliver, and a hold on it becomes a freeze frame (the
+            # planner slows the 0.03s it has until it fills the line). Walk back
+            # from the end and take the first shot that can carry a line: on a
+            # scenepack that is the wide the whole thing has been building to.
+            # Picking "longest in the last third" instead landed on an 8.7s
+            # murk two shots earlier and the beat read as darkness, not loss.
+            can_hold = [sh for sh in band if sh.dur >= HOLD_MIN]
+            hold = can_hold[-1] if can_hold else max(band, key=lambda sh: sh.dur)
+            out[line] = dict(shots=(hold.index,), div=0.5, cuts=1,
+                            note=f"hook, last time — held {hold.dur:.1f}s "
+                                 f"from {hold.src_in:.0f}s")
+            continue
         picks = sorted(band, key=lambda sh: -sh.dur)[:per_line]
         pool = tuple(sh.index for sh in sorted(picks, key=lambda sh: sh.src_in))
         out[line] = dict(shots=pool, div=1.0,
@@ -255,13 +289,38 @@ def pack_direction(source, n_lines: int, per_line: int = 4) -> dict:
     return out
 
 
-def pack_fill(source, n: int = 6) -> tuple[int, ...]:
-    """A bridge pool from the whole pack, not four shots of one scene."""
+def pack_fill(source, n: int = 6, at: str = "any",
+              exclude: int | None = None) -> tuple[int, ...]:
+    """A bridge pool from the pack, not four shots of one scene.
+
+    `at="end"` keeps the closing breaths in the closing footage: an edit that
+    walks 0 -> 451s must not cut back to src 1s for its outro.
+    """
     shots = sorted(source.shots, key=lambda sh: sh.src_in)
     if not shots:
         return FILL
+    if at == "end":
+        tail = [sh for sh in shots[-max(1, len(shots) // 8):]
+                if sh.index != exclude]
+        best = sorted(tail, key=lambda sh: -sh.dur)[:n]
+        return tuple(sh.index for sh in best) or FILL
     step = max(1, len(shots) // n)
     return tuple(shots[i].index for i in range(0, len(shots), step))[:n] or FILL
+
+
+def pack_exhale(source, exclude: int | None = None) -> tuple[int, float]:
+    """The closing breath: a long shot from the end, never the held one."""
+    shots = sorted(source.shots, key=lambda sh: sh.src_in)
+    if not shots:
+        return 34, 143.40
+    tail = [sh for sh in shots[-max(1, len(shots) // 8):] if sh.index != exclude]
+    # The closing image is the one the viewer is left with, so pick the one that
+    # can be seen: a long shot if it is legible, otherwise the brightest. The
+    # Ghost pack ends in a dark battle and the longest shot there is the darkest.
+    readable = [sh for sh in tail if float(getattr(sh, "bright", 0) or 0) >= 18.0]
+    pick = max(readable or tail or shots,
+               key=lambda sh: (float(getattr(sh, "bright", 0) or 0), sh.dur))
+    return pick.index, pick.src_in + 0.25
 
 
 DIRECTIONS = {"peter_gwen": LINE_DIRECTION,
@@ -275,6 +334,7 @@ BRIDGE = (31, 27, 26)
 BRIDGE_DIV = 0.5
 
 
+HOLD_MIN = 3.5              # a shot must be this long to hold a whole hook
 FILL = (31, 27, 26, 35)     # the couple, used to bridge an instrumental gap
 FILL_HOLD = 0.55            # seconds per cut in a bridge
 
@@ -456,7 +516,10 @@ def moments_from_words(cards: list[dict], bpm: float, duration: float,
 def moments_for(cards: list[dict], bpm: float, duration: float,
                 start: float = 0.0, direction: dict | None = None,
                 intro: list[Moment] | None = None,
-                tail_pool: tuple[int, ...] | None = None) -> list[Moment]:
+                tail_pool: tuple[int, ...] | None = None,
+                local_fill: bool = False,
+                exhale_shot: tuple[int, float] | None = None,
+                settle: bool = False) -> list[Moment]:
     """Cards + sung lines -> a directed timeline with NO holes in it.
 
     One cut per card, because the picture should change when the word does. Two
@@ -482,12 +545,20 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
 
     pool = tail_pool or FILL
 
-    def fill(a: float, b: float, why: str):
+    def fill(a: float, b: float, why: str, use=None):
+        # `use` is the local pool for a breath. Hand-rolled directions sample the
+        # whole pack here, which is right when the pack is one couple in one
+        # film: every shot is about the same thing. When the pools were generated
+        # from a long scenepack, a bridge drawn at random lands anywhere in 7:31
+        # and the edit stops walking — the Ghost cut dropped to shot 0 (src 1.2s)
+        # for two cuts straight after its climax. A generated direction therefore
+        # breathes from where the edit already is.
+        src_pool = use or pool
         n = max(1, round((b - a) / FILL_HOLD))
         step = (b - a) / n
         for k in range(n):
             out.append(Moment(a + k * step, a + (k + 1) * step,
-                              (pool[k % len(pool)],), 1.0, "drop",
+                              (src_pool[k % len(src_pool)],), 1.0, "drop",
                               note=why))
 
     # cards of one sung line, in order — the unit a direction is written for
@@ -514,7 +585,8 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
                     # silence — hold the previous shot through it.
                     out[-1].until = at
                 else:
-                    fill(prev_end, at, "instrumental — back to daylight")
+                    fill(prev_end, at, "instrumental — back to daylight",
+                         use=d["shots"] if local_fill else None)
 
         # A line marked `cuts` is ONE image however many cards it carries.
         # "You're the reason I believe in love" is four cards and one exhale;
@@ -546,14 +618,22 @@ def moments_for(cards: list[dict], bpm: float, duration: float,
         # A tail is a breath, not a twelfth shot. Anything longer than a couple
         # of seconds gets bridge cuts and THEN a short exhale, because a single
         # 26-second hold at quarter speed is not slow motion, it is a stuck file.
-        exhale = min(2.0, gap)
-        if gap - exhale > 0.6:
-            fill(prev_end, duration - exhale, "tail — bridge to the end")
+        # `settle` gives the whole remaining tail to that one image. Capping it
+        # at 2.0s left the Ghost outro needing a bridge of two more cuts after
+        # its climax, which walked the picture backwards a second at a time.
+        breath = gap if settle else min(2.0, gap)
+        # The exhale used to be shot 34 at 143.40s — a frame of one particular
+        # video, reached by every edit built from any pack. A generated direction
+        # brings its own final image instead.
+        ex_shot, ex_src = exhale_shot or (34, 143.40)
+        if gap - breath > 0.6:
+            fill(prev_end, duration - breath, "tail — bridge to the end",
+                 use=tail_pool if local_fill else None)
         # One hold, not a sub-divided one: cutting inside a 0.55x settle means
         # the source jumps backwards under a slow image, which reads as a
         # stutter. The exhalation is a single, uncut breath.
-        out.append(Moment(duration - exhale, duration, (34,), 1.0, "out",
-                          src=143.40, note="the exhale", cuts=1))
+        out.append(Moment(duration - breath, duration, (ex_shot,), 1.0, "out",
+                          src=ex_src, note="the exhale", cuts=1))
     out.sort(key=lambda m: m.at)
     return out
 
@@ -564,7 +644,10 @@ def segments_for(grid, source, cards: list[dict], duration: float,
                  tail_pool: tuple[int, ...] | None = None,
                  behaviour: str | None = None,
                  word_pool: tuple[int, ...] | None = None,
-                 max_cuts: int | None = None):
+                 max_cuts: int | None = None,
+                 local_fill: bool = False,
+                 exhale_shot: tuple[int, float] | None = None,
+                 settle: bool = False):
     """Moments -> concrete segments the planner can turn into cuts."""
     flat = []
     beh = BEHAVIOURS.get(behaviour or "lyric", BEHAVIOURS["lyric"])
@@ -576,7 +659,8 @@ def segments_for(grid, source, cards: list[dict], duration: float,
             tail_pool=tail_pool)
     else:
         moments = moments_for(cards, grid.bpm, duration, start, direction,
-                              intro, tail_pool)
+                              intro, tail_pool, local_fill=local_fill,
+                              exhale_shot=exhale_shot, settle=settle)
     word_cut = bool(behaviour and behaviour != "lyric")
     for m in moments:
         # A word-cut moment is already exactly one cut: re-subdividing it on the

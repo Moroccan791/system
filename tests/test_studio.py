@@ -1556,7 +1556,7 @@ def test_tempo_can_be_forced_without_losing_the_downbeat():
 # ---------------------------------------------------------------------------
 # a lyric with no hand-written direction must not borrow another video's
 # ---------------------------------------------------------------------------
-def _fake_source(n_shots=40, span=400.0):
+def _pack_source(n_shots=40, span=400.0):
     from studio.plan import Source
     from studio.shots import Shot
 
@@ -1576,8 +1576,8 @@ def test_pack_direction_covers_the_whole_video():
     """
     from studio import director
 
-    src = _fake_source()
-    d = director.pack_direction(src, n_lines=11)
+    src = _pack_source()
+    d = director.pack_direction(src, ["same"] * 11)
     assert len(d) == 11
     every = [n for entry in d.values() for n in entry["shots"]]
     # every line has its own pool, and the pools run across the whole source
@@ -1592,7 +1592,7 @@ def test_pack_direction_covers_the_whole_video():
 def test_pack_fill_is_not_four_shots_of_one_scene():
     from studio import director
 
-    src = _fake_source()
+    src = _pack_source()
     pool = director.pack_fill(src, 6)
     assert len(set(pool)) == len(pool) > 4
     assert max(pool) - min(pool) > 10       # spread, not a cluster
@@ -1609,3 +1609,35 @@ def test_the_brief_has_no_default():
     src = Path("studio/produce.py").read_text()
     assert 'ap.add_argument("--brief", default=None' in src
     assert 'default="peter_gwen"' not in src
+
+
+def test_the_hook_is_held_on_one_shot_the_last_time():
+    """'I miss you more than life' is sung three times and must not be set the
+    same way twice. Bands alone put it in three slices of the same scene; the
+    last occurrence holds one image instead."""
+    from studio import director
+
+    src = _pack_source()
+    lines = ["a", "b", "hook", "c", "hook", "d", "hook", "e"]
+    d = director.pack_direction(src, lines)
+    last = d[6]
+    assert last["cuts"] == 1                 # one cut, not a subdivision
+    assert len(last["shots"]) == 1           # one image, held
+    # and it is the end of the pack, not another close-up from the middle
+    assert last["shots"][0] >= 32, last
+    # the earlier singings are still ordinary bands
+    assert len(d[2]["shots"]) > 1
+
+
+def test_the_closing_breath_is_not_the_held_image():
+    """The last two cuts of the Ghost outro were the same shot: the tail bridge
+    picked the image the exhale then settled on."""
+    from studio import director
+
+    src = _pack_source()
+    _idx, _src_in = director.pack_exhale(src, exclude=38)
+    assert _idx != 38
+    pool = director.pack_fill(src, at="end", exclude=_idx)
+    assert _idx not in pool
+    # and an end pool really is from the end
+    assert min(pool) > 20, pool
