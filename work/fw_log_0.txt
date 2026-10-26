@@ -1,3 +1,3 @@
 Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
---- work/ref_remap.mp3 -> work/fw_remap.json: 541 words
-billion@0.0 it's@0.24 pretty@1.26 straightforward@1.42 so@1.96 let's@3.04 get@3.4 rid@3.52 of@3.66 this@3.82 so@4.0 you@4.34 want@4.52 to@4.62 press@4.7 ctrl@4.82 -alt@5.14 -t@5.44 on@5.78 the@6.14 when@6.38 you@6.78 highlight@6.9 clip@7.16 so@7.52 ctrl@7.84 -alt@8.1 -t@8.32 and@8.58 you@8.8 see@8.92 this@9.04 timer@9.26 map@9.5 opens@9.76 right@10.2 here@10.4 so@10.62 for@12.02 this@12.36
+--- footage/ghost/track.mp3 -> work/fw_ghost.json: 84 words
+I@0.78 miss@1.5 your@1.92 touch@2.22 on@2.54 nights@2.94 when@3.24 I'm@3.56 hollow@3.92 I@7.02 know@7.74 you@7.96 close@8.14 the@8.38 bridge@8.56 that@8.9 I@9.38 can't@9.68 follow@10.22 So@13.08 now@13.8 that@14.18 you're@14.44 left@14.76 is@15.02 all@15.32 that@15.58 I@15.78 get@15.94 I@16.96 want@17.32 you@17.66 to@18.0 know@18.36 that@19.08 if@19.74 I@20.18 can't@20.56 be@21.58 close@21.74

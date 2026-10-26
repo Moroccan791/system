@@ -1,0 +1,514 @@
+{
+ "audio": "footage/ghost/track.mp3",
+ "language": "en",
+ "start": 0.0,
+ "end": 50.9,
+ "duration": 50.9,
+ "text": "I miss your touch on nights when I'm hollow I know you close the bridge that I can't follow So now that you're left is all that I get I want you to know that if I can't be close to you I settle for the ghost of you I miss you more than life And if you'd be next to me Your memories ecstasy I miss you more than life I miss you more than life Young blood thinks there's always the moon",
+ "words": [
+  {
+   "w": "I",
+   "start": 0.78,
+   "end": 1.5,
+   "p": 0.081
+  },
+  {
+   "w": "miss",
+   "start": 1.5,
+   "end": 1.92,
+   "p": 0.424
+  },
+  {
+   "w": "your",
+   "start": 1.92,
+   "end": 2.22,
+   "p": 0.791
+  },
+  {
+   "w": "touch",
+   "start": 2.22,
+   "end": 2.54,
+   "p": 0.968
+  },
+  {
+   "w": "on",
+   "start": 2.54,
+   "end": 2.94,
+   "p": 0.08
+  },
+  {
+   "w": "nights",
+   "start": 2.94,
+   "end": 3.24,
+   "p": 0.851
+  },
+  {
+   "w": "when",
+   "start": 3.24,
+   "end": 3.56,
+   "p": 0.947
+  },
+  {
+   "w": "I'm",
+   "start": 3.56,
+   "end": 3.92,
+   "p": 0.909
+  },
+  {
+   "w": "hollow",
+   "start": 3.92,
+   "end": 4.38,
+   "p": 0.279
+  },
+  {
+   "w": "I",
+   "start": 7.02,
+   "end": 7.74,
+   "p": 0.607
+  },
+  {
+   "w": "know",
+   "start": 7.74,
+   "end": 7.96,
+   "p": 0.771
+  },
+  {
+   "w": "you",
+   "start": 7.96,
+   "end": 8.14,
+   "p": 0.731
+  },
+  {
+   "w": "close",
+   "start": 8.14,
+   "end": 8.38,
+   "p": 0.257
+  },
+  {
+   "w": "the",
+   "start": 8.38,
+   "end": 8.56,
+   "p": 0.908
+  },
+  {
+   "w": "bridge",
+   "start": 8.56,
+   "end": 8.9,
+   "p": 0.708
+  },
+  {
+   "w": "that",
+   "start": 8.9,
+   "end": 9.38,
+   "p": 0.958
+  },
+  {
+   "w": "I",
+   "start": 9.38,
+   "end": 9.68,
+   "p": 0.987
+  },
+  {
+   "w": "can't",
+   "start": 9.68,
+   "end": 10.22,
+   "p": 0.934
+  },
+  {
+   "w": "follow",
+   "start": 10.22,
+   "end": 10.72,
+   "p": 0.988
+  },
+  {
+   "w": "So",
+   "start": 13.08,
+   "end": 13.8,
+   "p": 0.158
+  },
+  {
+   "w": "now",
+   "start": 13.8,
+   "end": 14.18,
+   "p": 0.061
+  },
+  {
+   "w": "that",
+   "start": 14.18,
+   "end": 14.44,
+   "p": 0.941
+  },
+  {
+   "w": "you're",
+   "start": 14.44,
+   "end": 14.76,
+   "p": 0.709
+  },
+  {
+   "w": "left",
+   "start": 14.76,
+   "end": 15.02,
+   "p": 0.938
+  },
+  {
+   "w": "is",
+   "start": 15.02,
+   "end": 15.32,
+   "p": 0.488
+  },
+  {
+   "w": "all",
+   "start": 15.32,
+   "end": 15.58,
+   "p": 0.998
+  },
+  {
+   "w": "that",
+   "start": 15.58,
+   "end": 15.78,
+   "p": 0.731
+  },
+  {
+   "w": "I",
+   "start": 15.78,
+   "end": 15.94,
+   "p": 0.988
+  },
+  {
+   "w": "get",
+   "start": 15.94,
+   "end": 16.3,
+   "p": 0.945
+  },
+  {
+   "w": "I",
+   "start": 16.96,
+   "end": 17.32,
+   "p": 0.951
+  },
+  {
+   "w": "want",
+   "start": 17.32,
+   "end": 17.66,
+   "p": 0.994
+  },
+  {
+   "w": "you",
+   "start": 17.66,
+   "end": 18.0,
+   "p": 0.99
+  },
+  {
+   "w": "to",
+   "start": 18.0,
+   "end": 18.36,
+   "p": 0.996
+  },
+  {
+   "w": "know",
+   "start": 18.36,
+   "end": 19.08,
+   "p": 0.999
+  },
+  {
+   "w": "that",
+   "start": 19.08,
+   "end": 19.74,
+   "p": 0.917
+  },
+  {
+   "w": "if",
+   "start": 19.74,
+   "end": 20.18,
+   "p": 0.878
+  },
+  {
+   "w": "I",
+   "start": 20.18,
+   "end": 20.56,
+   "p": 0.969
+  },
+  {
+   "w": "can't",
+   "start": 20.56,
+   "end": 21.58,
+   "p": 0.988
+  },
+  {
+   "w": "be",
+   "start": 21.58,
+   "end": 21.74,
+   "p": 0.993
+  },
+  {
+   "w": "close",
+   "start": 21.74,
+   "end": 22.56,
+   "p": 0.996
+  },
+  {
+   "w": "to",
+   "start": 22.56,
+   "end": 23.16,
+   "p": 0.994
+  },
+  {
+   "w": "you",
+   "start": 23.16,
+   "end": 23.56,
+   "p": 0.991
+  },
+  {
+   "w": "I",
+   "start": 23.56,
+   "end": 24.64,
+   "p": 0.914
+  },
+  {
+   "w": "settle",
+   "start": 24.64,
+   "end": 25.06,
+   "p": 0.908
+  },
+  {
+   "w": "for",
+   "start": 25.06,
+   "end": 25.4,
+   "p": 0.997
+  },
+  {
+   "w": "the",
+   "start": 25.4,
+   "end": 25.58,
+   "p": 0.997
+  },
+  {
+   "w": "ghost",
+   "start": 25.58,
+   "end": 26.16,
+   "p": 0.828
+  },
+  {
+   "w": "of",
+   "start": 26.16,
+   "end": 26.46,
+   "p": 0.936
+  },
+  {
+   "w": "you",
+   "start": 26.46,
+   "end": 26.92,
+   "p": 0.996
+  },
+  {
+   "w": "I",
+   "start": 26.92,
+   "end": 28.0,
+   "p": 0.498
+  },
+  {
+   "w": "miss",
+   "start": 28.0,
+   "end": 28.48,
+   "p": 0.894
+  },
+  {
+   "w": "you",
+   "start": 28.48,
+   "end": 28.78,
+   "p": 0.984
+  },
+  {
+   "w": "more",
+   "start": 28.78,
+   "end": 29.4,
+   "p": 0.985
+  },
+  {
+   "w": "than",
+   "start": 29.4,
+   "end": 29.96,
+   "p": 0.959
+  },
+  {
+   "w": "life",
+   "start": 29.96,
+   "end": 30.76,
+   "p": 0.961
+  },
+  {
+   "w": "And",
+   "start": 31.92,
+   "end": 33.0,
+   "p": 0.522
+  },
+  {
+   "w": "if",
+   "start": 33.0,
+   "end": 33.52,
+   "p": 0.986
+  },
+  {
+   "w": "you'd",
+   "start": 33.52,
+   "end": 34.08,
+   "p": 0.377
+  },
+  {
+   "w": "be",
+   "start": 34.08,
+   "end": 35.04,
+   "p": 0.697
+  },
+  {
+   "w": "next",
+   "start": 35.04,
+   "end": 36.04,
+   "p": 0.914
+  },
+  {
+   "w": "to",
+   "start": 36.04,
+   "end": 36.52,
+   "p": 0.996
+  },
+  {
+   "w": "me",
+   "start": 36.52,
+   "end": 37.06,
+   "p": 0.999
+  },
+  {
+   "w": "Your",
+   "start": 37.06,
+   "end": 37.94,
+   "p": 0.687
+  },
+  {
+   "w": "memories",
+   "start": 37.94,
+   "end": 38.62,
+   "p": 0.827
+  },
+  {
+   "w": "ecstasy",
+   "start": 38.62,
+   "end": 39.88,
+   "p": 0.789
+  },
+  {
+   "w": "I",
+   "start": 39.88,
+   "end": 41.32,
+   "p": 0.959
+  },
+  {
+   "w": "miss",
+   "start": 41.32,
+   "end": 41.84,
+   "p": 0.974
+  },
+  {
+   "w": "you",
+   "start": 41.84,
+   "end": 42.14,
+   "p": 0.998
+  },
+  {
+   "w": "more",
+   "start": 42.14,
+   "end": 42.82,
+   "p": 0.997
+  },
+  {
+   "w": "than",
+   "start": 42.82,
+   "end": 43.34,
+   "p": 0.99
+  },
+  {
+   "w": "life",
+   "start": 43.34,
+   "end": 44.04,
+   "p": 0.992
+  },
+  {
+   "w": "I",
+   "start": 44.04,
+   "end": 44.62,
+   "p": 0.91
+  },
+  {
+   "w": "miss",
+   "start": 44.62,
+   "end": 45.2,
+   "p": 0.991
+  },
+  {
+   "w": "you",
+   "start": 45.2,
+   "end": 45.62,
+   "p": 0.998
+  },
+  {
+   "w": "more",
+   "start": 45.62,
+   "end": 46.16,
+   "p": 0.999
+  },
+  {
+   "w": "than",
+   "start": 46.16,
+   "end": 46.62,
+   "p": 0.993
+  },
+  {
+   "w": "life",
+   "start": 46.62,
+   "end": 47.34,
+   "p": 0.989
+  },
+  {
+   "w": "Young",
+   "start": 47.34,
+   "end": 47.72,
+   "p": 0.847
+  },
+  {
+   "w": "blood",
+   "start": 47.72,
+   "end": 48.02,
+   "p": 0.693
+  },
+  {
+   "w": "thinks",
+   "start": 48.02,
+   "end": 48.46,
+   "p": 0.522
+  },
+  {
+   "w": "there's",
+   "start": 48.46,
+   "end": 48.92,
+   "p": 0.942
+  },
+  {
+   "w": "always",
+   "start": 48.92,
+   "end": 49.5,
+   "p": 0.994
+  },
+  {
+   "w": "the",
+   "start": 49.5,
+   "end": 49.86,
+   "p": 0.475
+  },
+  {
+   "w": "moon",
+   "start": 49.86,
+   "end": 50.16,
+   "p": 0.649
+  }
+ ]
+}
